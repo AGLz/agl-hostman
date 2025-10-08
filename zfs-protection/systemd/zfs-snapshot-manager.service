@@ -1,0 +1,43 @@
+[Unit]
+Description=ZFS Snapshot Manager
+Documentation=file:///opt/zfs-protection/docs/
+After=zfs-import.target zfs-mount.service
+Wants=zfs-import.target
+PartOf=zfs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/zfs-protection/scripts/zfs-backup.sh --daily
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zfs-snapshot-manager
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Security settings
+NoNewPrivileges=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+# Resource limits
+MemoryLimit=1G
+CPUQuota=50%
+TasksMax=100
+
+# Timeout settings
+TimeoutStartSec=7200  # 2 hours for backup operations
+TimeoutStopSec=300
+
+# File system access
+ReadWritePaths=/var/log/zfs-protection /var/run /tmp
+ReadOnlyPaths=/etc/zfs-protection /opt/zfs-protection
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

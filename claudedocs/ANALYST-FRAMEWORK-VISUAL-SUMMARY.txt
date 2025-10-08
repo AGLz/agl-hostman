@@ -1,0 +1,279 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║          DISK FAILURE DIAGNOSTIC FRAMEWORK - VISUAL SUMMARY             ║
+║                      Proxmox Host 100.98.119.51                          ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        FRAMEWORK COMPONENTS                             │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  1️⃣  ERROR CLASSIFICATION SYSTEM (5 Tiers)
+  ────────────────────────────────────────────────────────────────────
+  │
+  ├── Tier 1: I/O Errors (Hardware Level)
+  │   ├─ Read/Write failures
+  │   ├─ Timeout errors
+  │   └─ DMA errors
+  │
+  ├── Tier 2: SMART Failures (Predictive)
+  │   ├─ Reallocated sectors
+  │   ├─ Pending sectors
+  │   └─ Temperature warnings
+  │
+  ├── Tier 3: ZFS Corruption (Data Integrity)
+  │   ├─ Checksum errors
+  │   ├─ Metadata corruption
+  │   └─ Pool degradation
+  │
+  ├── Tier 4: Filesystem Errors (Logical)
+  │   ├─ Superblock corruption
+  │   ├─ Inode errors
+  │   └─ Journal failures
+  │
+  └── Tier 5: Controller/Interface Errors
+      ├─ PCIe link errors
+      ├─ SATA/SAS timeouts
+      └─ NVMe controller issues
+
+
+  2️⃣  RISK SCORING METHODOLOGY (0-100 Scale)
+  ────────────────────────────────────────────────────────────────────
+  
+  Risk = (Hardware × 0.4) + (Integrity × 0.3) + (Redundancy × 0.2) + (Age × 0.1)
+
+  ┌──────────────┬────────────┬──────────────┬─────────────────────┐
+  │ Risk Range   │ Level      │ Timeline     │ Action              │
+  ├──────────────┼────────────┼──────────────┼─────────────────────┤
+  │   0-20       │ Minimal    │ 30-90 days   │ Monitor only        │
+  │  21-40       │ Low        │ 7-30 days    │ Plan replacement    │
+  │  41-60       │ Moderate   │ 24-48 hours  │ Schedule maint      │
+  │  61-80       │ High       │ 2-6 hours    │ Urgent intervention │
+  │  81-100      │ Critical   │ 0-2 hours    │ EMERGENCY           │
+  └──────────────┴────────────┴──────────────┴─────────────────────┘
+
+
+  3️⃣  DECISION MATRIX: Recovery vs Replacement
+  ────────────────────────────────────────────────────────────────────
+
+  ✅ ATTEMPT RECOVERY IF:              ❌ REPLACE IMMEDIATELY IF:
+  ────────────────────────────         ──────────────────────────────
+  • Error count < 10/24h               • Reallocated sectors > 10
+  • SMART within range                 • Pending sectors > 5
+  • No physical damage                 • Uncorrectable > 0
+  • System stable                      • Physical damage present
+  • Redundancy exists                  • Multiple I/O errors/hour
+                                       • No redundancy + critical data
+
+
+  4️⃣  DIAGNOSTIC COMMAND SEQUENCE (6 Phases)
+  ────────────────────────────────────────────────────────────────────
+
+  Phase 1: Initial Assessment          ⏱️  2-5 minutes
+  ├─ System status check
+  ├─ Block device overview
+  ├─ ZFS pool quick status
+  └─ Recent kernel errors
+
+  Phase 2: Hardware Diagnostics        ⏱️  5-10 minutes
+  ├─ SMART health assessment
+  ├─ I/O statistics analysis
+  ├─ Controller health check
+  └─ Temperature monitoring
+
+  Phase 3: ZFS Integrity Analysis      ⏱️  10-15 minutes
+  ├─ Detailed pool status
+  ├─ Error counter analysis
+  ├─ Event log review
+  └─ Scrub history
+
+  Phase 4: Performance Assessment      ⏱️  5-10 minutes
+  ├─ I/O load measurement
+  ├─ Latency analysis
+  ├─ VM/Container impact
+  └─ Bottleneck identification
+
+  Phase 5: Data Loss Risk             ⏱️  5 minutes
+  ├─ Redundancy verification
+  ├─ Critical workload ID
+  ├─ Backup status check
+  └─ Snapshot inventory
+
+  Phase 6: Comprehensive Report        ⏱️  2-3 minutes
+  ├─ Executive summary
+  ├─ Risk score calculation
+  ├─ Action recommendations
+  └─ Report generation
+
+  ⏱️  TOTAL DIAGNOSTIC TIME: 29-48 minutes
+
+
+  5️⃣  HEALTH MONITORING DASHBOARD
+  ────────────────────────────────────────────────────────────────────
+
+  ┌────────────────────────────────────────────────────────────────┐
+  │  REAL-TIME MONITORING DASHBOARD                                │
+  ├────────────────────────────────────────────────────────────────┤
+  │                                                                │
+  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
+  │  │  HARDWARE   │  │  ZFS POOLS  │  │ PERFORMANCE │           │
+  │  │   HEALTH    │  │   STATUS    │  │   METRICS   │           │
+  │  ├─────────────┤  ├─────────────┤  ├─────────────┤           │
+  │  │ • SMART     │  │ • Health    │  │ • IOPS      │           │
+  │  │ • Temp      │  │ • Scrub     │  │ • Latency   │           │
+  │  │ • I/O Err   │  │ • Errors    │  │ • Throughput│           │
+  │  └─────────────┘  └─────────────┘  └─────────────┘           │
+  │                                                                │
+  │  ┌──────────────────────────────────────────────────────────┐ │
+  │  │  🔴 Critical (0)  🟡 Warning (2)  🟢 Healthy (12)        │ │
+  │  └──────────────────────────────────────────────────────────┘ │
+  └────────────────────────────────────────────────────────────────┘
+
+  Monitoring Intervals:
+  ├─ SMART checks: Every 5 minutes
+  ├─ ZFS events: Real-time
+  ├─ Temperature: Every 2 minutes
+  └─ I/O stats: Continuous
+
+  Alert Channels:
+  ├─ Email: admin@example.com
+  ├─ Webhook: Slack/Teams
+  └─ Syslog: Central logging
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         QUICK START GUIDE                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  STEP 1: Run Diagnostic
+  ───────────────────────────────────────────────────────────────────
+  ssh root@100.98.119.51 "/root/host-admin/disk-diagnostic-suite.sh"
+
+  STEP 2: Review Risk Score
+  ───────────────────────────────────────────────────────────────────
+  # Risk score appears in Phase 6 output
+  # 0-20 = Monitor | 21-40 = Plan | 41-60 = Schedule | 61+ = Urgent
+
+  STEP 3: Follow Action Plan
+  ───────────────────────────────────────────────────────────────────
+  # Actions listed in priority order in Phase 6 report
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       EMERGENCY PROCEDURES                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  🚨 CRITICAL FAILURE DETECTED (Risk > 80)
+  ───────────────────────────────────────────────────────────────────
+
+  IMMEDIATE (0-30 min):
+  ├─ 1. Create emergency snapshots:
+  │     for p in $(zpool list -H -o name); do
+  │       zfs snapshot -r ${p}@emergency-$(date +%Y%m%d-%H%M%S)
+  │     done
+  │
+  ├─ 2. Stop non-critical VMs
+  ├─ 3. Reduce I/O load
+  └─ 4. Alert team
+
+  URGENT (30-120 min):
+  ├─ 5. Backup critical data
+  ├─ 6. Order replacement hardware
+  ├─ 7. Test backup integrity
+  └─ 8. Prepare recovery plan
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       KEY METRICS & THRESHOLDS                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  SMART Attributes (Critical Thresholds):
+  ┌───────────────────────────┬─────────┬──────────┬──────────────┐
+  │ Attribute                 │ Warning │ Critical │ Action       │
+  ├───────────────────────────┼─────────┼──────────┼──────────────┤
+  │ Reallocated Sectors       │   > 0   │   > 10   │ Replace      │
+  │ Current Pending Sectors   │   > 0   │   > 5    │ Immediate    │
+  │ Offline Uncorrectable     │   > 0   │   > 0    │ CRITICAL     │
+  │ Temperature (°C)          │  > 55   │   > 65   │ Cooling      │
+  │ UDMA CRC Errors           │  > 100  │  > 1000  │ Cable check  │
+  └───────────────────────────┴─────────┴──────────┴──────────────┘
+
+  ZFS Pool States:
+  ┌──────────┬─────────────────────────────────────────────────────┐
+  │ ONLINE   │ ✅ Healthy - No action required                     │
+  │ DEGRADED │ 🟡 Warning - Can lose 1 more disk (mirror/raidz1)  │
+  │ FAULTED  │ 🔴 Critical - Data loss risk, immediate action     │
+  │ UNAVAIL  │ 🔴 Critical - Pool offline, emergency recovery     │
+  └──────────┴─────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FILE LOCATIONS                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  📁 Framework Documentation:
+  /root/host-admin/claudedocs/disk-failure-diagnostic-framework.md
+
+  📁 Quick Reference:
+  /root/host-admin/claudedocs/disk-diagnostic-quick-reference.md
+
+  📁 Diagnostic Tool:
+  /root/host-admin/disk-diagnostic-suite.sh
+
+  📁 Deliverable Summary:
+  /root/host-admin/claudedocs/ANALYST-DELIVERABLE-SUMMARY.md
+
+  📁 Reports Output:
+  /var/log/disk-diagnostics/diagnostic-report-*.txt
+
+  📁 Monitoring Logs:
+  /var/log/disk-health-alerts.log
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      SUCCESS METRICS (6-Month)                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  ✅ Zero unplanned downtime from disk failures
+  ✅ 100% of failures detected >24h in advance
+  ✅ <30min average diagnostic time
+  ✅ >90% team adoption of framework
+  ✅ 50% reduction in escalations
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         COMMON SCENARIOS                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  Scenario 1: Reallocated Sectors Detected
+  ─────────────────────────────────────────────────────────────────
+  Risk: 25-35 (LOW) | Timeline: 7-30 days
+  Action: Monitor daily → Order replacement → Schedule maintenance
+
+  Scenario 2: ZFS Pool Degraded (1 disk failed)
+  ─────────────────────────────────────────────────────────────────
+  Risk: 50-60 (MODERATE) | Timeline: 24-48 hours
+  Action: Emergency snapshot → Replace disk → Monitor resilver
+
+  Scenario 3: Multiple Disk Failures (FAULTED pool)
+  ─────────────────────────────────────────────────────────────────
+  Risk: 90+ (CRITICAL) | Timeline: 0-2 hours
+  Action: Read-only import → Data extraction → System rebuild
+
+  Scenario 4: Performance Degradation
+  ─────────────────────────────────────────────────────────────────
+  Risk: 30-70 (Variable) | Timeline: 6-48 hours
+  Action: Run Phase 4 → Identify bottleneck → Targeted remediation
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║                    FRAMEWORK READY FOR DEPLOYMENT                       ║
+║                                                                          ║
+║  Agent: ANALYST                                                          ║
+║  Status: ✅ COMPLETE                                                     ║
+║  Version: 1.0                                                            ║
+║  Date: 2025-10-04                                                        ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,13 @@
+[Unit]
+Description=ZFS Scrub Scheduler Timer
+Documentation=file:///opt/zfs-protection/docs/
+Requires=zfs-scrub-scheduler.service
+
+[Timer]
+# Run every Sunday at 2:00 AM (adjust based on scrub-config.conf)
+OnCalendar=Sun *-*-* 02:00:00
+Persistent=true
+RandomizedDelaySec=1800
+
+[Install]
+WantedBy=timers.target

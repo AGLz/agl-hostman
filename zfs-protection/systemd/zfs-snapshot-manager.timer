@@ -1,0 +1,13 @@
+[Unit]
+Description=ZFS Snapshot Manager Timer
+Documentation=file:///opt/zfs-protection/docs/
+Requires=zfs-snapshot-manager.service
+
+[Timer]
+# Run daily at 1:00 AM for daily snapshots
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=900
+
+[Install]
+WantedBy=timers.target

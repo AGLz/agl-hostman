@@ -1,0 +1,44 @@
+[Unit]
+Description=ZFS Health Monitor
+Documentation=file:///opt/zfs-protection/docs/
+After=zfs-import.target zfs-mount.service
+Wants=zfs-import.target
+PartOf=zfs.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/zfs-protection/scripts/zfs-health-monitor.sh
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zfs-health-monitor
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Security settings
+NoNewPrivileges=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=50%
+TasksMax=100
+
+# File system access
+ReadWritePaths=/var/log/zfs-protection /tmp
+ReadOnlyPaths=/etc/zfs-protection /opt/zfs-protection
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+Also=zfs-scrub-scheduler.timer zfs-snapshot-manager.timer
