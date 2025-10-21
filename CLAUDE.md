@@ -1,0 +1,929 @@
+# Claude Code Configuration - SPARC Development Environment
+
+## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+
+**ABSOLUTE RULES**:
+1. ALL operations MUST be concurrent/parallel in a single message
+2. **NEVER save working files, text/mds and tests to the root folder**
+3. ALWAYS organize files in appropriate subdirectories
+4. **ALWAYS use Task tool with subagents for complex operations** - NEVER execute complex tasks directly
+
+### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+
+**MANDATORY PATTERNS:**
+- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
+- **Task tool**: ALWAYS spawn ALL agents in ONE message with full instructions
+- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
+- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
+- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
+- **Parallelism & Subagents**: ALWAYS use parallelism and spawn subagents whenever necessary and/or possible to maximize efficiency and performance
+
+### 📁 File Organization Rules
+
+**NEVER save to root folder. Use these directories:**
+- `/src` - Source code files
+- `/tests` - Test files
+- `/docs` - Documentation and markdown files
+- `/config` - Configuration files
+- `/scripts` - Utility scripts
+- `/examples` - Example code
+
+### 🤖 MANDATORY SUBAGENT USAGE
+
+**CRITICAL: ALWAYS delegate to specialized subagents using the Task tool**
+
+**When to use subagents** (ALWAYS, not optional):
+- Code analysis and exploration (use `Explore` agent)
+- Research and information gathering (use `researcher` agent)
+- Code implementation (use `coder` or `sparc-coder` agent)
+- Testing (use `tester` or `tdd-london-swarm` agent)
+- Code review (use `code-reviewer` or `reviewer` agent)
+- Architecture design (use `architect` or `system-architect` agent)
+- Performance analysis (use `perf-analyzer` agent)
+- Documentation (use appropriate specialized agent)
+
+**How to use subagents**:
+```javascript
+// ✅ CORRECT - Delegate to subagent
+Task({
+  subagent_type: "Explore",
+  description: "Find error handling code",
+  prompt: "Search the codebase for error handling patterns and document all locations where client errors are caught and processed"
+})
+
+// ❌ WRONG - Direct execution
+Grep("pattern: error", "path: .")
+Read("file.ts")
+// Manual analysis...
+```
+
+**Benefits**:
+- 🎯 Specialized expertise for each task type
+- ⚡ Parallel execution (spawn multiple agents concurrently)
+- 💾 Reduced token usage (agents work in isolation)
+- 📊 Better context management
+- 🔄 Reusable agent patterns
+
+**Remember**: If you're tempted to do complex work directly, STOP and spawn a subagent instead.
+
+## Project Overview
+
+This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
+
+## SPARC Commands
+
+### Core Commands
+- `npx claude-flow sparc modes` - List available modes
+- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
+- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
+- `npx claude-flow sparc info <mode>` - Get mode details
+
+### Batchtools Commands
+- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
+- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
+- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
+
+### Build Commands
+- `npm run build` - Build project
+- `npm run test` - Run tests
+- `npm run lint` - Linting
+- `npm run typecheck` - Type checking
+
+## SPARC Workflow Phases
+
+1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
+2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
+3. **Architecture** - System design (`sparc run architect`)
+4. **Refinement** - TDD implementation (`sparc tdd`)
+5. **Completion** - Integration (`sparc run integration`)
+
+## Code Style & Best Practices
+
+- **Modular Design**: Files under 500 lines
+- **Environment Safety**: Never hardcode secrets
+- **Test-First**: Write tests before implementation
+- **Clean Architecture**: Separate concerns
+- **Documentation**: Keep updated
+
+## 🚀 Available Agents (54 Total)
+
+### Core Development
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
+
+### Swarm Coordination
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
+
+### Consensus & Distributed
+`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
+
+### Performance & Optimization
+`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
+
+### GitHub & Repository
+`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
+
+### SPARC Methodology
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
+
+### Specialized Development
+`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
+
+### Testing & Validation
+`tdd-london-swarm`, `production-validator`
+
+### Migration & Planning
+`migration-planner`, `swarm-init`
+
+## 🎯 Claude Code vs MCP Tools
+
+### Claude Code Handles ALL:
+- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
+- Code generation and programming
+- Bash commands and system operations
+- Implementation work
+- Project navigation and analysis
+- TodoWrite and task management
+- Git operations
+- Package management
+- Testing and debugging
+
+### MCP Tools ONLY:
+- Coordination and planning
+- Memory management
+- Neural features
+- Performance tracking
+- Swarm orchestration
+- GitHub integration
+
+**KEY**: MCP coordinates, Claude Code executes.
+
+## 🚀 Quick Setup
+
+```bash
+# Add Claude Flow MCP server
+claude mcp add claude-flow npx claude-flow@alpha mcp start
+```
+
+## MCP Tool Categories
+
+### Coordination
+`swarm_init`, `agent_spawn`, `task_orchestrate`
+
+### Monitoring
+`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
+
+### Memory & Neural
+`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
+
+### GitHub Integration
+`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
+
+### System
+`benchmark_run`, `features_detect`, `swarm_monitor`
+
+## 📋 Agent Coordination Protocol
+
+### Every Agent MUST:
+
+**1️⃣ BEFORE Work:**
+```bash
+npx claude-flow@alpha hooks pre-task --description "[task]"
+npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
+```
+
+**2️⃣ DURING Work:**
+```bash
+npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
+npx claude-flow@alpha hooks notify --message "[what was done]"
+```
+
+**3️⃣ AFTER Work:**
+```bash
+npx claude-flow@alpha hooks post-task --task-id "[task]"
+npx claude-flow@alpha hooks session-end --export-metrics true
+```
+
+## 🎯 Concurrent Execution Examples
+
+### ✅ CORRECT (Single Message):
+```javascript
+[BatchTool]:
+  // Initialize swarm
+  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
+  mcp__claude-flow__agent_spawn { type: "researcher" }
+  mcp__claude-flow__agent_spawn { type: "coder" }
+  mcp__claude-flow__agent_spawn { type: "tester" }
+  
+  // Spawn agents with Task tool
+  Task("Research agent: Analyze requirements...")
+  Task("Coder agent: Implement features...")
+  Task("Tester agent: Create test suite...")
+  
+  // Batch todos
+  TodoWrite { todos: [
+    {id: "1", content: "Research", status: "in_progress", priority: "high"},
+    {id: "2", content: "Design", status: "pending", priority: "high"},
+    {id: "3", content: "Implement", status: "pending", priority: "high"},
+    {id: "4", content: "Test", status: "pending", priority: "medium"},
+    {id: "5", content: "Document", status: "pending", priority: "low"}
+  ]}
+  
+  // File operations
+  Bash "mkdir -p app/{src,tests,docs}"
+  Write "app/src/index.js"
+  Write "app/tests/index.test.js"
+  Write "app/docs/README.md"
+```
+
+### ❌ WRONG (Multiple Messages):
+```javascript
+Message 1: mcp__claude-flow__swarm_init
+Message 2: Task("agent 1")
+Message 3: TodoWrite { todos: [single todo] }
+Message 4: Write "file.js"
+// This breaks parallel coordination!
+```
+
+## Performance Benefits
+
+- **84.8% SWE-Bench solve rate**
+- **32.3% token reduction**
+- **2.8-4.4x speed improvement**
+- **27+ neural models**
+
+## Hooks Integration
+
+### Pre-Operation
+- Auto-assign agents by file type
+- Validate commands for safety
+- Prepare resources automatically
+- Optimize topology by complexity
+- Cache searches
+
+### Post-Operation
+- Auto-format code
+- Train neural patterns
+- Update memory
+- Analyze performance
+- Track token usage
+
+### Session Management
+- Generate summaries
+- Persist state
+- Track metrics
+- Restore context
+- Export workflows
+
+## Advanced Features (v2.0.0)
+
+- 🚀 Automatic Topology Selection
+- ⚡ Parallel Execution (2.8-4.4x speed)
+- 🧠 Neural Training
+- 📊 Bottleneck Analysis
+- 🤖 Smart Auto-Spawning
+- 🛡️ Self-Healing Workflows
+- 💾 Cross-Session Memory
+- 🔗 GitHub Integration
+
+## Integration Tips
+
+1. Start with basic swarm init
+2. Scale agents gradually
+3. Use memory for context
+4. Monitor progress regularly
+5. Train patterns from success
+6. Enable hooks automation
+7. Use GitHub tools first
+
+## Support
+
+- Documentation: https://github.com/ruvnet/claude-flow
+- Issues: https://github.com/ruvnet/claude-flow/issues
+
+---
+
+Remember: **Claude Flow coordinates, Claude Code creates!**
+
+## 🏗️ Infrastructure Map
+
+### Network Overview
+- **WireGuard Mesh**: 10.6.0.0/24 (Hub: FGSRV6 @ 186.202.57.120:51823)
+- **Local Network**: 192.168.0.0/24
+- **Tailscale Network**: 100.64.0.0/10
+
+---
+
+### FGSRV6 (Hub) - vps41772
+**Aliases**: (fgsrv6, fgsrv06, FGSRV06, FG6, fg6)
+**Location**: Cloud VPS (186.202.57.120)
+- **Internet**: 186.202.57.120
+- **WireGuard**: 10.6.0.5 (Hub - Port 51823)
+- **Tailscale**: 100.83.51.9
+- **Type**: Proxmox VE Host
+- **SSH Config**: FGSRV06
+- **Role**: WireGuard mesh hub, NFS server
+
+---
+
+### FGSRV5
+**Aliases**: (fgsrv5, fgsrv05, FGSRV05, FG5, fg5)
+**Location**: Cloud VPS (191.252.200.20)
+- **Internet**: 191.252.200.20
+- **WireGuard**: 10.6.0.11 (Port 51811)
+- **Tailscale**: 100.71.107.26
+- **Type**: Proxmox VE Host
+- **SSH Config**: FGSRV05
+- **Role**: NFS server, storage backend
+- **Notes**: Timeout issues on SSH connection
+
+---
+
+### FGSRV4
+**Aliases**: (fgsrv4, fgsrv04, FGSRV04, FG4, fg4)
+**Location**: Cloud VPS (vps22826.publiccloud.com.br)
+- **WireGuard**: 10.6.0.16 (Port 51816)
+- **Tailscale**: 100.111.79.2
+- **Type**: Proxmox VE Host
+- **SSH Config**: FGSRV04
+- **User**: sysadmin
+
+---
+
+### FGSRV3
+**Aliases**: (fgsrv3, fgsrv03, FGSRV03, FG3, fg3)
+**Location**: Cloud VPS (191.252.201.205)
+- **Internet**: 191.252.201.205
+- **WireGuard**: 10.6.0.18 (Port 51818)
+- **Tailscale**: 100.67.99.115
+- **Type**: Proxmox VE Host
+- **SSH Config**: FGSRV03
+
+---
+
+### AGLSRV1
+**Hostname**: algsrv1 (Proxmox Host)
+**Aliases**: (AGLSRV01, aglsrv01, aglsrv1, agl1, AGL1)
+- **Local IP**: 192.168.0.245 (host), 192.168.0.179 (CT179 eth0), 192.168.1.179 (CT179 eth1)
+- **WireGuard Host**: 10.6.0.10 (Port 51810)
+- **WireGuard CT120**: 10.6.0.1 (Port 51820)
+- **WireGuard CT179**: 10.6.0.19 (Port 51819)
+- **Tailscale**: 100.107.113.33 (algsrv1 host), 100.94.221.87 (CT179 agldv03)
+- **Type**: Proxmox VE Host
+- **SSH Config**: AGLSRV1 (192.168.0.245)
+- **Role**: Main production server, media/dev/monitoring infrastructure
+- **Total VMs/CTs**: 68 (42 running, 26 stopped)
+
+- **Storage Mounts** (Updated 2025-10-16):
+  - fgsrv5-wg: NFS → 10.6.0.11:/ (NFSv4.2, WireGuard)
+  - fgsrv6-wg: NFS → 10.6.0.5:/ (NFSv4.2, WireGuard)
+  - ct111-shares: NFS → 10.6.0.20:/mnt/shares (NFSv4.2, WireGuard) ✅ **NEW**
+  - ct111-sistema: NFS → 10.6.0.20:/mnt/sistema (NFSv4.2, WireGuard) ✅ **NEW**
+  - aglsrv6-bb: SSHFS → 10.6.0.12:/mnt/pve/bb (WireGuard) ✅ **MIGRATED**
+  - aglsrv6-usb4tb: SSHFS → 10.6.0.12:/mnt/usb4tb-direct (WireGuard) ✅ **MIGRATED**
+
+**Key Containers** (Running - 42 total):
+
+| VMID | Name | IP | Tailscale | Purpose |
+|------|------|----|-----------| --------|
+| 102 | pihole (PIHOLE, pi-hole) | 192.168.0.102 | 100.114.66.80 | DNS/DHCP server |
+| 103 | portainer (PORTAINER, port) | 192.168.0.103 | - | Docker management |
+| 111 | tautulli (TAUTULLI, tau) | 192.168.0.111 | - | Plex monitoring |
+| 112 | bazarr (BAZARR, baz) | 192.168.0.112 | - | Subtitle automation |
+| 113 | plexmediaserver (PLEX, plex, plexms) | 192.168.0.113 | - | Media server |
+| 117 | cloudflared (CLOUDFLARED, cfd) | 192.168.0.117 | - | Cloudflare tunnel |
+| 120 | wireguard (WIREGUARD, wg, wg0) | 192.168.0.120 | - | WireGuard (10.6.0.1) |
+| 121 | qbittorrent | 192.168.0.121 | - | Torrent client |
+| 122 | jackett | 192.168.0.122 | - | Torrent indexer |
+| 123 | radarr | 192.168.0.123 | - | Movie automation |
+| 124 | sonarr | 192.168.0.124 | - | TV automation |
+| 126 | guac | 192.168.0.126 | - | Guacamole remote |
+| 131 | mysql (MYSQL, db) | 192.168.0.131 | - | MySQL database |
+| 132 | observium (OBSERVIUM, obs) | 192.168.0.132 | - | Network monitoring |
+| 133 | aping (APING, ping) | 192.168.0.133 | - | Network testing |
+| 137 | redis (REDIS, cache) | 192.168.0.137 | - | Redis cache |
+| 139 | aldsys4 (ALDSYS4, ALDSYS, ald4) | 192.168.0.139 | - | System management |
+| 141 | sabnzbd | 192.168.0.141 | - | Usenet client |
+| 144 | autobrr | 192.168.0.144 | - | Torrent automation |
+| 149 | postgresql (POSTGRESQL, postgres, psql, pg) | 192.168.0.149 | - | PostgreSQL DB |
+| 157 | deluge (DELUGE, dlg) | 192.168.0.157 | - | Torrent client |
+| 159 | nginxproxy (NGINX, nginx, proxy) | 192.168.0.159 | - | Nginx reverse proxy |
+| 161 | gameserver | 192.168.0.161 | - | Game hosting |
+| 162 | meshcentral (MESHCENTRAL, mesh, mc) | 192.168.0.162 | - | Remote management |
+| 163 | gameserver2 | 192.168.0.163 | - | Game hosting |
+| 165 | aria2 | 192.168.0.165 | - | Download manager |
+| 170 | homarr | 192.168.0.170 | - | Dashboard |
+| 171 | overseerr | 192.168.0.171 | - | Media requests |
+| 172 | prowlarr | 192.168.0.172 | - | Indexer manager |
+| 173 | cacheng | 192.168.0.173 | - | Cache engine |
+| 176 | iventoy | 192.168.0.176 | - | Network boot |
+| 178 | aglfs1 (AGLFS1, aglfs) | 192.168.0.178 | - | File server |
+| 179 | agldv03 (AGLDV03, AGLDV3, agldv3) | 192.168.0.179 | 100.94.221.87 | Dev env (10.6.0.19) |
+| 180 | dokploy (DOKPLOY, dok, dply) | 192.168.0.180 | - | Deployment platform |
+| 200 | ollama-gpu (OLLAMA, ollama, llm) | 192.168.0.200 | 100.116.57.111 | LLM GPU compute |
+| 201 | amp-server (AMP, amp) | 192.168.0.201 | - | AMP game panel |
+| 202 | n8n-docker (N8N, n8n, workflow) | 192.168.0.202 | - | Workflow automation |
+
+**Stopped Containers** (3):
+- 167: az-agent1 (Azure DevOps agent)
+- 168: az-agent2 (Azure DevOps agent)
+- 169: az-agent3 (Azure DevOps agent)
+- 174: agldv02 (AGLDV02, AGLDV2, agldv2) (Development - 48GB RAM)
+
+**Key Virtual Machines** (Running - 4 total):
+
+| VMID | Name | RAM | Disk | Tailscale | Purpose |
+|------|------|-----|------|-----------|---------|
+| 104 | aglwk45 (AGLWK45, AGL45, agl45) | 16GB | 720GB | - | Workstation |
+| 138 | haos | 8GB | 32GB | 100.105.133.18 | Home Assistant |
+| 148 | zabbix | 4GB | 10GB | - | Monitoring |
+| 150 | wazuh-app | 16GB | 50GB | - | Security monitoring |
+
+**Stopped VMs** (22):
+- 100: aglsrv2 (4GB, 0GB) - Secondary server
+- 101: openwrt (2GB, 0.5GB) - Router OS
+- 105: opnsense (16GB, 40GB) - Firewall
+- 106: pfsense (8GB, 40GB) - Firewall
+- 114: UbuntuDesktop (16GB, 240GB) - Desktop
+- 115: aglw7 (4GB, 240GB) - Workstation
+- 116: aglwk46 (16GB, 240GB) - Workstation
+- 125: AGLMAC06 (16GB, 0GB) - macOS
+- 128: plex (8GB, 120GB) - Media server (duplicate)
+- 135-136: aglwk48/49 - Workstations
+- 142: aglws1 (16GB, 240GB) - Windows server
+- 145: android-x86 (4GB, 256GB) - Android VM
+- 146: bliss (8GB, 240GB) - Android VM
+- 147: agldv01 (AGLDV01, AGLDV1, agldv1) (32GB, 240GB) - Development
+- 151-156: test-k3s-* (4GB each) - Kubernetes cluster
+- 300: nobara-gaming (16GB, 128GB) - Gaming VM
+
+---
+
+### AGLSRV6
+**Hostname**: AGLSRV6 (formerly man6)
+**Aliases**: (aglsrv6, agl6, AGL6, man6, AGLSRV06, aglsrv06)
+- **Local IP**: Unknown (behind Tailscale/WireGuard)
+- **WireGuard Host**: 10.6.0.12 (Port 51812) ✅ **ACTIVE** - Updated 2025-10-16
+- **Tailscale**: 100.98.108.66 (fallback)
+- **Type**: Proxmox VE Host
+- **SSH Config**: Prefer 10.6.0.12 (WireGuard), fallback 100.98.108.66 (Tailscale)
+- **SSH Key**: AGLSRV1 key added to authorized_keys on 2025-10-16
+- **Role**: Container host, storage server, SSHFS source
+
+**Containers**:
+| VMID | Name | WireGuard IP | Tailscale IP | Purpose |
+|------|------|--------------|--------------|---------|
+| 101 | cloudflared6 | - | 100.120.181.108 | Cloudflare tunnel |
+| 102 | meshcentral6 | - | - | Remote management |
+| 104 | luzdivina | - | - | - |
+| 107 | kuber601 | - | - | Kubernetes (stopped) |
+| 108 | agldv06 (AGLDV06, AGLDV6, agldv6) | - | 100.71.229.12 | Development |
+| 109 | redis6 | - | - | Redis server |
+| 110 | mssql6 | - | - | SQL Server |
+| 111 | aluzdivina (ALUZDIVINA, aluzdiv) | 10.6.0.20 | 100.65.189.83 | Storage server |
+| 113 | pbs | 10.6.0.14 | 100.70.155.60 | PBS backup |
+| 114 | cloudflared6b | - | - | Cloudflare tunnel |
+| 121 | wireguard | 10.6.0.3 | - | WireGuard node |
+
+**VMs**:
+| VMID | Name | Status | RAM | Disk | Purpose |
+|------|------|--------|-----|------|---------|
+| 100 | SSPADLD01 | stopped | 16GB | 930GB | SharePoint |
+| 103 | opnsense | stopped | 8GB | 40GB | Firewall |
+| 105 | aglhq26 | running | 8GB | - | - |
+| 106 | UbuntuDesktop | stopped | 4GB | 240GB | Desktop |
+| 112 | dell-ome | stopped | 8GB | 415GB | Dell OpenManage |
+| 200 | WinServer2016-VirtIO | running | 16GB | 500GB | Windows Server |
+
+**CT111 (aluzdivina) Details**:
+- **NFS Server**: ✅ Active and accessible via WireGuard mesh
+- **WireGuard**: 10.6.0.20 ✅ **FIXED** - Public key updated on hub 2025-10-16
+- **WireGuard Status**: Full mesh connectivity (15-22ms latency to hub)
+- **Storage**:
+  - /mnt/shares (66GB XFS) - NFS exported
+  - /mnt/sistema (819GB ZFS) - NFS exported
+  - /mnt/bb (CIFS from 192.168.0.203)
+  - /mnt/bkp (3.9TB ExFAT)
+- **NFS Exports**: /mnt/shares, /mnt/sistema (192.168.0.0/24, 10.6.0.0/24)
+- **Mounted on AGLSRV1**: ct111-shares (66GB), ct111-sistema (818GB) via WireGuard
+
+---
+
+### AGLSRV6B
+**Hostname**: AGLSRV6B (formerly man6b)
+**Aliases**: (aglsrv6b, agl6b, AGL6B, man6b)
+- **WireGuard**: 10.6.0.13 (Port 51813)
+- **Tailscale**: 100.98.119.51
+- **Type**: Proxmox VE Host
+
+**Containers**:
+| VMID | Name | WireGuard IP | Purpose |
+|------|------|--------------|---------|
+| 172 | pbs | 10.6.0.15 | PBS backup |
+
+---
+
+### AGLSRV5
+**Aliases**: (aglsrv5, agl5, AGL5)
+**WireGuard**: 10.6.0.17 (Port 51817)
+**Tailscale**: 100.119.223.113
+**Type**: Proxmox VE Host
+
+---
+
+### Other Tailscale Devices
+
+**AGLSRV1 Containers/VMs on Tailscale**:
+- CT102 (pihole): 100.114.66.80 → 192.168.0.102 - DNS/DHCP server
+- CT120 (wireguard): WireGuard 10.6.0.1 (no Tailscale) - WG mesh node
+- CT138 (haos): 100.105.133.18 → 192.168.0.138 - Home Assistant OS
+- CT179 (agldv03): 100.94.221.87 → 192.168.0.179 - Development (WG 10.6.0.19)
+- CT200 (ollama-gpu): 100.116.57.111 → 192.168.0.200 - LLM GPU compute
+
+**Other Network Nodes**:
+- aglsrv5-agldv05: 100.119.41.63 - Development
+- aglsrv5-mesh5: 100.82.254.91 - Mesh node
+
+**Workstations**:
+- AGLWK45: 100.117.146.21
+- AGLWK06: f.aguileraz.net:6022
+- AGLWK07: man.aguileraz.net:8122
+
+**Mobile Devices**:
+- aglcel10: 100.80.84.69 (Android, offline)
+- aglmac07: 100.102.187.120 (Windows, offline)
+- aglmac08: 100.111.113.102 (macOS)
+- aglhq11: 100.75.205.122 (Windows)
+
+**Cloud Servers**:
+- AGLSRV3: 100.123.5.81 (offline)
+- YAPMan: deploy0.yapoli.io (AWS SA-East-1, Ubuntu)
+- AGLLX51: ec2-54-81-231-106.compute-1.amazonaws.com (AWS US-East-1)
+
+---
+
+### WireGuard Mesh Status (13 Active Nodes)
+
+**Active Peers**:
+| Node | IP | Port | Type | Status |
+|------|-----|------|------|--------|
+| FGSRV6 | 10.6.0.5 | 51823 | Hub | ✅ |
+| CT120 | 10.6.0.1 | 51820 | Container | ✅ |
+| CT121 | 10.6.0.3 | 51821 | Container | ✅ |
+| AGLSRV1 | 10.6.0.10 | 51810 | Host | ✅ |
+| FGSRV5 | 10.6.0.11 | 51811 | Host | ✅ |
+| AGLSRV6(Host) | 10.6.0.12 | 51812 | Host | ✅ **ACTIVE** |
+| AGLSRV6B(Host) | 10.6.0.13 | 51813 | Host | ✅ |
+| CT113 | 10.6.0.14 | 51814 | Container | ✅ |
+| CT172 | 10.6.0.15 | 51815 | Container | ✅ |
+| FGSRV4 | 10.6.0.16 | 51816 | Host | ✅ |
+| AGLSRV5 | 10.6.0.17 | 51817 | Host | ✅ |
+| FGSRV3 | 10.6.0.18 | 51818 | Host | ✅ |
+| CT179 | 10.6.0.19 | 51819 | Container | ✅ |
+| CT111 | 10.6.0.20 | 51820 | Container | ✅ **FIXED** |
+
+**Pending**:
+- FGSRV5 Container: 10.6.0.4 (Port 51822)
+
+---
+
+### Storage Configuration
+
+**AGLSRV1 Proxmox Storages** (Updated 2025-10-16):
+- **local**: 77GB (local disk)
+- **local-zfs**: 1.7TB (ZFS pool)
+- **fgsrv5-wg**: 77GB via NFS/WireGuard (10.6.0.11)
+- **fgsrv6-wg**: 197GB via NFS/WireGuard (10.6.0.5)
+- **ct111-shares**: 66GB via NFS/WireGuard (10.6.0.20) ✅ **NEW**
+- **ct111-sistema**: 818GB via NFS/WireGuard (10.6.0.20) ✅ **NEW**
+- **man6-bb**: 954GB via SSHFS/WireGuard (10.6.0.12) ✅ **MIGRATED**
+- **man6-usb4tb**: 3.9TB via SSHFS/WireGuard (10.6.0.12) ✅ **MIGRATED**
+- **aglsrv6-pbs**: 1.2TB PBS backup storage
+- **aglsrv6b-pbs**: 1.0TB PBS backup storage
+- **spark**: 7.1TB (91.54% used) - Backup storage
+- **overpower**: 9.8TB (92.54% used) - Backup storage
+
+**Total WireGuard Storage**: 6.0 TB (1.2TB NFS + 4.8TB SSHFS)
+
+**Mount Points**:
+- `/mnt/pve/fgsrv5-wg`: NFS4.2 from 10.6.0.11 via WireGuard
+- `/mnt/pve/fgsrv6-wg`: NFS4.2 from 10.6.0.5 via WireGuard
+- `/mnt/pve/ct111-shares`: NFS4.2 from 10.6.0.20 via WireGuard ✅
+- `/mnt/pve/ct111-sistema`: NFS4.2 from 10.6.0.20 via WireGuard ✅
+- `/mnt/pve/aglsrv6-bb`: SSHFS from 10.6.0.12 via WireGuard ✅
+- `/mnt/pve/aglsrv6-usb4tb`: SSHFS from 10.6.0.12 via WireGuard ✅
+
+---
+
+### Docker Containers
+
+**AGLSRV1 Containers with Docker** (Updated 2025-10-18):
+
+| VMID | Name | Purpose | Docker Networks |
+|------|------|---------|-----------------|
+| 103 | portainer | Docker management | - |
+| 133 | aping | Network testing | - |
+| 139 | aldsys4 | System management | - |
+| 161 | gameserver | Game hosting | - |
+| 163 | gameserver2 | Game hosting | - |
+| 179 | agldv03 | Development | Multiple bridge networks |
+| 180 | dokploy | Deployment platform | - |
+| 200 | ollama-gpu | LLM GPU compute | - |
+| 202 | n8n-docker | Workflow automation | - |
+
+**Notes**:
+- Docker not detected on AGLSRV6 or AGLSRV6B hosts
+- Total containers with Docker on AGLSRV1: 9
+- CT179 (agldv03) has the most complex Docker setup with multiple bridge networks
+
+---
+
+### Migration Status
+
+**Completed** (Updated 2025-10-16):
+- ✅ FGSRV6 NFS migrated from Tailscale to WireGuard (87.5% performance improvement)
+- ✅ Storage renamed from -nfs to -wg naming convention
+- ✅ 14 nodes active on WireGuard mesh (including CT111)
+- ✅ Backup retention policy optimized (freed 650GB on spark)
+- ✅ AGLSRV6 host WireGuard confirmed active (10.6.0.12) - 2025-10-16
+- ✅ CT111 WireGuard fixed (public key updated on hub) - 2025-10-16
+- ✅ CT111 NFS accessible via WireGuard mesh - 2025-10-16
+- ✅ SSHFS migrated from Tailscale to WireGuard (2-3x performance gain) - 2025-10-16
+- ✅ All storage now using WireGuard mesh (6.0 TB total) - 2025-10-16
+
+**Performance Improvements**:
+- SSHFS: 6-8 MB/s (Tailscale) → 15-20 MB/s (WireGuard estimated)
+- NFS: Already optimized on WireGuard (1.7 GB/s on fgsrv5-wg)
+- Total WireGuard storage: 6.0 TB (1.2TB NFS + 4.8TB SSHFS)
+
+**Pending**:
+- ⏳ CT111 NFS performance benchmarking
+- ⏳ aglsrv6-bb/aglsrv6-usb4tb real-world speed testing
+
+---
+
+### 🔐 Connection Priority Rules
+
+**CRITICAL: Always follow this connection hierarchy when accessing infrastructure:**
+
+1. **Primary (WireGuard Mesh)**: Use WireGuard IPs (10.6.0.0/24) whenever possible
+   - Best performance (kernel-level)
+   - Direct mesh routing
+   - Lowest latency
+   - Example: `ssh root@10.6.0.12` (AGLSRV6)
+
+2. **Fallback (Tailscale)**: Use Tailscale IPs (100.64.0.0/10) if WireGuard fails
+   - Redundancy layer
+   - Userspace overhead
+   - Still encrypted
+   - Example: `ssh root@100.98.108.66` (AGLSRV6)
+
+3. **Proxmox Access (LAN/Local)**: Connect via Proxmox host to access CTs/VMs
+   - For containers/VMs without direct network access
+   - Via host's local network interface
+   - Use `pct enter <vmid>` or SSH via host
+   - Example: `ssh 192.168.0.245` then `pct enter 179`
+
+4. **Last Resort (Public IP)**: Use external IPs for VPS hosts only
+   - Only for cloud VPS hosts (FGSRV3, FGSRV4, FGSRV5, FGSRV6)
+   - When WireGuard and Tailscale are both down
+   - Example: `ssh root@186.202.57.120` (FGSRV6)
+
+**Connection Examples**:
+```bash
+# Best: WireGuard first
+ssh root@10.6.0.12 'hostname'
+
+# Fallback: Tailscale if WireGuard fails
+ssh root@100.98.108.66 'hostname'
+
+# Proxmox: Access CT via host
+ssh 192.168.0.245 'pct enter 179'
+
+# Public: VPS only, last resort
+ssh root@186.202.57.120
+```
+
+### ⚙️ WireGuard Configuration Standards
+
+**CRITICAL: Mandatory configuration for all WireGuard clients (containers/hosts)**
+
+**Updated**: 2025-10-18 - Mass correction applied to 34 containers
+
+#### ✅ CORRECT Configuration (ALWAYS use this)
+
+```ini
+[Interface]
+PrivateKey = <PRIVATE_KEY>
+Address = 10.6.0.X/24
+DNS = 1.1.1.1
+MTU = 1420
+
+[Peer]
+PublicKey = Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
+PresharedKey = DDvQ3xJ9Rs5pbEzXLuGCdep66zBuVNcy654+A/vD+Zk=
+AllowedIPs = 10.6.0.0/24  ← CORRECT: Only mesh network
+PersistentKeepalive = 25
+Endpoint = 186.202.57.120:51823
+```
+
+#### ❌ WRONG Configuration (NEVER use this)
+
+```ini
+[Peer]
+AllowedIPs = 0.0.0.0/0  ← WRONG: Routes ALL traffic through tunnel!
+```
+
+**Why `AllowedIPs = 0.0.0.0/0` breaks everything**:
+
+1. ❌ **Blocks local network** (192.168.0.0/24 unreachable)
+2. ❌ **Breaks internet** (gateway inaccessible)
+3. ❌ **Disables Tailscale** (can't connect to servers)
+4. ❌ **Stops DNS** (can't resolve anything)
+5. ❌ **Kills inter-container communication**
+
+**Impact discovered 2025-10-18**:
+- 34/37 containers (91.9%) had incorrect configuration
+- All affected containers lost network connectivity
+- 100% resolved after mass correction
+
+**Validation command**:
+```bash
+# Check WireGuard config in container
+pct exec <VMID> -- grep "AllowedIPs" /etc/wireguard/wg0.conf
+
+# Should show: AllowedIPs = 10.6.0.0/24
+# If shows: AllowedIPs = 0.0.0.0/0  ← FIX IMMEDIATELY
+```
+
+**Quick fix for incorrect containers**:
+```bash
+# Backup config
+pct exec <VMID> -- cp /etc/wireguard/wg0.conf /etc/wireguard/wg0.conf.backup
+
+# Fix AllowedIPs
+pct exec <VMID> -- sed -i 's/^AllowedIPs = 0\.0\.0\.0\/0/AllowedIPs = 10.6.0.0\/24/' /etc/wireguard/wg0.conf
+
+# Restart WireGuard
+pct exec <VMID> -- wg-quick down wg0 && sleep 2 && pct exec <VMID> -- wg-quick up wg0
+
+# Verify
+pct exec <VMID> -- wg show && pct exec <VMID> -- ping -c 2 8.8.8.8
+```
+
+**See full correction report**: `/tmp/wg-correction-final-report.md`
+
+---
+
+### 📝 Documentation Update Rule
+
+**MANDATORY**: Whenever new infrastructure information is discovered:
+
+1. **Immediately update** `/root/CLAUDE.md` Infrastructure Map section
+2. **Add details** to relevant troubleshooting docs in `/root/host-admin/docs/`
+3. **Update** any affected connection strings or fstab entries
+4. **Document** in session notes for future reference
+
+**What to document**:
+- New hosts, IPs, or network interfaces
+- WireGuard/Tailscale configuration changes
+- SSH key additions or modifications
+- Storage mount points and NFS exports
+- Container/VM deployments or migrations
+- Performance metrics and benchmarks
+- Resolved issues and their solutions
+
+**Example commit message**:
+```
+docs: discovered AGLSRV6 WireGuard active on 10.6.0.12
+
+- Added AGLSRV6 host WireGuard IP to infrastructure map
+- Updated connection priority to prefer WG over Tailscale
+- Documented SSH key requirements for WG access
+```
+
+---
+
+### ⚙️ WireGuard Configuration Standards
+
+**CRITICAL: Mandatory configuration for all WireGuard clients (containers/hosts)**
+
+**Updated**: 2025-10-18 - Mass correction applied to 34 containers
+
+#### ✅ CORRECT Configuration (ALWAYS use this)
+
+```ini
+[Interface]
+PrivateKey = <PRIVATE_KEY>
+Address = 10.6.0.X/24
+DNS = 1.1.1.1
+MTU = 1420
+
+[Peer]
+PublicKey = Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
+AllowedIPs = 10.6.0.0/24  ← CORRECT: Only mesh network
+PersistentKeepalive = 25
+Endpoint = 186.202.57.120:51823
+```
+
+#### ❌ WRONG Configuration (NEVER use this)
+
+```ini
+[Peer]
+PresharedKey = <ANY_VALUE>  ← WRONG: Incompatible with LXC containers!
+AllowedIPs = 0.0.0.0/0  ← WRONG: Routes ALL traffic through tunnel!
+```
+
+**Why PresharedKey fails in LXC containers**:
+
+1. ❌ **Kernel keyring restrictions**: PresharedKey requires advanced cryptographic operations via kernel keyrings
+2. ❌ **Container namespace isolation**: Even with `keyctl=1`, containers have limited keyring access
+3. ❌ **AppArmor/Seccomp blocking**: Security profiles may block required syscalls
+4. ❌ **Handshake never establishes**: Timestamp remains at 0, no encrypted tunnel
+5. ✅ **Hosts work fine**: Proxmox hosts have full kernel access and support PresharedKey
+
+**Why `AllowedIPs = 0.0.0.0/0` breaks everything**:
+
+1. ❌ **Blocks local network** (192.168.0.0/24 unreachable)
+2. ❌ **Breaks internet** (gateway inaccessible)
+3. ❌ **Disables Tailscale** (can't connect to servers)
+4. ❌ **Stops DNS** (can't resolve anything)
+5. ❌ **Kills inter-container communication**
+
+**LXC Requirements for WireGuard**:
+
+```ini
+# In /etc/pve/lxc/XXX.conf
+features: keyctl=1,nesting=1
+lxc.cgroup2.devices.allow: c 10:200 rwm
+lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
+```
+
+**Impact discovered 2025-10-18**:
+- 34/37 containers (91.9%) on AGLSRV1 had PresharedKey
+- All affected containers lost WireGuard connectivity
+- 100% resolved after mass correction
+
+**Validation command**:
+```bash
+# Check WireGuard config in container
+pct exec <VMID> -- grep "PresharedKey\|AllowedIPs" /etc/wireguard/wg0.conf
+
+# Should show: AllowedIPs = 10.6.0.0/24 (no PresharedKey line)
+# If shows PresharedKey or AllowedIPs = 0.0.0.0/0  ← FIX IMMEDIATELY
+```
+
+**Quick fix for incorrect containers**:
+```bash
+# Backup config
+pct exec <VMID> -- cp /etc/wireguard/wg0.conf /etc/wireguard/wg0.conf.backup
+
+# Fix PresharedKey
+pct exec <VMID> -- sed -i '/^PresharedKey =/d' /etc/wireguard/wg0.conf
+
+# Fix AllowedIPs if needed
+pct exec <VMID> -- sed -i 's/^AllowedIPs = 0\.0\.0\.0\/0/AllowedIPs = 10.6.0.0\/24/' /etc/wireguard/wg0.conf
+
+# Restart WireGuard
+pct exec <VMID> -- wg-quick down wg0 && sleep 2 && pct exec <VMID> -- wg-quick up wg0
+
+# Verify
+pct exec <VMID> -- wg show && pct exec <VMID> -- ping -c 2 10.6.0.5
+```
+
+**Affected Infrastructure** (2025-10-18):
+- **AGLSRV1**: 34 containers corrected
+- **AGLSRV5**: CT139 corrected
+- **AGLSRV6**: CT115, CT116 corrected
+
+**See full correction report**: `/tmp/wg-correction-final-report.md`
+
+---
+
+### SSH Configuration Aliases
+
+Quick reference from `~/.ssh/config`:
+- **AGLSRV1**: 192.168.0.245
+- **AGLSRV1-ollama**: 192.168.0.175
+- **AGLSRV1-haos**: 192.168.0.211
+- **AGLSRV2**: 192.168.0.250:6022
+- **AGLSRV2b**: 10.253.0.2:6022
+- **AGLDEV01**: 192.168.0.147
+- **AGLDEV02**: 192.168.0.174
+- **AGLWK06**: f.aguileraz.net:6022
+- **AGLWK07**: man.aguileraz.net:8122
+- **FGSRV03**: 191.252.201.205
+- **FGSRV04**: vps22826.publiccloud.com.br
+- **FGSRV05**: 191.252.200.20
+- **FGSRV06**: 186.202.57.120
+- **FGSRV**: 172.2.2.22:6022
+- **YAPMan**: deploy0.yapoli.io (AWS)
+- **AGLLX51**: ec2-54-81-231-106.compute-1.amazonaws.com (AWS)
+
+---
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+Never save working files, text/mds and tests to the root folder.
