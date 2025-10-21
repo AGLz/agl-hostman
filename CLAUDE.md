@@ -1,11 +1,68 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
+> **Last Updated**: 2025-01-21 | **Version**: 2.1.0
+
+## 📑 Table of Contents
+
+1. [Project Context](#-project-context)
+2. [Quick Start Guide](#-quick-start-guide)
+3. [Development Environments](#-development-environments)
+4. [Infrastructure Map](#-infrastructure-map)
+5. [Network Configuration](#-network-configuration)
+6. [Connection Guide](#-connection-guide)
+7. [Claude Code Rules](#-claude-code-rules)
+8. [SPARC Workflow](#-sparc-workflow)
+9. [Troubleshooting](#-troubleshooting)
+
+---
+
 ## 📍 Project Context
 
 **Project**: `agl-hostman` - Infrastructure management and host administration
 **Working Directory**: `/root/agl-hostman` (can be on any host with WSL/Linux)
+**Repository**: Git-based infrastructure as code
 
-**Primary Development Environments**:
+---
+
+## 🚀 Quick Start Guide
+
+### Current Environment Detection
+```bash
+# Detect where you are running
+if [[ -f /proc/version ]] && grep -q microsoft /proc/version; then
+    echo "WSL2 (AGLHQ11)" # Tailscale only
+elif [[ -f /etc/pve/.version ]]; then
+    echo "Proxmox Host"
+elif [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2>/dev/null; then
+    echo "Container (CT179/CT108)"
+fi
+```
+
+### Quick Connection Commands
+```bash
+# From WSL2 (Tailscale only)
+ssh root@100.94.221.87  # CT179 (primary dev)
+ssh root@100.107.113.33  # AGLSRV1 host
+
+# From CT179 (Full stack - prefer WireGuard)
+ssh root@10.6.0.12  # AGLSRV6 via WireGuard (fastest)
+ssh root@192.168.0.245  # AGLSRV1 host via LAN
+```
+
+### Essential Infrastructure Commands
+```bash
+# Check container status
+pct list  # On Proxmox host
+ssh root@192.168.0.245 'pct list'  # From CT179
+
+# Access storage
+ls /mnt/pve/fgsrv6-wg  # NFS via WireGuard
+df -h | grep wg  # Show all WireGuard mounts
+```
+
+---
+
+## 💻 Development Environments
 
 ### 1. AGLHQ11 - Windows 11 + WSL2 (Ubuntu)
 - **Tailscale IP**: 100.75.205.122 (eth0)
@@ -1022,13 +1079,13 @@ ssh root@192.168.0.202 'hostname'  # n8n (LAN)
 ssh root@100.94.221.87 'hostname'  # CT179
 ```
 
-### ⚙️ WireGuard Configuration Standards
+---
+
+## ⚙️ WireGuard Configuration Standards
 
 **CRITICAL: Mandatory configuration for all WireGuard clients (containers/hosts)**
 
-**Updated**: 2025-10-18 - Mass correction applied to 34 containers
-
-#### ✅ CORRECT Configuration (ALWAYS use this)
+### ✅ CORRECT Configuration (Containers - No PresharedKey)
 
 ```ini
 [Interface]
@@ -1039,96 +1096,12 @@ MTU = 1420
 
 [Peer]
 PublicKey = Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
-PresharedKey = DDvQ3xJ9Rs5pbEzXLuGCdep66zBuVNcy654+A/vD+Zk=
-AllowedIPs = 10.6.0.0/24  ← CORRECT: Only mesh network
+AllowedIPs = 10.6.0.0/24  ← CRITICAL: Only mesh network
 PersistentKeepalive = 25
 Endpoint = 186.202.57.120:51823
 ```
 
-#### ❌ WRONG Configuration (NEVER use this)
-
-```ini
-[Peer]
-AllowedIPs = 0.0.0.0/0  ← WRONG: Routes ALL traffic through tunnel!
-```
-
-**Why `AllowedIPs = 0.0.0.0/0` breaks everything**:
-
-1. ❌ **Blocks local network** (192.168.0.0/24 unreachable)
-2. ❌ **Breaks internet** (gateway inaccessible)
-3. ❌ **Disables Tailscale** (can't connect to servers)
-4. ❌ **Stops DNS** (can't resolve anything)
-5. ❌ **Kills inter-container communication**
-
-**Impact discovered 2025-10-18**:
-- 34/37 containers (91.9%) had incorrect configuration
-- All affected containers lost network connectivity
-- 100% resolved after mass correction
-
-**Validation command**:
-```bash
-# Check WireGuard config in container
-pct exec <VMID> -- grep "AllowedIPs" /etc/wireguard/wg0.conf
-
-# Should show: AllowedIPs = 10.6.0.0/24
-# If shows: AllowedIPs = 0.0.0.0/0  ← FIX IMMEDIATELY
-```
-
-**Quick fix for incorrect containers**:
-```bash
-# Backup config
-pct exec <VMID> -- cp /etc/wireguard/wg0.conf /etc/wireguard/wg0.conf.backup
-
-# Fix AllowedIPs
-pct exec <VMID> -- sed -i 's/^AllowedIPs = 0\.0\.0\.0\/0/AllowedIPs = 10.6.0.0\/24/' /etc/wireguard/wg0.conf
-
-# Restart WireGuard
-pct exec <VMID> -- wg-quick down wg0 && sleep 2 && pct exec <VMID> -- wg-quick up wg0
-
-# Verify
-pct exec <VMID> -- wg show && pct exec <VMID> -- ping -c 2 8.8.8.8
-```
-
-**See full correction report**: `/tmp/wg-correction-final-report.md`
-
----
-
-### 📝 Documentation Update Rule
-
-**MANDATORY**: Whenever new infrastructure information is discovered:
-
-1. **Immediately update** `/root/CLAUDE.md` Infrastructure Map section
-2. **Add details** to relevant troubleshooting docs in `/root/host-admin/docs/`
-3. **Update** any affected connection strings or fstab entries
-4. **Document** in session notes for future reference
-
-**What to document**:
-- New hosts, IPs, or network interfaces
-- WireGuard/Tailscale configuration changes
-- SSH key additions or modifications
-- Storage mount points and NFS exports
-- Container/VM deployments or migrations
-- Performance metrics and benchmarks
-- Resolved issues and their solutions
-
-**Example commit message**:
-```
-docs: discovered AGLSRV6 WireGuard active on 10.6.0.12
-
-- Added AGLSRV6 host WireGuard IP to infrastructure map
-- Updated connection priority to prefer WG over Tailscale
-- Documented SSH key requirements for WG access
-```
-
----
-
-### ⚙️ WireGuard Configuration Standards
-
-**CRITICAL: Mandatory configuration for all WireGuard clients (containers/hosts)**
-
-**Updated**: 2025-10-18 - Mass correction applied to 34 containers
-
-#### ✅ CORRECT Configuration (ALWAYS use this)
+### ✅ CORRECT Configuration (Proxmox Hosts - With PresharedKey)
 
 ```ini
 [Interface]
@@ -1139,110 +1112,119 @@ MTU = 1420
 
 [Peer]
 PublicKey = Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
-AllowedIPs = 10.6.0.0/24  ← CORRECT: Only mesh network
+PresharedKey = DDvQ3xJ9Rs5pbEzXLuGCdep66zBuVNcy654+A/vD+Zk=  ← OK on hosts only
+AllowedIPs = 10.6.0.0/24
 PersistentKeepalive = 25
 Endpoint = 186.202.57.120:51823
 ```
 
-#### ❌ WRONG Configuration (NEVER use this)
+### ❌ Common Configuration Errors
+
+| Error | Impact | Fix |
+|-------|--------|-----|
+| `PresharedKey` in LXC containers | Handshake never establishes | Remove PresharedKey line |
+| `AllowedIPs = 0.0.0.0/0` | Routes ALL traffic through tunnel, breaks local network | Change to `10.6.0.0/24` |
+| Missing `keyctl=1,nesting=1` in LXC config | WireGuard fails to start | Add to `/etc/pve/lxc/XXX.conf` |
+
+### LXC Container Requirements
 
 ```ini
-[Peer]
-PresharedKey = <ANY_VALUE>  ← WRONG: Incompatible with LXC containers!
-AllowedIPs = 0.0.0.0/0  ← WRONG: Routes ALL traffic through tunnel!
-```
-
-**Why PresharedKey fails in LXC containers**:
-
-1. ❌ **Kernel keyring restrictions**: PresharedKey requires advanced cryptographic operations via kernel keyrings
-2. ❌ **Container namespace isolation**: Even with `keyctl=1`, containers have limited keyring access
-3. ❌ **AppArmor/Seccomp blocking**: Security profiles may block required syscalls
-4. ❌ **Handshake never establishes**: Timestamp remains at 0, no encrypted tunnel
-5. ✅ **Hosts work fine**: Proxmox hosts have full kernel access and support PresharedKey
-
-**Why `AllowedIPs = 0.0.0.0/0` breaks everything**:
-
-1. ❌ **Blocks local network** (192.168.0.0/24 unreachable)
-2. ❌ **Breaks internet** (gateway inaccessible)
-3. ❌ **Disables Tailscale** (can't connect to servers)
-4. ❌ **Stops DNS** (can't resolve anything)
-5. ❌ **Kills inter-container communication**
-
-**LXC Requirements for WireGuard**:
-
-```ini
-# In /etc/pve/lxc/XXX.conf
+# Required in /etc/pve/lxc/XXX.conf
 features: keyctl=1,nesting=1
 lxc.cgroup2.devices.allow: c 10:200 rwm
 lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 ```
 
-**Impact discovered 2025-10-18**:
-- 34/37 containers (91.9%) on AGLSRV1 had PresharedKey
-- All affected containers lost WireGuard connectivity
-- 100% resolved after mass correction
+### Quick Validation & Fix
 
-**Validation command**:
 ```bash
-# Check WireGuard config in container
+# Validate configuration
 pct exec <VMID> -- grep "PresharedKey\|AllowedIPs" /etc/wireguard/wg0.conf
 
-# Should show: AllowedIPs = 10.6.0.0/24 (no PresharedKey line)
-# If shows PresharedKey or AllowedIPs = 0.0.0.0/0  ← FIX IMMEDIATELY
-```
-
-**Quick fix for incorrect containers**:
-```bash
-# Backup config
+# Fix incorrect config (automated)
 pct exec <VMID> -- cp /etc/wireguard/wg0.conf /etc/wireguard/wg0.conf.backup
-
-# Fix PresharedKey
 pct exec <VMID> -- sed -i '/^PresharedKey =/d' /etc/wireguard/wg0.conf
-
-# Fix AllowedIPs if needed
 pct exec <VMID> -- sed -i 's/^AllowedIPs = 0\.0\.0\.0\/0/AllowedIPs = 10.6.0.0\/24/' /etc/wireguard/wg0.conf
-
-# Restart WireGuard
 pct exec <VMID> -- wg-quick down wg0 && sleep 2 && pct exec <VMID> -- wg-quick up wg0
 
-# Verify
+# Verify connectivity
 pct exec <VMID> -- wg show && pct exec <VMID> -- ping -c 2 10.6.0.5
 ```
 
-**Affected Infrastructure** (2025-10-18):
-- **AGLSRV1**: 34 containers corrected
-- **AGLSRV5**: CT139 corrected
-- **AGLSRV6**: CT115, CT116 corrected
+---
 
-**See full correction report**: `/tmp/wg-correction-final-report.md`
+## 📝 Documentation Maintenance
+
+### Update Policy
+
+**MANDATORY**: Update this document when:
+- New hosts/containers are deployed
+- Network configuration changes (IPs, WireGuard peers)
+- SSH keys are added/rotated
+- Storage mounts are modified
+- Critical issues are resolved
+
+### Git Commit Guidelines
+
+```bash
+# Commit infrastructure documentation changes
+git add CLAUDE.md
+git commit -m "docs: [brief description]
+
+- Change 1
+- Change 2
+- Impact/benefit"
+
+# Example
+git commit -m "docs: add CT180 WireGuard configuration
+
+- Added CT180 to WireGuard mesh (10.6.0.21)
+- Updated connection matrix
+- Performance: 15ms latency to hub"
+```
 
 ---
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+| Issue | Symptoms | Solution |
+|-------|----------|----------|
+| WireGuard handshake fails | `wg show` shows timestamp=0 | Check PresharedKey (remove in LXC), verify AllowedIPs |
+| Container network unreachable | Cannot ping local network | Check AllowedIPs (should be `10.6.0.0/24`, not `0.0.0.0/0`) |
+| SSH connection refused | Connection timeout | Verify Tailscale/WireGuard status, check firewall |
+| NFS mount stale | `ls` hangs on mount | Remount: `umount -f /mnt/pve/<storage> && mount -a` |
+
+### Diagnostic Commands
+
+```bash
+# Check WireGuard status
+wg show  # Shows peers, handshake, transfer
+ip route | grep wg  # Verify routing
+
+# Test connectivity
+ping 10.6.0.5  # Hub
+ping 8.8.8.8  # Internet
+
+# Check NFS mounts
+df -h | grep wg  # Show WireGuard NFS mounts
+showmount -e 10.6.0.5  # Check exports on FGSRV6
+```
+
+---
+
+## 🔗 Quick Reference Links
 
 ### SSH Configuration Aliases
+- **AGLSRV1**: 192.168.0.245 | **AGLSRV6**: 10.6.0.12 (WG) / 100.98.108.66 (TS)
+- **CT179**: 192.168.0.179 (LAN) / 10.6.0.19 (WG) / 100.94.221.87 (TS)
+- **FGSRV6**: 186.202.57.120 (Public) / 10.6.0.5 (WG) / 100.83.51.9 (TS)
+- **Full list**: See [Infrastructure Map](#-infrastructure-map)
 
-Quick reference from `~/.ssh/config`:
-- **AGLSRV1**: 192.168.0.245
-- **AGLSRV1-ollama**: 192.168.0.175
-- **AGLSRV1-haos**: 192.168.0.211
-- **AGLSRV2**: 192.168.0.250:6022
-- **AGLSRV2b**: 10.253.0.2:6022
-- **AGLDEV01**: 192.168.0.147
-- **AGLDEV02**: 192.168.0.174
-- **AGLWK06**: f.aguileraz.net:6022
-- **AGLWK07**: man.aguileraz.net:8122
-- **FGSRV03**: 191.252.201.205
-- **FGSRV04**: vps22826.publiccloud.com.br
-- **FGSRV05**: 191.252.200.20
-- **FGSRV06**: 186.202.57.120
-- **FGSRV**: 172.2.2.22:6022
-- **YAPMan**: deploy0.yapoli.io (AWS)
-- **AGLLX51**: ec2-54-81-231-106.compute-1.amazonaws.com (AWS)
-
----
-
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
-Never save working files, text/mds and tests to the root folder.
+### Key Storage Mounts
+- `/mnt/pve/fgsrv6-wg` - 197GB NFS via WireGuard
+- `/mnt/pve/ct111-shares` - 66GB NFS via WireGuard
+- `/mnt/pve/aglsrv6-bb` - 954GB SSHFS via WireGuard
+- `/mnt/pve/aglsrv6-usb4tb` - 3.9TB SSHFS via WireGuard
+- sempre verifique em qual host estamos antes de tentar se conectar em outros hosts
