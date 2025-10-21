@@ -1,4 +1,234 @@
-# Claude Code Configuration - SPARC Development Environment
+# Claude Code Configuration - AGL Infrastructure Management
+
+## 📍 Project Context
+
+**Project**: `agl-hostman` - Infrastructure management and host administration
+**Working Directory**: `/root/agl-hostman` (can be on any host with WSL/Linux)
+
+**Primary Development Environments**:
+
+### 1. AGLHQ11 - Windows 11 + WSL2 (Ubuntu)
+- **Tailscale IP**: 100.75.205.122 (eth0)
+- **WSL Version**: WSL2 (kernel 6.6.87.2-microsoft-standard-WSL2)
+- **Network**: Tailscale only (Windows host manages VPN)
+- **Available Tools**: ssh, git, curl (Tailscale via Windows)
+- **Connection Method**: SSH via Tailscale to remote hosts
+- **Best For**: Remote work, cross-site access, Windows-based development
+- **Limitations**: No direct WireGuard (requires Windows host), no local LAN access
+
+### 2. CT179 (agldv03) - AGLSRV1 Development Container
+- **Local IP**: 192.168.0.179 (eth0), 192.168.1.179 (eth1)
+- **WireGuard**: 10.6.0.19 (wg0, Port 51819)
+- **Tailscale**: 100.94.221.87
+- **Resources**: 48GB RAM, Docker, full development stack
+- **Network**: Triple-stack (LAN + WireGuard + Tailscale)
+- **Connection Method**: Direct LAN (192.168.0.x), WireGuard mesh (10.6.0.x), Tailscale (100.x)
+- **Best For**: High-performance local ops, WireGuard mesh access, Docker workloads
+- **Advantages**: Full network stack, direct Proxmox access, GPU passthrough capable
+
+### 3. CT108 (agldv06) - AGLSRV6 Development Container
+- **Tailscale**: 100.71.229.12
+- **Network**: Tailscale only
+- **Connection Method**: SSH via Tailscale
+- **Best For**: AGLSRV6 local operations, distributed development
+
+**Current Environment Detection**:
+```bash
+# Detect current environment
+if [[ -f /proc/version ]] && grep -q microsoft /proc/version; then
+    echo "Running on WSL2 (AGLHQ11-like)"
+elif [[ -f /etc/pve/.version ]]; then
+    echo "Running on Proxmox host"
+elif [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2>/dev/null; then
+    echo "Running in container (CT179/CT108-like)"
+else
+    echo "Unknown environment"
+fi
+```
+
+## 🔧 Environment-Specific Tooling Requirements
+
+### WSL2 (AGLHQ11) - Remote Access Profile
+
+**Required Tools**:
+- ✅ `ssh` - SSH client (pre-installed)
+- ✅ `git` - Version control (pre-installed)
+- ✅ `curl` - HTTP client (pre-installed)
+- ⚠️ `tailscale` - Managed by Windows host (not in WSL PATH)
+- ❌ `wg-quick` - Not available (no kernel module support)
+- ❌ `pct` - Not available (not a Proxmox host)
+
+**Network Capabilities**:
+- ✅ Tailscale VPN (via Windows host)
+- ✅ Internet access
+- ❌ WireGuard mesh (kernel limitation)
+- ❌ Direct LAN access (NAT'd through Windows)
+
+**Typical Workflow**:
+```bash
+# Clone project (works from WSL2)
+git clone <repo> /root/agl-hostman
+
+# SSH to remote hosts via Tailscale
+ssh root@100.94.221.87  # CT179
+
+# Run commands remotely
+ssh root@100.94.221.87 'cd /root/agl-hostman && git pull'
+
+# Cannot: Direct WireGuard, pct commands, local LAN access
+```
+
+**Recommended Setup**:
+```bash
+# Install additional tools in WSL2
+sudo apt update
+sudo apt install -y openssh-client git curl wget jq tmux
+
+# Configure SSH keys for passwordless access
+ssh-keygen -t ed25519 -C "wsl2@aglhq11"
+ssh-copy-id root@100.94.221.87  # CT179
+ssh-copy-id root@100.107.113.33  # AGLSRV1
+```
+
+---
+
+### CT179 (agldv03) - Full Stack Development Profile
+
+**Required Tools**:
+- ✅ `ssh` - SSH client
+- ✅ `git` - Version control
+- ✅ `curl` - HTTP client
+- ✅ `tailscale` - Tailscale client (installed)
+- ✅ `wg-quick` - WireGuard management (installed)
+- ✅ `docker` - Container runtime (48GB RAM available)
+- ✅ `pct` - Proxmox CLI (via host: `ssh root@192.168.0.245 pct`)
+
+**Network Capabilities**:
+- ✅ Tailscale VPN (100.94.221.87)
+- ✅ WireGuard mesh (10.6.0.19)
+- ✅ Local LAN (192.168.0.179, 192.168.1.179)
+- ✅ Internet access (dual interface)
+- ✅ Direct Proxmox access (via LAN)
+
+**Typical Workflow**:
+```bash
+# Full network stack available
+ping 192.168.0.245  # LAN (AGLSRV1 host)
+ping 10.6.0.12      # WireGuard (AGLSRV6)
+ping 100.98.108.66  # Tailscale (AGLSRV6)
+
+# Access storage via WireGuard NFS
+ls /mnt/pve/fgsrv6-wg
+ls /mnt/pve/ct111-shares
+
+# Run Docker workloads
+docker ps
+docker compose up -d
+
+# Proxmox commands via host
+ssh root@192.168.0.245 'pct list'
+ssh root@192.168.0.245 'pvesm status'
+
+# Can do everything: WireGuard, Tailscale, LAN, Docker
+```
+
+**Recommended Tools**:
+```bash
+# Development stack
+sudo apt install -y build-essential python3-pip nodejs npm
+pip3 install ansible docker-compose
+
+# Monitoring
+sudo apt install -y htop iotop nethogs tmux
+
+# Network tools
+sudo apt install -y wireguard-tools iproute2 net-tools dnsutils
+```
+
+---
+
+### CT108 (agldv06) - Tailscale-Only Profile
+
+**Required Tools**:
+- ✅ `ssh` - SSH client
+- ✅ `git` - Version control
+- ✅ `curl` - HTTP client
+- ✅ `tailscale` - Tailscale client (installed)
+- ❌ `wg-quick` - Not configured
+- ⚠️ `docker` - Status unknown
+- ⚠️ `pct` - Via host only (ssh root@10.6.0.12 if WG available on host)
+
+**Network Capabilities**:
+- ✅ Tailscale VPN (100.71.229.12)
+- ✅ Internet access
+- ❌ WireGuard mesh (not configured)
+- ⚠️ Local LAN (AGLSRV6 network, limited)
+
+**Typical Workflow**:
+```bash
+# Tailscale-based access (similar to WSL2)
+ssh root@100.94.221.87  # CT179
+ssh root@100.107.113.33  # AGLSRV1
+
+# Limited to Tailscale network
+# Similar limitations to WSL2 but with better container performance
+```
+
+---
+
+## 🎯 Quick Reference: Command Routing by Environment
+
+### Check Infrastructure Status
+
+**From WSL2**:
+```bash
+# Via Tailscale
+ssh root@100.107.113.33 'pct list'  # AGLSRV1 containers
+ssh root@100.98.108.66 'pct list'   # AGLSRV6 containers
+```
+
+**From CT179**:
+```bash
+# Direct LAN (fastest)
+ssh root@192.168.0.245 'pct list'  # AGLSRV1 containers
+ssh root@10.6.0.12 'pct list'      # AGLSRV6 via WireGuard
+
+# Or via Tailscale
+ssh root@100.107.113.33 'pct list'
+```
+
+### Access NFS Storage
+
+**From WSL2**:
+```bash
+# Cannot mount directly, must SSH
+ssh root@100.94.221.87 'ls /mnt/pve/fgsrv6-wg'
+```
+
+**From CT179**:
+```bash
+# Direct mount points (fastest)
+ls /mnt/pve/fgsrv6-wg
+ls /mnt/pve/ct111-shares
+df -h | grep wg
+```
+
+### Run Docker Commands
+
+**From WSL2**:
+```bash
+# Remote execution only
+ssh root@100.94.221.87 'docker ps'
+ssh root@100.94.221.87 'cd /root/agl-hostman && docker compose up -d'
+```
+
+**From CT179**:
+```bash
+# Native Docker commands
+docker ps
+cd /root/agl-hostman && docker compose up -d
+docker logs -f <container>
+```
 
 ## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
 
@@ -372,6 +602,7 @@ Remember: **Claude Flow coordinates, Claude Code creates!**
 - **SSH Config**: AGLSRV1 (192.168.0.245)
 - **Role**: Main production server, media/dev/monitoring infrastructure
 - **Total VMs/CTs**: 68 (42 running, 26 stopped)
+- **Primary Dev Container**: CT179 (agldv03) - 48GB RAM, Docker, full development stack
 
 - **Storage Mounts** (Updated 2025-10-16):
   - fgsrv5-wg: NFS → 10.6.0.11:/ (NFSv4.2, WireGuard)
@@ -536,15 +767,19 @@ Remember: **Claude Flow coordinates, Claude Code creates!**
 - CT102 (pihole): 100.114.66.80 → 192.168.0.102 - DNS/DHCP server
 - CT120 (wireguard): WireGuard 10.6.0.1 (no Tailscale) - WG mesh node
 - CT138 (haos): 100.105.133.18 → 192.168.0.138 - Home Assistant OS
-- CT179 (agldv03): 100.94.221.87 → 192.168.0.179 - Development (WG 10.6.0.19)
+- **CT179 (agldv03)**: 100.94.221.87 → 192.168.0.179 - **Primary Development** (WG 10.6.0.19, 48GB RAM)
 - CT200 (ollama-gpu): 100.116.57.111 → 192.168.0.200 - LLM GPU compute
+
+**AGLSRV6 Development Containers**:
+- **CT108 (agldv06)**: 100.71.229.12 - Development container (Tailscale only)
 
 **Other Network Nodes**:
 - aglsrv5-agldv05: 100.119.41.63 - Development
 - aglsrv5-mesh5: 100.82.254.91 - Mesh node
 
 **Workstations**:
-- AGLWK45: 100.117.146.21
+- **AGLHQ11**: 100.75.205.122 (Windows 11, WSL2) - **Current Host for Remote Work**
+- AGLWK45: 100.117.146.21 - Local workstation
 - AGLWK06: f.aguileraz.net:6022
 - AGLWK07: man.aguileraz.net:8122
 
@@ -552,7 +787,7 @@ Remember: **Claude Flow coordinates, Claude Code creates!**
 - aglcel10: 100.80.84.69 (Android, offline)
 - aglmac07: 100.102.187.120 (Windows, offline)
 - aglmac08: 100.111.113.102 (macOS)
-- aglhq11: 100.75.205.122 (Windows)
+- aglhq11: 100.75.205.122 (Windows - also listed above)
 
 **Cloud Servers**:
 - AGLSRV3: 100.123.5.81 (offline)
@@ -663,44 +898,128 @@ Remember: **Claude Flow coordinates, Claude Code creates!**
 
 ### 🔐 Connection Priority Rules
 
-**CRITICAL: Always follow this connection hierarchy when accessing infrastructure:**
+**CRITICAL: Connection strategy varies by source environment**
 
-1. **Primary (WireGuard Mesh)**: Use WireGuard IPs (10.6.0.0/24) whenever possible
-   - Best performance (kernel-level)
-   - Direct mesh routing
-   - Lowest latency
-   - Example: `ssh root@10.6.0.12` (AGLSRV6)
+## Connection Matrix by Source Environment
 
-2. **Fallback (Tailscale)**: Use Tailscale IPs (100.64.0.0/10) if WireGuard fails
-   - Redundancy layer
-   - Userspace overhead
-   - Still encrypted
+### From AGLHQ11 (WSL2) - Tailscale Only
+
+**Available Networks**: Tailscale (100.x.x.x) only
+**Not Available**: WireGuard (no kernel module), Local LAN (192.168.0.x)
+
+**Connection Priority**:
+1. **Tailscale Direct** (Primary): `ssh root@100.x.x.x`
    - Example: `ssh root@100.98.108.66` (AGLSRV6)
+   - Example: `ssh root@100.94.221.87` (CT179/agldv03)
 
-3. **Proxmox Access (LAN/Local)**: Connect via Proxmox host to access CTs/VMs
-   - For containers/VMs without direct network access
-   - Via host's local network interface
-   - Use `pct enter <vmid>` or SSH via host
-   - Example: `ssh 192.168.0.245` then `pct enter 179`
+2. **SSH via Tailscale to LAN** (Alternative): Chain through Tailscale host
+   - Example: `ssh -J root@100.107.113.33 root@192.168.0.179` (AGLSRV1 → CT179)
 
-4. **Last Resort (Public IP)**: Use external IPs for VPS hosts only
-   - Only for cloud VPS hosts (FGSRV3, FGSRV4, FGSRV5, FGSRV6)
-   - When WireGuard and Tailscale are both down
-   - Example: `ssh root@186.202.57.120` (FGSRV6)
+3. **Cannot Use**: WireGuard mesh, direct LAN access
 
-**Connection Examples**:
+**Typical Commands from WSL2**:
 ```bash
-# Best: WireGuard first
-ssh root@10.6.0.12 'hostname'
+# Connect to AGLSRV1 host
+ssh root@100.107.113.33
 
-# Fallback: Tailscale if WireGuard fails
-ssh root@100.98.108.66 'hostname'
+# Connect to CT179 development
+ssh root@100.94.221.87
 
-# Proxmox: Access CT via host
-ssh 192.168.0.245 'pct enter 179'
+# Connect to AGLSRV6 host
+ssh root@100.98.108.66
 
-# Public: VPS only, last resort
-ssh root@186.202.57.120
+# Jump through host to reach LAN-only container
+ssh -J root@100.107.113.33 root@192.168.0.202  # n8n via AGLSRV1
+```
+
+---
+
+### From CT179 (agldv03) - Triple Network Stack
+
+**Available Networks**: LAN (192.168.0.x), WireGuard (10.6.0.x), Tailscale (100.x.x.x)
+**Network Interfaces**: eth0 (LAN), wg0 (WireGuard), tailscale0
+
+**Connection Priority**:
+1. **WireGuard Mesh** (Best Performance): `ssh root@10.6.0.x`
+   - Kernel-level, lowest latency (~15-20ms)
+   - Direct mesh routing
+   - Example: `ssh root@10.6.0.12` (AGLSRV6)
+   - Example: `ssh root@10.6.0.5` (FGSRV6)
+
+2. **Local LAN** (Same Network): `ssh root@192.168.0.x`
+   - Zero latency for same subnet
+   - Direct access to all AGLSRV1 containers
+   - Example: `ssh root@192.168.0.202` (n8n)
+   - Example: `pct enter 202` (direct console from host)
+
+3. **Tailscale** (Cross-Network): `ssh root@100.x.x.x`
+   - For hosts without WireGuard
+   - Cross-site access
+   - Example: `ssh root@100.71.229.12` (CT108/agldv06)
+
+4. **Proxmox Direct** (Host Access): Via AGLSRV1 host (192.168.0.245)
+   - Example: `ssh root@192.168.0.245 'pct enter 202'`
+
+**Typical Commands from CT179**:
+```bash
+# Access AGLSRV6 via WireGuard (fastest)
+ssh root@10.6.0.12
+
+# Access other AGLSRV1 containers via LAN
+ssh root@192.168.0.202  # n8n
+ssh root@192.168.0.200  # ollama-gpu
+
+# Access FGSRV6 storage via WireGuard
+ls /mnt/pve/fgsrv6-wg
+
+# Access CT108 (no WireGuard) via Tailscale
+ssh root@100.71.229.12
+
+# Direct Proxmox commands (on AGLSRV1 host)
+pct enter 202
+pvesm status
+```
+
+---
+
+### From CT108 (agldv06) - Tailscale Only
+
+**Available Networks**: Tailscale (100.x.x.x) only
+**Not Available**: WireGuard (not configured), Local LAN (different network)
+
+**Connection Priority**:
+1. **Tailscale Direct** (Primary): `ssh root@100.x.x.x`
+   - Same as WSL2 behavior
+   - Example: `ssh root@100.94.221.87` (CT179)
+
+2. **Local Proxmox** (AGLSRV6 only): Via AGLSRV6 host
+   - Example: `ssh root@10.6.0.12 'pct enter 111'` (if WireGuard available on host)
+
+---
+
+### Universal Connection Patterns
+
+**To reach any infrastructure target**:
+
+| Target Type | From WSL2 (AGLHQ11) | From CT179 (agldv03) | From CT108 (agldv06) |
+|-------------|---------------------|----------------------|----------------------|
+| AGLSRV1 Host | 100.107.113.33 | 192.168.0.245 or 10.6.0.10 | 100.107.113.33 |
+| AGLSRV1 CTs | 100.x (if has TS) | 192.168.0.x (direct) | 100.x (if has TS) |
+| AGLSRV6 Host | 100.98.108.66 | 10.6.0.12 (WG best) | 10.6.0.12 or 100.98.108.66 |
+| FGSRV6 Host | 100.83.51.9 | 10.6.0.5 (WG best) | 100.83.51.9 |
+| Cloud VPS | 186.202.57.120 | 10.6.0.5 (WG) or public | 186.202.57.120 |
+
+**Connection Examples by Environment**:
+```bash
+# From WSL2: Tailscale only
+ssh root@100.98.108.66 'hostname'  # AGLSRV6
+
+# From CT179: WireGuard preferred
+ssh root@10.6.0.12 'hostname'  # AGLSRV6 (fastest)
+ssh root@192.168.0.202 'hostname'  # n8n (LAN)
+
+# From CT108: Tailscale only
+ssh root@100.94.221.87 'hostname'  # CT179
 ```
 
 ### ⚙️ WireGuard Configuration Standards
