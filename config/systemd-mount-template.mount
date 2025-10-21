@@ -1,0 +1,228 @@
+# Systemd mount unit template for NFS storage
+# Location: /etc/systemd/system/mnt-aglsrv1-pbs\x2dbackups.mount
+# Purpose: Declarative, managed NFS mount configuration
+# Documentation: man systemd.mount(5)
+
+# ===========================================================================
+# SYSTEMD MOUNT UNIT TEMPLATE
+# ===========================================================================
+# This template shows how to create systemd mount units for NFS storage.
+# Advantages over fstab:
+# - Better dependency management
+# - Automatic retry on failure
+# - Integration with systemd service management
+# - Detailed logging via journalctl
+# ===========================================================================
+
+[Unit]
+Description=NFS mount for PBS backups from AGLSRV1
+Documentation=man:systemd.mount(5) man:nfs(5)
+
+# Network dependencies
+Requires=network-online.target
+After=network-online.target
+Wants=network-online.target
+
+# Optional: Require specific network interface (e.g., Tailscale)
+# After=tailscaled.service
+# Requires=tailscaled.service
+
+# Prevent multiple mount attempts
+Conflicts=umount.target
+Before=umount.target
+
+[Mount]
+# What to mount (NFS export path)
+# Format for NFSv4: server:/export/path
+# Replace with actual AGLSRV1 Tailscale IP
+What=100.64.X.X:/pbs-backups
+
+# Where to mount (must match unit filename)
+# Unit filename: systemd-escape -p --suffix=mount /mnt/aglsrv1/pbs-backups
+Where=/mnt/aglsrv1/pbs-backups
+
+# Filesystem type
+Type=nfs4
+
+# Mount options (same as fstab options)
+Options=rw,relatime,tcp,hard,intr,timeo=600,retrans=2,vers=4.2,rsize=1048576,wsize=1048576
+
+# Timeout for mount operation (default: 90s)
+TimeoutSec=30
+
+# Filesystem check order (0 = no check for network filesystems)
+PassEn v=0
+
+[Install]
+# Enable mount at boot
+WantedBy=multi-user.target
+WantedBy=remote-fs.target
+
+# ===========================================================================
+# CREATING MOUNT UNITS
+# ===========================================================================
+#
+# 1. Determine unit filename:
+#    systemd-escape -p --suffix=mount /mnt/aglsrv1/pbs-backups
+#    Output: mnt-aglsrv1-pbs\x2dbackups.mount
+#
+# 2. Create unit file:
+#    /etc/systemd/system/mnt-aglsrv1-pbs\x2dbackups.mount
+#
+# 3. Reload systemd:
+#    systemctl daemon-reload
+#
+# 4. Enable and start:
+#    systemctl enable mnt-aglsrv1-pbs\x2dbackups.mount
+#    systemctl start mnt-aglsrv1-pbs\x2dbackups.mount
+#
+# 5. Check status:
+#    systemctl status mnt-aglsrv1-pbs\x2dbackups.mount
+#
+# ===========================================================================
+# AUTOMOUNT UNITS (On-demand mounting)
+# ===========================================================================
+#
+# Create corresponding .automount unit for lazy mounting:
+# File: /etc/systemd/system/mnt-aglsrv1-pbs\x2dbackups.automount
+#
+# [Unit]
+# Description=Automount for PBS backups from AGLSRV1
+#
+# [Automount]
+# Where=/mnt/aglsrv1/pbs-backups
+# TimeoutIdleSec=300
+#
+# [Install]
+# WantedBy=multi-user.target
+#
+# Benefits:
+# - Mount only when accessed
+# - Automatic unmount after idle timeout
+# - Faster boot times
+#
+# ===========================================================================
+# COMMON MOUNT OPTIONS FOR DIFFERENT USE CASES
+# ===========================================================================
+
+# High-Performance VM Storage:
+# Options=rw,tcp,hard,intr,vers=4.2,rsize=1048576,wsize=1048576,noatime,nodiratime
+
+# Critical Backup Storage (reliability over performance):
+# Options=rw,sync,tcp,hard,intr,vers=4.2,timeo=600,retrans=5
+
+# Read-Only Archive Storage:
+# Options=ro,tcp,hard,vers=4.2,rsize=1048576
+
+# Low-Latency Database Storage:
+# Options=rw,sync,tcp,hard,intr,vers=4.2,actimeo=5
+
+# General Purpose Storage:
+# Options=rw,relatime,tcp,hard,intr,vers=4.2
+
+# ===========================================================================
+# DEPENDENCY MANAGEMENT
+# ===========================================================================
+
+# Wait for specific service before mounting:
+# After=tailscaled.service
+# Requires=tailscaled.service
+
+# Mount only after another mount:
+# After=mnt-storage.mount
+# Requires=mnt-storage.mount
+
+# Make services depend on this mount:
+# In service file, add:
+# RequiresMountsFor=/mnt/aglsrv1/pbs-backups
+
+# ===========================================================================
+# MONITORING AND MANAGEMENT
+# ===========================================================================
+
+# Check mount status:
+# systemctl status *.mount
+
+# List all mount units:
+# systemctl list-units --type=mount
+
+# View mount logs:
+# journalctl -u mnt-aglsrv1-pbs\\x2dbackups.mount
+
+# Restart failed mount:
+# systemctl restart mnt-aglsrv1-pbs\\x2dbackups.mount
+
+# Temporarily unmount:
+# systemctl stop mnt-aglsrv1-pbs\\x2dbackups.mount
+
+# Disable mount at boot:
+# systemctl disable mnt-aglsrv1-pbs\\x2dbackups.mount
+
+# ===========================================================================
+# TROUBLESHOOTING
+# ===========================================================================
+
+# Mount fails immediately:
+# - Check network connectivity: ping 100.64.X.X
+# - Verify NFS exports: showmount -e 100.64.X.X
+# - Check firewall: ufw status
+# - View detailed logs: journalctl -xe
+
+# Mount hangs/times out:
+# - Increase TimeoutSec
+# - Check NFS server responsiveness
+# - Verify network stability
+# - Try soft mount option (not recommended for production)
+
+# Mount succeeds but files not accessible:
+# - Check permissions: ls -la /mnt/aglsrv1/pbs-backups
+# - Verify NFS export options (no_root_squash, etc.)
+# - Check SELinux/AppArmor policies
+
+# ===========================================================================
+# EXAMPLE: COMPLETE SETUP FOR PBS BACKUPS
+# ===========================================================================
+
+# 1. Create mount unit:
+# cat > /etc/systemd/system/mnt-aglsrv1-pbs\\x2dbackups.mount << 'EOF'
+# [Unit]
+# Description=PBS Backups from AGLSRV1
+# After=network-online.target
+# Requires=network-online.target
+#
+# [Mount]
+# What=100.64.X.X:/pbs-backups
+# Where=/mnt/aglsrv1/pbs-backups
+# Type=nfs4
+# Options=rw,sync,tcp,hard,intr,vers=4.2,timeo=600,retrans=3
+#
+# [Install]
+# WantedBy=multi-user.target
+# EOF
+
+# 2. Create automount unit (optional):
+# cat > /etc/systemd/system/mnt-aglsrv1-pbs\\x2dbackups.automount << 'EOF'
+# [Unit]
+# Description=Automount PBS Backups from AGLSRV1
+#
+# [Automount]
+# Where=/mnt/aglsrv1/pbs-backups
+# TimeoutIdleSec=600
+#
+# [Install]
+# WantedBy=multi-user.target
+# EOF
+
+# 3. Create mount point:
+# mkdir -p /mnt/aglsrv1/pbs-backups
+
+# 4. Reload and enable:
+# systemctl daemon-reload
+# systemctl enable mnt-aglsrv1-pbs\\x2dbackups.automount
+# systemctl start mnt-aglsrv1-pbs\\x2dbackups.automount
+
+# 5. Verify:
+# ls /mnt/aglsrv1/pbs-backups  # This will trigger automount
+# systemctl status mnt-aglsrv1-pbs\\x2dbackups.mount
+
+# ===========================================================================

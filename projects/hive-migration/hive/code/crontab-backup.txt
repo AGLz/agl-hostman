@@ -1,0 +1,51 @@
+################################################################################
+# Crontab Configuration for Database Backup
+# falgimoveis11 → fgdev (4x daily)
+################################################################################
+# Installation:
+#   1. Edit: crontab -e
+#   2. Add the lines below (adjust timezone if needed)
+#   3. Verify: crontab -l
+################################################################################
+
+# Environment variables (adjust as needed)
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=""
+
+# MySQL credentials file (create ~/.my.cnf with [client] section)
+# Example ~/.my.cnf:
+# [client]
+# user=root
+# password=your_password_here
+
+# Timezone: BRT (Brazil Time, UTC-3)
+# Adjust schedule if server is in different timezone
+
+# Database Backup Schedule (4x daily)
+# 00:00 BRT - Midnight backup
+0 3 * * * /mnt/overpower/apps/dev/agl/hostman/hive/code/backup-db-sync.sh >> /var/backups/mysql/fgdev/backup.log 2>&1
+
+# 06:00 BRT - Morning backup
+0 9 * * * /mnt/overpower/apps/dev/agl/hostman/hive/code/backup-db-sync.sh >> /var/backups/mysql/fgdev/backup.log 2>&1
+
+# 12:00 BRT - Noon backup
+0 15 * * * /mnt/overpower/apps/dev/agl/hostman/hive/code/backup-db-sync.sh >> /var/backups/mysql/fgdev/backup.log 2>&1
+
+# 18:00 BRT - Evening backup
+0 21 * * * /mnt/overpower/apps/dev/agl/hostman/hive/code/backup-db-sync.sh >> /var/backups/mysql/fgdev/backup.log 2>&1
+
+# Log rotation (weekly cleanup of old logs)
+0 2 * * 0 find /var/backups/mysql/fgdev/ -name "*.log" -mtime +30 -delete
+
+# Monitoring check (daily at 08:00 BRT)
+0 11 * * * /mnt/overpower/apps/dev/agl/hostman/hive/code/backup-monitor.sh >> /var/backups/mysql/fgdev/monitor.log 2>&1
+
+################################################################################
+# Notes:
+# - Times are in UTC (add 3 hours for BRT)
+# - Ensure script has execute permissions: chmod +x backup-db-sync.sh
+# - Test manually first: ./backup-db-sync.sh
+# - Monitor logs: tail -f /var/backups/mysql/fgdev/backup.log
+# - Check disk space regularly: df -h /var/backups
+################################################################################

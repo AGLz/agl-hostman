@@ -1,0 +1,139 @@
+# /etc/fstab - Filesystem mount table
+# Purpose: NFS client mounts for remote Proxmox storage
+# Documentation: man fstab(5)
+
+# ===========================================================================
+# NFS MOUNTS FROM AGLSRV1
+# ===========================================================================
+# Server: AGLSRV1 (Tailscale IP: 100.64.X.X)
+# Mount Base: /mnt/aglsrv1
+# ===========================================================================
+
+# NFSv4 Mounts - Modern, recommended
+# Replace 100.64.X.X with actual AGLSRV1 Tailscale IP
+
+# PBS Backups - Critical backup data
+100.64.X.X:/pbs-backups     /mnt/aglsrv1/pbs-backups     nfs4    rw,relatime,tcp,hard,intr,timeo=600,retrans=2,_netdev,x-systemd.automount  0  0
+
+# VM Images - Large file storage
+100.64.X.X:/vm-images       /mnt/aglsrv1/vm-images       nfs4    rw,relatime,tcp,hard,intr,timeo=600,retrans=2,_netdev,x-systemd.automount  0  0
+
+# Container Volumes - Container persistent storage
+100.64.X.X:/container-volumes  /mnt/aglsrv1/container-volumes  nfs4  rw,relatime,tcp,hard,intr,timeo=600,retrans=2,_netdev,x-systemd.automount  0  0
+
+# Shared Data - General purpose storage
+100.64.X.X:/shared-data     /mnt/aglsrv1/shared-data     nfs4    rw,relatime,tcp,hard,intr,timeo=600,retrans=2,_netdev,x-systemd.automount  0  0
+
+# ===========================================================================
+# ALTERNATIVE: NFSv3 Mounts (for compatibility)
+# ===========================================================================
+
+# NFSv3 with explicit version
+# 100.64.X.X:/export/path   /mnt/point   nfs   vers=3,rw,tcp,hard,intr,_netdev   0  0
+
+# ===========================================================================
+# MOUNT OPTION EXPLANATIONS
+# ===========================================================================
+#
+# NFS-Specific Options:
+# ---------------------
+# vers=4.2         - Use NFSv4.2 (latest, recommended)
+# vers=4.1         - Use NFSv4.1
+# vers=3           - Use NFSv3 (legacy compatibility)
+# rw               - Mount read-write
+# ro               - Mount read-only
+# hard             - Retry indefinitely (recommended for production)
+# soft             - Give up after retrans attempts (can cause data loss)
+# intr             - Allow interruption of NFS calls
+# timeo=600        - Timeout in tenths of seconds (60 seconds)
+# retrans=2        - Number of retries before timeout
+# tcp              - Use TCP transport (recommended)
+# udp              - Use UDP transport (legacy)
+# rsize=1048576    - Read buffer size (1MB, for performance)
+# wsize=1048576    - Write buffer size (1MB, for performance)
+# actimeo=30       - Attribute cache timeout in seconds
+# noatime          - Don't update access times (performance)
+# nodiratime       - Don't update directory access times
+#
+# System Integration Options:
+# ---------------------------
+# _netdev          - Wait for network before mounting (required!)
+# x-systemd.automount  - Auto-mount on first access
+# x-systemd.idle-timeout=300  - Unmount after 5 min idle
+# x-systemd.device-timeout=10  - Device timeout
+# x-systemd.mount-timeout=30   - Mount timeout
+# nofail           - Don't fail boot if mount fails
+# noauto           - Don't mount automatically at boot
+#
+# Dump/Pass Fields:
+# -----------------
+# 0 0              - No dump, no fsck (standard for NFS)
+#
+# ===========================================================================
+# PERFORMANCE OPTIMIZATION
+# ===========================================================================
+
+# High-performance mount for VM storage
+# 100.64.X.X:/vm-images  /mnt/aglsrv1/vm-images  nfs4  vers=4.2,rw,tcp,hard,intr,rsize=1048576,wsize=1048576,timeo=600,retrans=2,_netdev,noatime  0  0
+
+# Low-latency mount for databases
+# 100.64.X.X:/databases  /mnt/aglsrv1/databases  nfs4  vers=4.2,rw,tcp,hard,intr,sync,timeo=600,retrans=2,_netdev  0  0
+
+# ===========================================================================
+# SSHFS MOUNTS (Alternative to NFS)
+# ===========================================================================
+
+# Mount via SSHFS for encrypted transfer
+# root@100.64.X.X:/var/lib/vz  /mnt/remote/vz  fuse.sshfs  allow_other,default_permissions,reconnect,_netdev,x-systemd.automount  0  0
+
+# ===========================================================================
+# CIFS/SMB MOUNTS (If using Windows/Samba shares)
+# ===========================================================================
+
+# //server/share  /mnt/share  cifs  credentials=/root/.smbcreds,uid=1000,gid=1000,_netdev  0  0
+
+# ===========================================================================
+# LOCAL FILESYSTEM EXAMPLES
+# ===========================================================================
+
+# Physical disk partition
+# /dev/sda1              /mnt/data        ext4    defaults,noatime    0  2
+
+# LVM volume
+# /dev/vg0/lv_data       /mnt/lvm         ext4    defaults            0  2
+
+# Bind mount (mount directory to another location)
+# /source/path           /dest/path       none    bind                0  0
+
+# ===========================================================================
+# TESTING MOUNTS
+# ===========================================================================
+#
+# Before adding to fstab:
+# 1. Test manual mount:
+#    mount -t nfs4 100.64.X.X:/export /mnt/test
+#
+# 2. Test all fstab entries:
+#    mount -a
+#
+# 3. Verify mounts:
+#    mount | grep nfs
+#    df -h
+#
+# 4. Test automatic mount:
+#    systemctl daemon-reload
+#    systemctl restart remote-fs.target
+#
+# ===========================================================================
+# TROUBLESHOOTING
+# ===========================================================================
+#
+# If mounts fail:
+# 1. Check network: ping 100.64.X.X
+# 2. Check NFS service: showmount -e 100.64.X.X
+# 3. Check logs: journalctl -xe | grep mount
+# 4. Check systemd units: systemctl list-units --type=mount
+# 5. Verify firewall: ufw status
+# 6. Test with mount.nfs4 -v for verbose output
+#
+# ===========================================================================

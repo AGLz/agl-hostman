@@ -1,0 +1,91 @@
+# /etc/exports - NFS server exports configuration
+# Purpose: Export storage for remote Proxmox hosts
+# Documentation: man exports(5)
+
+# ===========================================================================
+# NFS EXPORTS FOR AGLSRV1
+# ===========================================================================
+# Network: Tailscale (100.64.0.0/10)
+# Generated: Reference configuration
+# ===========================================================================
+
+# Main Export Root (NFSv4)
+# This serves as the NFSv4 root filesystem
+/mnt/storage                100.64.0.0/10(rw,sync,no_subtree_check,no_root_squash,fsid=0)
+
+# PBS Backups - Critical data, high reliability
+# Options: sync for data integrity, no_root_squash for PBS access
+/mnt/storage/pbs-backups    100.64.0.0/10(rw,sync,no_subtree_check,no_root_squash)
+
+# VM Images - Large file optimization
+# Options: async for better performance on large sequential writes
+/mnt/storage/vm-images      100.64.0.0/10(rw,async,no_subtree_check,no_root_squash)
+
+# Container Volumes - Small file optimization
+# Options: sync for container consistency
+/mnt/storage/container-volumes  100.64.0.0/10(rw,sync,no_subtree_check,no_root_squash)
+
+# Shared Data - General purpose
+# Options: all_squash for security, anonuid/anongid for anonymous access
+/mnt/storage/shared-data    100.64.0.0/10(rw,async,no_subtree_check,all_squash,anonuid=1000,anongid=1000)
+
+# ===========================================================================
+# OPTION EXPLANATIONS
+# ===========================================================================
+#
+# rw                  - Read-write access
+# ro                  - Read-only access
+# sync                - Write requests complete when data is on disk
+# async               - Write requests complete before data is on disk (faster)
+# no_subtree_check    - Disable subtree checking (recommended)
+# no_root_squash      - Allow root access from clients
+# root_squash         - Map root to anonymous user (default, more secure)
+# all_squash          - Map all users to anonymous user
+# anonuid=X           - UID for anonymous user
+# anongid=X           - GID for anonymous user
+# fsid=0              - Mark as NFSv4 root
+# crossmnt            - Allow crossing mount points
+# no_wdelay           - Disable write delay (useful with sync)
+#
+# ===========================================================================
+# SECURITY NOTES
+# ===========================================================================
+#
+# 1. Restrict to Tailscale network (100.64.0.0/10) for security
+# 2. Use no_root_squash only for trusted networks
+# 3. Consider ro (read-only) for sensitive data
+# 4. Monitor access logs in /var/log/syslog
+# 5. Use firewall rules to restrict NFS ports
+#
+# ===========================================================================
+# PERFORMANCE TUNING
+# ===========================================================================
+#
+# For better performance:
+# - Use async for non-critical data
+# - Increase rsize/wsize on client side
+# - Enable NFSv4.2 for better features
+# - Use multiple NFS threads (see /etc/default/nfs-kernel-server)
+#
+# ===========================================================================
+# PROXMOX-SPECIFIC EXPORTS
+# ===========================================================================
+
+# Export for specific Proxmox host by IP
+# Replace X.X.X.X with actual Tailscale IP
+# /mnt/storage/host-specific  100.64.X.X/32(rw,sync,no_subtree_check,no_root_squash)
+
+# Export with IP range for multiple Proxmox hosts
+# /mnt/storage/pve-shared     100.64.1.0/24(rw,async,no_subtree_check,no_root_squash)
+
+# ===========================================================================
+# APPLYING CHANGES
+# ===========================================================================
+#
+# After editing this file:
+# 1. Validate syntax: exportfs -ra
+# 2. Restart NFS: systemctl restart nfs-kernel-server
+# 3. Verify exports: exportfs -v
+# 4. Check from client: showmount -e <server-ip>
+#
+# ===========================================================================

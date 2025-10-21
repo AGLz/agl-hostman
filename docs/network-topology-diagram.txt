@@ -1,0 +1,393 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  AGLSRV1 REMOTE STORAGE ARCHITECTURE                         ║
+║                   Multi-Protocol Storage over Tailscale VPN                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         TAILSCALE MESH NETWORK (100.x.x.x/10)                │
+│                    Encrypted WireGuard Tunnels - Zero-Trust                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+                            ┌─────────────────────┐
+                            │     AGLSRV1         │
+                            │  Storage Server     │
+                            │  (100.x.x.x)        │
+                            │                     │
+                            │  Services:          │
+                            │  • NFS v4.2  :2049  │
+                            │  • iSCSI     :3260  │
+                            │  • PBS API   :8007  │
+                            │  • SSH       :22    │
+                            └──────────┬──────────┘
+                                       │
+                     ┌─────────────────┴─────────────────┐
+                     │    Tailscale Encrypted Mesh       │
+                     │         (WireGuard)               │
+                     └─────────────────┬─────────────────┘
+                                       │
+            ┌──────────────┬───────────┴───────────┬──────────────┐
+            │              │                       │              │
+            │              │                       │              │
+    ┌───────▼──────┐ ┌────▼────────┐ ┌───────────▼────┐ ┌───────▼──────┐
+    │   AGLSRV6    │ │  AGLSRV6b   │ │    FGSRV5      │ │   FGSRV6     │
+    │ 100.98.108.66│ │100.98.119.51│ │ 100.71.107.26  │ │ 100.83.51.9  │
+    │              │ │             │ │                │ │              │
+    │ + PBS        │ │ + PBS       │ │ Proxmox VE     │ │ Proxmox VE   │
+    │  Container   │ │  Container  │ │                │ │              │
+    └──────────────┘ └─────────────┘ └────────────────┘ └──────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           STORAGE PROTOCOL FLOWS                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  1. NFS v4.2 - FILE-LEVEL STORAGE (Port 2049)                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    AGLSRV1:/mnt/storage/remote/{host}/data  ──NFS4──►  /mnt/aglsrv1/data
+    AGLSRV1:/mnt/storage/shared/iso          ──NFS4──►  /mnt/aglsrv1/iso (RO)
+    AGLSRV1:/mnt/storage/shared/templates    ──NFS4──►  /mnt/aglsrv1/templates (RO)
+
+    Use Cases:
+    ✓ VM disk images (alternative to iSCSI)
+    ✓ Container rootfs
+    ✓ ISO/template library (shared read-only)
+    ✓ Migration staging area
+    ✓ User/application data
+
+    Performance: 250-400 MB/s read, 200-350 MB/s write
+    Latency: 5-15ms over Tailscale VPN
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  2. iSCSI - BLOCK-LEVEL STORAGE (Port 3260)                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Target: iqn.2025-01.local.aglsrv1:storage
+    Portal: 100.x.x.x:3260
+    Auth: CHAP (per-host credentials)
+
+    LUN Mapping:
+    /mnt/storage/iscsi/lun-aglsrv6-001.img   ──iSCSI──► /dev/sdb (AGLSRV6)
+    /mnt/storage/iscsi/lun-aglsrv6b-001.img  ──iSCSI──► /dev/sdb (AGLSRV6b)
+    /mnt/storage/iscsi/lun-fgsrv5-001.img    ──iSCSI──► /dev/sdb (FGSRV5)
+    /mnt/storage/iscsi/lun-fgsrv6-001.img    ──iSCSI──► /dev/sdb (FGSRV6)
+
+    Use Cases:
+    ✓ High-performance VM disk images
+    ✓ Database storage (MariaDB, PostgreSQL)
+    ✓ Applications requiring block-level access
+    ✓ LVM-based storage pools
+
+    Performance: 300-500 MB/s read, 250-400 MB/s write
+    Latency: 3-10ms over Tailscale VPN
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  3. PROXMOX BACKUP SERVER - DEDUPLICATION & COMPRESSION (Port 8007)         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    PBS Datastores:
+    remote-aglsrv6   → /mnt/storage/remote/aglsrv6/backups
+    remote-aglsrv6b  → /mnt/storage/remote/aglsrv6b/backups
+    remote-fgsrv5    → /mnt/storage/remote/fgsrv5/backups
+    remote-fgsrv6    → /mnt/storage/remote/fgsrv6/backups
+
+    Features:
+    ✓ Incremental backups with chunked deduplication
+    ✓ End-to-end encryption (AES-256-GCM)
+    ✓ Compression (zstd, lz4)
+    ✓ Automatic garbage collection
+    ✓ Backup verification jobs
+    ✓ Retention policies (7 daily, 4 weekly, 6 monthly)
+
+    Backup Schedule:
+    AGLSRV6:  Daily @ 02:00 → GC @ 02:00, Prune @ 03:00, Verify @ 04:00
+    AGLSRV6b: Daily @ 02:00 → GC @ 02:15, Prune @ 03:15, Verify @ 04:15
+    FGSRV5:   Daily @ 02:00 → GC @ 02:30, Prune @ 03:30, Verify @ 04:30
+    FGSRV6:   Daily @ 02:00 → GC @ 02:45, Prune @ 03:45, Verify @ 04:45
+
+    Performance: 150-300 MB/s (with dedup/compression)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  4. SSH/SFTP - AD-HOC TRANSFERS & MIGRATIONS (Port 22)                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Use Cases:
+    ✓ Emergency data transfers
+    ✓ Configuration synchronization
+    ✓ Manual file copies (scp, rsync)
+    ✓ Administrative tasks
+
+    Performance: 50-150 MB/s (CPU-bound encryption)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          DATA FLOW ARCHITECTURE                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│                        AGLSRV1 STORAGE HIERARCHY                          │
+└───────────────────────────────────────────────────────────────────────────┘
+
+/mnt/storage/
+├── remote/                          ← Per-host isolated storage
+│   ├── aglsrv6/
+│   │   ├── data/                    ← NFS: General file storage
+│   │   │   ├── vms/                 ← VM disk images
+│   │   │   ├── containers/          ← Container rootfs
+│   │   │   └── shared/              ← User/app data
+│   │   ├── backups/                 ← PBS: Deduplication datastore
+│   │   │   ├── .chunks/             ← Deduplicated data blocks
+│   │   │   ├── vm/                  ← VM backups
+│   │   │   └── ct/                  ← Container backups
+│   │   ├── iso/                     ← ISO images (symlink to shared)
+│   │   ├── templates/               ← VM/CT templates (symlink to shared)
+│   │   └── staging/                 ← Migration/temp storage
+│   │
+│   ├── aglsrv6b/  [same structure]
+│   ├── fgsrv5/    [same structure]
+│   └── fgsrv6/    [same structure]
+│
+├── shared/                          ← Cross-host shared resources
+│   ├── iso/                         ← Common ISO library (RO)
+│   ├── templates/                   ← Shared VM/CT templates (RO)
+│   └── tools/                       ← Management scripts
+│
+└── iscsi/                           ← iSCSI LUN block files
+    ├── lun-aglsrv6-001.img   (500GB)
+    ├── lun-aglsrv6b-001.img  (500GB)
+    ├── lun-fgsrv5-001.img    (500GB)
+    └── lun-fgsrv6-001.img    (500GB)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          SECURITY ARCHITECTURE                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        MULTI-LAYER SECURITY MODEL                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Layer 5: Application Security
+├── PBS: Token-based authentication (API tokens)
+├── SSH: Public key authentication (no passwords)
+└── NFS/iSCSI: ACL-based access control
+
+Layer 4: Protocol Security
+├── iSCSI: CHAP authentication (per-host credentials)
+├── NFS: sec=sys (Tailscale provides encryption)
+└── PBS: TLS 1.3 + Certificate pinning
+
+Layer 3: Transport Security
+├── Optional IPSec for iSCSI (if needed)
+└── TLS 1.3 for PBS API
+
+Layer 2: Network Security
+├── Tailscale WireGuard: ChaCha20-Poly1305 encryption
+├── Zero-Trust network model
+└── ACL-based access control per service/port
+
+Layer 1: Host Security
+├── UFW firewall: Deny-by-default, allow Tailscale subnet
+├── SELinux/AppArmor (optional)
+├── Automatic security updates
+└── Audit logging (auditd)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         AUTHENTICATION MATRIX                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Protocol    Auth Method              Encryption          Notes
+──────────────────────────────────────────────────────────────────────────────
+NFS         IP-based ACL             Tailscale (WG)      Root squash disabled
+iSCSI       CHAP (per-host)          Tailscale (WG)      16-char passwords
+PBS         API Token                TLS 1.3 + Tailscale Fingerprint validation
+SSH         Public key               OpenSSH             No password auth
+──────────────────────────────────────────────────────────────────────────────
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                       FAILOVER & REDUNDANCY STRATEGY                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      CURRENT: SINGLE-SERVER DESIGN                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                          ┌─────────────────┐
+                          │    AGLSRV1      │
+                          │  (Primary)      │
+                          │  RAID-6/ZFS     │
+                          └────────┬────────┘
+                                   │
+                        ┌──────────┴──────────┐
+                        │  Local Redundancy:  │
+                        │  • RAID-6 disk array│
+                        │  • ZFS snapshots    │
+                        │  • Hot spare disks  │
+                        │  • UPS backup power │
+                        └─────────────────────┘
+
+Recovery Capabilities:
+├── Disk Failure: RAID rebuild (hot spare) → RTO: 0, RPO: 0
+├── Service Crash: systemd auto-restart → RTO: 30 sec, RPO: 0
+├── Network Partition: Tailscale auto-reconnect → RTO: 2 min, RPO: 0
+└── Server Failure: Manual restore from backup → RTO: 1-2 hours, RPO: 24 hours
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      FUTURE: HIGH-AVAILABILITY DESIGN                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────┐          ┌─────────────────┐
+    │    AGLSRV1      │◄────────►│    AGLSRV1b     │
+    │  (Primary)      │  DRBD    │  (Secondary)    │
+    │  Active         │  Sync    │  Standby        │
+    └────────┬────────┘          └────────┬────────┘
+             │                            │
+             │    Pacemaker Cluster       │
+             │    Virtual IP: 100.x.x.x   │
+             └────────────┬───────────────┘
+                          │
+                   ┌──────▼──────┐
+                   │ Remote Hosts│
+                   │ (No change) │
+                   └─────────────┘
+
+Planned Capabilities (Phase 2):
+├── Active-Active: Load balancing across both servers
+├── Auto-Failover: Pacemaker detects failure → VIP migration → 2 min RTO
+├── Sync Replication: DRBD block-level sync → RPO: 0
+└── Split-Brain Protection: Fencing mechanism prevents data corruption
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      MONITORING & HEALTH CHECKS                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Automated Daily Health Checks (6 AM):
+├── Tailscale Connectivity: Ping all remote hosts, measure latency
+├── NFS Server Status: Check nfs-server.service, validate exports
+├── iSCSI Target Status: Check target.service, count active sessions
+├── PBS Datastores: Verify service, check disk usage, list datastores
+├── Disk Health: SMART status for all physical disks
+├── Disk Usage: Alert if >80% full
+├── Service Ports: Verify 2049, 3260, 8007, 22 are listening
+└── Network Performance: Optional iperf3 tests to remote hosts
+
+Alerting Thresholds:
+├── CRITICAL: Host unreachable >5 min, Disk >90%, RAID degraded
+├── WARNING: High latency >50ms, Disk >80%, No iSCSI sessions
+└── INFO: Backup completed, GC completed, Service restarted
+
+Monitoring Stack:
+├── /usr/local/bin/storage-health-monitor.sh (custom script)
+├── Cron: Daily execution at 6 AM
+├── Email alerts to admin@example.com
+└── Logs: /var/log/storage-health.log
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         IMPLEMENTATION TIMELINE                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────┬───────────────────────────────────────────────────────────────────┐
+│ Week 1  │ FOUNDATION SETUP                                                  │
+│         ├───────────────────────────────────────────────────────────────────┤
+│         │ • Install packages (NFS, iSCSI, PBS)                              │
+│         │ • Create directory structure                                      │
+│         │ • Configure Tailscale network                                     │
+│         │ • Set up firewall rules                                           │
+│         │ • Deploy NFS server                                               │
+│         │ • Configure NFS clients on all remote hosts                       │
+│         │ • Test NFS mounts and basic I/O                                   │
+├─────────┼───────────────────────────────────────────────────────────────────┤
+│ Week 2  │ MULTI-PROTOCOL DEPLOYMENT                                         │
+│         ├───────────────────────────────────────────────────────────────────┤
+│         │ • Configure iSCSI target (run iscsi-target-setup.sh)              │
+│         │ • Configure iSCSI initiators on remote hosts                      │
+│         │ • Test iSCSI LUN connectivity                                     │
+│         │ • Set up PBS datastores (run pbs-datastore-setup.sh)              │
+│         │ • Add PBS storage to Proxmox hosts                                │
+│         │ • Configure first backup jobs                                     │
+│         │ • Performance tuning and optimization                             │
+├─────────┼───────────────────────────────────────────────────────────────────┤
+│ Week 3  │ MIGRATION & INTEGRATION                                           │
+│         ├───────────────────────────────────────────────────────────────────┤
+│         │ • Migrate existing VM images to remote storage                    │
+│         │ • Integrate with Proxmox storage configuration                    │
+│         │ • Run first full backups (all VMs/CTs)                            │
+│         │ • Deploy monitoring (storage-health-monitor.sh)                   │
+│         │ • Configure cron jobs for automated checks                        │
+│         │ • Create operational runbooks                                     │
+│         │ • Train operations team on procedures                             │
+├─────────┼───────────────────────────────────────────────────────────────────┤
+│ Week 4  │ HARDENING & PRODUCTION READINESS                                  │
+│         ├───────────────────────────────────────────────────────────────────┤
+│         │ • Security audit and hardening                                    │
+│         │ • Load testing and performance validation                         │
+│         │ • Test failover procedures                                        │
+│         │ • Set up alerting and dashboards                                  │
+│         │ • Create disaster recovery plan                                   │
+│         │ • Final acceptance testing                                        │
+│         │ • Production go-live                                              │
+└─────────┴───────────────────────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        CAPACITY PLANNING & SCALING                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Current Capacity (Single AGLSRV1):
+├── Storage: ~24TB usable (RAID-6 or ZFS RAIDZ2)
+├── Per-host allocation: 6TB (4 hosts)
+├── Shared resources: ~2TB (ISO, templates)
+├── iSCSI LUNs: 500GB per host (expandable)
+└── Network: 1 Gbps aggregate bandwidth
+
+Growth Projections:
+├── Year 1: 30% storage growth → Need 32TB
+├── Year 2: 50% growth → Need 36TB
+├── Scaling options:
+│   ├── Add disk shelves to existing server
+│   ├── Deploy secondary AGLSRV1b for HA
+│   └── Migrate to higher-capacity disks (8TB → 16TB)
+
+Performance Scaling:
+├── If network becomes bottleneck: Upgrade to 10GbE
+├── If CPU becomes bottleneck: Add cores or offload PBS to separate server
+├── If latency is critical: Deploy local cache on remote hosts
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                               COST ANALYSIS                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Annual Operational Costs:
+├── Tailscale Business: $120/year (1 user, unlimited devices)
+├── Power/Cooling: $500-800/year (300W 24/7 @ $0.12/kWh)
+├── Internet Bandwidth: $0 (included in existing plan)
+├── Maintenance: $200/year (disk replacements, supplies)
+└── TOTAL: ~$820-1,120/year
+
+Cost Savings vs. Alternatives:
+├── Cloud Storage (24TB): $4,800/year (AWS S3 Standard)
+├── Managed Backup: $3,600/year (equivalent PBS features)
+├── Site-to-Site VPN Hardware: $2,400/year (licenses + maintenance)
+└── TOTAL SAVINGS: ~$10,000/year
+
+ROI Timeline: 3-6 months (capital costs already sunk)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ARCHITECTURE DOCUMENT VERSION: 1.0
+CREATED BY: System Architect Agent (Hive Mind swarm-1760494362874-uf3mol3vr)
+DATE: 2025-10-14
+STATUS: READY FOR IMPLEMENTATION
+
+═══════════════════════════════════════════════════════════════════════════════
