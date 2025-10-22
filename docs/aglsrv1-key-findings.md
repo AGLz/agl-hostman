@@ -1,0 +1,296 @@
+# AGLSRV1 Service Diagnostics - Key Findings
+
+**Date**: 2025-10-21 23:00
+**Diagnostician**: Service Diagnostics Agent (Hive-Mind)
+
+---
+
+## TL;DR - Executive Summary
+
+**Question**: Is the Proxmox WebUI working?
+**Answer**: ✅ **YES** - WebUI is fully operational on https://192.168.0.245:8006
+
+**Critical Issue**: 🔴 **/tmp filesystem is 100% full** (63GB consumed by rclone cache)
+
+**System Health**: 🔴 **CRITICAL** - High memory pressure, sustained load, resource exhaustion
+
+---
+
+## Root Cause Analysis
+
+### Primary Issue: rclone Google Drive Cache Bloat
+
+**Location**: `/tmp/rclone-gd` (63GB of 63GB tmpfs)
+
+**Process**: PID 4507 - `/usr/bin/rclone mount gdrive:/ /mnt/gdrive`
+
+**Configuration**:
+```
+--cache-tmp-upload-path=/tmp/rclone-gd/upload
+--cache-chunk-path=/tmp/rclone-gd/chunks
+--cache-dir=/tmp/rclone-gd/vfs
+--cache-db-path=/tmp/rclone-gd/db
+--vfs-cache-mode full
+--vfs-cache-max-age=5m
+--buffer-size 256M
+```
+
+**Problem**: Full VFS cache mode with 5min max-age on 63GB tmpfs is unsustainable
+
+**Fix Options**:
+
+1. **Immediate** (Emergency):
+   ```bash
+   systemctl stop rclone-wg.service
+   rm -rf /tmp/rclone-gd/*
+   systemctl start rclone-wg.service
+   ```
+
+2. **Long-term** (Permanent):
+   - Move cache to disk: `--cache-dir=/var/cache/rclone-gd`
+   - Reduce cache mode: `--vfs-cache-mode writes` (instead of full)
+   - Lower cache age: `--vfs-cache-max-age=1m`
+   - Limit cache size: `--vfs-cache-max-size 10G`
+
+---
+
+## Top Memory Consumers
+
+| Process | PID | RAM | %CPU | Purpose | Issue |
+|---------|-----|-----|------|---------|-------|
+| VM 104 (aglwk45) | 7706 | 16GB | 87% | Workstation | High CPU |
+| qbittorrent | 11219 | 2.9GB | 0.1% | Torrent | OK |
+| meshagent (multiple) | various | 2.4GB each | 0% | Remote mgmt | Multiple instances |
+| Minecraft server | 23119 | 2.1GB | 7.3% | Game server | High CPU |
+| VM 148 (zabbix) | 19862 | 1.9GB | 10.1% | Monitoring | High CPU |
+| VM 138 (haos) | 17087 | 1.8GB | 1.5% | Home Assistant | OK |
+| rclone mount | 4507 | 587MB | 1.2% | Google Drive | Cache issue |
+
+**Analysis**:
+- VM 104 consuming 87% CPU (16GB RAM) - investigate hung process
+- Multiple meshagent instances (3+ running) - consolidate or remove duplicates
+- Minecraft server using 7.3% CPU sustained - normal behavior
+
+---
+
+## Service Status Matrix
+
+| Service | Status | Port | Issue |
+|---------|--------|------|-------|
+| **pveproxy** | ✅ Running | 8006 | None |
+| **pvedaemon** | ✅ Running | 85 | None |
+| **pvestatd** | ✅ Running | - | PBS timeout warnings |
+| **pve-cluster** | ✅ Running | - | None |
+| **pvescheduler** | ✅ Running | - | Vzdump lock timeout |
+| fgsrv5-nfs.mount | ❌ Failed | - | Obsolete (use fgsrv5-wg) |
+| fgsrv6-nfs.mount | ❌ Failed | - | Obsolete (use fgsrv6-wg) |
+| rclone-wg.service | ❌ Failed | - | Running but systemd shows failed |
+| pve-container@200 | ❌ Failed | - | Container 200 stopped |
+| pve-container@999 | ❌ Failed | - | Orphaned (config missing) |
+| zfs-snapshot-manager | ❌ Failed | - | Needs investigation |
+
+---
+
+## Storage Configuration Issues
+
+### Corrupted pvesm Output
+
+```
+400 Result verification failed
+[5].used: type check ('integer') failed - got '-1.84467190920302e+19'
+```
+
+**Cause**: Failed NFS mount services (fgsrv5-nfs, fgsrv6-nfs) reporting invalid metrics
+
+**Fix**:
+```bash
+pvesm remove fgsrv5-nfs
+pvesm remove fgsrv6-nfs
+pvesm status  # Verify clean output
+```
+
+---
+
+## Backup Status
+
+### Long-Running Backup (LOCKED)
+
+**Task**: `UPID:algsrv1:00078F80:000B3A20:68F5D6E9:vzdump`
+**Started**: Oct 21 03:15:04
+**Timeout**: Oct 21 06:15:04 (3 hours)
+**Status**: Still running (PID 495488)
+
+**Issue**: Backup started at 3am, timed out waiting for lock at 6am, but process still exists
+
+**Investigation Needed**:
+```bash
+ps aux | grep 495488
+ls -lh /var/run/vzdump.lock  # 0 bytes = lock held by running process
+```
+
+**Action**: Monitor backup completion. If stuck >24h, consider kill/restart.
+
+---
+
+## Container Issues
+
+### CT200 (ollama-gpu) - STOPPED ⚠️
+
+**Expected State**: Running (GPU compute for LLMs)
+**Actual State**: Stopped
+**Service**: pve-container@200.service (failed)
+
+**Action**: Manual restart required
+```bash
+pct start 200
+pct status 200
+journalctl -u pve-container@200.service -n 50
+```
+
+### CT999 - ORPHANED 🗑️
+
+**Status**: Service exists but config file missing
+**Config**: `/etc/pve/lxc/999.conf` (not found)
+
+**Action**: Remove orphaned service
+```bash
+systemctl disable pve-container@999.service
+systemctl reset-failed
+```
+
+---
+
+## Network Storage Status
+
+### Active Mounts (Working) ✅
+
+- `fgsrv5-wg`: 77GB NFS via WireGuard (10.6.0.11)
+- `fgsrv6-wg`: 197GB NFS via WireGuard (10.6.0.5)
+- `ct111-shares`: 66GB NFS via WireGuard (10.6.0.20)
+- `ct111-sistema`: 818GB NFS via WireGuard (10.6.0.20)
+- `aglsrv6-bb`: 954GB SSHFS via WireGuard (10.6.0.12)
+- `aglsrv6-usb4tb`: 3.9TB SSHFS via WireGuard (10.6.0.12)
+
+**Total**: 6TB+ WireGuard storage accessible
+
+### Failed Mounts (Obsolete) ❌
+
+- `fgsrv5-nfs`: Legacy Tailscale mount (replaced by fgsrv5-wg)
+- `fgsrv6-nfs`: Legacy Tailscale mount (replaced by fgsrv6-wg)
+
+**Action**: Remove from `/etc/fstab` and Proxmox storage config
+
+---
+
+## PBS Backup Storage Timeouts
+
+**CT113** (10.6.0.14:8007) - AGLSRV6 PBS: Connection timeout
+**CT172** (10.6.0.15:8007) - AGLSRV6B PBS: Connection timeout
+
+**Impact**: Backup storage status not reporting, backups may be functional
+
+**Investigation**:
+```bash
+ssh root@10.6.0.14 'systemctl status proxmox-backup-proxy'
+curl -k https://10.6.0.14:8007
+```
+
+---
+
+## Immediate Action Plan (Priority Order)
+
+### 1. Clear /tmp Filesystem (CRITICAL) 🔴
+
+**Urgency**: Immediate (system operations blocked)
+
+```bash
+# Stop rclone, clear cache, reconfigure
+systemctl stop rclone-wg.service
+rm -rf /tmp/rclone-gd/*
+# Edit rclone config: move cache to /var/cache/
+vim /etc/systemd/system/rclone-wg.service
+systemctl daemon-reload
+systemctl start rclone-wg.service
+```
+
+### 2. Investigate VM 104 High CPU (HIGH) 🟠
+
+**Urgency**: Within 1 hour
+
+```bash
+# Check process inside VM
+pct enter 104
+top -c
+# Consider restart if hung
+```
+
+### 3. Clean Failed Services (MEDIUM) 🟡
+
+**Urgency**: Within 24 hours
+
+```bash
+# Run automated remediation script
+bash /root/agl-hostman/scripts/aglsrv1-emergency-remediation.sh
+```
+
+### 4. Restart CT200 (ollama-gpu) (MEDIUM) 🟡
+
+**Urgency**: Within 24 hours
+
+```bash
+pct start 200
+```
+
+### 5. Remove Obsolete Storage Configs (LOW) 🔵
+
+**Urgency**: Within 1 week
+
+```bash
+pvesm remove fgsrv5-nfs fgsrv6-nfs
+```
+
+---
+
+## Monitoring Recommendations
+
+### Real-time Monitoring
+
+```bash
+# Terminal 1: System resources
+watch -n 5 'free -h; df -h /tmp; uptime'
+
+# Terminal 2: Proxmox services
+watch -n 10 'systemctl status pveproxy pvedaemon --no-pager | grep Active'
+
+# Terminal 3: Failed services
+watch -n 60 'systemctl --failed --no-pager'
+```
+
+### Alert Thresholds
+
+- /tmp usage: Alert at 90%, Critical at 95%
+- Memory: Alert at 85% RAM + 80% swap
+- Load average: Alert when >4.0 sustained (>5min)
+- Service failures: Alert on any pve* service failure
+
+---
+
+## Documentation Updated
+
+- ✅ `/Users/admin/apps/dev/agl/agl-hostman/docs/aglsrv1-service-diagnostics-2025-10-21.md` (Full report)
+- ✅ `/Users/admin/apps/dev/agl/agl-hostman/docs/aglsrv1-key-findings.md` (This summary)
+- ✅ `/Users/admin/apps/dev/agl/agl-hostman/scripts/aglsrv1-emergency-remediation.sh` (Automated fix script)
+
+---
+
+## Next Steps
+
+1. Execute immediate remediation (clear /tmp)
+2. Run automated remediation script
+3. Monitor system for 24 hours
+4. Update CLAUDE.md with lessons learned
+5. Schedule follow-up diagnostics in 1 week
+
+---
+
+**Report End** - Service Diagnostics Agent
