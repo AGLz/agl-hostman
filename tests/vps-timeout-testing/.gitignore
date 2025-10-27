@@ -1,0 +1,11 @@
+# Test results and temporary files
+results/
+*.csv
+*.log
+*.txt
+*.tsv
+*.pcap
+*.sql
+
+# Temporary test scripts
+/tmp/*.sh

@@ -1,0 +1,216 @@
+{
+  "analysis_timestamp": "2025-10-22T00:24:00Z",
+  "swarm_id": "swarm-1761103289543-v45j2euma",
+  "analyst_agent": "hive-mind-analyst",
+  "target_host": {
+    "hostname": "algsrv1",
+    "ip": "192.168.0.245",
+    "proxmox_version": "9.0.3",
+    "kernel": "6.11.0-2-pve"
+  },
+  "system_resources": {
+    "cpu": {
+      "model": "Intel Xeon E5-2680 v4 @ 2.40GHz",
+      "cores": 56,
+      "load_average_1m": 6.10,
+      "load_average_5m": 6.13,
+      "load_average_15m": 6.90,
+      "utilization_percent": 11,
+      "status": "excellent"
+    },
+    "memory": {
+      "total_gb": 125,
+      "used_gb": 68,
+      "free_gb": 51,
+      "available_gb": 57,
+      "utilization_percent": 54,
+      "swap_total_gb": 31,
+      "swap_used_gb": 2.0,
+      "status": "excellent"
+    },
+    "storage": {
+      "local": {
+        "type": "dir",
+        "total_gb": 760,
+        "used_gb": 5.6,
+        "available_gb": 754,
+        "utilization_percent": 0.74,
+        "status": "excellent"
+      },
+      "local_zfs": {
+        "type": "zfspool",
+        "total_gb": 1710,
+        "used_gb": 969,
+        "available_gb": 738,
+        "utilization_percent": 56.8,
+        "status": "good",
+        "recommended_for_harbor": true
+      },
+      "spark": {
+        "type": "dir",
+        "total_gb": 7130,
+        "used_gb": 6170,
+        "available_gb": 961,
+        "utilization_percent": 86.53,
+        "status": "high"
+      },
+      "overpower": {
+        "type": "dir",
+        "total_gb": 9860,
+        "used_gb": 9120,
+        "available_gb": 735,
+        "utilization_percent": 92.54,
+        "status": "very_high"
+      }
+    }
+  },
+  "container_inventory": {
+    "total_containers": 42,
+    "running_containers": 37,
+    "stopped_containers": 5,
+    "containers_in_target_range": {
+      "178": {
+        "name": "aglfs1",
+        "status": "running",
+        "ip": "192.168.0.178",
+        "cores": 16,
+        "memory_mb": 16384
+      },
+      "179": {
+        "name": "agldv03",
+        "status": "running",
+        "ip": "192.168.0.179",
+        "cores": 24,
+        "memory_mb": 49152
+      },
+      "180": {
+        "name": "dokploy",
+        "status": "running",
+        "ip": "192.168.0.180",
+        "cores": 8,
+        "memory_mb": 16384
+      },
+      "181": {
+        "name": "agldv4",
+        "status": "running",
+        "ip": "192.168.0.181",
+        "cores": 16,
+        "memory_mb": 49152
+      }
+    }
+  },
+  "network_analysis": {
+    "target_ip": "192.168.0.182",
+    "ip_status": "available",
+    "subnet": "192.168.0.0/24",
+    "gateway": "192.168.0.1",
+    "bridge": "vmbr0",
+    "dns": "192.168.0.102",
+    "available_ips_in_range": [
+      "192.168.0.182",
+      "192.168.0.183",
+      "192.168.0.184",
+      "192.168.0.185",
+      "192.168.0.186",
+      "192.168.0.187",
+      "192.168.0.188",
+      "192.168.0.189"
+    ]
+  },
+  "harbor_ct182_recommendation": {
+    "deployment_status": "ready",
+    "risk_level": "very_low",
+    "confidence": "high",
+    "recommended_config": {
+      "vmid": 182,
+      "hostname": "harbor",
+      "ip": "192.168.0.182",
+      "subnet_mask": "24",
+      "gateway": "192.168.0.1",
+      "dns": "192.168.0.102",
+      "cpu_cores": 8,
+      "memory_mb": 16384,
+      "swap_mb": 4096,
+      "rootfs_storage": "local-zfs",
+      "rootfs_size_gb": 150,
+      "os_template": "ubuntu-22.04 or ubuntu-24.04",
+      "arch": "amd64",
+      "ostype": "ubuntu",
+      "features": {
+        "nesting": 1,
+        "keyctl": 1
+      },
+      "unprivileged": 1
+    },
+    "resource_impact": {
+      "cpu_load_increase_estimate": 0.4,
+      "memory_real_usage_estimate_gb": "8-16",
+      "storage_allocation_gb": 150,
+      "network_impact": "minimal"
+    },
+    "post_deployment_estimates": {
+      "cpu_load_average": "6.5-7.0",
+      "available_memory_gb": "41-49",
+      "local_zfs_usage_percent": 65.4,
+      "local_zfs_available_gb": 588
+    }
+  },
+  "reference_containers": {
+    "portainer_ct103": {
+      "similarity_to_harbor": "high",
+      "cores": 8,
+      "memory_mb": 16384,
+      "rootfs_size_gb": 60,
+      "storage": "local-zfs",
+      "status": "running_stable"
+    },
+    "dokploy_ct180": {
+      "similarity_to_harbor": "very_high",
+      "cores": 8,
+      "memory_mb": 16384,
+      "swap_mb": 4096,
+      "rootfs_size_gb": 100,
+      "storage": "local-zfs",
+      "status": "running_stable",
+      "arch": "amd64",
+      "ostype": "debian"
+    }
+  },
+  "risk_assessment": {
+    "ip_conflict": {
+      "severity": "low",
+      "probability": "very_low",
+      "mitigation": "verified_available_via_ping"
+    },
+    "insufficient_memory": {
+      "severity": "low",
+      "probability": "very_low",
+      "mitigation": "57gb_free_exceeds_requirements"
+    },
+    "storage_exhaustion": {
+      "severity": "low",
+      "probability": "low",
+      "mitigation": "738gb_free_on_local_zfs"
+    },
+    "network_congestion": {
+      "severity": "very_low",
+      "probability": "very_low",
+      "mitigation": "gigabit_network_minimal_traffic"
+    },
+    "resource_contention": {
+      "severity": "low",
+      "probability": "very_low",
+      "mitigation": "cpu_at_11_percent_load"
+    }
+  },
+  "recommendations": {
+    "primary": "deploy_ct182_with_recommended_config",
+    "storage_strategy": "local_zfs_primary_150gb",
+    "expansion_option": "add_secondary_mount_if_needed",
+    "monitoring": "track_memory_disk_network_performance",
+    "backup": "daily_incremental_weekly_full_to_pbs"
+  },
+  "analysis_complete": true,
+  "ready_for_deployment": true,
+  "next_phase": "architecture_design_and_implementation"
+}
