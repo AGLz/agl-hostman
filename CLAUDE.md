@@ -1267,15 +1267,23 @@ showmount -e 10.6.0.5  # Check exports on FGSRV6
 
 ### Quick Access
 
-```bash
-# Public DNS (via HTTPS reverse proxy)
-https://archon.aglz.io
+**Public DNS** (⚠️ Requires setup - see `docs/cloudflare-archon-config.md`):
+```
+https://archon.aglz.io (currently 502 - choose Cloudflare Tunnel or reverse proxy)
+```
 
-# Direct LAN access
+**Direct LAN Access** (✅ Working):
+```
 UI:  http://192.168.0.183:3737
 API: http://192.168.0.183:8181
      http://192.168.0.183:8181/docs (Swagger)
 MCP: http://192.168.0.183:8051/mcp
+```
+
+**Tailscale Access** (⏳ Pending auth):
+```
+Auth: https://login.tailscale.com/a/140ac19a01f901
+Then: http://<TAILSCALE_IP>:3737
 ```
 
 ### MCP Integration with Claude Code

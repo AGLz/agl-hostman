@@ -52,7 +52,21 @@ MCP: http://192.168.0.183:8051/mcp
 
 **From Tailscale Network:**
 ```
-(Tailscale not yet configured on CT183)
+Status: ⏳ Pending Authentication
+Auth URL: https://login.tailscale.com/a/140ac19a01f901
+
+After authentication, access via:
+UI:  http://<TAILSCALE_IP>:3737
+API: http://<TAILSCALE_IP>:8181
+MCP: http://<TAILSCALE_IP>:8051/mcp
+```
+
+**Public DNS (via HTTPS):**
+```
+Status: ❌ 502 Bad Gateway (requires Cloudflare Tunnel or reverse proxy)
+See: docs/cloudflare-archon-config.md for configuration options
+
+Intended URL: https://archon.aglz.io
 ```
 
 ---
