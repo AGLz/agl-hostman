@@ -1,6 +1,6 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
-> **Last Updated**: 2025-01-21 | **Version**: 2.1.0
+> **Last Updated**: 2025-10-27 | **Version**: 2.2.0
 
 ## 📑 Table of Contents
 
@@ -707,6 +707,7 @@ Remember: **Claude Flow coordinates, Claude Code creates!**
 | 178 | aglfs1 (AGLFS1, aglfs) | 192.168.0.178 | - | File server |
 | 179 | agldv03 (AGLDV03, AGLDV3, agldv3) | 192.168.0.179 | 100.94.221.87 | Dev env (10.6.0.19) |
 | 180 | dokploy (DOKPLOY, dok, dply) | 192.168.0.180 | - | Deployment platform |
+| 183 | archon (ARCHON, arch) | 192.168.0.183 | - | AI Command Center, MCP Server |
 | 200 | ollama-gpu (OLLAMA, ollama, llm) | 192.168.0.200 | 100.116.57.111 | LLM GPU compute |
 | 201 | amp-server (AMP, amp) | 192.168.0.201 | - | AMP game panel |
 | 202 | n8n-docker (N8N, n8n, workflow) | 192.168.0.202 | - | Workflow automation |
