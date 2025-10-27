@@ -1,18 +1,32 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
-> **Last Updated**: 2025-10-27 | **Version**: 2.2.0
+> **Last Updated**: 2025-10-27 | **Version**: 2.3.0
+
+## 🔖 CRITICAL: Always Read These Documents
+
+**Before any infrastructure or Archon-related task, ALWAYS read:**
+- **`docs/INFRA.md`** - Complete infrastructure map, network topology, connection matrix
+- **`docs/ARCHON.md`** - Archon AI Command Center integration guide and MCP tools
+
+These documents contain essential context and MUST be consulted for:
+- Infrastructure queries (hosts, containers, IPs, networks)
+- Connection troubleshooting (WireGuard, Tailscale, LAN)
+- Archon MCP integration and usage
+- Storage mounts and NFS configuration
+
+---
 
 ## 📑 Table of Contents
 
 1. [Project Context](#-project-context)
 2. [Quick Start Guide](#-quick-start-guide)
 3. [Development Environments](#-development-environments)
-4. [Infrastructure Map](#-infrastructure-map)
-5. [Network Configuration](#-network-configuration)
-6. [Connection Guide](#-connection-guide)
-7. [Claude Code Rules](#-claude-code-rules)
-8. [SPARC Workflow](#-sparc-workflow)
-9. [Troubleshooting](#-troubleshooting)
+4. [Claude Code Rules](#-claude-code-rules)
+5. [SPARC Workflow](#-sparc-workflow)
+6. [Archon Integration](#-archon-integration)
+7. [Documentation Structure](#-documentation-structure)
+
+**For detailed infrastructure information, see `docs/INFRA.md`**
 
 ---
 
@@ -21,6 +35,14 @@
 **Project**: `agl-hostman` - Infrastructure management and host administration
 **Working Directory**: `/root/agl-hostman` (can be on any host with WSL/Linux)
 **Repository**: Git-based infrastructure as code
+
+**Key Infrastructure** (see `docs/INFRA.md` for details):
+- **AGLSRV1**: Main Proxmox host (192.168.0.245) - 68 containers/VMs
+- **AGLSRV6**: Secondary Proxmox host (WG: 10.6.0.12) - Remote
+- **CT179**: Primary development container (48GB RAM, Docker)
+- **CT183**: Archon AI Command Center (MCP server)
+- **WireGuard Mesh**: 14 active nodes (10.6.0.0/24)
+- **Tailscale**: Cross-site VPN overlay (100.x.x.x)
 
 ---
 
@@ -1229,3 +1251,147 @@ showmount -e 10.6.0.5  # Check exports on FGSRV6
 - `/mnt/pve/aglsrv6-bb` - 954GB SSHFS via WireGuard
 - `/mnt/pve/aglsrv6-usb4tb` - 3.9TB SSHFS via WireGuard
 - sempre verifique em qual host estamos antes de tentar se conectar em outros hosts
+---
+
+## 🤖 Archon Integration
+
+### Overview
+
+**CT183 (archon)** - AI Command Center deployed on AGLSRV1:
+- **IP**: 192.168.0.183
+- **DNS**: archon.aglz.io
+- **Services**:
+  - UI: Port 3737 (React + Vite)
+  - API: Port 8181 (FastAPI)
+  - MCP: Port 8051 (SSE protocol)
+
+### Quick Access
+
+```bash
+# Public DNS (via HTTPS reverse proxy)
+https://archon.aglz.io
+
+# Direct LAN access
+UI:  http://192.168.0.183:3737
+API: http://192.168.0.183:8181
+     http://192.168.0.183:8181/docs (Swagger)
+MCP: http://192.168.0.183:8051/mcp
+```
+
+### MCP Integration with Claude Code
+
+**Add to Claude Code** (from CT179 or AGLSRV1):
+```bash
+claude mcp add archon-knowledge sse http://192.168.0.183:8051/mcp
+```
+
+**From WSL2** (requires SSH tunnel):
+```bash
+# Terminal 1: Create tunnel
+ssh -L 18051:192.168.0.183:8051 root@192.168.0.245 -N
+
+# Terminal 2: Add MCP
+claude mcp add archon-knowledge sse http://localhost:18051/mcp
+```
+
+### Available MCP Tools
+
+When connected, Archon provides:
+- **Knowledge Base**: `archon:rag_search_knowledge_base`, `archon:rag_search_code_examples`
+- **Projects**: `archon:find_projects`, `archon:manage_project`
+- **Tasks**: `archon:find_tasks`, `archon:manage_task`
+- **Documents**: `archon:find_documents`, `archon:manage_document`
+- **Versions**: `archon:find_versions`, `archon:manage_version`
+
+**Full documentation**: See `docs/ARCHON.md`
+
+### Service Management
+
+```bash
+# Check status
+ssh root@192.168.0.245 'pct exec 183 -- docker ps'
+
+# View logs
+ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-server'
+ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-mcp'
+ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-ui'
+
+# Restart services
+ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && /usr/local/bin/docker-compose restart"'
+```
+
+### Development Guidelines
+
+Archon promotes these best practices:
+1. **Fail fast and loud** for critical issues
+2. **Never accept corrupted data** (skip, don't store)
+3. **Remove dead code immediately**
+4. **Detailed error messages** with full context
+5. **Specific exception types** (not generic)
+6. **Batch operations**: success count + failure list
+
+---
+
+## 📚 Documentation Structure
+
+### Core Documents
+
+| Document | Purpose | When to Read |
+|----------|---------|--------------|
+| **CLAUDE.md** | Main configuration, rules, workflows | Always (this file) |
+| **docs/INFRA.md** | Infrastructure map, networks, containers | Infrastructure queries |
+| **docs/ARCHON.md** | Archon integration, MCP tools, guidelines | Archon-related tasks |
+| **docs/QUICK-START.md** | Fast reference for common tasks | Quick lookups |
+
+### Specialized Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `docs/archon-integration.md` | Original Archon deployment notes |
+| `docs/docker-in-lxc-apparmor-solution.md` | Docker BuildKit troubleshooting |
+| `docs/ct183-deployment-guide.md` | CT183 setup (to be created) |
+
+### Documentation Rules
+
+**ALWAYS read before starting:**
+1. **Infrastructure tasks** → Read `docs/INFRA.md`
+2. **Archon tasks** → Read `docs/ARCHON.md`
+3. **Quick commands** → Read `docs/QUICK-START.md`
+4. **Development rules** → This file (CLAUDE.md)
+
+**Update policy**:
+- Document changes immediately after implementation
+- Use git commits with clear messages
+- Keep version numbers and dates current
+- Cross-reference related documents
+
+---
+
+## 🎯 Next Steps
+
+### Immediate Tasks
+- [ ] Test Archon MCP connection from CT179
+- [ ] Verify DNS access (archon.aglz.io)
+- [ ] Configure Tailscale on CT183 for remote access
+- [ ] Create CT183 deployment guide
+
+### Documentation
+- [x] Create INFRA.md with infrastructure map
+- [x] Create ARCHON.md with Archon guide
+- [x] Create QUICK-START.md for fast reference
+- [x] Optimize CLAUDE.md with document references
+- [ ] Create CT183 deployment guide
+- [ ] Update infrastructure diagrams
+
+### Integration
+- [ ] Integrate Archon error handling patterns
+- [ ] Apply Archon code quality standards
+- [ ] Test all Archon MCP tools
+- [ ] Document Archon workflows
+
+---
+
+**Document Version**: 2.3.0
+**Last Updated**: 2025-10-27
+**Maintainer**: Claude Code (agl-hostman project)
+**Always Read**: `docs/INFRA.md` and `docs/ARCHON.md` for context
