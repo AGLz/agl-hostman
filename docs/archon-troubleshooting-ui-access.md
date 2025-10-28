@@ -403,4 +403,30 @@ claude mcp add --transport http archon http://192.168.0.183:8051/mcp
 
 ---
 
-**Document Complete** | Issue: User error (incorrect URL) | System: Fully operational
+---
+
+## Error 4: Backend API Connectivity (FileNotFoundError)
+
+**Date Resolved**: 2025-10-28
+
+### Error Details
+```
+APIServiceError: Error while fetching server API version:
+('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
+```
+
+**Cause**: Docker socket not mounted in archon-server container
+
+**Solution**: Added Docker socket mount to docker-compose.yml
+```yaml
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
+```
+
+**Full Resolution**: See `docs/archon-backend-api-fix.md` for complete details
+
+**Status**: ✅ RESOLVED - Backend API fully functional
+
+---
+
+**Document Complete** | Issues: URL routing + Backend API | System: Fully operational
