@@ -1,6 +1,6 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
-> **Last Updated**: 2025-10-27 | **Version**: 2.3.0
+> **Last Updated**: 2025-10-28 | **Version**: 2.4.0
 
 ## 🔖 CRITICAL: Always Read These Documents
 
@@ -16,14 +16,191 @@ These documents contain essential context and MUST be consulted for:
 
 ---
 
+## 🤖 Archon Integration - QUICK REFERENCE
+
+### ⚡ Current Working Configuration (Updated 2025-10-27)
+
+**CT183 (archon)** - AI Command Center deployed on AGLSRV1:
+- **IP (LAN)**: 192.168.0.183
+- **IP (WireGuard)**: 10.6.0.21 ✅ **PRIMARY ACCESS**
+- **IP (Tailscale)**: 100.80.30.59 ✅ **BACKUP ACCESS**
+- **DNS**: archon.aglz.io ✅ **WORKING with Basic Auth**
+- **Services**:
+  - UI: Port 3737 (React + Vite)
+  - API: Port 8181 (FastAPI)
+  - MCP: Port 8051 (Docker direct) / Port 8052 (nginx LAN-only)
+  - nginx: Port 8080 (public with Basic Auth)
+
+### 🔐 Authentication
+
+**Basic Auth Credentials** (for HTTPS/public access):
+- **Username**: admin
+- **Password**: ArchonPass2025
+
+### 🌐 Access Methods (3 Options)
+
+#### Option 1: WireGuard Mesh (PRIMARY - External Access)
+```bash
+# Direct MCP access (no auth required)
+claude mcp add --transport http archon-wg http://10.6.0.21:8051/mcp
+
+# Web UI (requires Basic Auth)
+curl -u admin:ArchonPass2025 http://10.6.0.21:8080
+```
+
+#### Option 2: Tailscale VPN (BACKUP - External Access)
+```bash
+# Direct MCP access (no auth required)
+claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp
+
+# Web UI (requires Basic Auth)
+curl -u admin:ArchonPass2025 http://100.80.30.59:8080
+```
+
+#### Option 3: Local LAN (Development Only)
+```bash
+# MCP without auth (nginx port 8052)
+claude mcp add --transport http archon http://192.168.0.183:8052/mcp
+
+# OR direct Docker port 8051
+claude mcp add --transport http archon http://192.168.0.183:8051/mcp
+
+# Web UI direct
+http://192.168.0.183:3737
+```
+
+#### Option 4: Public DNS (HTTPS with Basic Auth)
+```
+UI:  https://archon.aglz.io (Basic Auth required)
+API: https://archon.aglz.io/api
+MCP: https://archon.aglz.io/mcp (Basic Auth required)
+```
+
+### ✅ Verified Working Configuration
+
+**Claude Code MCP Endpoints** (all 3 connected ✓):
+```bash
+# LAN (development)
+claude mcp add --transport http archon http://192.168.0.183:8052/mcp
+
+# WireGuard (primary external)
+claude mcp add --transport http archon-wg http://10.6.0.21:8051/mcp
+
+# Tailscale (backup external)
+claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp
+```
+
+**Verification**:
+```bash
+claude mcp list
+# Should show all 3 with ✓ Connected status
+```
+
+### 🔧 Network Ports Summary
+
+| Port | Service | Access Level | Auth Required |
+|------|---------|--------------|---------------|
+| 3737 | Frontend UI | LAN | No (direct) / Yes (via nginx) |
+| 8051 | MCP (Docker) | LAN/WG/TS | No |
+| 8052 | MCP (nginx) | LAN only | No |
+| 8080 | nginx proxy | Public/WG/TS | Yes (Basic Auth) |
+| 8181 | FastAPI Backend | Internal | N/A |
+
+### 📋 Available MCP Tools
+
+When connected, Archon provides these tools (prefix: `mcp__archon__` or `mcp__archon-wg__` or `mcp__archon-tailscale__`):
+
+**Knowledge Base**:
+- `rag_get_available_sources` - List knowledge sources
+- `rag_search_knowledge_base` - Semantic search (keep queries 2-5 keywords!)
+- `rag_search_code_examples` - Find code snippets
+- `rag_list_pages_for_source` - Browse documentation
+- `rag_read_full_page` - Get full page content
+
+**Project Management**:
+- `find_projects` - Search/list projects
+- `manage_project` - Create/update/delete projects
+- `get_project_features` - Get project features list
+
+**Task Management**:
+- `find_tasks` - Search/list tasks with filters
+- `manage_task` - Create/update/delete tasks (status: todo/doing/review/done)
+
+**Document Management**:
+- `find_documents` - Search/list documents
+- `manage_document` - Create/update/delete documents
+
+**Version Control**:
+- `find_versions` - Version history
+- `manage_version` - Create/restore versions
+
+**System**:
+- `archon_get_status` - System status
+- `health_check` - Health status
+- `session_info` - Session information
+
+**Full documentation**: See `docs/ARCHON.md`
+
+### 🚀 Quick Commands
+
+**Service Management**:
+```bash
+# Check status
+ssh root@192.168.0.245 'pct exec 183 -- docker ps'
+
+# View logs
+ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-server'
+ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-mcp'
+ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-ui'
+
+# Restart services (use docker compose, not docker-compose!)
+ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compose restart"'
+
+# Check nginx status
+ssh root@192.168.0.245 'pct exec 183 -- systemctl status nginx'
+
+# Restart nginx
+ssh root@192.168.0.245 'pct exec 183 -- systemctl restart nginx'
+```
+
+**Health Checks**:
+```bash
+# Test MCP endpoints
+curl http://192.168.0.183:8051/mcp  # Direct Docker
+curl http://192.168.0.183:8052/mcp  # nginx LAN
+curl http://10.6.0.21:8051/mcp      # WireGuard
+curl http://100.80.30.59:8051/mcp   # Tailscale
+
+# Test with auth
+curl -u admin:ArchonPass2025 https://archon.aglz.io
+```
+
+### 🔒 Security Notes
+
+1. **No authentication required** for MCP endpoints on ports 8051/8052 (LAN/VPN trusted)
+2. **Basic Auth required** for nginx port 8080 and public HTTPS
+3. **WireGuard/Tailscale** provide encrypted transport for MCP access
+4. **Cloudflare Tunnel** routes public HTTPS to nginx:8080 with auth
+
+### 📚 Complete Documentation
+
+**ALWAYS READ** `docs/ARCHON.md` for:
+- Detailed architecture
+- Complete MCP tools reference
+- Development guidelines (fail-fast philosophy)
+- Troubleshooting guides
+- Database operations
+
+---
+
 ## 📑 Table of Contents
 
-1. [Project Context](#-project-context)
-2. [Quick Start Guide](#-quick-start-guide)
-3. [Development Environments](#-development-environments)
-4. [Claude Code Rules](#-claude-code-rules)
-5. [SPARC Workflow](#-sparc-workflow)
-6. [Archon Integration](#-archon-integration)
+1. [Archon Integration](#-archon-integration---quick-reference) ⬆️ **YOU ARE HERE**
+2. [Project Context](#-project-context)
+3. [Quick Start Guide](#-quick-start-guide)
+4. [Development Environments](#-development-environments)
+5. [Claude Code Rules](#-claude-code-rules)
+6. [SPARC Workflow](#-sparc-workflow)
 7. [Documentation Structure](#-documentation-structure)
 
 **For detailed infrastructure information, see `docs/INFRA.md`**
@@ -1253,93 +1430,6 @@ showmount -e 10.6.0.5  # Check exports on FGSRV6
 - sempre verifique em qual host estamos antes de tentar se conectar em outros hosts
 ---
 
-## 🤖 Archon Integration
-
-### Overview
-
-**CT183 (archon)** - AI Command Center deployed on AGLSRV1:
-- **IP**: 192.168.0.183
-- **DNS**: archon.aglz.io
-- **Services**:
-  - UI: Port 3737 (React + Vite)
-  - API: Port 8181 (FastAPI)
-  - MCP: Port 8051 (SSE protocol)
-
-### Quick Access
-
-**Public DNS** (⚠️ Requires setup - see `docs/cloudflare-archon-config.md`):
-```
-https://archon.aglz.io (currently 502 - choose Cloudflare Tunnel or reverse proxy)
-```
-
-**Direct LAN Access** (✅ Working):
-```
-UI:  http://192.168.0.183:3737
-API: http://192.168.0.183:8181
-     http://192.168.0.183:8181/docs (Swagger)
-MCP: http://192.168.0.183:8051/mcp
-```
-
-**Tailscale Access** (⏳ Pending auth):
-```
-Auth: https://login.tailscale.com/a/140ac19a01f901
-Then: http://<TAILSCALE_IP>:3737
-```
-
-### MCP Integration with Claude Code
-
-**Add to Claude Code** (from CT179 or AGLSRV1):
-```bash
-claude mcp add archon-knowledge sse http://192.168.0.183:8051/mcp
-```
-
-**From WSL2** (requires SSH tunnel):
-```bash
-# Terminal 1: Create tunnel
-ssh -L 18051:192.168.0.183:8051 root@192.168.0.245 -N
-
-# Terminal 2: Add MCP
-claude mcp add archon-knowledge sse http://localhost:18051/mcp
-```
-
-### Available MCP Tools
-
-When connected, Archon provides:
-- **Knowledge Base**: `archon:rag_search_knowledge_base`, `archon:rag_search_code_examples`
-- **Projects**: `archon:find_projects`, `archon:manage_project`
-- **Tasks**: `archon:find_tasks`, `archon:manage_task`
-- **Documents**: `archon:find_documents`, `archon:manage_document`
-- **Versions**: `archon:find_versions`, `archon:manage_version`
-
-**Full documentation**: See `docs/ARCHON.md`
-
-### Service Management
-
-```bash
-# Check status
-ssh root@192.168.0.245 'pct exec 183 -- docker ps'
-
-# View logs
-ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-server'
-ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-mcp'
-ssh root@192.168.0.245 'pct exec 183 -- docker logs archon-ui'
-
-# Restart services
-ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && /usr/local/bin/docker-compose restart"'
-```
-
-### Development Guidelines
-
-Archon promotes these best practices:
-1. **Fail fast and loud** for critical issues
-2. **Never accept corrupted data** (skip, don't store)
-3. **Remove dead code immediately**
-4. **Detailed error messages** with full context
-5. **Specific exception types** (not generic)
-6. **Batch operations**: success count + failure list
-
----
-
 ## 📚 Documentation Structure
 
 ### Core Documents
@@ -1399,7 +1489,7 @@ Archon promotes these best practices:
 
 ---
 
-**Document Version**: 2.3.0
-**Last Updated**: 2025-10-27
+**Document Version**: 2.4.0
+**Last Updated**: 2025-10-28
 **Maintainer**: Claude Code (agl-hostman project)
 **Always Read**: `docs/INFRA.md` and `docs/ARCHON.md` for context
