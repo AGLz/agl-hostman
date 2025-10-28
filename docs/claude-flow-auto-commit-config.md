@@ -1,39 +1,46 @@
 # Claude-Flow Auto Commit & Auto Push Configuration
 
-> **Last Updated**: 2025-10-28 | **Status**: ✅ ENABLED
+> **Last Updated**: 2025-10-28 | **Status**: ✅ ENABLED VIA ENVIRONMENT VARIABLES
 
 ## 📝 Summary
 
-Configurações de auto commit e auto push ativadas no agente coder do claude-flow hive-mind.
+Configurações de auto commit e auto push ativadas via variáveis de ambiente persistentes para o claude-flow hive-mind. Esta abordagem sobrevive a atualizações de pacotes npm.
 
 ---
 
-## 🎯 Configuration Changes
+## 🎯 Configuration Method
 
-### File Modified
-**Path**: `/root/.nvm/versions/node/v22.21.0/lib/node_modules/claude-flow/src/cli/agents/coder.ts`
+### ✅ Environment Variables (RECOMMENDED - Persistent)
 
-**Line**: 922
+Configurado via variáveis de ambiente em três locais para máxima compatibilidade:
 
-### Original Configuration
-```typescript
-git: { autoCommit: false, autoSync: true },
+**1. ~/.bashrc** (sessões bash)
+**2. ~/.zshrc** (sessões zsh)
+**3. ~/.config/environment.d/claude-flow.conf** (systemd user sessions)
+
+### Environment Variables Configured
+```bash
+export CLAUDE_FLOW_AUTO_COMMIT=true
+export CLAUDE_FLOW_AUTO_PUSH=true
+export CLAUDE_FLOW_HOOKS_ENABLED=true
+export CLAUDE_FLOW_CHECKPOINTS_ENABLED=true
+export GITHUB_AUTO_SYNC=true
 ```
 
-### New Configuration
-```typescript
-git: { autoCommit: true, autoPush: true, autoSync: true },
-```
+### ❌ NOT USED: Source Code Modification
+Anteriormente modificamos o arquivo `coder.ts` diretamente, mas isso seria perdido em atualizações de npm. A abordagem com variáveis de ambiente é superior e persistente.
 
 ---
 
-## ⚙️ What Was Changed
+## ⚙️ Environment Variables Reference
 
-| Setting | Before | After | Description |
-|---------|--------|-------|-------------|
-| `autoCommit` | `false` | `true` | Automatically create git commits after code changes |
-| `autoPush` | N/A | `true` | Automatically push commits to remote repository |
-| `autoSync` | `true` | `true` | Keep git repository synchronized |
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `CLAUDE_FLOW_AUTO_COMMIT` | `true` | Automatically create git commits after code changes |
+| `CLAUDE_FLOW_AUTO_PUSH` | `true` | Automatically push commits to remote repository |
+| `CLAUDE_FLOW_HOOKS_ENABLED` | `true` | Enable hook system for lifecycle events |
+| `CLAUDE_FLOW_CHECKPOINTS_ENABLED` | `true` | Create checkpoint commits during workflows |
+| `GITHUB_AUTO_SYNC` | `true` | Keep GitHub repository synchronized |
 
 ---
 
@@ -165,32 +172,56 @@ await coder.executeTask({
 
 ---
 
-## 🔄 Reverting Changes
+## 🔄 Managing Configuration
 
-To disable auto commit/push, edit the file and change back to:
-
-```typescript
-git: { autoCommit: false, autoSync: true },
+### Enable Auto Commit/Push (Already Done)
+```bash
+# Environment variables set in ~/.bashrc and ~/.zshrc
+export CLAUDE_FLOW_AUTO_COMMIT=true
+export CLAUDE_FLOW_AUTO_PUSH=true
+export CLAUDE_FLOW_HOOKS_ENABLED=true
+export CLAUDE_FLOW_CHECKPOINTS_ENABLED=true
+export GITHUB_AUTO_SYNC=true
 ```
 
-Or create a custom configuration override (recommended for upgrades):
-
+### Disable Auto Commit/Push
 ```bash
-# Create user config directory
-mkdir -p ~/.claude-flow/config
+# Edit ~/.bashrc
+export CLAUDE_FLOW_AUTO_COMMIT=false
+export CLAUDE_FLOW_AUTO_PUSH=false
 
-# Create custom coder config
-cat > ~/.claude-flow/config/coder-agent.json << 'EOF'
-{
-  "toolConfigs": {
-    "git": {
-      "autoCommit": false,
-      "autoPush": false,
-      "autoSync": true
-    }
-  }
-}
-EOF
+# Edit ~/.zshrc (if using zsh)
+export CLAUDE_FLOW_AUTO_COMMIT=false
+export CLAUDE_FLOW_AUTO_PUSH=false
+
+# Edit ~/.config/environment.d/claude-flow.conf
+CLAUDE_FLOW_AUTO_COMMIT=false
+CLAUDE_FLOW_AUTO_PUSH=false
+
+# Then reload shell
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+### Temporary Override (Single Session)
+```bash
+# Disable for current session only
+export CLAUDE_FLOW_AUTO_COMMIT=false
+export CLAUDE_FLOW_AUTO_PUSH=false
+
+# Run claude-flow
+npx claude-flow hive-mind spawn "task"
+```
+
+### Verify Active Configuration
+```bash
+# Check environment variables
+env | grep CLAUDE_FLOW
+
+# Should show:
+# CLAUDE_FLOW_AUTO_COMMIT=true
+# CLAUDE_FLOW_AUTO_PUSH=true
+# CLAUDE_FLOW_HOOKS_ENABLED=true
+# CLAUDE_FLOW_CHECKPOINTS_ENABLED=true
 ```
 
 ---
