@@ -1,6 +1,6 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
-> **Last Updated**: 2025-10-28 | **Version**: 2.4.0
+> **Last Updated**: 2025-10-28 | **Version**: 2.5.0
 
 ## 🔖 CRITICAL: Always Read These Documents
 
@@ -193,15 +193,377 @@ curl -u admin:ArchonPass2025 https://archon.aglz.io
 
 ---
 
+## 📦 Agent OS Integration - SPEC-DRIVEN DEVELOPMENT
+
+### Overview
+
+**Agent OS** provides structured, spec-driven workflows for infrastructure management with automatic standards enforcement.
+
+**What is Agent OS?**
+- **Specification-Driven Development**: Replace inconsistent prompting with structured, repeatable workflows
+- **3-Layer Context System**: Standards (conventions) + Product (vision) + Specs (implementation details)
+- **Claude Code Integration**: Commands, Subagents (Agents), and Skills for automatic context application
+- **Infrastructure Workflows**: Pre-built specifications for common operations (WireGuard, NFS, containers, Archon)
+
+**Integration Status**: ✅ **FULLY INTEGRATED** (2025-10-28)
+- Base installation: `~/agent-os/` (system-wide)
+- Project installation: `agent-os/` (project-specific)
+- Custom standards: Infrastructure management for AGL
+- Skills: 16 total (15 Agent OS + 1 custom infrastructure)
+- Workflows: 4 infrastructure specifications
+- Integration docs: `agent-os/ARCHON-INTEGRATION.md`
+
+---
+
+### Installation & Configuration
+
+**System-Wide Installation**:
+```bash
+# Location
+~/agent-os/
+
+# Configuration
+~/agent-os/config.yml
+```
+
+**Key Configuration** (`~/agent-os/config.yml`):
+```yaml
+version: 2.1.0
+base_install: true
+
+claude_code_commands: true      # ✅ Slash commands enabled
+agent_os_commands: false         # ❌ Disabled (using Claude Code)
+use_claude_code_subagents: true  # ✅ Agent delegation enabled
+standards_as_claude_code_skills: true  # ✅ Auto-apply standards
+```
+
+**Project-Level Installation**:
+```bash
+# Location
+/mnt/overpower/apps/dev/agl/agl-hostman/agent-os/
+
+# Structure
+agent-os/
+├── config.yml              # Project config (inherits from system)
+├── standards/
+│   └── global/
+│       └── infrastructure-management.md  # Custom AGL infrastructure standard
+├── specs/
+│   └── infrastructure/      # 4 workflow specifications
+│       ├── wireguard-peer-setup.md
+│       ├── nfs-storage-mount.md
+│       ├── container-deployment.md
+│       ├── archon-integration.md
+│       └── README.md
+└── ARCHON-INTEGRATION.md   # Integration guide
+```
+
+---
+
+### Available Commands (6 Total)
+
+**Claude Code Slash Commands** (prefix: `/`):
+
+| Command | Purpose | Usage Example |
+|---------|---------|---------------|
+| `/create-tasks` | Convert spec to task list | `/create-tasks` → Use wireguard-peer-setup.md |
+| `/implement-tasks` | Execute tasks from list | `/implement-tasks` → Implement tasks 1-3 |
+| `/shape-spec` | Refine specification | `/shape-spec` → Refine archon-integration.md |
+| `/write-spec` | Create new specification | `/write-spec` → Create monitoring-setup spec |
+| `/plan-product` | Product planning | `/plan-product` → Plan infrastructure monitoring |
+| `/improve-skills` | Enhance Skills descriptions | `/improve-skills` → Improve all skills |
+
+**Example Workflow**:
+```bash
+# 1. Read a workflow specification
+Read agent-os/specs/infrastructure/wireguard-peer-setup.md
+
+# 2. Create tasks from spec
+/create-tasks
+Use agent-os/specs/infrastructure/wireguard-peer-setup.md
+
+# 3. Implement the tasks
+/implement-tasks
+Implement tasks 1-5 for CT184 with IP 10.6.0.22
+
+# 4. Standards auto-apply via Skills
+(infrastructure-management Skill applies automatically)
+```
+
+---
+
+### Skills System (16 Total)
+
+**What are Skills?**
+Skills are Agent OS standards that auto-apply when Claude Code detects relevant file contexts or operations.
+
+**Auto-Application**:
+- Claude Code reads file paths, extensions, and content
+- Matches against Skill descriptions and triggers
+- Automatically applies relevant standards
+- No manual invocation needed
+
+**Installed Skills**:
+
+**Backend Skills** (4):
+- `backend-api` - REST API endpoint design (routes.js, api.py, controllers/)
+- `backend-migrations` - Database schema migrations (migrations/, alembic/)
+- `backend-models` - Data models and ORM (models.py, entities.ts)
+- `backend-queries` - Database query optimization (queries/, repositories/)
+
+**Frontend Skills** (4):
+- `frontend-accessibility` - WCAG 2.1 AA compliance (React/Vue/Angular components)
+- `frontend-components` - Component architecture (components/, *.jsx, *.vue)
+- `frontend-css` - CSS organization (*.css, *.scss, styled-components)
+- `frontend-responsive` - Responsive design (breakpoints, mobile-first)
+
+**Global Skills** (7):
+- `coding-style` - General code formatting and naming conventions
+- `commenting` - Comment patterns and documentation standards
+- `conventions` - Project-wide conventions and patterns
+- `error-handling` - Error handling and recovery strategies
+- **`infrastructure-management`** - **AGL infrastructure standards** ⭐ **CUSTOM**
+- `tech-stack` - Technology stack decisions and patterns
+- `validation` - Input validation and data sanitization
+
+**Testing Skills** (1):
+- `test-writing` - Test structure and coverage standards
+
+**Infrastructure Management Skill** (Custom):
+```markdown
+## When to use this skill:
+- Working with Proxmox hosts (AGLSRV1, AGLSRV6, FGSRV6) and LXC containers
+- Configuring WireGuard mesh network or Tailscale VPN connections
+- Setting up Docker in LXC containers with proper features (keyctl=1, nesting=1)
+- Managing NFS or SSHFS storage mounts over WireGuard mesh
+- Deploying or configuring services with multi-network access
+- Implementing environment-aware connection routing (WSL2 vs CT179 vs CT108)
+- Integrating with Archon MCP server for task management
+- Writing or updating infrastructure documentation (INFRA.md, ARCHON.md, CLAUDE.md)
+```
+
+---
+
+### Infrastructure Workflows (4 Specs)
+
+**Location**: `agent-os/specs/infrastructure/`
+
+**Available Workflows**:
+
+| Workflow | File | Time | Purpose |
+|----------|------|------|---------|
+| **WireGuard Peer Setup** | wireguard-peer-setup.md | 15-20 min | Add new peers to mesh with hub registration |
+| **NFS Storage Mount** | nfs-storage-mount.md | 10-15 min | Mount NFS shares over WireGuard (NFSv4.2) |
+| **LXC Container Deployment** | container-deployment.md | 20-30 min | Deploy containers with Docker support |
+| **Archon MCP Integration** | archon-integration.md | 15-20 min | Connect Archon to Claude Code (3 endpoints) |
+
+**Workflow Structure** (All workflows follow this pattern):
+```markdown
+# Workflow Title
+
+## Prerequisites
+- [ ] Checklist of requirements
+
+## Specification
+### Step 1: Action Description
+```bash
+# Commands with explanations
+```
+
+## Troubleshooting
+Common issues and fixes
+
+## Success Criteria
+- [ ] Verification checklist
+
+## Related Workflows
+Cross-references to other specs
+```
+
+**Usage Example**:
+```bash
+# Read workflow
+Read agent-os/specs/infrastructure/wireguard-peer-setup.md
+
+# Create tasks
+/create-tasks
+
+# Implement with auto-applied standards
+/implement-tasks
+```
+
+---
+
+### Integration with Archon MCP
+
+**How Agent OS and Archon Work Together**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Claude Code CLI                          │
+│                                                              │
+│  ┌──────────────────┐              ┌──────────────────┐    │
+│  │   Agent OS       │              │   Archon MCP     │    │
+│  │   Standards      │◄────────────►│   Server         │    │
+│  │   & Workflows    │              │   (CT183)        │    │
+│  └──────────────────┘              └──────────────────┘    │
+│         │                                   │                │
+│         │ Skills Auto-Apply                 │ MCP Tools      │
+│         │ Specs Guide Work                  │ Task Tracking  │
+│         │                                   │ RAG Search     │
+│         ▼                                   ▼                │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │         AGL Infrastructure Management               │   │
+│  │   (Proxmox, LXC, WireGuard, Storage, Services)     │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Integration Points**:
+
+**1. Standards → Archon Knowledge Base**
+- Agent OS standards indexed in Archon RAG
+- Semantic search across all standards
+- Example: `mcp__archon__rag_search_knowledge_base(query="wireguard lxc")`
+
+**2. Workflows → Archon Task Management**
+- Workflows converted to trackable tasks
+- Progress tracked across sessions
+- Example: Create project "WireGuard CT184 Setup", break down workflow into tasks
+
+**3. Skills → MCP Tool Discovery**
+- Skills help Claude Code know when to use Archon tools
+- Example: Infrastructure Skill triggers Archon task tracking
+
+**4. Documentation → Cross-Referencing**
+- CLAUDE.md ↔ INFRA.md ↔ ARCHON.md ↔ Agent OS
+- All docs reference each other
+
+**Workflow Patterns**:
+
+**Pattern 1: Spec-Driven Infrastructure Task**
+```
+1. Read Agent OS workflow spec
+2. Create Archon project and tasks (via MCP)
+3. Execute with Skills auto-applying standards
+4. Update Archon task status (todo → doing → done)
+```
+
+**Pattern 2: Knowledge-Driven Development**
+```
+1. Search Archon knowledge base for patterns
+2. Apply Agent OS standards (via Skills)
+3. Implement following spec
+4. Document in Archon
+```
+
+**Pattern 3: Cross-Session Context**
+```
+Session 1: Implement deployment following container-deployment.md
+Session 2: Use Archon MCP to retrieve context (find_tasks, get project status)
+```
+
+---
+
+### Environment-Specific Usage
+
+**Agent OS works identically across all environments**, but execution differs by network access:
+
+**From WSL2 (AGLHQ11)**:
+- ✅ Agent OS commands work (slash commands)
+- ✅ Skills auto-apply
+- ✅ Archon MCP via Tailscale (`archon-tailscale` endpoint)
+- ✅ Can read/create specs locally
+- ⚠️ Infrastructure execution requires SSH to CT179
+
+**From CT179 (agldv03)**:
+- ✅ Full Agent OS functionality
+- ✅ All Skills active
+- ✅ Archon MCP via WireGuard (fastest, preferred) or Tailscale
+- ✅ Direct infrastructure execution (WireGuard, LAN, Docker)
+- ✅ Recommended for infrastructure workflows
+
+**From CT108 (agldv06)**:
+- ✅ Agent OS commands work
+- ✅ Skills auto-apply
+- ✅ Archon MCP via Tailscale
+- ⚠️ Infrastructure execution limited to AGLSRV6 network
+
+---
+
+### Quick Reference
+
+**Common Operations**:
+
+```bash
+# List all workflows
+ls agent-os/specs/infrastructure/
+
+# Read a specific workflow
+Read agent-os/specs/infrastructure/wireguard-peer-setup.md
+
+# Create tasks from workflow
+/create-tasks
+
+# Implement tasks
+/implement-tasks
+
+# Check Archon tasks
+find_tasks(filter_by="status", filter_value="todo")
+
+# Track progress in Archon
+manage_task("update", task_id="...", status="doing")
+```
+
+**Integration Commands**:
+
+```bash
+# Search Archon knowledge base
+mcp__archon__rag_search_knowledge_base(query="wireguard mesh", match_count=5)
+
+# Create infrastructure project in Archon
+mcp__archon__manage_project("create", title="WireGuard Expansion",
+  description="Add new peers to mesh")
+
+# Track workflow as tasks
+mcp__archon__manage_task("create", project_id="...",
+  title="Generate WireGuard keys for CT184")
+```
+
+**Documentation**:
+- **Agent OS Guide**: `agent-os/specs/infrastructure/README.md`
+- **Archon Integration**: `agent-os/ARCHON-INTEGRATION.md`
+- **Standards**: `agent-os/standards/global/infrastructure-management.md`
+
+---
+
+### Best Practices
+
+✅ **DO**:
+- Store specs in `agent-os/specs/` (version-controlled)
+- Track execution in Archon MCP (cross-session continuity)
+- Let Skills auto-apply (don't manually reference standards)
+- Use workflows for common operations (repeatable procedures)
+- Index standards in Archon RAG (semantic search)
+
+❌ **DON'T**:
+- Don't duplicate content (specs in Agent OS, tracking in Archon)
+- Don't bypass standards (Skills enforce automatically)
+- Don't skip Archon integration (lose cross-session memory)
+- Don't create orphan workflows (always cross-reference docs)
+
+---
+
 ## 📑 Table of Contents
 
-1. [Archon Integration](#-archon-integration---quick-reference) ⬆️ **YOU ARE HERE**
-2. [Project Context](#-project-context)
-3. [Quick Start Guide](#-quick-start-guide)
-4. [Development Environments](#-development-environments)
-5. [Claude Code Rules](#-claude-code-rules)
-6. [SPARC Workflow](#-sparc-workflow)
-7. [Documentation Structure](#-documentation-structure)
+1. [Archon Integration](#-archon-integration---quick-reference)
+2. [Agent OS Integration](#-agent-os-integration---spec-driven-development) ⬆️ **YOU ARE HERE**
+3. [Project Context](#-project-context)
+4. [Quick Start Guide](#-quick-start-guide)
+5. [Development Environments](#-development-environments)
+6. [Claude Code Rules](#-claude-code-rules)
+7. [SPARC Workflow](#-sparc-workflow)
+8. [Documentation Structure](#-documentation-structure)
 
 **For detailed infrastructure information, see `docs/INFRA.md`**
 
@@ -1489,7 +1851,7 @@ showmount -e 10.6.0.5  # Check exports on FGSRV6
 
 ---
 
-**Document Version**: 2.4.0
+**Document Version**: 2.5.0
 **Last Updated**: 2025-10-28
 **Maintainer**: Claude Code (agl-hostman project)
-**Always Read**: `docs/INFRA.md` and `docs/ARCHON.md` for context
+**Always Read**: `docs/INFRA.md`, `docs/ARCHON.md`, and `agent-os/` for complete context
