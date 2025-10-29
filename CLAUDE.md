@@ -69,6 +69,16 @@
   - Troubleshooting guide with common issues table
 - **Example Queries**: "How to SSH from WSL2?", "How to access NFS storage?", "How to restart Archon?", "Quick troubleshooting?"
 
+**6. `docs/DOKPLOY.md` - Deployment Platform**
+- **Read When**: Deploying applications, configuring CI/CD, managing containers
+- **Contains**:
+  - Complete Dokploy setup and configuration guide
+  - Harbor registry integration (harbor.aglz.io:5000)
+  - Three deployment methods (Docker Image, Compose, Git)
+  - CI/CD webhook automation setup
+  - Monitoring, logging, and troubleshooting procedures
+- **Example Queries**: "How to deploy to Dokploy?", "How to configure Harbor webhooks?", "How to rollback deployments?"
+
 ---
 
 ## 📍 Project Context
@@ -81,6 +91,7 @@
 - **AGLSRV1**: Main Proxmox host (192.168.0.245) - 68 containers/VMs
 - **AGLSRV6**: Secondary Proxmox host (WG: 10.6.0.12) - Remote operations
 - **CT179**: Primary development container (48GB RAM, Docker, triple network stack)
+- **CT180**: Dokploy deployment platform (https://dok.aglz.io) - See `@docs/DOKPLOY.md`
 - **CT183**: Archon AI Command Center (MCP server, task management, RAG)
 - **WireGuard Mesh**: 14 active nodes (10.6.0.0/24) - Primary network
 - **Tailscale**: Cross-site VPN overlay (100.x.x.x) - Backup network

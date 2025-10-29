@@ -1,0 +1,149 @@
+# Docker Compose configuration for agl-hostman on Dokploy
+# Version: 1.0.0
+# Last Updated: 2025-10-28
+
+version: '3.8'
+
+services:
+  # Main application service
+  app:
+    image: harbor.aglz.io:5000/dev/agl-hostman:latest
+    container_name: agl-hostman-dev
+
+    # Port mapping
+    ports:
+      - "3001:3000"  # Host:Container
+
+    # Environment variables (use Dokploy UI for secrets)
+    environment:
+      # Application environment
+      - NODE_ENV=development
+      - PORT=3000
+      - LOG_LEVEL=info
+
+      # Proxmox configuration
+      - PROXMOX_API_URL=https://192.168.0.245:8006/api2/json
+      - PROXMOX_API_TOKEN_ID=${PROXMOX_TOKEN_ID}
+      - PROXMOX_API_TOKEN=${PROXMOX_TOKEN}
+      - PROXMOX_VERIFY_SSL=false
+
+      # WireGuard configuration
+      - WIREGUARD_INTERFACE=wg0
+      - WIREGUARD_CONFIG_PATH=/etc/wireguard/wg0.conf
+
+      # Network configuration
+      - LAN_NETWORK=192.168.0.0/24
+      - WG_NETWORK=10.6.0.0/24
+
+      # Database (if needed)
+      # - DATABASE_URL=postgresql://user:pass@postgres:5432/agl_hostman
+
+    # Volume mounts
+    volumes:
+      # Application logs
+      - app-logs:/app/logs
+
+      # Application data/state
+      - app-data:/app/data
+
+      # WireGuard config (read-only)
+      # Uncomment if app needs direct WireGuard access
+      # - /etc/wireguard:/etc/wireguard:ro
+
+    # Network configuration
+    networks:
+      - agl-network
+
+    # Restart policy
+    restart: always
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'      # 50% of one CPU
+          memory: 512M     # Maximum memory
+        reservations:
+          cpus: '0.25'     # Minimum CPU
+          memory: 256M     # Minimum memory
+
+    # Labels for Dokploy management
+    labels:
+      - "com.dokploy.managed=true"
+      - "com.dokploy.app=agl-hostman-dev"
+      - "com.dokploy.env=development"
+
+  # Optional: PostgreSQL database
+  # Uncomment if application needs database
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: agl-hostman-postgres
+  #   environment:
+  #     - POSTGRES_DB=agl_hostman
+  #     - POSTGRES_USER=${DB_USER:-agl_user}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD}
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - agl-network
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-agl_user}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Optional: Redis cache
+  # Uncomment if application needs caching
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: agl-hostman-redis
+  #   command: redis-server --appendonly yes
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - agl-network
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+
+# Named volumes
+volumes:
+  app-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dokploy/data/agl-hostman-dev/logs
+
+  app-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/dokploy/data/agl-hostman-dev/data
+
+  # postgres-data:
+  #   driver: local
+
+  # redis-data:
+  #   driver: local
+
+# Networks
+networks:
+  agl-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,135 @@
+{
+  "name": "agl-hostman",
+  "description": "AGL Infrastructure Management Dashboard",
+  "type": "application",
+  "framework": "node",
+  "buildConfig": {
+    "dockerfile": "docker/production/Dockerfile",
+    "context": ".",
+    "buildArgs": {},
+    "target": "production"
+  },
+  "deployConfig": {
+    "port": 3000,
+    "replicas": 1,
+    "healthCheck": {
+      "enabled": true,
+      "path": "/health",
+      "interval": 30,
+      "timeout": 10,
+      "retries": 3
+    },
+    "resources": {
+      "limits": {
+        "memory": "512M",
+        "cpu": "0.5"
+      },
+      "requests": {
+        "memory": "256M",
+        "cpu": "0.25"
+      }
+    }
+  },
+  "environmentVariables": [
+    {
+      "name": "NODE_ENV",
+      "value": "production",
+      "required": true
+    },
+    {
+      "name": "PORT",
+      "value": "3000",
+      "required": true
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "info",
+      "required": false
+    },
+    {
+      "name": "PROXMOX_HOST",
+      "value": "192.168.0.245",
+      "required": true
+    },
+    {
+      "name": "PROXMOX_PORT",
+      "value": "8006",
+      "required": true
+    },
+    {
+      "name": "PROXMOX_USER",
+      "value": "root@pam",
+      "required": true
+    },
+    {
+      "name": "PROXMOX_TOKEN_ID",
+      "value": "",
+      "required": true,
+      "secret": true
+    },
+    {
+      "name": "PROXMOX_TOKEN_SECRET",
+      "value": "",
+      "required": true,
+      "secret": true
+    },
+    {
+      "name": "WIREGUARD_ENABLED",
+      "value": "true",
+      "required": false
+    },
+    {
+      "name": "TAILSCALE_ENABLED",
+      "value": "true",
+      "required": false
+    }
+  ],
+  "volumes": [
+    {
+      "name": "logs",
+      "mountPath": "/app/logs",
+      "type": "persistent"
+    },
+    {
+      "name": "data",
+      "mountPath": "/app/data",
+      "type": "persistent"
+    }
+  ],
+  "networking": {
+    "domains": [
+      "hostman.aglz.io"
+    ],
+    "tls": {
+      "enabled": true,
+      "autoGenerate": true
+    }
+  },
+  "registry": {
+    "type": "harbor",
+    "url": "harbor.aglz.io",
+    "repository": "agl/hostman",
+    "tag": "latest",
+    "pushOnBuild": true
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics": {
+      "path": "/metrics",
+      "port": 3000
+    }
+  },
+  "deployment": {
+    "strategy": "rollingUpdate",
+    "maxSurge": 1,
+    "maxUnavailable": 0
+  },
+  "hooks": {
+    "preBuild": [],
+    "postBuild": [],
+    "preDeploy": [],
+    "postDeploy": [
+      "echo 'Deployment completed successfully'"
+    ]
+  }
+}

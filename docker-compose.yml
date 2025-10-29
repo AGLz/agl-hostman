@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Development dashboard service with hot reloading
+  dashboard-dev:
+    build:
+      context: .
+      dockerfile: docker/development/Dockerfile.dev
+    container_name: agl-hostman-dev
+    ports:
+      - "3000:3000"      # HTTP
+      - "9229:9229"      # Node.js debugger
+    volumes:
+      - ./src:/app/src:ro                    # Source code (read-only)
+      - ./config:/app/config:ro              # Configuration (read-only)
+      - ./logs:/app/logs                     # Logs (read-write)
+      - node_modules:/app/node_modules       # Named volume for node_modules
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - PORT=3000
+      # Proxmox API configuration
+      - PROXMOX_HOST=${PROXMOX_HOST:-192.168.0.245}
+      - PROXMOX_PORT=${PROXMOX_PORT:-8006}
+      - PROXMOX_USER=${PROXMOX_USER:-root@pam}
+      - PROXMOX_TOKEN_ID=${PROXMOX_TOKEN_ID}
+      - PROXMOX_TOKEN_SECRET=${PROXMOX_TOKEN_SECRET}
+      # Network configuration
+      - WIREGUARD_ENABLED=${WIREGUARD_ENABLED:-true}
+      - TAILSCALE_ENABLED=${TAILSCALE_ENABLED:-true}
+    networks:
+      - agl-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Production-like service for testing
+  dashboard-prod:
+    build:
+      context: .
+      dockerfile: docker/production/Dockerfile
+    container_name: agl-hostman-prod
+    ports:
+      - "3001:3000"      # Different port for prod testing
+    volumes:
+      - ./logs:/app/logs                     # Logs
+      - ./data:/app/data                     # Data persistence
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - PORT=3000
+      # Proxmox API configuration
+      - PROXMOX_HOST=${PROXMOX_HOST:-192.168.0.245}
+      - PROXMOX_PORT=${PROXMOX_PORT:-8006}
+      - PROXMOX_USER=${PROXMOX_USER:-root@pam}
+      - PROXMOX_TOKEN_ID=${PROXMOX_TOKEN_ID}
+      - PROXMOX_TOKEN_SECRET=${PROXMOX_TOKEN_SECRET}
+    networks:
+      - agl-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - production  # Only start with --profile production
+
+volumes:
+  node_modules:
+    driver: local
+
+networks:
+  agl-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

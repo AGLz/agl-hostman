@@ -1,0 +1,124 @@
+# Docker Compose configuration for agl-hostman PRODUCTION on Dokploy
+# Version: 1.0.0
+# Last Updated: 2025-10-28
+
+version: '3.8'
+
+services:
+  # Main application service
+  app:
+    image: harbor.aglz.io:5000/production/agl-hostman:${VERSION:-latest}
+    container_name: agl-hostman-prod
+
+    # Port mapping (use Traefik labels for reverse proxy)
+    ports:
+      - "3000:3000"
+
+    # Environment variables
+    environment:
+      # Application environment
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=warn
+
+      # Proxmox configuration
+      - PROXMOX_API_URL=https://192.168.0.245:8006/api2/json
+      - PROXMOX_API_TOKEN_ID=${PROXMOX_TOKEN_ID}
+      - PROXMOX_API_TOKEN=${PROXMOX_TOKEN}
+      - PROXMOX_VERIFY_SSL=true
+
+      # WireGuard configuration
+      - WIREGUARD_INTERFACE=wg0
+
+      # Monitoring
+      - ENABLE_METRICS=true
+      - METRICS_PORT=9090
+
+      # Security
+      - RATE_LIMIT_ENABLED=true
+      - MAX_REQUESTS_PER_MINUTE=100
+
+    # Volume mounts
+    volumes:
+      - app-logs:/app/logs
+      - app-data:/app/data
+
+    # Network configuration
+    networks:
+      - agl-network
+      - traefik-public
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Resource limits (production settings)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+      # Update configuration
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 60s
+
+      # Rollback configuration
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+
+    # Labels for Traefik reverse proxy
+    labels:
+      # Dokploy labels
+      - "com.dokploy.managed=true"
+      - "com.dokploy.app=agl-hostman-prod"
+      - "com.dokploy.env=production"
+
+      # Traefik labels (if using Traefik)
+      - "traefik.enable=true"
+      - "traefik.http.routers.agl-hostman.rule=Host(`hostman.aglz.io`)"
+      - "traefik.http.routers.agl-hostman.entrypoints=websecure"
+      - "traefik.http.routers.agl-hostman.tls.certresolver=letsencrypt"
+      - "traefik.http.services.agl-hostman.loadbalancer.server.port=3000"
+
+      # Health check
+      - "traefik.http.services.agl-hostman.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.agl-hostman.loadbalancer.healthcheck.interval=30s"
+
+    # Logging configuration (production)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+# Named volumes
+volumes:
+  app-logs:
+    driver: local
+
+  app-data:
+    driver: local
+
+# Networks
+networks:
+  agl-network:
+    driver: bridge
+
+  # Traefik public network (if using reverse proxy)
+  traefik-public:
+    external: true
