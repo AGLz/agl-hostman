@@ -1,0 +1,164 @@
+# Pre-commit hooks for security and quality checks
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Secret detection with TruffleHog
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.63.2
+    hooks:
+      - id: trufflehog-git
+        name: TruffleHog Secret Scan
+        entry: bash -c 'trufflehog git file://. --since-commit HEAD --only-verified --fail'
+        language: system
+        stages: [commit]
+
+  # Security scanning with Trivy
+  - repo: local
+    hooks:
+      - id: trivy-filesystem
+        name: Trivy Filesystem Security Scan
+        entry: bash -c 'docker run --rm -v "$(pwd):/src" aquasec/trivy:latest fs --exit-code 1 --severity CRITICAL,HIGH --skip-dirs node_modules /src'
+        language: system
+        pass_filenames: false
+        stages: [commit]
+
+      - id: trivy-config
+        name: Trivy Configuration Scan
+        entry: bash -c 'docker run --rm -v "$(pwd):/src" aquasec/trivy:latest config --exit-code 0 --severity CRITICAL,HIGH /src'
+        language: system
+        pass_filenames: false
+        stages: [commit]
+
+  # Prevent committing common secrets
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: detect-private-key
+        name: Detect Private Keys
+        stages: [commit]
+
+      - id: check-added-large-files
+        name: Check for Large Files
+        args: ['--maxkb=500']
+        stages: [commit]
+
+      - id: check-merge-conflict
+        name: Check for Merge Conflicts
+        stages: [commit]
+
+      - id: check-yaml
+        name: Validate YAML
+        exclude: ^(docker-compose.*\.yml)$
+        stages: [commit]
+
+      - id: check-json
+        name: Validate JSON
+        stages: [commit]
+
+      - id: end-of-file-fixer
+        name: Fix End of Files
+        stages: [commit]
+
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        stages: [commit]
+
+      - id: mixed-line-ending
+        name: Fix Mixed Line Endings
+        args: ['--fix=lf']
+        stages: [commit]
+
+  # Detect AWS credentials
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: detect-aws-credentials
+        name: Detect AWS Credentials
+        args: ['--allow-missing-credentials']
+        stages: [commit]
+
+  # Additional secret patterns
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: Detect Secrets (Yelp)
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)^(
+            package-lock\.json|
+            \.secrets\.baseline
+          )$
+        stages: [commit]
+
+  # ESLint for JavaScript/TypeScript
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        name: ESLint
+        files: \.[jt]sx?$
+        types: [file]
+        args: ['--fix']
+        additional_dependencies:
+          - eslint@8.56.0
+          - eslint-config-prettier@9.1.0
+        stages: [commit]
+
+  # Prettier for code formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        name: Prettier
+        types_or: [javascript, jsx, ts, tsx, json, yaml, markdown]
+        args: ['--write']
+        stages: [commit]
+
+  # Shellcheck for shell scripts
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        name: ShellCheck
+        args: ['-x']
+        stages: [commit]
+
+  # Docker best practices
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        name: Hadolint Docker Linting
+        args: ['--ignore', 'DL3008', '--ignore', 'DL3009']
+        stages: [commit]
+
+  # Commit message validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        name: Commitizen Check
+        stages: [commit-msg]
+
+# Configuration
+default_stages: [commit]
+fail_fast: false  # Run all hooks even if one fails
+
+# Exclude patterns
+exclude: |
+  (?x)^(
+    node_modules/|
+    \.git/|
+    \.hive-mind/|
+    \.swarm/|
+    \.claude-flow/|
+    dist/|
+    build/|
+    coverage/|
+    .*\.log|
+    .*\.min\.js|
+    package-lock\.json
+  )$

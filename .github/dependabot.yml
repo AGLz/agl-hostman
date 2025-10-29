@@ -1,0 +1,89 @@
+version: 2
+updates:
+  # NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "your-github-username"  # Replace with actual reviewer
+    assignees:
+      - "your-github-username"  # Replace with actual assignee
+    labels:
+      - "dependencies"
+      - "security"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # Security updates take priority
+    target-branch: "develop"
+    # Group minor and patch updates together
+    groups:
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "*-dev"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        patterns:
+          - "@types/*"
+          - "*-dev"
+          - "eslint*"
+          - "prettier"
+        dependency-type: "development"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/docker/production"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-github-username"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-github-username"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "chore(ci)"
+
+# Security update configuration
+# Dependabot will automatically:
+# - Create PRs for security updates with high/critical severity
+# - Label them appropriately
+# - Group related updates
+# - Follow the schedule for non-security updates
+
+# To enable:
+# 1. Replace "your-github-username" with actual GitHub usernames
+# 2. Ensure GitHub Advanced Security is enabled (for private repos)
+# 3. Configure branch protection rules for develop/main
+# 4. Set up CODEOWNERS file for automatic review assignment
