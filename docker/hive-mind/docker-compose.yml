@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  hive-mind:
+    build:
+      context: ../..
+      dockerfile: docker/hive-mind/Dockerfile
+    container_name: agl-hive-mind
+    hostname: hive-mind
+    restart: unless-stopped
+
+    environment:
+      # Node.js settings
+      NODE_ENV: production
+      LOG_LEVEL: info
+
+      # Worker pool configuration
+      WORKER_POOL_SIZE: 4
+      MAX_WORKERS: 16
+      WORKER_IDLE_TIMEOUT: 300000  # 5 minutes
+
+      # Performance monitoring
+      ENABLE_MONITORING: 'true'
+      METRICS_RETENTION_HOURS: 24
+      ALERT_THRESHOLD_CPU: 90
+      ALERT_THRESHOLD_MEMORY: 85
+
+      # Agent configuration
+      DEFAULT_AGENT_TIMEOUT: 60000
+      MAX_PARALLEL_AGENTS: 10
+
+    volumes:
+      # Mount source code (for development)
+      - ../../src/hive-mind-integration:/app/src/hive-mind-integration:ro
+      - ../../src/performance:/app/src/performance:ro
+
+      # Mount examples (read-only)
+      - ../../examples:/app/examples:ro
+
+      # Persistent data
+      - hive-mind-logs:/app/logs
+      - hive-mind-data:/app/data
+      - hive-mind-metrics:/app/metrics
+
+    networks:
+      - agl-network
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('./src/hive-mind-integration').HiveMindWorkerPool"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    stdin_open: true  # Keep STDIN open
+    tty: true         # Allocate TTY for interactive mode
+
+  # Optional: Monitoring dashboard (future enhancement)
+  # hive-mind-monitor:
+  #   build:
+  #     context: ../..
+  #     dockerfile: docker/hive-mind/Dockerfile.monitor
+  #   container_name: agl-hive-mind-monitor
+  #   depends_on:
+  #     - hive-mind
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - agl-network
+
+networks:
+  agl-network:
+    driver: bridge
+    name: agl-network
+
+volumes:
+  hive-mind-logs:
+    name: agl-hive-mind-logs
+  hive-mind-data:
+    name: agl-hive-mind-data
+  hive-mind-metrics:
+    name: agl-hive-mind-metrics
