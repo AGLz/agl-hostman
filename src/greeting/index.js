@@ -10,6 +10,8 @@
 
 'use strict';
 
+const { sanitizeInput } = require('./sanitizer');
+
 /**
  * Configuration object for greeting behavior
  * @typedef {Object} GreetingConfig
@@ -78,8 +80,11 @@ function enhancedGreeting(options = {}) {
     enhancedMessage = 'Good day';
   }
 
-  if (recipient) {
-    enhancedMessage = `${enhancedMessage}, ${recipient}`;
+  // Sanitize recipient input before using it
+  const sanitizedRecipient = recipient ? sanitizeInput(recipient, { allowEmpty: true }) : null;
+
+  if (sanitizedRecipient) {
+    enhancedMessage = `${enhancedMessage}, ${sanitizedRecipient}`;
   }
 
   return {
@@ -87,9 +92,9 @@ function enhancedGreeting(options = {}) {
     format: 'enhanced',
     timestamp: new Date(),
     metadata: {
-      recipient,
+      recipient: sanitizedRecipient,
       formal,
-      hasRecipient: !!recipient
+      hasRecipient: !!sanitizedRecipient
     }
   };
 }
@@ -138,8 +143,11 @@ function creativeGreeting(options = {}) {
   const modifier = styleModifiers[style] || '';
   let finalMessage = baseGreeting + modifier;
 
-  if (recipient) {
-    finalMessage = `${baseGreeting}, ${recipient}${modifier}`;
+  // Sanitize recipient input before using it
+  const sanitizedRecipient = recipient ? sanitizeInput(recipient, { allowEmpty: true }) : null;
+
+  if (sanitizedRecipient) {
+    finalMessage = `${baseGreeting}, ${sanitizedRecipient}${modifier}`;
   }
 
   return {
@@ -147,10 +155,10 @@ function creativeGreeting(options = {}) {
     format: 'creative',
     timestamp: time,
     metadata: {
-      recipient,
+      recipient: sanitizedRecipient,
       style,
       timeOfDay: hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening',
-      hasRecipient: !!recipient
+      hasRecipient: !!sanitizedRecipient
     }
   };
 }
