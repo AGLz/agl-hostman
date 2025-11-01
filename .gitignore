@@ -25,3 +25,21 @@ coordination/orchestration/*
 claude-flow
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
+
+# Archive directory for old documentation and scripts
+archive/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
