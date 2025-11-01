@@ -1,84 +1,106 @@
 /**
  * Logger Utility
  * Winston-based logging with file and console transports
+ * Falls back to console.log if winston is not installed
  */
 
-const winston = require('winston');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure logs directory exists
-const logsDir = path.join(process.cwd(), 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+// Try to load winston, fall back to console logging if not available
+let winston;
+try {
+  winston = require('winston');
+} catch (error) {
+  // Winston not available, will use console fallback
+  winston = null;
 }
 
-// Custom format for development
-const devFormat = winston.format.combine(
-  winston.format.colorize(),
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
-    return `${timestamp} [${level}]: ${message} ${metaStr}`;
-  })
-);
+// Fallback console logger with winston-compatible interface
+const createConsoleLogger = () => {
+  const timestamp = () => new Date().toISOString();
+  const formatMessage = (level, message, ...meta) => {
+    const metaStr = meta.length ? ` ${JSON.stringify(meta)}` : '';
+    return `${timestamp()} [${level.toUpperCase()}]: ${message}${metaStr}`;
+  };
 
-// JSON format for production
-const prodFormat = winston.format.combine(
-  winston.format.timestamp(),
-  winston.format.errors({ stack: true }),
-  winston.format.json()
-);
+  return {
+    info: (message, ...meta) => console.log(formatMessage('info', message, ...meta)),
+    warn: (message, ...meta) => console.warn(formatMessage('warn', message, ...meta)),
+    error: (message, ...meta) => console.error(formatMessage('error', message, ...meta)),
+    debug: (message, ...meta) => console.log(formatMessage('debug', message, ...meta)),
+    verbose: (message, ...meta) => console.log(formatMessage('verbose', message, ...meta)),
+  };
+};
 
-// Determine format based on environment
-const logFormat = process.env.NODE_ENV === 'production' ? prodFormat : devFormat;
+let logger;
 
-// Create logger instance
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      stderrLevels: ['error'],
-    }),
+if (winston) {
+  // Winston is available, use full-featured logging
+  const logsDir = path.join(process.cwd(), 'logs');
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
 
-    // File transport for all logs
-    new winston.transports.File({
-      filename: path.join(logsDir, 'app.log'),
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 5,
-      tailable: true,
-    }),
+  const devFormat = winston.format.combine(
+    winston.format.colorize(),
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    winston.format.printf(({ timestamp, level, message, ...meta }) => {
+      const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+      return `${timestamp} [${level}]: ${message} ${metaStr}`;
+    })
+  );
 
-    // Separate file for errors
-    new winston.transports.File({
-      filename: path.join(logsDir, 'error.log'),
-      level: 'error',
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 5,
-      tailable: true,
-    }),
-  ],
+  const prodFormat = winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  );
 
-  // Handle uncaught exceptions
-  exceptionHandlers: [
-    new winston.transports.File({
-      filename: path.join(logsDir, 'exceptions.log'),
-    }),
-  ],
+  const logFormat = process.env.NODE_ENV === 'production' ? prodFormat : devFormat;
 
-  // Handle unhandled promise rejections
-  rejectionHandlers: [
-    new winston.transports.File({
-      filename: path.join(logsDir, 'rejections.log'),
-    }),
-  ],
-});
+  logger = winston.createLogger({
+    level: process.env.LOG_LEVEL || 'info',
+    format: logFormat,
+    transports: [
+      new winston.transports.Console({
+        stderrLevels: ['error'],
+      }),
+      new winston.transports.File({
+        filename: path.join(logsDir, 'app.log'),
+        maxsize: 10 * 1024 * 1024,
+        maxFiles: 5,
+        tailable: true,
+      }),
+      new winston.transports.File({
+        filename: path.join(logsDir, 'error.log'),
+        level: 'error',
+        maxsize: 10 * 1024 * 1024,
+        maxFiles: 5,
+        tailable: true,
+      }),
+    ],
+    exceptionHandlers: [
+      new winston.transports.File({
+        filename: path.join(logsDir, 'exceptions.log'),
+      }),
+    ],
+    rejectionHandlers: [
+      new winston.transports.File({
+        filename: path.join(logsDir, 'rejections.log'),
+      }),
+    ],
+  });
 
-// Development-specific enhancements
-if (process.env.NODE_ENV !== 'production') {
-  logger.debug('Logger initialized in development mode');
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug('Logger initialized in development mode with winston');
+  }
+} else {
+  // Winston not available, use console fallback
+  logger = createConsoleLogger();
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug('Logger initialized in development mode with console fallback (winston not installed)');
+  }
 }
 
 module.exports = logger;
