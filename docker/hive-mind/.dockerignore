@@ -31,18 +31,16 @@ Thumbs.db
 .gitignore
 .gitattributes
 
-# Docker
+# Docker files (don't copy docker directory into itself)
 docker/
 Dockerfile*
 docker-compose*.yml
-.dockerignore
 
-# Documentation (except essential)
+# Documentation (will be built in container if needed)
 docs/
 *.md
-!README.md
 
-# Tests (already copied explicitly)
+# Test coverage (keep test source files)
 coverage/
 
 # Logs
@@ -58,3 +56,11 @@ temp/
 *.zip
 *.tar.gz
 *.rar
+
+# Claude-specific (not needed in container)
+.claude/
+.hive-mind/
+
+# Projects and archive
+projects/
+archive/

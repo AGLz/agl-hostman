@@ -31,13 +31,11 @@ RUN if [ -f "pnpm-lock.yaml" ]; then \
       npm install --only=production; \
     fi
 
-# Copy hive-mind source files
+# Copy source files
 COPY src/hive-mind-integration ./src/hive-mind-integration
 COPY src/performance ./src/performance
-
-# Copy examples and tests (optional, for validation)
-COPY examples/hive-mind-*.js ./examples/
-COPY tests/hive-mind ./tests/hive-mind
+COPY tests ./tests
+COPY examples ./examples
 
 # Create directories for logs and data
 RUN mkdir -p /app/logs /app/data /app/metrics

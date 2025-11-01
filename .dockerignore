@@ -9,13 +9,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Testing
+# Testing (keep test source files for Hive Mind)
 coverage
 .nyc_output
-*.test.js
-*.spec.js
-__tests__
-tests
+# tests - commented out for Hive Mind Docker build
 
 # Documentation (not needed in container)
 docs
@@ -55,8 +52,8 @@ Thumbs.db
 agent-os
 
 # Project specific
-scripts
-examples
+# scripts - commented out for Hive Mind Docker build
+# examples - commented out for Hive Mind Docker build
 projects
 coordination
 memory
