@@ -163,8 +163,9 @@ claude mcp list  # Should show all 3 endpoints connected
 **ABSOLUTE REQUIREMENTS**:
 1. ✅ **Concurrent Execution**: ALL related operations in ONE message (TodoWrite, Task tool, File operations, Bash commands)
 2. ✅ **File Organization**: NEVER save to root folder (use `/src`, `/tests`, `/docs`, `/config`, `/scripts`, `/examples`)
-3. ✅ **Mandatory Subagents**: ALWAYS use Task tool for complex operations (Explore, researcher, coder, tester, reviewer, architect)
-4. ✅ **Documentation Loading**: Use `@docs/filename.md` syntax for on-demand loading
+3. ✅ **Documentation Location**: ALL documentation files MUST be saved inside `/docs` folder with proper subfolders
+4. ✅ **Mandatory Subagents**: ALWAYS use Task tool for complex operations (Explore, researcher, coder, tester, reviewer, architect)
+5. ✅ **Documentation Loading**: Use `@docs/filename.md` syntax for on-demand loading
 
 **Golden Rule**: "1 MESSAGE = ALL RELATED OPERATIONS"
 
