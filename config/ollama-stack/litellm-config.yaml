@@ -1,0 +1,225 @@
+# LiteLLM Configuration for CT200 Ollama Stack
+# Provides unified API for local and remote LLM access
+
+# ============================================================================
+# Model Definitions
+# ============================================================================
+model_list:
+  # --- Ollama Models (Local on CT200) ---
+
+  # Qwen 2.5 32B - Best reasoning model
+  - model_name: qwen2.5-32b
+    litellm_params:
+      model: ollama/qwen2.5:32b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+
+  # Llama 3.3 70B - Large general model
+  - model_name: llama3.3
+    litellm_params:
+      model: ollama/llama3.3:latest
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+
+  # DeepSeek R1 32B - Reasoning model
+  - model_name: deepseek-r1-32b
+    litellm_params:
+      model: ollama/deepseek-r1:32b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+
+  # DeepSeek Coder 33B - Code generation
+  - model_name: deepseek-coder-33b
+    litellm_params:
+      model: ollama/deepseek-coder:33b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+
+  # Mistral 7B - Fast general model
+  - model_name: mistral-7b
+    litellm_params:
+      model: ollama/mistral:7b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+
+  # Nomic Embed Text - Embeddings for RAG
+  - model_name: nomic-embed-text
+    litellm_params:
+      model: ollama/nomic-embed-text
+      api_base: http://host.docker.internal:11434
+    model_info:
+      mode: embedding
+      supports_function_calling: false
+      supports_vision: false
+
+  # --- External Models (Optional) ---
+  # Uncomment and configure if you want to use external APIs
+
+  # OpenAI GPT-4 (requires API key)
+  # - model_name: gpt-4
+  #   litellm_params:
+  #     model: gpt-4
+  #     api_key: ${OPENAI_API_KEY}
+  #   model_info:
+  #     mode: chat
+  #     supports_function_calling: true
+  #     supports_vision: false
+
+  # Anthropic Claude (requires API key)
+  # - model_name: claude-3-sonnet
+  #   litellm_params:
+  #     model: anthropic/claude-3-sonnet-20240229
+  #     api_key: ${ANTHROPIC_API_KEY}
+  #   model_info:
+  #     mode: chat
+  #     supports_function_calling: true
+  #     supports_vision: true
+
+# ============================================================================
+# Router Settings
+# ============================================================================
+router_settings:
+  # Load balancing strategy
+  routing_strategy: simple-shuffle  # Options: simple-shuffle, least-busy, latency-based
+
+  # Retry logic
+  num_retries: 3
+  timeout: 600  # 10 minutes for long generations
+
+  # Fallback models
+  fallbacks:
+    - qwen2.5-32b: [llama3.3, mistral-7b]
+    - llama3.3: [qwen2.5-32b, mistral-7b]
+    - deepseek-r1-32b: [qwen2.5-32b]
+
+  # Allowed fails before circuit breaker
+  allowed_fails: 3
+  cooldown_time: 60  # seconds
+
+# ============================================================================
+# General Settings
+# ============================================================================
+general_settings:
+  # Master key for admin access
+  master_key: ${LITELLM_MASTER_KEY}
+
+  # Database connection
+  database_url: ${DATABASE_URL}
+
+  # Completion settings
+  completion_model: qwen2.5-32b  # Default model
+
+  # Max parallel requests
+  max_parallel_requests: 100
+
+  # Global rate limit (requests per minute)
+  global_max_parallel_requests: 1000
+  rpm_limit: 1000
+
+  # Enable/disable features
+  disable_spend_logs: false
+  disable_master_key_return: false
+  disable_reset_budget: false
+  disable_adding_users: false
+
+# ============================================================================
+# LiteLLM Settings
+# ============================================================================
+litellm_settings:
+  # Logging
+  set_verbose: true
+  json_logs: true
+
+  # Drop unsupported params
+  drop_params: true
+
+  # Add request metadata
+  add_user_information_to_metadata: true
+
+  # Success/failure callbacks
+  success_callback: []
+  failure_callback: []
+
+  # Cache
+  cache: false
+  cache_params:
+    type: redis
+    host: localhost
+    port: 6379
+    ttl: 600
+
+  # Retry logic
+  num_retries: 3
+  request_timeout: 600
+
+  # Context window fallbacks
+  context_window_fallbacks:
+    - model: qwen2.5-32b
+      fallback_model: mistral-7b
+
+# ============================================================================
+# Environment Variables (Reference)
+# ============================================================================
+# Set these in .env file:
+# - LITELLM_MASTER_KEY: Master API key for admin access
+# - LITELLM_SALT_KEY: Salt for hashing
+# - DATABASE_URL: SQLite database path
+# - OPENAI_API_KEY: (optional) If using OpenAI
+# - ANTHROPIC_API_KEY: (optional) If using Anthropic
+
+# ============================================================================
+# Usage Examples
+# ============================================================================
+#
+# 1. OpenAI Compatible API:
+# curl -X POST http://10.6.0.17:4000/chat/completions \
+#   -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "model": "qwen2.5-32b",
+#     "messages": [{"role": "user", "content": "Hello!"}],
+#     "stream": false
+#   }'
+#
+# 2. Python SDK:
+# from litellm import completion
+# response = completion(
+#     model="qwen2.5-32b",
+#     messages=[{"role": "user", "content": "Hello!"}],
+#     api_base="http://10.6.0.17:4000",
+#     api_key="${LITELLM_MASTER_KEY}"
+# )
+#
+# 3. Embeddings:
+# curl -X POST http://10.6.0.17:4000/embeddings \
+#   -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "model": "nomic-embed-text",
+#     "input": "Text to embed"
+#   }'

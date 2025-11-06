@@ -1,0 +1,56 @@
+version: '3.8'
+
+# Ollama Stack for CT200 (AGLSRV1) - Simplified Production Version
+# Uses native Ollama service on host, containers only for WebUI
+# No GPU passthrough issues, no database complexities
+
+services:
+  # ============================================================================
+  # Open WebUI - Modern ChatGPT-like Interface
+  # ============================================================================
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    network_mode: host
+    volumes:
+      - open_webui_data:/app/backend/data
+      - ./uploads:/app/backend/uploads
+    environment:
+      # Ollama Connection (uses host's native Ollama)
+      - OLLAMA_BASE_URL=http://localhost:11434
+
+      # Authentication
+      - WEBUI_AUTH=true
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-changeme-secret-key-please}
+      - WEBUI_SESSION_COOKIE_SAME_SITE=lax
+      - WEBUI_SESSION_COOKIE_SECURE=false
+
+      # Features
+      - ENABLE_RAG_WEB_SEARCH=true
+      - ENABLE_IMAGE_GENERATION=false
+      - ENABLE_COMMUNITY_SHARING=false
+
+      # Performance
+      - WEBUI_WORKERS=4
+
+      # Port Configuration (using host network)
+      - PORT=3000
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ============================================================================
+# Volumes - Persistent Storage
+# ============================================================================
+volumes:
+  open_webui_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ollama-stack/data/open-webui

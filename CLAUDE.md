@@ -10,6 +10,8 @@
 - **`docs/WORKFLOWS.md`** - SPARC methodology, Agent OS integration, development workflows
 - **`docs/RULES.md`** - Coding standards, execution patterns, best practices
 - **`docs/QUICK-START.md`** - Fast reference for commands, connections, troubleshooting
+- **`docs/CLAUDE-FLOW.md`** - Claude Flow CLI, Hive Mind swarms, ESM troubleshooting (optional)
+- **`docs/GEMINI-FLOW.md`** - Gemini Flow CLI, swarm orchestration, Google AI Services integration (optional)
 
 **How to load on-demand**: Use `@docs/filename.md` syntax to load only when needed.
 
@@ -78,6 +80,28 @@
   - CI/CD webhook automation setup
   - Monitoring, logging, and troubleshooting procedures
 - **Example Queries**: "How to deploy to Dokploy?", "How to configure Harbor webhooks?", "How to rollback deployments?"
+
+**7. `docs/CLAUDE-FLOW.md` - Claude Flow & Hive Mind** (Optional)
+- **Read When**: Using claude-flow CLI, hive-mind swarms, troubleshooting ESM errors
+- **Contains**:
+  - Claude Flow installation and configuration
+  - Hive Mind swarm system (Queen + Workers)
+  - ESM module error resolution (signal-exit/restore-cursor)
+  - Aliases and shortcuts (hive, hive-quick, hive-status)
+  - MCP tools integration with swarms
+  - Troubleshooting guide
+- **Example Queries**: "How to use hive-mind?", "Claude flow not working?", "ESM error?", "Spawn swarm?", "Session management?"
+
+**8. `docs/GEMINI-FLOW.md` - Gemini Flow & AI Orchestration** (Optional)
+- **Read When**: Using gemini-flow CLI, swarm orchestration, Google AI Services integration
+- **Contains**:
+  - Gemini Flow installation and configuration (87 agents)
+  - Swarm and Hive Mind architecture (A2A + MCP protocols)
+  - Google AI Services integration (Veo3, Imagen4, Lyria, Chirp, etc.)
+  - ESM module error resolution (same fixes as claude-flow)
+  - Aliases and shortcuts (gf, gf-init, gf-hive, gf-swarm)
+  - Troubleshooting guide and comparison with Claude Flow
+- **Example Queries**: "How to use gemini-flow?", "Install gemini-flow?", "Google AI integration?", "Swarm orchestration?", "A2A protocol?"
 
 ---
 

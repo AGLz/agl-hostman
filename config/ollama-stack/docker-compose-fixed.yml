@@ -1,0 +1,109 @@
+version: '3.8'
+
+# Ollama Stack for CT200 (AGLSRV1) - Host Ollama Version
+# Uses native Ollama service on host, containers only for WebUI and LiteLLM
+# No GPU passthrough issues!
+
+services:
+  # ============================================================================
+  # Open WebUI - Modern ChatGPT-like Interface
+  # ============================================================================
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    network_mode: host
+    volumes:
+      - open_webui_data:/app/backend/data
+      - ./uploads:/app/backend/uploads
+    environment:
+      # Ollama Connection (uses host's native Ollama)
+      - OLLAMA_BASE_URL=http://localhost:11434
+
+      # Authentication
+      - WEBUI_AUTH=true
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-changeme-secret-key-please}
+      - WEBUI_SESSION_COOKIE_SAME_SITE=lax
+      - WEBUI_SESSION_COOKIE_SECURE=false
+
+      # Features
+      - ENABLE_RAG_WEB_SEARCH=true
+      - ENABLE_IMAGE_GENERATION=false
+      - ENABLE_COMMUNITY_SHARING=false
+
+      # Performance
+      - WEBUI_WORKERS=4
+
+      # Port Configuration (using host network)
+      - PORT=3000
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================================
+  # LiteLLM Proxy - Unified API Gateway
+  # ============================================================================
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm
+    network_mode: host
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml:ro
+      - litellm_data:/app/data
+      - ./litellm-logs:/app/logs
+    environment:
+      # Authentication
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY:-sk-salt-1234}
+
+      # Database
+      - DATABASE_URL=sqlite:////app/data/litellm.db
+
+      # Logging
+      - LITELLM_LOG=INFO
+      - LOG_LEVEL=INFO
+
+      # Performance
+      - LITELLM_NUM_WORKERS=4
+      - LITELLM_REQUEST_TIMEOUT=600
+
+      # Features
+      - LITELLM_DROP_PARAMS=true
+      - STORE_MODEL_IN_DB=true
+
+    command:
+      - --config
+      - /app/config.yaml
+      - --port
+      - "4000"
+      - --num_workers
+      - "4"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ============================================================================
+# Volumes - Persistent Storage
+# ============================================================================
+volumes:
+  open_webui_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ollama-stack/data/open-webui
+
+  litellm_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ollama-stack/data/litellm

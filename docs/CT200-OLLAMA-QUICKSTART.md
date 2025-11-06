@@ -1,0 +1,322 @@
+# CT200 Ollama Stack - Quick Start Guide
+## Deploy in 5 Minutes
+
+> **For**: CT200 (AGLSRV1) with NVIDIA RTX 3060 12GB
+> **Time**: 5-10 minutes
+> **Difficulty**: Easy
+
+---
+
+## 🚀 One-Command Deployment
+
+```bash
+# SSH to CT200
+ssh root@10.6.0.17  # or ssh root@192.168.0.200
+
+# Run deployment script
+cd /mnt/overpower/apps/dev/agl/agl-hostman
+./scripts/ollama-stack/deploy.sh
+```
+
+That's it! The script will:
+- ✅ Check all requirements
+- ✅ Create directory structure
+- ✅ Copy configurations
+- ✅ Generate secure keys
+- ✅ Pull Docker images
+- ✅ Deploy all services
+- ✅ Verify deployment
+
+---
+
+## 📍 Access Your Stack
+
+After deployment completes:
+
+### Web Interfaces
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Open WebUI** | http://10.6.0.17:3000 | ChatGPT-like interface |
+| **Ollama API** | http://10.6.0.17:11434 | LLM API endpoint |
+| **LiteLLM Proxy** | http://10.6.0.17:4000 | Unified API gateway |
+
+### First Steps
+
+1. **Open WebUI**:
+   - Go to http://10.6.0.17:3000
+   - Create admin account
+   - Start chatting!
+
+2. **Test API**:
+   ```bash
+   curl http://10.6.0.17:11434/api/tags
+   ```
+
+3. **Check Status**:
+   ```bash
+   /opt/ollama-stack/status.sh
+   ```
+
+---
+
+## 🎯 Quick Commands
+
+```bash
+# Monitor in real-time
+/opt/ollama-stack/monitor.sh
+
+# View logs
+/opt/ollama-stack/logs.sh         # All containers
+/opt/ollama-stack/logs.sh ollama  # Specific container
+
+# Restart stack
+/opt/ollama-stack/restart.sh
+
+# Check GPU
+nvidia-smi
+
+# List models
+ollama list
+```
+
+---
+
+## 💡 Quick Examples
+
+### Chat via CLI
+
+```bash
+ollama run qwen2.5:32b "Explain Docker in one sentence"
+```
+
+### Chat via API
+
+```bash
+curl http://10.6.0.17:11434/api/generate -d '{
+  "model": "qwen2.5:32b",
+  "prompt": "What is Kubernetes?",
+  "stream": false
+}'
+```
+
+### Python Example
+
+```python
+import requests
+
+response = requests.post(
+    "http://10.6.0.17:4000/chat/completions",
+    headers={"Authorization": "Bearer sk-1234"},
+    json={
+        "model": "qwen2.5-32b",
+        "messages": [{"role": "user", "content": "Hello!"}]
+    }
+)
+
+print(response.json()["choices"][0]["message"]["content"])
+```
+
+---
+
+## 📊 Performance Optimization
+
+After deployment, run optimization:
+
+```bash
+./scripts/ollama-stack/optimize.sh
+```
+
+This applies:
+- ✅ GPU memory optimization (90% usage)
+- ✅ Ollama concurrency settings
+- ✅ Docker container tuning
+- ✅ Kernel network parameters
+- ✅ Log rotation
+- ✅ Monitoring cron jobs
+
+---
+
+## 🔧 Management
+
+### View Status
+
+```bash
+cd /opt/ollama-stack
+./status.sh
+```
+
+Output:
+```
+=== Ollama Stack Status ===
+
+Containers:
+✅ ollama      - Up 2 hours
+✅ open-webui  - Up 2 hours
+✅ litellm     - Up 2 hours
+
+GPU Status:
+NVIDIA RTX 3060, 8192 MB, 6144 MB
+
+Service Health:
+✅ Ollama: OK
+✅ Open WebUI: OK
+✅ LiteLLM: OK
+```
+
+### Restart Services
+
+```bash
+docker compose restart           # All services
+docker compose restart ollama    # Specific service
+```
+
+### View Logs
+
+```bash
+docker compose logs -f           # All logs
+docker compose logs -f ollama    # Ollama logs only
+```
+
+---
+
+## 🎓 Next Steps
+
+### 1. Try Advanced Features
+
+**RAG System**:
+```bash
+cd /mnt/overpower/apps/dev/agl/agl-hostman/examples/ollama-stack
+python rag-system-example.py
+```
+
+**API Examples**:
+```bash
+python litellm-api-example.py
+```
+
+### 2. Read Full Documentation
+
+- **Complete Guide**: `docs/CT200-OLLAMA-COMPLETE-SETUP.md`
+- **Infrastructure**: `docs/INFRA.md`
+- **Docker Compose**: `config/ollama-stack/docker-compose.yml`
+
+### 3. Install More Models
+
+```bash
+# Coding models
+ollama pull deepseek-coder:33b
+ollama pull qwen2.5-coder:7b
+
+# Fast models
+ollama pull mistral:7b
+ollama pull phi3:latest
+
+# Embeddings
+ollama pull nomic-embed-text
+```
+
+### 4. Build Your First RAG App
+
+See `examples/ollama-stack/rag-system-example.py` for complete code.
+
+---
+
+## 🆘 Troubleshooting
+
+### Ollama Not Responding
+
+```bash
+systemctl restart ollama
+docker compose restart ollama
+```
+
+### Out of GPU Memory
+
+```bash
+# Use smaller model
+ollama run mistral:7b
+
+# Or adjust GPU fraction
+export OLLAMA_GPU_MEMORY_FRACTION=0.7
+systemctl restart ollama
+```
+
+### Containers Not Starting
+
+```bash
+# Check logs
+docker compose logs
+
+# Rebuild
+docker compose down
+docker compose up -d
+```
+
+### Open WebUI Connection Failed
+
+```bash
+# Check Ollama is running
+curl http://localhost:11434/api/tags
+
+# Restart Open WebUI
+docker restart open-webui
+```
+
+---
+
+## 📚 Resources
+
+### Documentation
+- **Complete Setup**: `docs/CT200-OLLAMA-COMPLETE-SETUP.md`
+- **Ollama Docs**: https://ollama.ai/docs
+- **Open WebUI**: https://docs.openwebui.com
+- **LiteLLM**: https://docs.litellm.ai
+- **LangChain**: https://python.langchain.com/docs
+
+### Model Library
+- **Ollama Models**: https://ollama.ai/library
+- **Recommended**: Qwen 2.5, Llama 3.3, DeepSeek Coder
+
+### Community
+- **Ollama Discord**: https://discord.gg/ollama
+- **GitHub**: https://github.com/ollama/ollama
+
+---
+
+## ✅ Verification Checklist
+
+After deployment, verify:
+
+- [ ] All 3 containers running: `docker compose ps`
+- [ ] Ollama API responsive: `curl http://10.6.0.17:11434/api/tags`
+- [ ] Open WebUI accessible: http://10.6.0.17:3000
+- [ ] LiteLLM proxy working: `curl http://10.6.0.17:4000/health`
+- [ ] GPU detected: `nvidia-smi`
+- [ ] Models loaded: `ollama list`
+- [ ] Can generate text: `ollama run qwen2.5:32b "test"`
+
+If all checks pass: **🎉 Your Ollama stack is ready!**
+
+---
+
+## 💡 Pro Tips
+
+1. **Performance**: Use quantized models (Q4_K_M) for 2-3x faster inference
+2. **Memory**: Keep context window under 4096 tokens for better speed
+3. **Monitoring**: Run `monitor.sh` in a tmux session for persistent monitoring
+4. **Backups**: Models stored in `/opt/ollama-stack/data/ollama`
+5. **Security**: Change default API keys in `/opt/ollama-stack/.env`
+
+---
+
+**Need Help?**
+- Complete documentation: `docs/CT200-OLLAMA-COMPLETE-SETUP.md`
+- Check logs: `/opt/ollama-stack/logs.sh`
+- Monitor GPU: `nvidia-smi`
+- View status: `/opt/ollama-stack/status.sh`
+
+**Ready to Deploy?**
+```bash
+./scripts/ollama-stack/deploy.sh
+```

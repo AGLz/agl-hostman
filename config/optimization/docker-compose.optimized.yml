@@ -1,0 +1,156 @@
+# Optimized Docker Compose Configuration Template
+# For use with Archon, Dokploy, and other critical services
+#
+# Features:
+# - Resource limits and reservations
+# - Health checks with proper timeouts
+# - Optimized restart policies
+# - Logging configuration
+# - Network optimization
+
+version: '3.8'
+
+# Example: Archon AI Command Center
+services:
+  archon-server:
+    image: renatabk/archon-server:latest
+    container_name: archon-server
+
+    # Resource Management
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+    # Restart Policy
+    restart: unless-stopped
+
+    # Health Check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Environment
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=INFO
+
+    # Ports
+    ports:
+      - "8181:8181"
+
+    # Networks
+    networks:
+      - app-network
+
+    # Security
+    security_opt:
+      - apparmor=unconfined  # Required for LXC containers
+
+    # Ulimits
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  archon-mcp:
+    image: renatabk/archon-mcp:latest
+    container_name: archon-mcp
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8051/mcp"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    ports:
+      - "8051:8051"
+
+    networks:
+      - app-network
+
+    security_opt:
+      - apparmor=unconfined
+
+  archon-frontend:
+    image: renatabk/archon-frontend:latest
+    container_name: archon-frontend
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+    restart: unless-stopped
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    ports:
+      - "3737:3737"
+
+    networks:
+      - app-network
+
+    security_opt:
+      - apparmor=unconfined
+
+# Optimized Network Configuration
+networks:
+  app-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-app
+      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.driver.mtu: "1420"  # Optimized for WireGuard
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes (if needed)
+volumes:
+  app-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/app-data

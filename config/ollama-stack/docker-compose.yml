@@ -1,0 +1,196 @@
+version: '3.8'
+
+# Ollama Complete Stack for CT200 (AGLSRV1)
+# Includes: Ollama, Open WebUI, LiteLLM Proxy
+# GPU: NVIDIA RTX 3060 12GB
+
+services:
+  # ============================================================================
+  # Ollama - LLM Runtime with GPU Acceleration
+  # ============================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    network_mode: host  # Required for GPU access
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./models:/models  # Optional: Pre-load models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      # Ollama Configuration
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_ORIGINS=*
+
+      # Performance Tuning
+      - OLLAMA_MAX_LOADED_MODELS=3          # Keep 3 models in memory
+      - OLLAMA_NUM_PARALLEL=4               # Handle 4 concurrent requests
+      - OLLAMA_GPU_MEMORY_FRACTION=0.9      # Use 90% of GPU memory
+      - OLLAMA_MAX_QUEUE=512                # Queue size for requests
+
+      # GPU Configuration
+      - OLLAMA_NUM_GPU=999                  # Use all available GPU layers
+      - CUDA_VISIBLE_DEVICES=0              # Use GPU 0
+
+      # Memory Management
+      - OLLAMA_KEEP_ALIVE=5m                # Keep models loaded for 5 min
+      - OLLAMA_FLASH_ATTENTION=1            # Enable flash attention
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================================================
+  # Open WebUI - Modern ChatGPT-like Interface
+  # ============================================================================
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+      - ./uploads:/app/backend/uploads  # For document uploads
+    environment:
+      # Ollama Connection
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+      # Authentication
+      - WEBUI_AUTH=true
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-changeme-secret-key-please}
+      - WEBUI_SESSION_COOKIE_SAME_SITE=lax
+      - WEBUI_SESSION_COOKIE_SECURE=false
+
+      # Features
+      - ENABLE_RAG_WEB_SEARCH=true
+      - ENABLE_IMAGE_GENERATION=false
+      - ENABLE_COMMUNITY_SHARING=false
+
+      # Performance
+      - WEBUI_WORKERS=4
+
+      # URLs
+      - WEBUI_URL=http://10.6.0.17:3000
+
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # LiteLLM Proxy - Unified API Gateway
+  # ============================================================================
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml:ro
+      - litellm_data:/app/data
+      - ./litellm-logs:/app/logs
+    environment:
+      # Authentication
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY:-sk-salt-1234}
+
+      # Database
+      - DATABASE_URL=sqlite:////app/data/litellm.db
+
+      # Logging
+      - LITELLM_LOG=INFO
+      - LOG_LEVEL=INFO
+
+      # Performance
+      - LITELLM_NUM_WORKERS=4
+      - LITELLM_REQUEST_TIMEOUT=600
+
+      # Features
+      - LITELLM_DROP_PARAMS=true
+      - STORE_MODEL_IN_DB=true
+
+    command:
+      - --config
+      - /app/config.yaml
+      - --port
+      - "4000"
+      - --num_workers
+      - "4"
+      - --detailed_debug
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Nginx Proxy (Optional) - For SSL and domain routing
+  # ============================================================================
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: ollama-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - open-webui
+  #     - litellm
+
+# ============================================================================
+# Volumes - Persistent Storage
+# ============================================================================
+volumes:
+  ollama_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ollama-stack/data/ollama
+
+  open_webui_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ollama-stack/data/open-webui
+
+  litellm_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ollama-stack/data/litellm
+
+# ============================================================================
+# Networks (if not using host mode)
+# ============================================================================
+# networks:
+#   ollama-network:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.20.0.0/16
