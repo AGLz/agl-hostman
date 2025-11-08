@@ -1,6 +1,6 @@
 # Infrastructure Physical Topology and Network Architecture
 
-> **Last Updated**: 2025-11-08 | **Version**: 1.0.0
+> **Last Updated**: 2025-11-08 | **Version**: 1.2.0
 > **Reference**: Physical locations and network topology
 
 ---
@@ -14,8 +14,8 @@ The infrastructure is distributed across **4 physical locations**, each with its
 | Location | Network Segment | Hosts | Connectivity | Critical Services |
 |----------|----------------|-------|--------------|-------------------|
 | **AGLHQ** | 192.168.0.0/24 | 4 (3 active, 1 offline) | LAN + WG + TS | Production, Development, AI |
-| **AGLFG** | 192.168.15.0/24 | 1 | LAN + WG + TS | Storage, Media |
-| **AGLALD** | 192.168.0.0/24 | 4 (3 active, 1 dead) | LAN + WG + TS | Backup, Development, NFS |
+| **AGLFG** | 192.168.15.0/24, 172.2.2.0/24 | 1 | LAN + WG + TS | Storage, Media |
+| **AGLALD** | 192.168.0.0/24, 192.168.1.0/24, 192.168.60.0/24 | 4 (3 active, 1 dead) | LAN + WG + TS | Backup, Development, NFS |
 | **AGLFG-VPS** | Public IPs | 4 | WG + TS | WireGuard Hub, NFS |
 
 **Total Infrastructure**:
@@ -62,7 +62,7 @@ The infrastructure is distributed across **4 physical locations**, each with its
 ## 📍 AGLFG (Remote Standalone Site)
 
 ### Location Details
-- **Network**: 192.168.15.0/24 (independent segment)
+- **Network**: Multiple local segments (192.168.15.0/24, 172.2.2.0/24)
 - **Connectivity**: Full stack (LAN + WireGuard + Tailscale)
 - **Type**: Remote standalone location
 
@@ -70,7 +70,7 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 | Host/Device | Type | Status | Networks |
 |-------------|------|--------|----------|
-| **AGLSRV5** | Proxmox VE Host | ✅ Active | LAN (192.168.15.222), WG (10.6.0.17), TS (100.119.223.113) |
+| **AGLSRV5** | Proxmox VE Host | ✅ Active | LAN1 (192.168.15.222), LAN2 (172.2.2.222), WG (10.6.0.17), TS (100.119.223.113) |
 
 ### Key Services
 
@@ -88,9 +88,13 @@ The infrastructure is distributed across **4 physical locations**, each with its
 - File server for remote access
 - Backup DNS/network services
 
+### Network Details
+- **Primary LAN**: 192.168.15.222 (vmbr0) - Main network segment
+- **Secondary LAN**: 172.2.2.222 (vmbr1) - Additional local network
+
 ### Important Notes
-- Standalone location with independent network segment
-- Different LAN segment (192.168.15.x) vs other sites (192.168.0.x)
+- Standalone location with independent network segments
+- Different LAN segments (192.168.15.x and 172.2.2.x) vs other sites (192.168.0.x)
 - **Access recommendation**: Use Tailscale (WireGuard has SSH auth issue)
 
 ---
@@ -98,7 +102,7 @@ The infrastructure is distributed across **4 physical locations**, each with its
 ## 📍 AGLALD (Remote Site)
 
 ### Location Details
-- **Network**: 192.168.0.0/24 (same segment as AGLHQ but different physical location)
+- **Network**: Multiple local segments (192.168.0.0/24, 192.168.1.0/24, 192.168.60.0/24)
 - **Connectivity**: Full stack (LAN + WireGuard + Tailscale)
 - **Type**: Remote site with backup/failover capacity
 
@@ -106,9 +110,9 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 | Host/Device | Type | Status | Networks |
 |-------------|------|--------|----------|
-| **AGLSRV6** | Proxmox VE Host | ✅ Active | WG (10.6.0.12), TS (100.98.108.66) |
+| **AGLSRV6** | Proxmox VE Host | ✅ Active | LAN1 (192.168.0.202), LAN2 (192.168.60.202), LAN3 (192.168.1.202), WG (10.6.0.12), TS (100.98.108.66) |
 | **AGLSRV6B** | Proxmox VE Host | ❌ DEAD | RAID card failure, replaced by AGLSRV6C |
-| **AGLSRV6C** | Proxmox VE Host | ✅ Active | LAN (192.168.0.233), WG (10.6.0.22), TS (100.124.53.91) |
+| **AGLSRV6C** | Proxmox VE Host | ✅ Active | LAN1 (192.168.0.233), LAN2 (192.168.1.233), WG (10.6.0.22), TS (100.124.53.91) |
 | **AGLSRV6D** | Proxmox VE Host | ✅ Active | LAN (192.168.0.234), WG (10.6.0.23), TS (100.76.201.83) |
 
 ### Key Services
@@ -138,8 +142,18 @@ The infrastructure is distributed across **4 physical locations**, each with its
 - Development containers
 - Proxmox Backup Server instances
 
+### Network Details
+- **Primary Network**: 192.168.0.0/24 (same as AGLHQ, different physical location)
+- **Secondary Networks**:
+  - **192.168.1.0/24** - **Inter-host communication** (AGLSRV6 ↔ AGLSRV6C ↔ containers)
+  - 192.168.60.0/24 (AGLSRV6 only - Proxmox internal/corosync)
+
 ### Important Notes
-- AGLSRV6D is desktop hardware converted to server role
+- AGLSRV6 has triple-network setup (2 local LANs + 1 Proxmox internal + WireGuard + Tailscale)
+- AGLSRV6C has dual-network setup (2 local LANs shared with AGLSRV6)
+- AGLSRV6D is desktop hardware converted to server role (single LAN)
+- **192.168.1.x is PRIMARY communication network** between AGLSRV6 ↔ AGLSRV6C and all containers
+- 192.168.60.x network is Proxmox internal (cluster/corosync communication)
 - AGLSRV6B deprecated due to RAID card hardware failure
 - AGLSRV6C is full replacement for AGLSRV6B
 
@@ -199,8 +213,9 @@ The infrastructure is distributed across **4 physical locations**, each with its
 ### Network Layers
 
 **1. Local LAN**:
-- AGLHQ/AGLALD: 192.168.0.0/24
-- AGLFG: 192.168.15.0/24
+- **AGLHQ**: 192.168.0.0/24 (primary network)
+- **AGLFG**: 192.168.15.0/24 (primary), 172.2.2.0/24 (secondary - AGLSRV5)
+- **AGLALD**: 192.168.0.0/24 (primary), 192.168.1.0/24 (shared - AGLSRV6/6C), 192.168.60.0/24 (management - AGLSRV6)
 - Direct local connectivity
 - Fastest performance for same-location hosts
 
@@ -258,6 +273,10 @@ From any source:
 
 ---
 
-**Document Version**: 1.0.0
+**Document Version**: 1.2.0
 **Last Updated**: 2025-11-08
 **Maintainer**: Claude Code (agl-hostman project)
+
+**Version Notes**:
+- **v1.2.0** (2025-11-08): Added AGLSRV6 complete network configuration (triple LAN: 192.168.0.202, 192.168.60.202, 192.168.1.202)
+- **v1.1.0** (2025-11-08): Added missing local network segments (AGLSRV5: 172.2.2.0/24, AGLSRV6C: 192.168.1.0/24)

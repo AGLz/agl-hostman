@@ -1,6 +1,6 @@
 # Proxmox Hosts Detailed Configuration
 
-> **Last Updated**: 2025-11-08 | **Version**: 1.0.0
+> **Last Updated**: 2025-11-08 | **Version**: 1.1.0
 > **Reference**: Complete host configurations, resources, and network details
 
 ---
@@ -115,10 +115,13 @@ ssh root@10.6.0.10
 
 ### Network Configuration
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 (PRIMARY) |
-| Tailscale | 100.98.108.66 | tailscale0 | ✅ Fallback |
+| Network | Address | Interface | Status | Purpose |
+|---------|---------|-----------|--------|---------|
+| Local LAN | 192.168.0.202 | vmbr0 | ✅ Active | External access |
+| Proxmox Internal | 192.168.60.202 | vmbr1 | ✅ Active | Corosync/cluster |
+| **Inter-host LAN** | **192.168.1.202** | **vmbr2** | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
+| WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 | Remote access |
+| Tailscale | 100.98.108.66 | tailscale0 | ✅ Active | Fallback |
 
 ### Resources
 
@@ -141,11 +144,18 @@ ssh root@10.6.0.10
 ### Connection Commands
 
 ```bash
+# Via LAN (from same location)
+ssh root@192.168.0.202  # Primary LAN
+ssh root@192.168.1.202  # Secondary LAN
+
 # From CT179 (prefer WireGuard)
 ssh root@10.6.0.12
 
 # From WSL2 (Tailscale only)
 ssh root@100.98.108.66
+
+# Proxmox Web Interface
+https://192.168.0.202:8006  # Primary LAN
 ```
 
 ---
@@ -161,7 +171,8 @@ ssh root@100.98.108.66
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
-| LAN | 192.168.15.222/24 | vmbr0 | ✅ Active |
+| LAN (Primary) | 192.168.15.222/24 | vmbr0 | ✅ Active |
+| LAN (Secondary) | 172.2.2.222/24 | vmbr1 | ✅ Active |
 | WireGuard | 10.6.0.17/24 | wg0 | ✅ Port 51817 |
 | Tailscale | 100.119.223.113 | tailscale0 | ✅ Active |
 
@@ -501,6 +512,9 @@ https://192.168.0.234:8006
 
 ---
 
-**Document Version**: 1.0.0
+**Document Version**: 1.1.0
 **Last Updated**: 2025-11-08
 **Maintainer**: Claude Code (agl-hostman project)
+
+**Version Notes**:
+- **v1.1.0** (2025-11-08): Added complete network configurations for AGLSRV5 (dual LAN) and AGLSRV6 (triple network)
