@@ -101,15 +101,17 @@ Host fgsrv5
 
 **Physical Server**: vps24136.publiccloud.com.br
 
-**Connection Priority** (as of 2025-11-08):
-1. `ssh FGSRV05` - Public IP (✅ **RECOMMENDED** - currently working)
-2. `ssh fgsrv5` - Tailscale (❌ timing out - needs troubleshooting)
+**Connection Priority** (updated 2025-11-08 22:52):
+1. `ssh fgsrv5` - Tailscale (✅ **RECOMMENDED** - fixed, working)
+2. `ssh FGSRV05` - Public IP (✅ working, fallback)
 
-**Known Issues**:
-- ⚠️ Tailscale alias `fgsrv5` (100.71.107.26) timing out as of 2025-11-08
-- ⚠️ WireGuard route (10.6.0.11) also timing out
-- ✅ Public IP alias `FGSRV05` (191.252.200.20) working correctly
-- 💡 Both aliases point to the **same physical server** - only the network route differs
+**Recent Fix** (2025-11-08 22:52):
+- ✅ Tailscale connectivity **RESTORED** after daemon restart
+- ✅ Root cause: DNS queue overflow + 7-day uptime without restart
+- ✅ WireGuard ping working (10.6.0.11)
+- ✅ UFW rule added for wg0 interface
+- 💡 Tailscale now using WireGuard (10.6.0.11:41641) as direct endpoint
+- 📝 See `/tmp/FGSRV05-CONNECTIVITY-DIAGNOSTIC.md` for full diagnostic report
 
 #### FGSRV06 - Production Server
 > **Note**: `fgsrv6` is an alias for `FGSRV06` (same physical server, different access routes)
@@ -263,7 +265,7 @@ Host AGLLX51
 |--------|-----------|-----------|-------|
 | FGSRV03 | `ssh fgsrv3` (Tailscale) | `ssh FGSRV03` (Public IP) | ✅ Same server, Tailscale working |
 | FGSRV04 | `ssh fgsrv4` (Tailscale) | `ssh FGSRV04` (Public) | ✅ Same server, Tailscale working |
-| FGSRV05 | `ssh FGSRV05` (Public IP) | `ssh fgsrv5` (Tailscale) | ⚠️ Same server, use public (TS down) |
+| FGSRV05 | `ssh fgsrv5` (Tailscale) | `ssh FGSRV05` (Public IP) | ✅ Same server, Tailscale FIXED (2025-11-08) |
 | FGSRV06 | `ssh fgsrv6` (Tailscale) | `ssh FGSRV06` (Public) | ✅ Same server, Tailscale working |
 | AGLSRV1 | `ssh AGLSRV1` (LAN) | `ssh aglsrv1` (Tailscale) | ⚡ Same server, LAN fastest |
 | AGLSRV5 | `ssh aglsrv5` (Tailscale) | `ssh AGLSRV5` (LAN) | ✅ Same server, TS recommended |
@@ -286,7 +288,7 @@ ssh AGLSRV1 "pct exec 131 -- mysql -e 'SHOW DATABASES'"
 ```bash
 ssh fgsrv3 "crontab -l"
 ssh fgsrv4 "crontab -l"
-ssh FGSRV05 "crontab -l"  # Use FGSRV05 (public IP) - fgsrv5 (Tailscale) currently down
+ssh fgsrv5 "crontab -l"
 ssh fgsrv6 "crontab -l"
 ```
 
