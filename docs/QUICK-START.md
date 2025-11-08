@@ -1,6 +1,6 @@
 # Quick Start Guide - AGL Infrastructure
 
-> **Last Updated**: 2025-10-28 | **Version**: 1.0.0
+> **Last Updated**: 2025-11-08 | **Version**: 1.1.0
 
 **Purpose**: Fast reference for common commands, connection patterns, and environment-specific operations.
 
@@ -45,6 +45,7 @@ fi
 | WSL2 (AGLHQ11) | ❌ | ❌ | ✅ | ❌ | ❌ |
 | CT179 (agldv03) | ✅ | ✅ | ✅ | ✅ | Via host |
 | CT108 (agldv06) | Limited | ❌ | ✅ | ⚠️ | Via host |
+| AGLSRV6D (man6d) | ✅ | ⏳ Pending | ✅ | ⏳ Pending | ⏳ After Proxmox |
 
 ---
 
@@ -57,6 +58,7 @@ fi
 ssh root@100.94.221.87   # CT179 (primary dev)
 ssh root@100.107.113.33  # AGLSRV1 host
 ssh root@100.98.108.66   # AGLSRV6 host
+ssh root@100.76.201.83   # AGLSRV6D (man6d) - Debian 13
 ssh root@100.71.229.12   # CT108 (agldv06)
 
 # Check infrastructure
@@ -92,6 +94,7 @@ ssh root@192.168.0.245 'pct exec 183 -- docker ps'
 |--------|-----------|------------|------------|
 | AGLSRV1 Host | 100.107.113.33 (TS) | 192.168.0.245 (LAN) or 10.6.0.10 (WG) | 100.107.113.33 (TS) |
 | AGLSRV6 Host | 100.98.108.66 (TS) | 10.6.0.12 (WG) ⚡ | 10.6.0.12 or 100.98.108.66 |
+| AGLSRV6D Host | 100.76.201.83 (TS) | 192.168.0.234 (LAN) ⏳ 10.6.0.22 (WG) | 100.76.201.83 (TS) |
 | FGSRV6 Host | 100.83.51.9 (TS) | 10.6.0.5 (WG) ⚡ | 100.83.51.9 (TS) |
 | CT179 Dev | 100.94.221.87 (TS) | 192.168.0.179 (LAN) | 100.94.221.87 (TS) |
 | CT183 Archon | Via host | 192.168.0.183 (LAN) or 10.6.0.21 (WG) | Via host |

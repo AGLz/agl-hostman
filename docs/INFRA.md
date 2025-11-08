@@ -1,6 +1,6 @@
 # AGL Infrastructure Map
 
-> **Last Updated**: 2025-10-27 | **Version**: 2.0.0
+> **Last Updated**: 2025-11-08 | **Version**: 2.1.0
 > **Reference**: Always read this document for infrastructure queries
 
 ---
@@ -22,7 +22,7 @@
 
 | Network | CIDR | Purpose | Status |
 |---------|------|---------|--------|
-| WireGuard Mesh | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ Active (14 nodes) |
+| WireGuard Mesh | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ Active (15 nodes) |
 | Local LAN | 192.168.0.0/24 | Primary local network | ✅ Active |
 | Local LAN Alt | 192.168.1.0/24 | Secondary local network | ✅ Active |
 | Tailscale | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active |
@@ -84,6 +84,115 @@
 - Backup: CT113 (PBS), CT172 (PBS)
 - Development: CT108 (agldv06)
 - Infrastructure: CT101 (cloudflared), CT102 (meshcentral)
+
+---
+
+### AGLSRV6C (New Proxmox Host)
+**Hostname**: man6c (alias aglsrv6c)
+**Type**: Proxmox VE 9.0 Host on Debian 13 (trixie) - **✅ Fully operational**
+**Location**: Same network as AGLSRV6 (192.168.0.0/24)
+
+| Network | Address | Interface | Status |
+|---------|---------|-----------|--------|
+| Local LAN (Primary) | 192.168.0.233 | vmbr0 | ✅ Active |
+| Local LAN (Secondary) | 192.168.1.233 | vmbr2 | ✅ Active |
+| WireGuard | 10.6.0.22 | wg0 | ✅ Port 51822 |
+| Tailscale | 100.124.53.91 | tailscale0 | ✅ Active |
+
+**Hardware**:
+- Physical Interfaces: eno8303 (vmbr0), eno8403 (vmbr2)
+- Boot: Triple EFI partitions (sdb, sdc, sdd) for redundancy
+- systemd-boot with proxmox-boot-tool
+
+**Current State**:
+- OS: Debian GNU/Linux (Trixie) - Proxmox VE 9.0
+- Kernel: 6.14.11-4-pve (updated during hardening)
+- Status: ✅ Fully configured and operational
+- Setup completed: 2025-11-08
+- Timezone: America/Sao_Paulo (-03)
+
+**Configuration Details**:
+- **Persistent Interface Fix**: systemd service (`force-interfaces-up.service`) forces eno8303/eno8403 UP on boot
+  - Solves issue where interfaces start DOWN despite physical cable connection
+  - Service runs before `networking.service` using `WantedBy=sysinit.target`
+- **Dual-Network Setup**: Both 192.168.0.x and 192.168.1.x networks active
+  - vmbr0 (192.168.0.233) with gateway - Primary network
+  - vmbr2 (192.168.1.233) no gateway - Secondary network
+  - DNS: Google DNS (8.8.8.8, 8.8.4.4)
+- **Security**:
+  - fail2ban active for SSH protection
+  - SSH hardening applied (MaxAuthTries 3, X11Forwarding disabled)
+  - unattended-upgrades configured for automatic security updates
+  - UFW firewall installed (not activated - Proxmox manages via GUI)
+- **Monitoring Tools**: htop, iotop, ncdu installed
+
+**Role**:
+- Proxmox VE Host (same location as AGLSRV6)
+- Additional compute/storage capacity
+- Ready for container/VM deployment
+- Full mesh network integration
+
+**WireGuard Configuration**:
+- PublicKey: `Ha57VYk9mTvUgfyl0GV7EZCdwxCzCXzEwGl4L+2jFQU=`
+- PresharedKey: Configured (host pattern, not container)
+- Connected to hub FGSRV6 (10.6.0.5) at 186.202.57.120:51823
+- MTU: 1420, PersistentKeepalive: 25
+- **Mesh Connectivity** (verified with 0% packet loss):
+  - FGSRV6 (10.6.0.5): 14-16ms latency
+  - AGLSRV1 (10.6.0.10): 29-38ms latency
+  - AGLSRV6 (10.6.0.12): 34-41ms latency
+  - CT179 (10.6.0.19): 29-40ms latency
+
+**Access Methods**:
+- Via LAN: `ssh root@192.168.0.233`
+- Via Tailscale: `ssh root@100.124.53.91`
+- Via WireGuard: `ssh root@10.6.0.22`
+- Via Jump Host (AGLSRV6 Tailscale): `ssh -J root@100.98.108.66 root@192.168.0.233`
+- Via Jump Host (AGLSRV6 WireGuard): `ssh -J root@10.6.0.12 root@192.168.0.233`
+- Proxmox Web Interface: https://192.168.0.233:8006
+
+**Documentation**:
+- Complete setup guide: `/tmp/AGLSRV6C-SETUP-COMPLETE.md`
+- All configuration files documented
+- Troubleshooting procedures included
+
+---
+
+### AGLSRV6D (Proxmox VE Host)
+**Hostname**: man6d (alias aglsrv6d)
+**Type**: Proxmox VE 9.0.11 on Debian 13 (trixie) - **✅ Fully operational**
+**Location**: Same network as AGLSRV6
+
+| Network | Address | Interface | Status |
+|---------|---------|-----------|--------|
+| Local LAN | 192.168.0.234 | enp2s0 | ✅ Active |
+| Tailscale | 100.76.201.83 | tailscale0 | ✅ Active |
+| WireGuard | 10.6.0.23 | wg0 | ✅ Port 51823 |
+
+**Hardware**:
+- CPU: Intel Core i5-4590 @ 3.30GHz (4 cores, 4 threads)
+- RAM: 8GB (7.7GB usable)
+- Storage: 465GB SSD (456GB root + 976MB boot + 8GB swap)
+
+**Current State**:
+- OS: Proxmox VE 9.0.11 on Debian 13 (trixie)
+- Kernel: 6.14.11-4-pve (Proxmox kernel)
+- Status: ✅ Fully operational
+- WireGuard: ✅ Active and connected to mesh
+- Web Interface: https://192.168.0.234:8006 (LAN)
+- Services: pvedaemon, pveproxy, pve-cluster all running
+
+**Role**:
+- Proxmox VE Host (same location as AGLSRV6)
+- Additional compute/storage capacity (8GB RAM, 465GB storage)
+- Ready for container/VM deployment
+- Backup/failover capabilities
+
+**WireGuard Configuration**:
+- PublicKey: `d9i/Izz71+3O4t2jMwt2L5N0m5mCVjph0GzplJGzXDM=`
+- Connected to hub FGSRV6 (10.6.0.5)
+- Latency: ~15-30ms to mesh nodes
+- Full mesh connectivity established
 
 ---
 
@@ -149,7 +258,7 @@
 
 ## 🔗 WireGuard Mesh
 
-### Active Nodes (14 Total)
+### Active Nodes (15 Total)
 
 | Node | IP | Port | Type | Host | Status |
 |------|-----|------|------|------|--------|
@@ -167,6 +276,7 @@
 | FGSRV3 | 10.6.0.18 | 51818 | Host | Cloud VPS | ✅ |
 | **CT179** | 10.6.0.19 | 51819 | Container | AGLSRV1 | ✅ Dev |
 | **CT111** | 10.6.0.20 | 51820 | Container | AGLSRV6 | ✅ NFS |
+| **AGLSRV6D** | 10.6.0.23 | 51823 | Host | Remote | ✅ Active |
 
 ### Configuration Standards
 
@@ -422,6 +532,26 @@ df -h | grep wg            # All WireGuard mounts
 
 ---
 
+### From AGLSRV6D (man6d)
+
+**Available Networks**: LAN, WireGuard (PRIMARY), Tailscale
+**Network Priority**: WireGuard > LAN > Tailscale
+
+| Target | Method | Address | Example |
+|--------|--------|---------|---------|
+| FGSRV6 Hub | WireGuard | 10.6.0.5 | `ssh root@10.6.0.5` ⚡ |
+| AGLSRV1 Host | WireGuard | 10.6.0.10 | `ssh root@10.6.0.10` ⚡ |
+| AGLSRV6 Host | WireGuard | 10.6.0.12 | `ssh root@10.6.0.12` ⚡ |
+| CT111 NFS | WireGuard | 10.6.0.20 | Access via `10.6.0.20` ⚡ |
+| CT179 Dev | WireGuard | 10.6.0.19 | `ssh root@10.6.0.19` ⚡ |
+| Any mesh node | WireGuard | 10.6.0.x | Full mesh access |
+| AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33` |
+| CT179 Dev | Tailscale | 100.94.221.87 | `ssh root@100.94.221.87` |
+
+⚡ = Fastest option (WireGuard mesh - 15-30ms latency)
+
+---
+
 ### From Proxmox Hosts
 
 **From AGLSRV1 Host**:
@@ -502,7 +632,23 @@ docker-compose ps          # Compose stack status
 
 ---
 
-**Document Version**: 2.0.0
-**Last Updated**: 2025-10-27
+**Document Version**: 2.1.0
+**Last Updated**: 2025-11-08
 **Maintainer**: Claude Code (agl-hostman project)
 **Always Read**: This document should ALWAYS be read for infrastructure queries
+
+---
+
+## 📝 Recent Changes
+
+**v2.1.0 (2025-11-08)**:
+- ✅ Added AGLSRV6D (man6d) - New Proxmox VE 9.0.11 host at same location as AGLSRV6
+- Hardware: Intel i5-4590, 8GB RAM, 465GB SSD
+- Networks: LAN (192.168.0.234), Tailscale (100.76.201.83), WireGuard (10.6.0.23)
+- WireGuard: Fully configured and connected to mesh (port 51823)
+- PublicKey: d9i/Izz71+3O4t2jMwt2L5N0m5mCVjph0GzplJGzXDM=
+- Connectivity: Verified to hub (10.6.0.5), AGLSRV1 (10.6.0.10), AGLSRV6 (10.6.0.12)
+- ✅ Proxmox VE: Installed, kernel 6.14.11-4-pve loaded, all services operational
+- Web Interface: https://192.168.0.234:8006 (accessible via LAN)
+- Status: Fully operational and ready for container/VM deployment
+- Updated WireGuard mesh count: 14 → 15 active nodes
