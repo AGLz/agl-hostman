@@ -144,9 +144,11 @@ ssh root@10.6.0.10
 ### Connection Commands
 
 ```bash
-# Via LAN (from same location)
-ssh root@192.168.0.202  # Primary LAN
-ssh root@192.168.1.202  # Secondary LAN
+# Via inter-host LAN (from AGLSRV6C or containers - RECOMMENDED)
+ssh root@192.168.1.202  # PRIMARY for local communication
+
+# Via external LAN (from same location)
+ssh root@192.168.0.202
 
 # From CT179 (prefer WireGuard)
 ssh root@10.6.0.12
@@ -155,7 +157,8 @@ ssh root@10.6.0.12
 ssh root@100.98.108.66
 
 # Proxmox Web Interface
-https://192.168.0.202:8006  # Primary LAN
+https://192.168.0.202:8006  # External LAN
+https://192.168.1.202:8006  # Inter-host LAN
 ```
 
 ---
@@ -257,12 +260,12 @@ ssh root@192.168.15.222
 
 ### Network Configuration
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN (Primary) | 192.168.0.233 | vmbr0 | ✅ Active |
-| Local LAN (Secondary) | 192.168.1.233 | vmbr2 | ✅ Active |
-| WireGuard | 10.6.0.22 | wg0 | ✅ Port 51822 |
-| Tailscale | 100.124.53.91 | tailscale0 | ✅ Active |
+| Network | Address | Interface | Status | Purpose |
+|---------|---------|-----------|--------|---------|
+| Local LAN | 192.168.0.233 | vmbr0 | ✅ Active | External access |
+| **Inter-host LAN** | **192.168.1.233** | **vmbr2** | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
+| WireGuard | 10.6.0.22 | wg0 | ✅ Port 51822 | Remote access |
+| Tailscale | 100.124.53.91 | tailscale0 | ✅ Active | Fallback |
 
 ### Hardware
 
@@ -321,7 +324,10 @@ ssh root@192.168.15.222
 ### Access Methods
 
 ```bash
-# Via LAN
+# Via inter-host LAN (from AGLSRV6 or containers - RECOMMENDED)
+ssh root@192.168.1.233  # PRIMARY for local communication
+
+# Via external LAN
 ssh root@192.168.0.233
 
 # Via Tailscale
@@ -331,13 +337,14 @@ ssh root@100.124.53.91
 ssh root@10.6.0.22
 
 # Via Jump Host (AGLSRV6 Tailscale)
-ssh -J root@100.98.108.66 root@192.168.0.233
+ssh -J root@100.98.108.66 root@192.168.1.233
 
 # Via Jump Host (AGLSRV6 WireGuard)
-ssh -J root@10.6.0.12 root@192.168.0.233
+ssh -J root@10.6.0.12 root@192.168.1.233
 
 # Proxmox Web Interface
-https://192.168.0.233:8006
+https://192.168.0.233:8006  # External LAN
+https://192.168.1.233:8006  # Inter-host LAN
 ```
 
 ### Documentation
