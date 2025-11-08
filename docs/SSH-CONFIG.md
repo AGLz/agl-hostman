@@ -42,77 +42,92 @@
 
 ### FGSRV Hosts (VPS Locaweb)
 
+> **Naming Convention**: All FGSRV hosts use two aliases for the same physical server:
+> - **`FGSRVXX`** (uppercase) → Public IP / hostname
+> - **`fgsrvX`** (lowercase) → Tailscale IP (same server, different route)
+
 #### FGSRV03 - Production Server
+> **Note**: `fgsrv3` is an alias for `FGSRV03` (same physical server, different access routes)
+
 ```ssh-config
 Host FGSRV03
   HostName 191.252.201.205
   User root
   IdentityFile ~/.ssh/FGSRV03.pem
 
-Host fgsrv3 (Tailscale)
-  HostName 100.67.99.115
+Host fgsrv3
+  HostName 100.67.99.115  # Tailscale IP
   User root
   StrictHostKeyChecking no
 ```
 
 **Connection Priority**:
-1. `ssh fgsrv3` - Tailscale (recommended if accessible)
+1. `ssh fgsrv3` - Tailscale (✅ working, recommended)
 2. `ssh FGSRV03` - Public IP (fallback)
 
 #### FGSRV04 - Production Server
+> **Note**: `fgsrv4` is an alias for `FGSRV04` (same physical server, different access routes)
+
 ```ssh-config
 Host FGSRV04
   HostName vps22826.publiccloud.com.br
   User sysadmin
   IdentityFile ~/.ssh/fg_srv.pem
 
-Host fgsrv4 (Tailscale)
-  HostName 100.111.79.2
+Host fgsrv4
+  HostName 100.111.79.2  # Tailscale IP
   User root
   StrictHostKeyChecking no
 ```
 
 **Connection Priority**:
-1. `ssh fgsrv4` - Tailscale (recommended if accessible)
+1. `ssh fgsrv4` - Tailscale (✅ working, recommended)
 2. `ssh FGSRV04` - Public hostname (fallback)
 
 #### FGSRV05 - Production Server
+> **Note**: `fgsrv5` is an alias for `FGSRV05` (same physical server, different access routes)
+
 ```ssh-config
 Host FGSRV05
   HostName 191.252.200.20
   User root
   IdentityFile ~/.ssh/fg_srv.pem
 
-Host fgsrv5 (Tailscale)
-  HostName 100.71.107.26
+Host fgsrv5
+  HostName 100.71.107.26  # Tailscale IP
   User root
   StrictHostKeyChecking no
 ```
 
-**Connection Priority**:
-1. `ssh fgsrv5` - Tailscale (⚠️ currently timing out)
-2. `ssh FGSRV05` - Public IP (fallback - requires key)
+**Physical Server**: vps24136.publiccloud.com.br
+
+**Connection Priority** (as of 2025-11-08):
+1. `ssh FGSRV05` - Public IP (✅ **RECOMMENDED** - currently working)
+2. `ssh fgsrv5` - Tailscale (❌ timing out - needs troubleshooting)
 
 **Known Issues**:
-- ⚠️ Tailscale connection (100.71.107.26) timing out as of 2025-11-08
-- ⚠️ WireGuard (10.6.0.11) also timing out
-- ✅ Public IP should work with correct key authentication
+- ⚠️ Tailscale alias `fgsrv5` (100.71.107.26) timing out as of 2025-11-08
+- ⚠️ WireGuard route (10.6.0.11) also timing out
+- ✅ Public IP alias `FGSRV05` (191.252.200.20) working correctly
+- 💡 Both aliases point to the **same physical server** - only the network route differs
 
 #### FGSRV06 - Production Server
+> **Note**: `fgsrv6` is an alias for `FGSRV06` (same physical server, different access routes)
+
 ```ssh-config
 Host FGSRV06
   HostName 186.202.57.120
   User root
   IdentityFile ~/.ssh/fg_srv.pem
 
-Host fgsrv6 (Tailscale - not in config yet)
-  HostName 100.83.51.9
+Host fgsrv6
+  HostName 100.83.51.9  # Tailscale IP
   User root
   StrictHostKeyChecking no
 ```
 
 **Connection Priority**:
-1. Tailscale IP directly: `ssh root@100.83.51.9` (not aliased yet)
+1. `ssh fgsrv6` - Tailscale (✅ working, recommended)
 2. `ssh FGSRV06` - Public IP (fallback)
 
 ---
@@ -225,14 +240,14 @@ Host AGLLX51
 
 **From CT179 (agldv03)**:
 
-| Target | Priority 1 | Priority 2 | Priority 3 | Notes |
-|--------|-----------|-----------|-----------|-------|
-| FGSRV3 | `ssh fgsrv3` (Tailscale) | `ssh FGSRV03` (Public IP) | - | Tailscale working |
-| FGSRV4 | `ssh fgsrv4` (Tailscale) | `ssh FGSRV04` (Public) | - | Tailscale working |
-| FGSRV5 | `ssh FGSRV05` (Public IP) | - | - | ⚠️ Tailscale down |
-| FGSRV6 | `ssh root@100.83.51.9` | `ssh FGSRV06` (Public) | - | No Tailscale alias |
-| AGLSRV1 | `ssh AGLSRV1` (LAN) | `ssh root@10.6.0.19` (WG) | `ssh root@100.107.113.33` (TS) | LAN fastest |
-| AGLSRV5 | `ssh aglsrv5` (Tailscale) | `ssh root@10.6.0.17` (WG) | - | Tailscale working |
+| Target | Priority 1 | Priority 2 | Notes |
+|--------|-----------|-----------|-------|
+| FGSRV03 | `ssh fgsrv3` (Tailscale) | `ssh FGSRV03` (Public IP) | ✅ Tailscale working |
+| FGSRV04 | `ssh fgsrv4` (Tailscale) | `ssh FGSRV04` (Public) | ✅ Tailscale working |
+| FGSRV05 | `ssh FGSRV05` (Public IP) | `ssh fgsrv5` (Tailscale) | ⚠️ Use public IP (Tailscale down) |
+| FGSRV06 | `ssh fgsrv6` (Tailscale) | `ssh FGSRV06` (Public) | ✅ Tailscale working |
+| AGLSRV1 | `ssh AGLSRV1` (LAN) | `ssh root@10.6.0.19` (WG) | ⚡ LAN fastest from CT179 |
+| AGLSRV5 | `ssh aglsrv5` (Tailscale) | `ssh root@10.6.0.17` (WG) | ✅ Tailscale working |
 
 ### Quick Commands by Purpose
 
@@ -252,7 +267,8 @@ ssh AGLSRV1 "pct exec 131 -- mysql -e 'SHOW DATABASES'"
 ```bash
 ssh fgsrv3 "crontab -l"
 ssh fgsrv4 "crontab -l"
-ssh FGSRV05 "crontab -l"  # Use public IP for FGSRV5
+ssh FGSRV05 "crontab -l"  # Use FGSRV05 (public IP) - fgsrv5 (Tailscale) currently down
+ssh fgsrv6 "crontab -l"
 ```
 
 ---
@@ -367,23 +383,39 @@ ssh -o StrictHostKeyChecking=no root@<host>
 
 ## 📊 SSH Config Summary
 
-**Total Configured Hosts**: 21
+**Total Configured Hosts**: 21 SSH aliases → **13 physical servers**
 **Total SSH Keys**: 12 (10 public + 2 active private)
-**Hosts by Network**:
-- LAN: 8 hosts (AGLSRV, AGLDEV, FGDEV, FGSRV)
-- Tailscale: 4 hosts (fgsrv3, fgsrv4, fgsrv5, aglsrv5)
-- Public Internet: 7 hosts (FGSRV03-06, YAPMan, AGLLX51, AGLWK06/07)
+
+**Alias Convention**:
+- **FGSRV hosts**: Each physical server has 2 aliases (uppercase=public, lowercase=Tailscale)
+  - FGSRV03 + fgsrv3 = 1 server
+  - FGSRV04 + fgsrv4 = 1 server
+  - FGSRV05 + fgsrv5 = 1 server
+  - FGSRV06 + fgsrv6 = 1 server
+
+**Network Access**:
+- LAN: 5 hosts (AGLSRV1, AGLSRV2, AGLDEV, FGDEV, FGSRV local)
+- Tailscale: 8 aliases (fgsrv3, fgsrv4, fgsrv5, fgsrv6, aglsrv1, aglsrv5)
+- Public Internet: 7 hosts (FGSRV03-06 public IPs, YAPMan, AGLLX51, AGLWK06/07)
 - AWS: 2 hosts (YAPMan, AGLLX51)
 
 ---
 
 ## 🔄 Recent Changes
 
-**2025-11-08**:
-- Identified FGSRV5 Tailscale connectivity issue (100.71.107.26 timeout)
+**2025-11-08 22:30**:
+- **Clarified alias convention**: All FGSRV hosts use dual aliases (uppercase=public, lowercase=Tailscale)
+- Updated all FGSRV sections with "Note: fgsrvX is alias for FGSRVXX"
+- Corrected SSH Config Summary: 21 aliases → 13 physical servers
+- Updated Connection Priority Matrix to reflect same-server aliases
+- Added naming convention documentation at FGSRV section header
+
+**2025-11-08 19:00**:
+- Identified FGSRV05 Tailscale connectivity issue (`fgsrv5` alias timeout on 100.71.107.26)
 - Documented all SSH keys and their usage
 - Created connection priority matrix
 - Added troubleshooting section
+- Verified working connections: FGSRV05 (public IP), fgsrv3, fgsrv4, fgsrv6, aglsrv5
 
 ---
 
