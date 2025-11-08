@@ -1,6 +1,6 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
-> **Last Updated**: 2025-10-28 | **Version**: 3.0.0
+> **Last Updated**: 2025-11-08 | **Version**: 3.1.0
 
 ## 🔖 CRITICAL: Always Read These Documents
 
@@ -21,15 +21,25 @@
 
 ### Primary Documents (Load First)
 
-**1. `docs/INFRA.md` - Infrastructure Map**
-- **Read When**: Infrastructure queries, connection issues, checking container status
+**1. `docs/INFRA.md` - Infrastructure Map (Central Reference)**
+- **Read When**: Infrastructure queries, overview of available documentation
 - **Contains**:
-  - Complete host/container inventory with IPs (AGLSRV1, AGLSRV6, FGSRV6)
-  - Network topology (WireGuard mesh, Tailscale, LAN)
-  - Connection priority matrix by environment (WSL2, CT179, CT108)
-  - Storage configuration (NFS, SSHFS, mount points)
-  - WireGuard configuration standards
-- **Example Queries**: "What's the IP for CT179?", "How to connect to AGLSRV6?", "Where is NFS storage mounted?"
+  - Central reference point linking to 7 specialized documentation files
+  - Quick reference tables for hosts, containers, networks, storage
+  - Documentation structure guide ("when to read which doc")
+  - Infrastructure statistics and summary information
+- **Example Queries**: "Where can I find detailed host info?", "Which doc covers WireGuard?", "Infrastructure overview?"
+- **Note**: INFRA.md v3.0.0 is now a central reference - detailed information moved to specialized docs
+
+**Specialized Infrastructure Documentation**:
+- **`docs/PROXMOX.md`** - Proxmox VE installation standards and deployment status
+- **`docs/TOPOLOGY.md`** - Physical locations and network architecture
+- **`docs/HOSTS.md`** - Detailed host configurations with hardware specs
+- **`docs/WIREGUARD.md`** - WireGuard mesh network configuration and standards
+- **`docs/STORAGE.md`** - Storage mounts, NFS exports, and performance metrics
+- **`docs/CONTAINERS.md`** - Complete container inventory by host
+- **`docs/CONNECTIONS.md`** - Connection priorities and access patterns
+- **`docs/SSH-CONFIG.md`** - SSH configuration, keys, and aliases
 
 **2. `docs/ARCHON.md` - Archon Integration**
 - **Read When**: Using MCP tools, task management, knowledge base operations

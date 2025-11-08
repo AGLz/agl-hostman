@@ -1,21 +1,24 @@
-# AGL Infrastructure Map
+# AGL Infrastructure Map - Central Reference
 
-> **Last Updated**: 2025-11-08 | **Version**: 2.5.0
-> **Reference**: Always read this document for infrastructure queries
+> **Last Updated**: 2025-11-08 | **Version**: 3.0.0
+> **Reference**: Central infrastructure overview with links to detailed documentation
 
 ---
 
-## 📋 Table of Contents
+## 📚 Documentation Structure
 
-1. [Network Overview](#-network-overview)
-2. [Proxmox Installation Notes](#-proxmox-installation-notes)
-3. [Physical Locations](#-physical-locations)
-4. [Hosts and Servers](#-hosts-and-servers)
-5. [WireGuard Mesh](#-wireguard-mesh)
-6. [Storage Configuration](#-storage-configuration)
-7. [Container Inventory](#-container-inventory)
-8. [Connection Matrix](#-connection-matrix)
-9. [SSH Configuration](#-ssh-configuration)
+This document serves as the **central reference point** for the entire infrastructure. For detailed information, refer to the specialized documentation files:
+
+| Document | Purpose | When to Read |
+|----------|---------|--------------|
+| **[PROXMOX.md](PROXMOX.md)** | Installation standards, deployment status | Setting up new hosts, troubleshooting OS issues |
+| **[TOPOLOGY.md](TOPOLOGY.md)** | Physical locations, network architecture | Understanding site layout, planning expansions |
+| **[HOSTS.md](HOSTS.md)** | Detailed host configurations | Looking up host specs, network addresses, resources |
+| **[WIREGUARD.md](WIREGUARD.md)** | Mesh network configuration, standards | Adding nodes, troubleshooting connectivity |
+| **[STORAGE.md](STORAGE.md)** | Storage mounts, NFS exports | Managing storage, mounting shares |
+| **[CONTAINERS.md](CONTAINERS.md)** | Container inventory, key services | Finding containers, checking services |
+| **[CONNECTIONS.md](CONNECTIONS.md)** | Access patterns, connection priorities | Connecting to hosts, troubleshooting access |
+| **[SSH-CONFIG.md](SSH-CONFIG.md)** | SSH configuration, keys, aliases | SSH setup, key management |
 
 ---
 
@@ -23,1011 +26,355 @@
 
 ### Network Segments
 
-| Network | CIDR | Purpose | Status |
-|---------|------|---------|--------|
-| WireGuard Mesh | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ Active (15 nodes) |
-| Local LAN | 192.168.0.0/24 | Primary local network | ✅ Active |
-| Local LAN Alt | 192.168.1.0/24 | Secondary local network | ✅ Active |
-| Tailscale | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active |
+| Network | CIDR | Purpose | Status | Details |
+|---------|------|---------|--------|---------|
+| **WireGuard Mesh** | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ 15 nodes active | See [WIREGUARD.md](WIREGUARD.md) |
+| **Local LAN** | 192.168.0.0/24 | Primary local network | ✅ Active | AGLHQ, AGLALD locations |
+| **Local LAN Alt** | 192.168.1.0/24 | Secondary local network | ✅ Active | AGLSRV6C secondary |
+| **Remote LAN** | 192.168.15.0/24 | AGLFG standalone network | ✅ Active | AGLSRV5 only |
+| **Tailscale** | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active | Fallback connectivity |
 
-### WireGuard Hub
-- **Server**: FGSRV6 (vps41772)
+### WireGuard Hub (CRITICAL)
+
+- **Server**: FGSRV6 (vps41772.publiccloud.com.br)
 - **Public IP**: 186.202.57.120
 - **WireGuard IP**: 10.6.0.5
 - **Port**: 51823/UDP
 - **Type**: Hub-and-spoke + mesh hybrid
+- **Importance**: **CRITICAL** - Central routing point, failure affects entire mesh
+
+**Complete Details**: See [WIREGUARD.md](WIREGUARD.md) for configuration, node inventory, and deployment procedures.
 
 ---
 
-## 🔧 Proxmox Installation Notes
+## 📍 Physical Locations Summary
 
-### Base Operating System Requirements
+| Location | Type | Hosts | Status | Details |
+|----------|------|-------|--------|---------|
+| **AGLHQ** | Headquarters | AGLSRV1, AGLSRV3, AGLHQ11, AGLFA02 | ✅ Active | Main production site |
+| **AGLFG** | Remote Site | AGLSRV5 | ✅ Active | Standalone network (192.168.15.x) |
+| **AGLALD** | Remote Site | AGLSRV6, AGLSRV6C, AGLSRV6D | ✅ Active | Backup/failover capacity |
+| **AGLFG-VPS** | Cloud | FGSRV3, FGSRV4, FGSRV5, FGSRV6 | ✅ Active | Cloud infrastructure |
 
-**All Proxmox VE hosts in this infrastructure use Debian as the base operating system**. This is not just a preference but a technical requirement.
-
-**Why Debian? ✅**
-- Proxmox VE is **built on Debian** - it's a complete distribution, not just software
-- Official installation method: Add Proxmox repositories to Debian → Install `proxmox-ve` package
-- Supported Debian versions: Debian 11 (Bullseye), Debian 12 (Bookworm), Debian 13 (Trixie)
-- Shares the same package ecosystem and kernel architecture as Proxmox
-
-**Why NOT Ubuntu? ❌**
-- **Official Proxmox stance**: "Not possible" - "Proxmox VE is not just a GUI, it's a distribution and therefore you cannot install a distribution on a distribution"
-- Ubuntu diverges too much from Debian upstream
-- Proxmox packages rely on Debian-specific dependencies not available in Ubuntu
-- Proxmox custom kernel incompatible with Ubuntu package system
-
-### Installation Process (Successfully Implemented)
-
-This infrastructure has successfully deployed Proxmox VE over Debian on multiple hosts (AGLSRV6C, AGLSRV6D):
-
-```bash
-# 1. Start with clean Debian 12/13 installation
-# 2. Add Proxmox repository
-echo "deb [arch=amd64] http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > /etc/apt/sources.list.d/pve-install-repo.list
-
-# 3. Import GPG key
-wget https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg -O /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg
-
-# 4. Install Proxmox packages
-apt update && apt full-upgrade
-apt install proxmox-default-kernel
-systemctl reboot
-
-# 5. After reboot, install Proxmox VE
-apt install proxmox-ve postfix open-iscsi chrony
-
-# 6. Remove Debian stock kernel (optional)
-apt remove linux-image-amd64 'linux-image-6.1*'
-update-grub
-```
-
-**Current Deployment Status**:
-- ✅ AGLSRV1: Proxmox VE 8.4.14 on Debian
-- ✅ AGLSRV5: Proxmox VE 8.4.14 on Debian 12 (kernel 6.8.12-15-pve)
-- ✅ AGLSRV6: Proxmox VE on Debian
-- ✅ AGLSRV6C: Proxmox VE 9.0.11 on Debian 13 (kernel 6.14.11-4-pve) - **Overlay installation**
-- ✅ AGLSRV6D: Proxmox VE 9.0.11 on Debian 13 (kernel 6.14.11-4-pve) - **Overlay installation**
+**Complete Details**: See [TOPOLOGY.md](TOPOLOGY.md) for network architecture, routing diagrams, and connectivity patterns.
 
 ---
 
-## 🏢 Physical Locations
+## 🖥️ Hosts Quick Reference
 
-The infrastructure is distributed across 4 physical locations, each with its own network segment and connectivity profile.
+| Host | Location | Type | Networks | Status | Details |
+|------|----------|------|----------|--------|---------|
+| **AGLSRV1** | AGLHQ | Production | LAN + WG + TS | ✅ 68 CTs | [HOSTS.md](HOSTS.md#aglsrv1) |
+| **AGLSRV3** | AGLHQ | Standby | TBD | ⚠️ Offline | [HOSTS.md](HOSTS.md#aglsrv3) |
+| **AGLSRV5** | AGLFG | Remote | LAN + WG + TS | ✅ 8 CTs | [HOSTS.md](HOSTS.md#aglsrv5) |
+| **AGLSRV6** | AGLALD | Remote | WG + TS | ✅ 11 CTs | [HOSTS.md](HOSTS.md#aglsrv6) |
+| **AGLSRV6B** | AGLALD | Dead | None | ❌ Dead | Deprecated |
+| **AGLSRV6C** | AGLALD | Remote | LAN + WG + TS | ✅ Ready | [HOSTS.md](HOSTS.md#aglsrv6c) |
+| **AGLSRV6D** | AGLALD | Remote | LAN + WG + TS | ✅ Ready | [HOSTS.md](HOSTS.md#aglsrv6d) |
+| **FGSRV3** | VPS | Cloud | Public + WG + TS | ✅ Active | [HOSTS.md](HOSTS.md#fgsrv3) |
+| **FGSRV4** | VPS | Cloud | WG + TS | ✅ Active | [HOSTS.md](HOSTS.md#fgsrv4) |
+| **FGSRV5** | VPS | Cloud | Public + WG + TS | ✅ Active | [HOSTS.md](HOSTS.md#fgsrv5) |
+| **FGSRV6** | VPS | Cloud Hub | Public + WG + TS | ✅ **Hub** | [HOSTS.md](HOSTS.md#fgsrv6) |
 
-### AGLHQ (Headquarters - LAN: 192.168.0.x)
-**Location**: Primary headquarters
-**Network**: 192.168.0.0/24
-**Connectivity**: Full stack (LAN + WireGuard + Tailscale)
+**Network Codes**:
+- **LAN**: Local Area Network (192.168.x.x)
+- **WG**: WireGuard (10.6.0.x)
+- **TS**: Tailscale (100.x.x.x)
 
-| Host/Device | Type | Status | Networks |
-|-------------|------|--------|----------|
-| **AGLSRV1** | Proxmox VE Host | ✅ Active | LAN, WG (10.6.0.10), TS (100.107.113.33) |
-| **AGLSRV3** | Proxmox VE Host | ⚠️ Offline | To be analyzed when powered on |
-| **AGLHQ11** | Physical Machine | ✅ Active | LAN, TS (present in network) |
-| **AGLFA02** | Physical Machine | ✅ Active | LAN only (not in Tailscale yet) |
-
-**Key Services**:
-- Main production infrastructure (AGLSRV1: 68 containers/VMs)
-- Development containers: CT179 (agldv03), CT180 (dokploy)
-- AI infrastructure: CT183 (Archon), CT200 (ollama-gpu), CT202 (n8n)
-- DNS/DHCP: CT102 (pihole)
-- Monitoring: CT132 (observium), CT162 (meshcentral)
-
----
-
-### AGLFG (Remote Site - LAN: 192.168.15.x)
-**Location**: Remote standalone site
-**Network**: 192.168.15.0/24 (different segment from other locations)
-**Connectivity**: Full stack (LAN + WireGuard + Tailscale)
-
-| Host/Device | Type | Status | Networks |
-|-------------|------|--------|----------|
-| **AGLSRV5** | Proxmox VE Host | ✅ Active | LAN (192.168.15.222), WG (10.6.0.17), TS (100.119.223.113) |
-
-**Key Services**:
-- Large storage capacity (1.75TB ZFS pool at 70%)
-- Media services: CT132 (plex5)
-- Network services: CT133 (mesh5), CT139 (pihole5)
-- File server: CT138 (fileserver5)
-- Cloudflare tunnel: CT130 (cloudflared5)
-
-**Notes**:
-- Standalone location with independent network segment
-- Different LAN segment (192.168.15.x) vs other sites (192.168.0.x)
-- Tailscale recommended for access (WireGuard has SSH auth issue)
+**Complete Details**: See [HOSTS.md](HOSTS.md) for detailed configurations, hardware specs, and access methods.
 
 ---
 
-### AGLALD (Remote Site - LAN: 192.168.0.x)
-**Location**: Remote site (same LAN segment as AGLHQ but different physical location)
-**Network**: 192.168.0.0/24
-**Connectivity**: Full stack (LAN + WireGuard + Tailscale)
+## 🔗 WireGuard Mesh Summary
 
-| Host/Device | Type | Status | Networks |
-|-------------|------|--------|----------|
-| **AGLSRV6** | Proxmox VE Host | ✅ Active | WG (10.6.0.12), TS (100.98.108.66) |
-| **AGLSRV6B** | Proxmox VE Host | ❌ DEAD | RAID card failure, replaced by AGLSRV6C |
-| **AGLSRV6C** | Proxmox VE Host | ✅ Active | LAN (192.168.0.233), WG (10.6.0.22), TS (100.124.53.91) |
-| **AGLSRV6D** | Proxmox VE Host | ✅ Active | LAN (192.168.0.234), WG (10.6.0.23), TS (100.76.201.83) |
+### Active Nodes (15 of 17 total)
 
-**Key Services**:
-- AGLSRV6: 11 containers, 6 VMs, large storage (954GB + 3.9TB + 1.2TB PBS)
-- CT111 (aluzdivina): NFS server for mesh (10.6.0.20)
-- CT108 (agldv06): Development container
-- CT113, CT172: Proxmox Backup Server instances
-- AGLSRV6C: Full operational capacity, dual-network setup
-- AGLSRV6D: Backup/failover host (8GB RAM, 465GB storage)
-
-**Notes**:
-- AGLSRV6D is desktop converted to server
-- Role: Failsafe backup for AGLSRV6 + AGLSRV6C
-- AGLSRV6B deprecated due to hardware failure
-
----
-
-### AGLFG-VPS (Cloud Virtual Private Servers)
-**Location**: Cloud infrastructure (various providers)
-**Network**: Public IPs with WireGuard overlay
-**Connectivity**: WireGuard mesh + Tailscale
-
-| Host/Device | Type | Status | Networks |
-|-------------|------|--------|----------|
-| **FGSRV3** | Proxmox VE VPS | ✅ Active | Public IP, WG (10.6.0.18), TS |
-| **FGSRV4** | Proxmox VE VPS | ✅ Active | Public IP, WG (10.6.0.16), TS |
-| **FGSRV5** | Proxmox VE VPS | ✅ Active | Public IP (191.252.200.20), WG (10.6.0.11), TS (100.71.107.26) |
-| **FGSRV6** | Proxmox VE VPS | ✅ Hub | Public IP (186.202.57.120), WG (10.6.0.5:51823), TS (100.83.51.9) |
-
-**Key Services**:
-- FGSRV6: **WireGuard mesh hub** - central routing point for entire infrastructure
-- FGSRV5: NFS server (77GB export), mounted at AGLSRV1 as `fgsrv5-wg`
-- FGSRV6: NFS server (197GB export), mounted at AGLSRV1 as `fgsrv6-wg`
-
-**Notes**:
-- FGSRV6 is critical infrastructure - hub for all WireGuard mesh traffic
-- Cloud VPS providers: vps41772 (FGSRV6), vps22826 (FGSRV4)
-- Public IPs allow external access and VPN termination
-
----
-
-## 🖥️ Hosts and Servers
-
-### AGLSRV1 (Main Production Host)
-**Hostname**: algsrv1
-**Type**: Proxmox VE Host
-**Physical Location**: **AGLHQ** (Headquarters)
-**Network Location**: Local LAN (192.168.0.0/24)
-
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | 192.168.0.245 | vmbr0 | ✅ Primary |
-| WireGuard | 10.6.0.10 | wg0 | ✅ Port 51810 |
-| Tailscale | 100.107.113.33 | tailscale0 | ✅ Active |
-
-**Resources**:
-- Total VMs/CTs: 68 (42 running, 26 stopped)
-- Primary Dev Container: CT179 (agldv03) - 48GB RAM
-- AI Infrastructure: CT183 (archon), CT200 (ollama-gpu)
-- Storage: local-zfs (1.7TB), spark (7.1TB), overpower (9.8TB)
-
-**Key Services**:
-- DNS/DHCP: CT102 (pihole)
-- Media: CT113 (plex), CT121-124 (arr stack)
-- Development: CT179 (agldv03), CT180 (dokploy)
-- AI: CT183 (archon), CT200 (ollama-gpu), CT202 (n8n)
-- Monitoring: CT132 (observium), CT162 (meshcentral)
-
----
-
-### AGLSRV3 (Proxmox VE Host - Offline)
-**Hostname**: aglsrv3
-**Type**: Proxmox VE Host
-**Physical Location**: **AGLHQ** (Headquarters - same location as AGLSRV1)
-**Status**: ⚠️ **Currently powered off** - pending power-on and analysis
-
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | TBD | vmbr0 | ⚠️ Awaiting power-on |
-| WireGuard | TBD | wg0 | ⚠️ To be configured |
-| Tailscale | TBD | tailscale0 | ⚠️ To be verified |
-
-**Notes**:
-- Located at AGLHQ headquarters with AGLSRV1, AGLHQ11, and AGLFA02
-- Same local network (192.168.0.0/24) as AGLSRV1
-- Will be analyzed when powered on by user
-- Expected to have similar configuration to AGLSRV1 (Proxmox VE host)
-
-**Pending Tasks**:
-- [ ] Power on host
-- [ ] Identify network addresses (LAN, Tailscale)
-- [ ] Configure WireGuard mesh connectivity
-- [ ] Inventory containers and VMs
-- [ ] Document hardware specifications
-- [ ] Update this section with complete information
-
----
-
-### AGLSRV6 (Secondary Host)
-**Hostname**: AGLSRV6 (formerly man6)
-**Type**: Proxmox VE Host
-**Physical Location**: **AGLALD** (Remote site)
-**Network Location**: Remote (behind WireGuard/Tailscale)
-
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 (PRIMARY) |
-| Tailscale | 100.98.108.66 | tailscale0 | ✅ Fallback |
-
-**Resources**:
-- Containers: 11 (CT101-114, CT121)
-- VMs: 6 (VM100, VM103, VM105-106, VM112, VM200)
-- Storage: 954GB (bb), 3.9TB (usb4tb), 1.2TB (PBS)
-
-**Key Services**:
-- Storage: CT111 (aluzdivina) - NFS server (10.6.0.20)
-- Backup: CT113 (PBS), CT172 (PBS)
-- Development: CT108 (agldv06)
-- Infrastructure: CT101 (cloudflared), CT102 (meshcentral)
-
----
-
-### AGLSRV5 (Remote Proxmox Host)
-**Hostname**: aglsrv5
-**Type**: Proxmox VE 8.4.14 on Debian 12 (bookworm)
-**Physical Location**: **AGLFG** (Remote standalone site)
-**Network Location**: Remote location (different network segment - 192.168.15.0/24)
-
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| LAN | 192.168.15.222/24 | vmbr0 | ✅ Active |
-| WireGuard | 10.6.0.17/24 | wg0 | ✅ Port 51817 |
-| Tailscale | 100.119.223.113 | tailscale0 | ✅ Active |
-
-**Hardware**:
-- CPU: Intel Xeon E3-1220 v6 @ 3.00GHz (4 cores, 4 threads)
-- RAM: 62GB (32GB used, 24GB free, 7.2GB buffers/cache)
-- Storage: 66GB root (37GB used, 30GB free - 56%)
-
-**Proxmox Configuration**:
-- Version: 8.4.14 (release 8.4)
-- Kernel: 6.8.12-15-pve
-- OS: Debian GNU/Linux 12 (bookworm)
-- Status: ✅ Fully operational
-
-**Storage Pools**:
-| Storage | Type | Total | Used | Available | Usage |
-|---------|------|-------|------|-----------|-------|
-| base | zfspool | 1.75TB | 1.23TB | 533MB | 70% PRIMARY |
-| bkp | dir | 593MB | 60MB | 533MB | 10% |
-| games | dir | 65GB | 36GB | 29GB | 55% |
-| local | dir | 65GB | 36GB | 29GB | 55% |
-| local-lvm | lvmthin | 130GB | 12GB | 117GB | 9% |
-| shares | dir | 65GB | 36GB | 29GB | 55% |
-
-**Containers** (8 total: 7 running, 1 stopped):
-| VMID | Name | Status |
-|------|------|--------|
-| CT130 | cloudflared5 | ✅ Running |
-| CT132 | plex5 | ✅ Running |
-| CT133 | mesh5 | ✅ Running |
-| CT134 | ipmitool5 | ✅ Running |
-| CT135 | mysql5 | ⚠️ Stopped |
-| CT136 | agldv05 | ✅ Running |
-| CT138 | fileserver5 | ✅ Running |
-| CT139 | pihole5 | ✅ Running |
-
-**Access Methods**:
-- Via Tailscale (recommended): `ssh root@100.119.223.113` (20-42ms latency)
-- Via WireGuard: 10.6.0.17 (SSH connection closes immediately - auth issue)
-- Via LAN: 192.168.15.222 (only from same network segment)
-
-**Network Configuration**:
-- Connected to WireGuard mesh via FGSRV6 hub (10.6.0.5)
-- Part of different LAN segment (192.168.15.x vs 192.168.0.x)
-- Tailscale provides cross-site connectivity
-
-**Role**:
-- Remote Proxmox VE Host with significant storage capacity (1.75TB ZFS pool)
-- Runs production services: Plex, Pi-hole, file server, Cloudflare tunnel
-- Development container (agldv05) available
-- Part of distributed infrastructure with independent network segment
-
-**Notes**:
-- SSH via WireGuard has authentication issues (connection established but closes)
-- Tailscale access works perfectly (✅ verified)
-- Different network segment (192.168.15.x) indicates separate physical location
-- Large ZFS storage pool (base) at 70% capacity - may need monitoring
-
----
-
-### AGLSRV6C (New Proxmox Host)
-**Hostname**: man6c (alias aglsrv6c)
-**Type**: Proxmox VE 9.0 Host on Debian 13 (trixie) - **✅ Fully operational**
-**Physical Location**: **AGLALD** (Remote site - same as AGLSRV6)
-**Network Location**: Same network as AGLSRV6 (192.168.0.0/24)
-
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN (Primary) | 192.168.0.233 | vmbr0 | ✅ Active |
-| Local LAN (Secondary) | 192.168.1.233 | vmbr2 | ✅ Active |
-| WireGuard | 10.6.0.22 | wg0 | ✅ Port 51822 |
-| Tailscale | 100.124.53.91 | tailscale0 | ✅ Active |
-
-**Hardware**:
-- Physical Interfaces: eno8303 (vmbr0), eno8403 (vmbr2)
-- Boot: Triple EFI partitions (sdb, sdc, sdd) for redundancy
-- systemd-boot with proxmox-boot-tool
-
-**Current State**:
-- OS: Debian GNU/Linux (Trixie) - Proxmox VE 9.0
-- Kernel: 6.14.11-4-pve (updated during hardening)
-- Status: ✅ Fully configured and operational
-- Setup completed: 2025-11-08
-- Timezone: America/Sao_Paulo (-03)
-
-**Configuration Details**:
-- **Persistent Interface Fix**: systemd service (`force-interfaces-up.service`) forces eno8303/eno8403 UP on boot
-  - Solves issue where interfaces start DOWN despite physical cable connection
-  - Service runs before `networking.service` using `WantedBy=sysinit.target`
-- **Dual-Network Setup**: Both 192.168.0.x and 192.168.1.x networks active
-  - vmbr0 (192.168.0.233) with gateway - Primary network
-  - vmbr2 (192.168.1.233) no gateway - Secondary network
-  - DNS: Google DNS (8.8.8.8, 8.8.4.4)
-- **Security**:
-  - fail2ban active for SSH protection
-  - SSH hardening applied (MaxAuthTries 3, X11Forwarding disabled)
-  - unattended-upgrades configured for automatic security updates
-  - UFW firewall installed (not activated - Proxmox manages via GUI)
-- **Monitoring Tools**: htop, iotop, ncdu installed
-
-**Role**:
-- Proxmox VE Host (same location as AGLSRV6)
-- Additional compute/storage capacity
-- Ready for container/VM deployment
-- Full mesh network integration
-
-**WireGuard Configuration**:
-- PublicKey: `Ha57VYk9mTvUgfyl0GV7EZCdwxCzCXzEwGl4L+2jFQU=`
-- PresharedKey: Configured (host pattern, not container)
-- Connected to hub FGSRV6 (10.6.0.5) at 186.202.57.120:51823
-- MTU: 1420, PersistentKeepalive: 25
-- **Mesh Connectivity** (verified with 0% packet loss):
-  - FGSRV6 (10.6.0.5): 14-16ms latency
-  - AGLSRV1 (10.6.0.10): 29-38ms latency
-  - AGLSRV6 (10.6.0.12): 34-41ms latency
-  - CT179 (10.6.0.19): 29-40ms latency
-
-**Access Methods**:
-- Via LAN: `ssh root@192.168.0.233`
-- Via Tailscale: `ssh root@100.124.53.91`
-- Via WireGuard: `ssh root@10.6.0.22`
-- Via Jump Host (AGLSRV6 Tailscale): `ssh -J root@100.98.108.66 root@192.168.0.233`
-- Via Jump Host (AGLSRV6 WireGuard): `ssh -J root@10.6.0.12 root@192.168.0.233`
-- Proxmox Web Interface: https://192.168.0.233:8006
-
-**Documentation**:
-- Complete setup guide: `/tmp/AGLSRV6C-SETUP-COMPLETE.md`
-- All configuration files documented
-- Troubleshooting procedures included
-
----
-
-### AGLSRV6D (Proxmox VE Host)
-**Hostname**: man6d (alias aglsrv6d)
-**Type**: Proxmox VE 9.0.11 on Debian 13 (trixie) - **✅ Fully operational**
-**Physical Location**: **AGLALD** (Remote site - same as AGLSRV6 and AGLSRV6C)
-**Network Location**: Same network as AGLSRV6 (192.168.0.0/24)
-
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | 192.168.0.234 | enp2s0 | ✅ Active |
-| Tailscale | 100.76.201.83 | tailscale0 | ✅ Active |
-| WireGuard | 10.6.0.23 | wg0 | ✅ Port 51823 |
-
-**Hardware**:
-- CPU: Intel Core i5-4590 @ 3.30GHz (4 cores, 4 threads)
-- RAM: 8GB (7.7GB usable)
-- Storage: 465GB SSD (456GB root + 976MB boot + 8GB swap)
-
-**Current State**:
-- OS: Proxmox VE 9.0.11 on Debian 13 (trixie)
-- Kernel: 6.14.11-4-pve (Proxmox kernel)
-- Status: ✅ Fully operational
-- WireGuard: ✅ Active and connected to mesh
-- Web Interface: https://192.168.0.234:8006 (LAN)
-- Services: pvedaemon, pveproxy, pve-cluster all running
-
-**Role**:
-- Proxmox VE Host (same location as AGLSRV6)
-- Additional compute/storage capacity (8GB RAM, 465GB storage)
-- Ready for container/VM deployment
-- Backup/failover capabilities
-
-**WireGuard Configuration**:
-- PublicKey: `d9i/Izz71+3O4t2jMwt2L5N0m5mCVjph0GzplJGzXDM=`
-- Connected to hub FGSRV6 (10.6.0.5)
-- Latency: ~15-30ms to mesh nodes
-- Full mesh connectivity established
-
----
-
-### FGSRV6 (Cloud VPS - WireGuard Hub)
-**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
-**Cloud Provider**: vps41772
-**Type**: Proxmox VE Host
-**Role**: WireGuard mesh hub, NFS server
-
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 186.202.57.120 | - | ✅ Internet |
-| WireGuard | 10.6.0.5 | 51823/UDP | ✅ Hub |
-| Tailscale | 100.83.51.9 | - | ✅ Active |
-
-**NFS Exports**:
-- Export: 197GB NFSv4.2
-- Mounted on: AGLSRV1 as `fgsrv6-wg` (10.6.0.5)
-
----
-
-### FGSRV5 (Cloud VPS)
-**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
-**Public IP**: 191.252.200.20
-**Type**: Proxmox VE Host
-**Role**: NFS server, storage backend
-
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.200.20 | - | ✅ Internet |
-| WireGuard | 10.6.0.11 | 51811/UDP | ✅ Active |
-| Tailscale | 100.71.107.26 | - | ✅ Active |
-
-**NFS Exports**:
-- Export: 77GB NFSv4.2
-- Mounted on: AGLSRV1 as `fgsrv5-wg` (10.6.0.11)
-- **Notes**: SSH timeout issues reported
-
----
-
-### FGSRV4 (Cloud VPS)
-**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
-**Cloud Provider**: vps22826.publiccloud.com.br
-**Type**: Proxmox VE Host
-
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active |
-| Tailscale | 100.111.79.2 | - | ✅ Active |
-
-**User**: sysadmin
-
----
-
-### FGSRV3 (Cloud VPS)
-**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
-**Public IP**: 191.252.201.205
-**Type**: Proxmox VE Host
-
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.201.205 | - | ✅ Internet |
-| WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active |
-| Tailscale | 100.67.99.115 | - | ✅ Active |
-
----
-
-## 🔗 WireGuard Mesh
-
-### WireGuard Mesh Nodes (15 Active, 17 Total)
-
-| Node | IP | Port | Type | Host | Status |
+| Node | IP | Port | Host | Type | Status |
 |------|-----|------|------|------|--------|
-| **FGSRV6** | 10.6.0.5 | 51823 | Hub | Cloud VPS | ✅ Hub |
-| CT120 | 10.6.0.1 | 51820 | Container | AGLSRV1 | ✅ |
-| CT121 | 10.6.0.3 | 51821 | Container | AGLSRV6 | ✅ |
-| AGLSRV1 | 10.6.0.10 | 51810 | Host | Local | ✅ |
-| FGSRV5 | 10.6.0.11 | 51811 | Host | Cloud VPS | ✅ |
-| **AGLSRV6** | 10.6.0.12 | 51812 | Host | Remote | ✅ PRIMARY |
-| AGLSRV6B | 10.6.0.13 | 51813 | Host | Remote | ❌ DEAD - RAID failure, replaced by AGLSRV6C |
-| CT113 | 10.6.0.14 | 51814 | Container | AGLSRV6 | ✅ |
-| CT172 | 10.6.0.15 | 51815 | Container | AGLSRV6B | ⚠️ Host offline |
-| FGSRV4 | 10.6.0.16 | 51816 | Host | Cloud VPS | ✅ |
-| AGLSRV5 | 10.6.0.17 | 51817 | Host | Remote | ✅ |
-| FGSRV3 | 10.6.0.18 | 51818 | Host | Cloud VPS | ✅ |
-| **CT179** | 10.6.0.19 | 51819 | Container | AGLSRV1 | ✅ Dev |
-| **CT111** | 10.6.0.20 | 51820 | Container | AGLSRV6 | ✅ NFS |
-| **CT183** | 10.6.0.21 | 51821 | Container | AGLSRV1 | ✅ Archon AI |
-| **AGLSRV6C** | 10.6.0.22 | 51822 | Host | Remote | ✅ Active |
-| **AGLSRV6D** | 10.6.0.23 | 51823 | Host | Remote | ✅ Active |
+| **FGSRV6** | 10.6.0.5 | 51823 | Cloud VPS | Hub | ✅ **CRITICAL** |
+| CT120 | 10.6.0.1 | 51820 | AGLSRV1 | Container | ✅ |
+| CT121 | 10.6.0.3 | 51821 | AGLSRV6 | Container | ✅ |
+| AGLSRV1 | 10.6.0.10 | 51810 | Host | Host | ✅ |
+| FGSRV5 | 10.6.0.11 | 51811 | Cloud VPS | Host | ✅ |
+| **AGLSRV6** | 10.6.0.12 | 51812 | Host | Host | ✅ Primary |
+| AGLSRV6B | 10.6.0.13 | 51813 | Host | Host | ❌ Dead |
+| CT113 | 10.6.0.14 | 51814 | AGLSRV6 | Container | ✅ PBS |
+| CT172 | 10.6.0.15 | 51815 | AGLSRV6B | Container | ⚠️ Host offline |
+| FGSRV4 | 10.6.0.16 | 51816 | Cloud VPS | Host | ✅ |
+| AGLSRV5 | 10.6.0.17 | 51817 | Host | Host | ✅ |
+| FGSRV3 | 10.6.0.18 | 51818 | Cloud VPS | Host | ✅ |
+| **CT179** | 10.6.0.19 | 51819 | AGLSRV1 | Container | ✅ Dev |
+| **CT111** | 10.6.0.20 | 51820 | AGLSRV6 | Container | ✅ NFS |
+| **CT183** | 10.6.0.21 | 51821 | AGLSRV1 | Container | ✅ Archon |
+| **AGLSRV6C** | 10.6.0.22 | 51822 | Host | Host | ✅ Active |
+| **AGLSRV6D** | 10.6.0.23 | 51823 | Host | Host | ✅ Active |
 
-### Configuration Standards
+### Critical Nodes
 
-**Containers (No PresharedKey)**:
-```ini
-[Interface]
-PrivateKey = <PRIVATE_KEY>
-Address = 10.6.0.X/24
-DNS = 1.1.1.1
-MTU = 1420
+| Node | Role | Importance | Notes |
+|------|------|------------|-------|
+| **FGSRV6** (10.6.0.5) | Hub | **CRITICAL** | Central routing - failure affects entire mesh |
+| **CT179** (10.6.0.19) | Development | High | Main dev container (48GB RAM) |
+| **CT111** (10.6.0.20) | NFS Server | High | Distributed storage |
+| **CT183** (10.6.0.21) | Archon AI | High | AI Command Center + MCP |
 
-[Peer]
-PublicKey = Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
-AllowedIPs = 10.6.0.0/24  # Only mesh network
-PersistentKeepalive = 25
-Endpoint = 186.202.57.120:51823
-```
-
-**Hosts (With PresharedKey)**:
-```ini
-[Interface]
-PrivateKey = <PRIVATE_KEY>
-Address = 10.6.0.X/24
-DNS = 1.1.1.1
-MTU = 1420
-
-[Peer]
-PublicKey = Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
-PresharedKey = DDvQ3xJ9Rs5pbEzXLuGCdep66zBuVNcy654+A/vD+Zk=
-AllowedIPs = 10.6.0.0/24
-PersistentKeepalive = 25
-Endpoint = 186.202.57.120:51823
-```
-
-### LXC Container Requirements
-```ini
-# Required in /etc/pve/lxc/XXX.conf
-features: keyctl=1,nesting=1
-lxc.cgroup2.devices.allow: c 10:200 rwm
-lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
-```
+**Complete Details**: See [WIREGUARD.md](WIREGUARD.md) for configuration standards, deployment procedures, and troubleshooting.
 
 ---
 
-## 💾 Storage Configuration
+## 💾 Storage Summary
 
-### AGLSRV1 Storage Mounts
+### AGLSRV1 Storage Overview
 
-| Storage | Size | Type | Source | Path | Status |
-|---------|------|------|--------|------|--------|
-| local | 77GB | Local | Disk | - | ✅ |
-| local-zfs | 1.7TB | ZFS | Pool | - | ✅ |
-| fgsrv5-wg | 77GB | NFS | 10.6.0.11:/ | /mnt/pve/fgsrv5-wg | ✅ |
-| fgsrv6-wg | 197GB | NFS | 10.6.0.5:/ | /mnt/pve/fgsrv6-wg | ✅ |
-| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | /mnt/pve/ct111-shares | ✅ |
-| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | /mnt/pve/ct111-sistema | ✅ |
-| aglsrv6-bb | 954GB | SSHFS | 10.6.0.12:/mnt/pve/bb | /mnt/pve/aglsrv6-bb | ✅ |
-| aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | ✅ |
-| aglsrv6-pbs | 1.2TB | PBS | - | - | ✅ |
-| aglsrv6b-pbs | 1.0TB | PBS | - | - | ✅ |
-| spark | 7.1TB | Local | Disk | - | ✅ 91.54% used |
-| overpower | 9.8TB | Local | Disk | - | ✅ 92.54% used |
+| Storage | Size | Type | Source | Status |
+|---------|------|------|--------|--------|
+| local-zfs | 1.7TB | ZFS | Local pool | ✅ |
+| spark | 7.1TB | Local | Disk | ✅ 91.54% |
+| overpower | 9.8TB | Local | Disk | ✅ 92.54% |
+| fgsrv6-wg | 197GB | NFS | 10.6.0.5 | ✅ |
+| fgsrv5-wg | 77GB | NFS | 10.6.0.11 | ✅ |
+| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | ✅ |
+| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | ✅ |
+| aglsrv6-bb | 954GB | SSHFS | 10.6.0.12 | ✅ |
+| aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12 | ✅ |
 
-**Total WireGuard Storage**: 6.0 TB
-- NFS: 1.2TB (fgsrv5-wg + fgsrv6-wg + ct111-shares + ct111-sistema)
-- SSHFS: 4.8TB (aglsrv6-bb + aglsrv6-usb4tb)
+**Total WireGuard Storage**: 6.0 TB (1.2TB NFS + 4.8TB SSHFS)
 
-### CT111 (aluzdivina) NFS Server
+### CT111 NFS Server
 
-**WireGuard**: 10.6.0.20 (Port 51820)
-**Tailscale**: 100.65.189.83
-**Host**: AGLSRV6
+- **WireGuard**: 10.6.0.20 (Port 51820)
+- **Tailscale**: 100.65.189.83
+- **Exports**: /mnt/shares (66GB), /mnt/sistema (819GB)
+- **Networks**: 192.168.0.0/24, 10.6.0.0/24
 
-**Storage**:
-- /mnt/shares: 66GB XFS (NFS exported)
-- /mnt/sistema: 819GB ZFS (NFS exported)
-- /mnt/bb: CIFS from 192.168.0.203
-- /mnt/bkp: 3.9TB ExFAT
-
-**NFS Exports**:
-- 192.168.0.0/24 (Local LAN)
-- 10.6.0.0/24 (WireGuard mesh)
-
-**Performance**:
-- Latency to hub: 15-22ms
-- Mounted on AGLSRV1 as ct111-shares (66GB) and ct111-sistema (818GB)
+**Complete Details**: See [STORAGE.md](STORAGE.md) for mount points, NFS configuration, and performance metrics.
 
 ---
 
-## 📦 Container Inventory
+## 📦 Container Summary
 
-### AGLSRV1 Containers (Running - 42 Total)
+### By Host
 
-#### Infrastructure & Network
-| VMID | Name | IP (LAN) | IP (WG/TS) | Purpose |
-|------|------|----------|------------|---------|
-| 102 | pihole | 192.168.0.102 | TS: 100.114.66.80 | DNS/DHCP |
-| 117 | cloudflared | 192.168.0.117 | - | Cloudflare tunnel |
-| 120 | wireguard | 192.168.0.120 | WG: 10.6.0.1 | WireGuard node |
-| 126 | guac | 192.168.0.126 | - | Guacamole remote |
-| 159 | nginxproxy | 192.168.0.159 | - | Nginx reverse proxy |
-| 162 | meshcentral | 192.168.0.162 | - | Remote management |
-| 176 | iventoy | 192.168.0.176 | - | Network boot |
+| Host | Total | Running | Stopped | Key Services |
+|------|-------|---------|---------|--------------|
+| **AGLSRV1** | 68 | 42 | 26 | Development, AI, DNS, Media |
+| **AGLSRV5** | 8 | 7 | 1 | Media, File Server, Cloudflare |
+| **AGLSRV6** | 11 | - | - | NFS, Development, PBS |
 
-#### Media & Automation
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 111 | tautulli | 192.168.0.111 | Plex monitoring |
-| 112 | bazarr | 192.168.0.112 | Subtitle automation |
-| 113 | plexmediaserver | 192.168.0.113 | Media server |
-| 121 | qbittorrent | 192.168.0.121 | Torrent client |
-| 122 | jackett | 192.168.0.122 | Torrent indexer |
-| 123 | radarr | 192.168.0.123 | Movie automation |
-| 124 | sonarr | 192.168.0.124 | TV automation |
-| 141 | sabnzbd | 192.168.0.141 | Usenet client |
-| 144 | autobrr | 192.168.0.144 | Torrent automation |
-| 157 | deluge | 192.168.0.157 | Torrent client |
-| 165 | aria2 | 192.168.0.165 | Download manager |
-| 170 | homarr | 192.168.0.170 | Dashboard |
-| 171 | overseerr | 192.168.0.171 | Media requests |
-| 172 | prowlarr | 192.168.0.172 | Indexer manager |
+### Key Containers
 
-#### Development & DevOps
-| VMID | Name | IP (LAN) | IP (WG/TS) | RAM | Purpose |
-|------|------|----------|------------|-----|---------|
-| 103 | portainer | 192.168.0.103 | - | - | Docker mgmt |
-| 178 | aglfs1 | 192.168.0.178 | - | - | File server |
-| 179 | agldv03 | 192.168.0.179 | WG: 10.6.0.19, TS: 100.94.221.87 | 48GB | **Primary Dev** |
-| 180 | dokploy | 192.168.0.180 | - | - | Deployment |
-| 202 | n8n-docker | 192.168.0.202 | - | - | Workflow automation |
+| Container | Host | Purpose | Networks | Notes |
+|-----------|------|---------|----------|-------|
+| **CT179** (agldv03) | AGLSRV1 | Development | LAN + WG + TS | 48GB RAM, Docker |
+| **CT180** (dokploy) | AGLSRV1 | Deployment | LAN | https://dok.aglz.io |
+| **CT183** (archon) | AGLSRV1 | AI Command | LAN + WG + TS | Archon MCP Server |
+| **CT200** (ollama-gpu) | AGLSRV1 | GPU Inference | LAN + TS | NVIDIA GPU |
+| **CT111** (aluzdivina) | AGLSRV6 | NFS Server | WG + TS | Storage exports |
+| **CT108** (agldv06) | AGLSRV6 | Development | TS only | Remote dev |
+| **CT113** (PBS) | AGLSRV6 | Backup | WG + TS | Proxmox Backup |
 
-#### AI & Machine Learning
-| VMID | Name | IP (LAN) | IP (TS) | GPU | Purpose |
-|------|------|----------|---------|-----|---------|
-| 183 | archon | 192.168.0.183 | - | - | **AI Command Center** |
-| 200 | ollama-gpu | 192.168.0.200 | 100.116.57.111 | ✅ NVIDIA | LLM compute |
-
-#### Databases & Services
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 131 | mysql | 192.168.0.131 | MySQL DB |
-| 137 | redis | 192.168.0.137 | Redis cache |
-| 139 | aldsys4 | 192.168.0.139 | System mgmt |
-| 149 | postgresql | 192.168.0.149 | PostgreSQL |
-
-#### Monitoring & Security
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 132 | observium | 192.168.0.132 | Network monitoring |
-| 133 | aping | 192.168.0.133 | Network testing |
-
-#### Game Servers
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 161 | gameserver | 192.168.0.161 | Game hosting |
-| 163 | gameserver2 | 192.168.0.163 | Game hosting |
-| 201 | amp-server | 192.168.0.201 | AMP game panel |
-
-#### Caching & Performance
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 173 | cacheng | 192.168.0.173 | Cache engine |
+**Complete Details**: See [CONTAINERS.md](CONTAINERS.md) for full inventory organized by host and service category.
 
 ---
 
-### AGLSRV6 Containers
-
-#### Infrastructure
-| VMID | Name | IP (WG/TS) | Purpose |
-|------|------|------------|---------|
-| 101 | cloudflared6 | TS: 100.120.181.108 | Cloudflare tunnel |
-| 102 | meshcentral6 | - | Remote management |
-| 114 | cloudflared6b | - | Cloudflare tunnel |
-| 121 | wireguard | WG: 10.6.0.3 | WireGuard node |
-
-#### Storage & Backup
-| VMID | Name | IP (WG/TS) | Purpose |
-|------|------|------------|---------|
-| 111 | aluzdivina | WG: 10.6.0.20, TS: 100.65.189.83 | **NFS Server** |
-| 113 | pbs | WG: 10.6.0.14, TS: 100.70.155.60 | PBS backup |
-
-#### Development
-| VMID | Name | IP (TS) | Purpose |
-|------|------|---------|---------|
-| 108 | agldv06 | 100.71.229.12 | Development |
-
-#### Services
-| VMID | Name | Purpose |
-|------|------|---------|
-| 104 | luzdivina | - |
-| 109 | redis6 | Redis server |
-| 110 | mssql6 | SQL Server |
-
-#### Kubernetes (Stopped)
-| VMID | Name | Status | Purpose |
-|------|------|--------|---------|
-| 107 | kuber601 | Stopped | Kubernetes |
-
----
-
-## 🔀 Connection Matrix
+## 🔀 Connection Priority Matrix
 
 ### From WSL2 (AGLHQ11)
 
-**Available Networks**: Tailscale only
-**Not Available**: WireGuard, Local LAN
+**Available Networks**: Tailscale only (100.75.205.122)
 
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33` |
-| CT179 Dev | Tailscale | 100.94.221.87 | `ssh root@100.94.221.87` |
-| CT183 Archon | SSH Jump | Via AGLSRV1 | `ssh -J root@100.107.113.33 root@192.168.0.183` |
-| AGLSRV6 Host | Tailscale | 100.98.108.66 | `ssh root@100.98.108.66` |
-| FGSRV6 Hub | Tailscale | 100.83.51.9 | `ssh root@100.83.51.9` |
+| Destination | Method | Address | Notes |
+|-------------|--------|---------|-------|
+| CT179 | Tailscale | 100.94.221.87 | Development container |
+| AGLSRV1 | Tailscale | 100.107.113.33 | Main host |
+| AGLSRV5 | Tailscale | 100.119.223.113 | Remote host |
+| AGLSRV6 | Tailscale | 100.98.108.66 | Remote host |
 
----
+**Limitations**: ❌ No WireGuard, ❌ No local LAN, ❌ No Docker
 
 ### From CT179 (agldv03)
 
-**Available Networks**: LAN, WireGuard, Tailscale (triple-stack)
-**Network Priority**: WireGuard > LAN > Tailscale
+**Available Networks**: LAN + WireGuard + Tailscale (Full stack)
 
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| AGLSRV1 Host | LAN | 192.168.0.245 | `ssh root@192.168.0.245` |
-| AGLSRV1 Host | WireGuard | 10.6.0.10 | `ssh root@10.6.0.10` |
-| CT183 Archon | LAN | 192.168.0.183 | `ssh root@192.168.0.183` |
-| AGLSRV6 Host | WireGuard | 10.6.0.12 | `ssh root@10.6.0.12` (FASTEST) |
-| AGLSRV6 Host | Tailscale | 100.98.108.66 | `ssh root@100.98.108.66` |
-| FGSRV6 Hub | WireGuard | 10.6.0.5 | `ssh root@10.6.0.5` |
-| CT111 NFS | WireGuard | 10.6.0.20 | `ls /mnt/pve/ct111-shares` |
-
-**Storage Access**:
-```bash
-ls /mnt/pve/fgsrv6-wg      # FGSRV6 NFS
-ls /mnt/pve/ct111-shares   # CT111 NFS
-ls /mnt/pve/aglsrv6-bb     # AGLSRV6 SSHFS
-df -h | grep wg            # All WireGuard mounts
-```
-
----
+| Destination | 1st Priority | 2nd Priority | 3rd Priority | Recommended |
+|-------------|--------------|--------------|--------------|-------------|
+| AGLSRV1 | LAN (192.168.0.245) | WG (10.6.0.10) | TS (100.107.113.33) | **LAN** ⚡ |
+| AGLSRV5 | WG (10.6.0.17) | TS (100.119.223.113) | - | **Tailscale** 🔧 |
+| AGLSRV6 | WG (10.6.0.12) | TS (100.98.108.66) | - | **WireGuard** |
+| FGSRV6 | WG (10.6.0.5) | TS (100.83.51.9) | Public (186.202.57.120) | **WireGuard** |
+| CT111 (NFS) | WG (10.6.0.20) | TS (100.65.189.83) | - | **WireGuard** |
+| CT183 (Archon) | LAN (192.168.0.183) | WG (10.6.0.21) | TS (100.80.30.59) | **LAN** ⚡ |
 
 ### From CT108 (agldv06)
 
-**Available Networks**: Tailscale only
-**Not Available**: WireGuard (not configured)
+**Available Networks**: Tailscale only (100.71.229.12)
+**Location**: AGLSRV6 (AGLALD)
 
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| CT179 Dev | Tailscale | 100.94.221.87 | `ssh root@100.94.221.87` |
-| AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33` |
-| AGLSRV6 Host | Local | 10.6.0.12 | Via host WireGuard |
+Similar to WSL2, but with better container performance and local access to AGLSRV6 resources.
 
----
+### Network Layer Characteristics
 
-### From AGLSRV6D (man6d)
+| Network | Speed | Latency | Security | Use Case |
+|---------|-------|---------|----------|----------|
+| **LAN** | ⚡⚡⚡ Fastest | <1ms | 🟡 Local only | Local operations |
+| **WireGuard** | ⚡⚡ Fast | 15-30ms | 🟢 Encrypted | Primary remote |
+| **Tailscale** | ⚡ Medium | 30-100ms | 🟢 Encrypted | Fallback/mobile |
 
-**Available Networks**: LAN, WireGuard (PRIMARY), Tailscale
-**Network Priority**: WireGuard > LAN > Tailscale
-
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| FGSRV6 Hub | WireGuard | 10.6.0.5 | `ssh root@10.6.0.5` ⚡ |
-| AGLSRV1 Host | WireGuard | 10.6.0.10 | `ssh root@10.6.0.10` ⚡ |
-| AGLSRV6 Host | WireGuard | 10.6.0.12 | `ssh root@10.6.0.12` ⚡ |
-| CT111 NFS | WireGuard | 10.6.0.20 | Access via `10.6.0.20` ⚡ |
-| CT179 Dev | WireGuard | 10.6.0.19 | `ssh root@10.6.0.19` ⚡ |
-| Any mesh node | WireGuard | 10.6.0.x | Full mesh access |
-| AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33` |
-| CT179 Dev | Tailscale | 100.94.221.87 | `ssh root@100.94.221.87` |
-
-⚡ = Fastest option (WireGuard mesh - 15-30ms latency)
+**Complete Details**: See [CONNECTIONS.md](CONNECTIONS.md) for connection methods, SSH commands, and troubleshooting.
 
 ---
 
-### From Proxmox Hosts
+## 🚨 Known Issues
 
-**From AGLSRV1 Host**:
-- Direct LAN access: 192.168.0.x
-- Container console: `pct enter <VMID>`
-- WireGuard mesh: 10.6.0.x
-- Tailscale: 100.x.x.x
+### AGLSRV5 WireGuard SSH
 
-**From AGLSRV6 Host**:
-- Container console: `pct enter <VMID>`
-- WireGuard mesh: 10.6.0.x (PRIMARY)
-- Tailscale: 100.x.x.x (fallback)
+**Issue**: SSH connection closes immediately after key exchange
+- WireGuard: ✅ Working (ping successful)
+- SSH: ❌ Failing on WireGuard interface
+- **Workaround**: Use Tailscale (100.119.223.113)
+- **Status**: Pending investigation
 
----
+### FGSRV5 Tailscale Timeout
 
-## 🔍 Quick Commands
+**Issue**: Tailscale connection timeout
+- Tailscale: ❌ Timeout (100.71.107.26)
+- Public IP: ✅ Working (191.252.200.20)
+- **Workaround**: Use public IP with key auth
+- **Status**: Requires local investigation
 
-### Infrastructure Status
-```bash
-# From any Proxmox host
-pct list                    # List all containers
-qm list                     # List all VMs
-pvesm status               # Storage status
-
-# From CT179 or remote
-ssh root@192.168.0.245 'pct list'         # AGLSRV1
-ssh root@10.6.0.12 'pct list'             # AGLSRV6 via WireGuard
-```
-
-### Network Testing
-```bash
-# WireGuard status
-wg show                     # Show WireGuard status
-wg show wg0 latest-handshakes  # Check peer connectivity
-
-# Ping tests
-ping 10.6.0.5              # FGSRV6 hub
-ping 10.6.0.12             # AGLSRV6 host
-ping 10.6.0.20             # CT111 NFS
-
-# Route verification
-ip route | grep wg         # WireGuard routes
-ip route | grep tailscale  # Tailscale routes
-```
-
-### Storage Operations
-```bash
-# Check mounts
-df -h | grep wg            # WireGuard storage
-df -h | grep nfs           # NFS mounts
-showmount -e 10.6.0.5      # FGSRV6 exports
-showmount -e 10.6.0.20     # CT111 exports
-
-# Remount if stale
-umount -f /mnt/pve/fgsrv6-wg && mount -a
-```
-
-### Service Management
-```bash
-# Check container status
-pct status <VMID>
-pct enter <VMID>           # Console access
-
-# Docker containers (from CT with Docker)
-docker ps                  # List running containers
-docker logs <container>    # View logs
-docker-compose ps          # Compose stack status
-```
-
----
-
-## 📚 Related Documentation
-
-- **Main Config**: `CLAUDE.md` - Claude Code configuration
-- **Archon**: `docs/archon-integration.md` - AI Command Center
-- **Docker in LXC**: `docs/docker-in-lxc-apparmor-solution.md`
-- **WireGuard**: Various host-specific docs
-
----
-
-**Document Version**: 2.5.0
-**Last Updated**: 2025-11-08
-**Maintainer**: Claude Code (agl-hostman project)
-**Always Read**: This document should ALWAYS be read for infrastructure queries
-
----
+**Complete Troubleshooting**: See [CONNECTIONS.md](CONNECTIONS.md) and [WIREGUARD.md](WIREGUARD.md) for diagnostic procedures.
 
 ---
 
 ## 🔑 SSH Configuration
 
-### Overview
+Quick SSH commands for common destinations:
 
-All SSH connection configurations, keys, and aliases are documented in **`docs/SSH-CONFIG.md`**.
-
-**Key Features**:
-- ✅ 21 pre-configured host aliases
-- ✅ 12 SSH keys (10 public + 2 active private)
-- ✅ Connection priority matrix (LAN → WireGuard → Tailscale)
-- ✅ Troubleshooting guide and best practices
-
-### Quick Reference
-
-**Connection using SSH config aliases**:
 ```bash
-# FGSRV hosts (prefer Tailscale aliases)
-ssh fgsrv3   # Tailscale: 100.67.99.115
-ssh fgsrv4   # Tailscale: 100.111.79.2
-ssh fgsrv5   # Tailscale: 100.71.107.26 (⚠️ currently down)
-ssh FGSRV05  # Fallback: Public IP 191.252.200.20
+# From CT179 (full access)
+ssh root@192.168.0.245  # AGLSRV1 (LAN - fastest)
+ssh root@10.6.0.12      # AGLSRV6 (WireGuard)
+ssh root@10.6.0.21      # CT183 Archon (WireGuard)
 
-# AGLSRV hosts
-ssh AGLSRV1  # LAN: 192.168.0.245 (fastest from CT179)
-ssh aglsrv5  # Tailscale: 100.119.223.113
-
-# Test connection
-ssh -G fgsrv3  # Show effective SSH configuration
+# From WSL2 (Tailscale only)
+ssh root@100.94.221.87    # CT179
+ssh root@100.107.113.33   # AGLSRV1
+ssh root@100.119.223.113  # AGLSRV5 (recommended for SSH)
 ```
 
-**SSH Keys Location**: `/root/.ssh/`
-
-**Primary Keys**:
-- `id_rsa` - Default for most internal hosts (AGLSRV, AGLDEV)
-- `fg_srv.pem` - FGSRV04, FGSRV05, FGSRV06, AGLWK07
-- `FGSRV03.pem` - FGSRV03 only
-
-**Verified Connections** (2025-11-08):
-- ✅ `ssh FGSRV05` → vps24136.publiccloud.com.br (uptime: 7 days)
-- ✅ `ssh fgsrv3` → vps14419 (2 CPUs, Tailscale working)
-- ✅ `ssh aglsrv5` → aglsrv5 (9 containers, Tailscale working)
-
-### Connection Status by Host
-
-| Host Alias | Network | Status | Notes |
-|------------|---------|--------|-------|
-| `FGSRV03` | Public IP | ✅ Working | 191.252.201.205 |
-| `fgsrv3` | Tailscale | ✅ Working | 100.67.99.115 |
-| `FGSRV04` | Public DNS | ✅ Working | vps22826.publiccloud.com.br |
-| `fgsrv4` | Tailscale | ✅ Working | 100.111.79.2 |
-| `FGSRV05` | Public IP | ✅ Working | 191.252.200.20 |
-| `fgsrv5` | Tailscale | ❌ Timeout | 100.71.107.26 (needs investigation) |
-| `FGSRV06` | Public IP | ✅ Working | 186.202.57.120 |
-| `AGLSRV1` | LAN | ✅ Working | 192.168.0.245 |
-| `aglsrv5` | Tailscale | ✅ Working | 100.119.223.113 |
-
-**See**: `docs/SSH-CONFIG.md` for complete documentation, troubleshooting, and all host configurations.
+**Complete Details**: See [SSH-CONFIG.md](SSH-CONFIG.md) for complete SSH configuration, keys, and aliases.
 
 ---
 
-## 📝 Recent Changes
+## 📚 Quick Reference Commands
 
-**v2.5.0 (2025-11-08)**:
-- ✅ **Proxmox Installation Notes Added**: Comprehensive technical documentation for Proxmox VE deployment
-  - Explains why Debian is required as base OS (technical and architectural reasons)
-  - Documents why Ubuntu is NOT supported (official Proxmox stance and package incompatibility)
-  - Provides complete installation process with command examples
-  - Lists current deployment status across all 5 active Proxmox hosts
-  - References successful overlay installations on AGLSRV6C and AGLSRV6D
-- ✅ **Table of Contents Updated**: Added Proxmox Installation Notes section
-- ✅ **Documentation Structure Enhanced**: New section provides critical context before host details
+### Check Container Status
+```bash
+# From AGLSRV1
+pct list
 
-**v2.4.0 (2025-11-08)**:
-- ✅ **SSH Configuration Documented**: Complete SSH config and key management in `docs/SSH-CONFIG.md`
-  - All 21 host aliases with connection priorities
-  - 12 SSH keys documented (location, usage, security notes)
-  - Connection matrix and troubleshooting guide
-  - Verified all major host connections (FGSRV05, fgsrv3, aglsrv5)
-- ✅ **FGSRV5 Connectivity Issue Identified**: Tailscale alias timeout
-  - fgsrv5 (100.71.107.26) - Connection timeout
-  - FGSRV05 (191.252.200.20) - Working via public IP with key auth
-  - Requires local investigation to restore Tailscale
-- ✅ **Physical Location Topology Documented**: Infrastructure organized by 4 physical sites
-  - **AGLHQ** (Headquarters): AGLSRV1, AGLSRV3 (offline), AGLHQ11, AGLFA02 (LAN: 192.168.0.x)
-  - **AGLFG** (Remote standalone): AGLSRV5 (LAN: 192.168.15.x)
-  - **AGLALD** (Remote site): AGLSRV6, AGLSRV6B (dead), AGLSRV6C, AGLSRV6D (LAN: 192.168.0.x)
-  - **AGLFG-VPS** (Cloud): FGSRV3, FGSRV4, FGSRV5, FGSRV6 (Public IPs with WireGuard overlay)
-- ✅ **AGLSRV3 Documented**: Placeholder section added for offline host at AGLHQ
-  - Currently powered off, pending power-on and analysis
-  - Same location as AGLSRV1 at headquarters
-- ✅ **Physical Machines Documented**: AGLHQ11 and AGLFA02 identified at AGLHQ location
-  - AGLHQ11: Active on LAN + Tailscale
-  - AGLFA02: Active on LAN only (not in Tailscale yet)
-- ✅ **Location Context Added**: All host sections updated with physical location references
-  - Each host now shows both physical location and network location
-  - Improves understanding of infrastructure physical topology
-- ✅ **Infrastructure Count Updated**: 6 Proxmox hosts (5 active + 1 offline AGLSRV3)
+# Remote check
+ssh root@192.168.0.245 'pct list'
+```
 
-**v2.3.0 (2025-11-08)**:
-- ✅ **AGLSRV5 Complete Analysis**: Full host documentation via Tailscale
-  - Proxmox VE 8.4.14 on Debian 12, kernel 6.8.12-15-pve
-  - Hardware: Intel Xeon E3-1220 v6 @ 3.00GHz, 62GB RAM
-  - Storage: 1.75TB ZFS pool (70% used) + multiple storage pools
-  - Networks: LAN (192.168.15.222), WireGuard (10.6.0.17), Tailscale (100.119.223.113)
-  - Containers: 8 total (7 running) - Plex, Pi-hole, file server, Cloudflare tunnel
-  - Access: Tailscale works perfectly, WireGuard has SSH auth issue
-  - Different network segment (192.168.15.x) indicates separate physical location
+### Check WireGuard Status
+```bash
+# Show WireGuard configuration
+wg show wg0
 
-**v2.2.0 (2025-11-08)**:
-- ✅ **Infrastructure Inventory Complete**: All 5 Proxmox hosts now documented
-  - AGLSRV1 (local), AGLSRV5 (remote), AGLSRV6 (remote), AGLSRV6C (remote), AGLSRV6D (remote)
-- ❌ **AGLSRV6B Deprecated**: Marked as DEAD due to RAID card failure
-  - Being replaced by AGLSRV6C (dual-network host at 192.168.0.233)
-  - CT172 container marked as offline (host AGLSRV6B is dead)
-- ✅ **WireGuard Mesh Table Complete**: Added missing nodes
-  - CT183 (Archon AI) at 10.6.0.21:51821
-  - AGLSRV6C at 10.6.0.22:51822
-  - Updated mesh count: 15 active nodes, 17 total (2 offline: AGLSRV6B, CT172)
+# Test mesh connectivity
+ping 10.6.0.5  # Hub
+```
 
-**v2.1.0 (2025-11-08)**:
-- ✅ Added AGLSRV6D (man6d) - New Proxmox VE 9.0.11 host at same location as AGLSRV6
-- Hardware: Intel i5-4590, 8GB RAM, 465GB SSD
-- Networks: LAN (192.168.0.234), Tailscale (100.76.201.83), WireGuard (10.6.0.23)
-- WireGuard: Fully configured and connected to mesh (port 51823)
-- PublicKey: d9i/Izz71+3O4t2jMwt2L5N0m5mCVjph0GzplJGzXDM=
-- Connectivity: Verified to hub (10.6.0.5), AGLSRV1 (10.6.0.10), AGLSRV6 (10.6.0.12)
-- ✅ Proxmox VE: Installed, kernel 6.14.11-4-pve loaded, all services operational
-- Web Interface: https://192.168.0.234:8006 (accessible via LAN)
-- Status: Fully operational and ready for container/VM deployment
+### Access NFS Storage
+```bash
+# Check NFS mounts
+df -h | grep wg
+
+# Test NFS connectivity
+showmount -e 10.6.0.20  # CT111
+```
+
+### Docker Operations (from CT179)
+```bash
+# Check containers
+docker ps
+
+# Check images
+docker images
+
+# System info
+docker system df
+```
+
+---
+
+## 📊 Infrastructure Statistics
+
+- **Total Hosts**: 11 (7 active Proxmox hosts + 4 cloud VPS)
+- **Total Containers**: 87+ across all hosts
+- **WireGuard Nodes**: 15 active (17 configured, 2 offline)
+- **Storage Capacity**: 30+ TB across local and remote storage
+- **Network Segments**: 4 (LAN, LAN-Alt, Remote-LAN, Tailscale)
+- **Physical Locations**: 4 (AGLHQ, AGLFG, AGLALD, AGLFG-VPS)
+
+---
+
+## 🔗 External Services
+
+### Archon AI Command Center (CT183)
+
+**Internal Access**:
+- WireGuard: http://10.6.0.21:8051/8052
+- Tailscale: http://100.80.30.59:8051/8052
+- LAN: http://192.168.0.183:8051/8052 (dev only)
+
+**External Access**:
+- Public DNS: https://archon.aglz.io
+- Authentication: Basic Auth (admin/ArchonPass2025)
+
+### Dokploy Deployment Platform (CT180)
+
+**External Access**:
+- Public DNS: https://dok.aglz.io
+- Cloudflare Tunnel secured
+
+---
+
+## 📚 Complete Documentation Index
+
+### Core Infrastructure
+- **[INFRA.md](INFRA.md)** - This file (central reference)
+- **[PROXMOX.md](PROXMOX.md)** - Installation standards and requirements
+- **[TOPOLOGY.md](TOPOLOGY.md)** - Physical locations and network architecture
+- **[HOSTS.md](HOSTS.md)** - Detailed host configurations
+
+### Network & Connectivity
+- **[WIREGUARD.md](WIREGUARD.md)** - Mesh network configuration and standards
+- **[CONNECTIONS.md](CONNECTIONS.md)** - Access patterns and connection priorities
+- **[SSH-CONFIG.md](SSH-CONFIG.md)** - SSH configuration, keys, and aliases
+
+### Services & Storage
+- **[STORAGE.md](STORAGE.md)** - Storage configuration and NFS mounts
+- **[CONTAINERS.md](CONTAINERS.md)** - Complete container inventory
+- **[ARCHON.md](../ARCHON.md)** - Archon AI integration guide (project root)
+- **[DOKPLOY.md](DOKPLOY.md)** - Deployment platform documentation
+
+### Procedures & Troubleshooting
+- **[QUICK-START.md](QUICK-START.md)** - Fast reference and common commands
+- **[WORKFLOWS.md](WORKFLOWS.md)** - SPARC methodology and Agent OS
+- **[RULES.md](RULES.md)** - Coding standards and execution patterns
+
+---
+
+**Document Version**: 3.0.0 (Major restructure - modular documentation)
+**Last Updated**: 2025-11-08
+**Maintainer**: Claude Code (agl-hostman project)
+
+**What Changed in v3.0.0**:
+- ✨ Modularized into 7 specialized documentation files
+- 📊 Transformed INFRA.md into central reference document
+- 🔗 Added cross-references between all documents
+- 📉 Reduced size from 1033 lines to ~400 lines (60% reduction)
+- 🎯 Improved navigability with clear document purpose statements
+- 📚 Following same pattern as CLAUDE.md optimization
