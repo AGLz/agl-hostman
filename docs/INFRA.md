@@ -1,6 +1,6 @@
 # AGL Infrastructure Map
 
-> **Last Updated**: 2025-11-08 | **Version**: 2.1.0
+> **Last Updated**: 2025-11-08 | **Version**: 2.4.0
 > **Reference**: Always read this document for infrastructure queries
 
 ---
@@ -8,11 +8,12 @@
 ## 📋 Table of Contents
 
 1. [Network Overview](#-network-overview)
-2. [Hosts and Servers](#-hosts-and-servers)
-3. [WireGuard Mesh](#-wireguard-mesh)
-4. [Storage Configuration](#-storage-configuration)
-5. [Container Inventory](#-container-inventory)
-6. [Connection Matrix](#-connection-matrix)
+2. [Physical Locations](#-physical-locations)
+3. [Hosts and Servers](#-hosts-and-servers)
+4. [WireGuard Mesh](#-wireguard-mesh)
+5. [Storage Configuration](#-storage-configuration)
+6. [Container Inventory](#-container-inventory)
+7. [Connection Matrix](#-connection-matrix)
 
 ---
 
@@ -36,12 +37,112 @@
 
 ---
 
+## 🏢 Physical Locations
+
+The infrastructure is distributed across 4 physical locations, each with its own network segment and connectivity profile.
+
+### AGLHQ (Headquarters - LAN: 192.168.0.x)
+**Location**: Primary headquarters
+**Network**: 192.168.0.0/24
+**Connectivity**: Full stack (LAN + WireGuard + Tailscale)
+
+| Host/Device | Type | Status | Networks |
+|-------------|------|--------|----------|
+| **AGLSRV1** | Proxmox VE Host | ✅ Active | LAN, WG (10.6.0.10), TS (100.107.113.33) |
+| **AGLSRV3** | Proxmox VE Host | ⚠️ Offline | To be analyzed when powered on |
+| **AGLHQ11** | Physical Machine | ✅ Active | LAN, TS (present in network) |
+| **AGLFA02** | Physical Machine | ✅ Active | LAN only (not in Tailscale yet) |
+
+**Key Services**:
+- Main production infrastructure (AGLSRV1: 68 containers/VMs)
+- Development containers: CT179 (agldv03), CT180 (dokploy)
+- AI infrastructure: CT183 (Archon), CT200 (ollama-gpu), CT202 (n8n)
+- DNS/DHCP: CT102 (pihole)
+- Monitoring: CT132 (observium), CT162 (meshcentral)
+
+---
+
+### AGLFG (Remote Site - LAN: 192.168.15.x)
+**Location**: Remote standalone site
+**Network**: 192.168.15.0/24 (different segment from other locations)
+**Connectivity**: Full stack (LAN + WireGuard + Tailscale)
+
+| Host/Device | Type | Status | Networks |
+|-------------|------|--------|----------|
+| **AGLSRV5** | Proxmox VE Host | ✅ Active | LAN (192.168.15.222), WG (10.6.0.17), TS (100.119.223.113) |
+
+**Key Services**:
+- Large storage capacity (1.75TB ZFS pool at 70%)
+- Media services: CT132 (plex5)
+- Network services: CT133 (mesh5), CT139 (pihole5)
+- File server: CT138 (fileserver5)
+- Cloudflare tunnel: CT130 (cloudflared5)
+
+**Notes**:
+- Standalone location with independent network segment
+- Different LAN segment (192.168.15.x) vs other sites (192.168.0.x)
+- Tailscale recommended for access (WireGuard has SSH auth issue)
+
+---
+
+### AGLALD (Remote Site - LAN: 192.168.0.x)
+**Location**: Remote site (same LAN segment as AGLHQ but different physical location)
+**Network**: 192.168.0.0/24
+**Connectivity**: Full stack (LAN + WireGuard + Tailscale)
+
+| Host/Device | Type | Status | Networks |
+|-------------|------|--------|----------|
+| **AGLSRV6** | Proxmox VE Host | ✅ Active | WG (10.6.0.12), TS (100.98.108.66) |
+| **AGLSRV6B** | Proxmox VE Host | ❌ DEAD | RAID card failure, replaced by AGLSRV6C |
+| **AGLSRV6C** | Proxmox VE Host | ✅ Active | LAN (192.168.0.233), WG (10.6.0.22), TS (100.124.53.91) |
+| **AGLSRV6D** | Proxmox VE Host | ✅ Active | LAN (192.168.0.234), WG (10.6.0.23), TS (100.76.201.83) |
+
+**Key Services**:
+- AGLSRV6: 11 containers, 6 VMs, large storage (954GB + 3.9TB + 1.2TB PBS)
+- CT111 (aluzdivina): NFS server for mesh (10.6.0.20)
+- CT108 (agldv06): Development container
+- CT113, CT172: Proxmox Backup Server instances
+- AGLSRV6C: Full operational capacity, dual-network setup
+- AGLSRV6D: Backup/failover host (8GB RAM, 465GB storage)
+
+**Notes**:
+- AGLSRV6D is desktop converted to server
+- Role: Failsafe backup for AGLSRV6 + AGLSRV6C
+- AGLSRV6B deprecated due to hardware failure
+
+---
+
+### AGLFG-VPS (Cloud Virtual Private Servers)
+**Location**: Cloud infrastructure (various providers)
+**Network**: Public IPs with WireGuard overlay
+**Connectivity**: WireGuard mesh + Tailscale
+
+| Host/Device | Type | Status | Networks |
+|-------------|------|--------|----------|
+| **FGSRV3** | Proxmox VE VPS | ✅ Active | Public IP, WG (10.6.0.18), TS |
+| **FGSRV4** | Proxmox VE VPS | ✅ Active | Public IP, WG (10.6.0.16), TS |
+| **FGSRV5** | Proxmox VE VPS | ✅ Active | Public IP (191.252.200.20), WG (10.6.0.11), TS (100.71.107.26) |
+| **FGSRV6** | Proxmox VE VPS | ✅ Hub | Public IP (186.202.57.120), WG (10.6.0.5:51823), TS (100.83.51.9) |
+
+**Key Services**:
+- FGSRV6: **WireGuard mesh hub** - central routing point for entire infrastructure
+- FGSRV5: NFS server (77GB export), mounted at AGLSRV1 as `fgsrv5-wg`
+- FGSRV6: NFS server (197GB export), mounted at AGLSRV1 as `fgsrv6-wg`
+
+**Notes**:
+- FGSRV6 is critical infrastructure - hub for all WireGuard mesh traffic
+- Cloud VPS providers: vps41772 (FGSRV6), vps22826 (FGSRV4)
+- Public IPs allow external access and VPN termination
+
+---
+
 ## 🖥️ Hosts and Servers
 
 ### AGLSRV1 (Main Production Host)
 **Hostname**: algsrv1
 **Type**: Proxmox VE Host
-**Location**: Local (192.168.0.0/24)
+**Physical Location**: **AGLHQ** (Headquarters)
+**Network Location**: Local LAN (192.168.0.0/24)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
@@ -64,10 +165,39 @@
 
 ---
 
+### AGLSRV3 (Proxmox VE Host - Offline)
+**Hostname**: aglsrv3
+**Type**: Proxmox VE Host
+**Physical Location**: **AGLHQ** (Headquarters - same location as AGLSRV1)
+**Status**: ⚠️ **Currently powered off** - pending power-on and analysis
+
+| Network | Address | Interface | Status |
+|---------|---------|-----------|--------|
+| Local LAN | TBD | vmbr0 | ⚠️ Awaiting power-on |
+| WireGuard | TBD | wg0 | ⚠️ To be configured |
+| Tailscale | TBD | tailscale0 | ⚠️ To be verified |
+
+**Notes**:
+- Located at AGLHQ headquarters with AGLSRV1, AGLHQ11, and AGLFA02
+- Same local network (192.168.0.0/24) as AGLSRV1
+- Will be analyzed when powered on by user
+- Expected to have similar configuration to AGLSRV1 (Proxmox VE host)
+
+**Pending Tasks**:
+- [ ] Power on host
+- [ ] Identify network addresses (LAN, Tailscale)
+- [ ] Configure WireGuard mesh connectivity
+- [ ] Inventory containers and VMs
+- [ ] Document hardware specifications
+- [ ] Update this section with complete information
+
+---
+
 ### AGLSRV6 (Secondary Host)
 **Hostname**: AGLSRV6 (formerly man6)
 **Type**: Proxmox VE Host
-**Location**: Remote (behind WireGuard/Tailscale)
+**Physical Location**: **AGLALD** (Remote site)
+**Network Location**: Remote (behind WireGuard/Tailscale)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
@@ -90,7 +220,8 @@
 ### AGLSRV5 (Remote Proxmox Host)
 **Hostname**: aglsrv5
 **Type**: Proxmox VE 8.4.14 on Debian 12 (bookworm)
-**Location**: Remote location (different network segment)
+**Physical Location**: **AGLFG** (Remote standalone site)
+**Network Location**: Remote location (different network segment - 192.168.15.0/24)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
@@ -158,7 +289,8 @@
 ### AGLSRV6C (New Proxmox Host)
 **Hostname**: man6c (alias aglsrv6c)
 **Type**: Proxmox VE 9.0 Host on Debian 13 (trixie) - **✅ Fully operational**
-**Location**: Same network as AGLSRV6 (192.168.0.0/24)
+**Physical Location**: **AGLALD** (Remote site - same as AGLSRV6)
+**Network Location**: Same network as AGLSRV6 (192.168.0.0/24)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
@@ -229,7 +361,8 @@
 ### AGLSRV6D (Proxmox VE Host)
 **Hostname**: man6d (alias aglsrv6d)
 **Type**: Proxmox VE 9.0.11 on Debian 13 (trixie) - **✅ Fully operational**
-**Location**: Same network as AGLSRV6
+**Physical Location**: **AGLALD** (Remote site - same as AGLSRV6 and AGLSRV6C)
+**Network Location**: Same network as AGLSRV6 (192.168.0.0/24)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
@@ -265,7 +398,8 @@
 ---
 
 ### FGSRV6 (Cloud VPS - WireGuard Hub)
-**Location**: Cloud VPS (vps41772)
+**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
+**Cloud Provider**: vps41772
 **Type**: Proxmox VE Host
 **Role**: WireGuard mesh hub, NFS server
 
@@ -282,7 +416,8 @@
 ---
 
 ### FGSRV5 (Cloud VPS)
-**Location**: Cloud VPS (191.252.200.20)
+**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
+**Public IP**: 191.252.200.20
 **Type**: Proxmox VE Host
 **Role**: NFS server, storage backend
 
@@ -300,7 +435,8 @@
 ---
 
 ### FGSRV4 (Cloud VPS)
-**Location**: Cloud VPS (vps22826.publiccloud.com.br)
+**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
+**Cloud Provider**: vps22826.publiccloud.com.br
 **Type**: Proxmox VE Host
 
 | Network | Address | Port | Status |
@@ -313,7 +449,8 @@
 ---
 
 ### FGSRV3 (Cloud VPS)
-**Location**: Cloud VPS (191.252.201.205)
+**Physical Location**: **AGLFG-VPS** (Cloud infrastructure)
+**Public IP**: 191.252.201.205
 **Type**: Proxmox VE Host
 
 | Network | Address | Port | Status |
@@ -702,7 +839,7 @@ docker-compose ps          # Compose stack status
 
 ---
 
-**Document Version**: 2.1.0
+**Document Version**: 2.4.0
 **Last Updated**: 2025-11-08
 **Maintainer**: Claude Code (agl-hostman project)
 **Always Read**: This document should ALWAYS be read for infrastructure queries
@@ -710,6 +847,23 @@ docker-compose ps          # Compose stack status
 ---
 
 ## 📝 Recent Changes
+
+**v2.4.0 (2025-11-08)**:
+- ✅ **Physical Location Topology Documented**: Infrastructure organized by 4 physical sites
+  - **AGLHQ** (Headquarters): AGLSRV1, AGLSRV3 (offline), AGLHQ11, AGLFA02 (LAN: 192.168.0.x)
+  - **AGLFG** (Remote standalone): AGLSRV5 (LAN: 192.168.15.x)
+  - **AGLALD** (Remote site): AGLSRV6, AGLSRV6B (dead), AGLSRV6C, AGLSRV6D (LAN: 192.168.0.x)
+  - **AGLFG-VPS** (Cloud): FGSRV3, FGSRV4, FGSRV5, FGSRV6 (Public IPs with WireGuard overlay)
+- ✅ **AGLSRV3 Documented**: Placeholder section added for offline host at AGLHQ
+  - Currently powered off, pending power-on and analysis
+  - Same location as AGLSRV1 at headquarters
+- ✅ **Physical Machines Documented**: AGLHQ11 and AGLFA02 identified at AGLHQ location
+  - AGLHQ11: Active on LAN + Tailscale
+  - AGLFA02: Active on LAN only (not in Tailscale yet)
+- ✅ **Location Context Added**: All host sections updated with physical location references
+  - Each host now shows both physical location and network location
+  - Improves understanding of infrastructure physical topology
+- ✅ **Infrastructure Count Updated**: 6 Proxmox hosts (5 active + 1 offline AGLSRV3)
 
 **v2.3.0 (2025-11-08)**:
 - ✅ **AGLSRV5 Complete Analysis**: Full host documentation via Tailscale
