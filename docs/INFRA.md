@@ -87,6 +87,40 @@
 
 ---
 
+### AGLSRV5 (Remote Proxmox Host)
+**Hostname**: aglsrv5
+**Type**: Proxmox VE Host
+**Location**: Remote location
+
+| Network | Address | Interface | Status |
+|---------|---------|-----------|--------|
+| WireGuard | 10.6.0.17 | wg0 | ✅ Port 51817 |
+| Tailscale | TBD | tailscale0 | ⚠️ To verify |
+
+**Current State**:
+- Status: ✅ Active in WireGuard mesh
+- SSH Access: ⚠️ Connection timeout issues (similar to FGSRV5)
+- Proxmox Version: To be verified when SSH access available
+- Last handshake: Active (ping latency ~20-25ms)
+
+**WireGuard Configuration**:
+- IP: 10.6.0.17/24
+- Port: 51817/UDP
+- Connected to hub FGSRV6 (10.6.0.5)
+- Mesh connectivity: ✅ Verified via ping
+
+**Role**:
+- Remote Proxmox VE Host
+- Additional compute/storage capacity
+- Part of distributed infrastructure
+
+**Notes**:
+- SSH timeout issues preventing detailed information gathering
+- Access verification pending network troubleshooting
+- WireGuard mesh connectivity confirmed (20-25ms latency)
+
+---
+
 ### AGLSRV6C (New Proxmox Host)
 **Hostname**: man6c (alias aglsrv6c)
 **Type**: Proxmox VE 9.0 Host on Debian 13 (trixie) - **✅ Fully operational**
@@ -258,7 +292,7 @@
 
 ## 🔗 WireGuard Mesh
 
-### Active Nodes (15 Total)
+### WireGuard Mesh Nodes (15 Active, 17 Total)
 
 | Node | IP | Port | Type | Host | Status |
 |------|-----|------|------|------|--------|
@@ -268,14 +302,16 @@
 | AGLSRV1 | 10.6.0.10 | 51810 | Host | Local | ✅ |
 | FGSRV5 | 10.6.0.11 | 51811 | Host | Cloud VPS | ✅ |
 | **AGLSRV6** | 10.6.0.12 | 51812 | Host | Remote | ✅ PRIMARY |
-| AGLSRV6B | 10.6.0.13 | 51813 | Host | Remote | ✅ |
+| AGLSRV6B | 10.6.0.13 | 51813 | Host | Remote | ❌ DEAD - RAID failure, replaced by AGLSRV6C |
 | CT113 | 10.6.0.14 | 51814 | Container | AGLSRV6 | ✅ |
-| CT172 | 10.6.0.15 | 51815 | Container | AGLSRV6B | ✅ |
+| CT172 | 10.6.0.15 | 51815 | Container | AGLSRV6B | ⚠️ Host offline |
 | FGSRV4 | 10.6.0.16 | 51816 | Host | Cloud VPS | ✅ |
 | AGLSRV5 | 10.6.0.17 | 51817 | Host | Remote | ✅ |
 | FGSRV3 | 10.6.0.18 | 51818 | Host | Cloud VPS | ✅ |
 | **CT179** | 10.6.0.19 | 51819 | Container | AGLSRV1 | ✅ Dev |
 | **CT111** | 10.6.0.20 | 51820 | Container | AGLSRV6 | ✅ NFS |
+| **CT183** | 10.6.0.21 | 51821 | Container | AGLSRV1 | ✅ Archon AI |
+| **AGLSRV6C** | 10.6.0.22 | 51822 | Host | Remote | ✅ Active |
 | **AGLSRV6D** | 10.6.0.23 | 51823 | Host | Remote | ✅ Active |
 
 ### Configuration Standards
@@ -641,6 +677,21 @@ docker-compose ps          # Compose stack status
 
 ## 📝 Recent Changes
 
+**v2.2.0 (2025-11-08)**:
+- ✅ **Infrastructure Inventory Complete**: All 5 Proxmox hosts now documented
+  - AGLSRV1 (local), AGLSRV5 (remote), AGLSRV6 (remote), AGLSRV6C (remote), AGLSRV6D (remote)
+- ✅ **AGLSRV5 Initial Documentation**: Added section for AGLSRV5 at 10.6.0.17:51817
+  - WireGuard connectivity confirmed (20-25ms latency)
+  - SSH timeout issues documented (similar to FGSRV5)
+  - Awaiting SSH access for complete details
+- ❌ **AGLSRV6B Deprecated**: Marked as DEAD due to RAID card failure
+  - Being replaced by AGLSRV6C (dual-network host at 192.168.0.233)
+  - CT172 container marked as offline (host AGLSRV6B is dead)
+- ✅ **WireGuard Mesh Table Complete**: Added missing nodes
+  - CT183 (Archon AI) at 10.6.0.21:51821
+  - AGLSRV6C at 10.6.0.22:51822
+  - Updated mesh count: 15 active nodes, 17 total (2 offline: AGLSRV6B, CT172)
+
 **v2.1.0 (2025-11-08)**:
 - ✅ Added AGLSRV6D (man6d) - New Proxmox VE 9.0.11 host at same location as AGLSRV6
 - Hardware: Intel i5-4590, 8GB RAM, 465GB SSD
@@ -651,4 +702,3 @@ docker-compose ps          # Compose stack status
 - ✅ Proxmox VE: Installed, kernel 6.14.11-4-pve loaded, all services operational
 - Web Interface: https://192.168.0.234:8006 (accessible via LAN)
 - Status: Fully operational and ready for container/VM deployment
-- Updated WireGuard mesh count: 14 → 15 active nodes
