@@ -1,6 +1,6 @@
 # AGL Infrastructure Map
 
-> **Last Updated**: 2025-11-08 | **Version**: 2.4.0
+> **Last Updated**: 2025-11-08 | **Version**: 2.5.0
 > **Reference**: Always read this document for infrastructure queries
 
 ---
@@ -8,12 +8,14 @@
 ## 📋 Table of Contents
 
 1. [Network Overview](#-network-overview)
-2. [Physical Locations](#-physical-locations)
-3. [Hosts and Servers](#-hosts-and-servers)
-4. [WireGuard Mesh](#-wireguard-mesh)
-5. [Storage Configuration](#-storage-configuration)
-6. [Container Inventory](#-container-inventory)
-7. [Connection Matrix](#-connection-matrix)
+2. [Proxmox Installation Notes](#-proxmox-installation-notes)
+3. [Physical Locations](#-physical-locations)
+4. [Hosts and Servers](#-hosts-and-servers)
+5. [WireGuard Mesh](#-wireguard-mesh)
+6. [Storage Configuration](#-storage-configuration)
+7. [Container Inventory](#-container-inventory)
+8. [Connection Matrix](#-connection-matrix)
+9. [SSH Configuration](#-ssh-configuration)
 
 ---
 
@@ -34,6 +36,58 @@
 - **WireGuard IP**: 10.6.0.5
 - **Port**: 51823/UDP
 - **Type**: Hub-and-spoke + mesh hybrid
+
+---
+
+## 🔧 Proxmox Installation Notes
+
+### Base Operating System Requirements
+
+**All Proxmox VE hosts in this infrastructure use Debian as the base operating system**. This is not just a preference but a technical requirement.
+
+**Why Debian? ✅**
+- Proxmox VE is **built on Debian** - it's a complete distribution, not just software
+- Official installation method: Add Proxmox repositories to Debian → Install `proxmox-ve` package
+- Supported Debian versions: Debian 11 (Bullseye), Debian 12 (Bookworm), Debian 13 (Trixie)
+- Shares the same package ecosystem and kernel architecture as Proxmox
+
+**Why NOT Ubuntu? ❌**
+- **Official Proxmox stance**: "Not possible" - "Proxmox VE is not just a GUI, it's a distribution and therefore you cannot install a distribution on a distribution"
+- Ubuntu diverges too much from Debian upstream
+- Proxmox packages rely on Debian-specific dependencies not available in Ubuntu
+- Proxmox custom kernel incompatible with Ubuntu package system
+
+### Installation Process (Successfully Implemented)
+
+This infrastructure has successfully deployed Proxmox VE over Debian on multiple hosts (AGLSRV6C, AGLSRV6D):
+
+```bash
+# 1. Start with clean Debian 12/13 installation
+# 2. Add Proxmox repository
+echo "deb [arch=amd64] http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > /etc/apt/sources.list.d/pve-install-repo.list
+
+# 3. Import GPG key
+wget https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg -O /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg
+
+# 4. Install Proxmox packages
+apt update && apt full-upgrade
+apt install proxmox-default-kernel
+systemctl reboot
+
+# 5. After reboot, install Proxmox VE
+apt install proxmox-ve postfix open-iscsi chrony
+
+# 6. Remove Debian stock kernel (optional)
+apt remove linux-image-amd64 'linux-image-6.1*'
+update-grub
+```
+
+**Current Deployment Status**:
+- ✅ AGLSRV1: Proxmox VE 8.4.14 on Debian
+- ✅ AGLSRV5: Proxmox VE 8.4.14 on Debian 12 (kernel 6.8.12-15-pve)
+- ✅ AGLSRV6: Proxmox VE on Debian
+- ✅ AGLSRV6C: Proxmox VE 9.0.11 on Debian 13 (kernel 6.14.11-4-pve) - **Overlay installation**
+- ✅ AGLSRV6D: Proxmox VE 9.0.11 on Debian 13 (kernel 6.14.11-4-pve) - **Overlay installation**
 
 ---
 
@@ -839,16 +893,97 @@ docker-compose ps          # Compose stack status
 
 ---
 
-**Document Version**: 2.4.0
+**Document Version**: 2.5.0
 **Last Updated**: 2025-11-08
 **Maintainer**: Claude Code (agl-hostman project)
 **Always Read**: This document should ALWAYS be read for infrastructure queries
 
 ---
 
+---
+
+## 🔑 SSH Configuration
+
+### Overview
+
+All SSH connection configurations, keys, and aliases are documented in **`docs/SSH-CONFIG.md`**.
+
+**Key Features**:
+- ✅ 21 pre-configured host aliases
+- ✅ 12 SSH keys (10 public + 2 active private)
+- ✅ Connection priority matrix (LAN → WireGuard → Tailscale)
+- ✅ Troubleshooting guide and best practices
+
+### Quick Reference
+
+**Connection using SSH config aliases**:
+```bash
+# FGSRV hosts (prefer Tailscale aliases)
+ssh fgsrv3   # Tailscale: 100.67.99.115
+ssh fgsrv4   # Tailscale: 100.111.79.2
+ssh fgsrv5   # Tailscale: 100.71.107.26 (⚠️ currently down)
+ssh FGSRV05  # Fallback: Public IP 191.252.200.20
+
+# AGLSRV hosts
+ssh AGLSRV1  # LAN: 192.168.0.245 (fastest from CT179)
+ssh aglsrv5  # Tailscale: 100.119.223.113
+
+# Test connection
+ssh -G fgsrv3  # Show effective SSH configuration
+```
+
+**SSH Keys Location**: `/root/.ssh/`
+
+**Primary Keys**:
+- `id_rsa` - Default for most internal hosts (AGLSRV, AGLDEV)
+- `fg_srv.pem` - FGSRV04, FGSRV05, FGSRV06, AGLWK07
+- `FGSRV03.pem` - FGSRV03 only
+
+**Verified Connections** (2025-11-08):
+- ✅ `ssh FGSRV05` → vps24136.publiccloud.com.br (uptime: 7 days)
+- ✅ `ssh fgsrv3` → vps14419 (2 CPUs, Tailscale working)
+- ✅ `ssh aglsrv5` → aglsrv5 (9 containers, Tailscale working)
+
+### Connection Status by Host
+
+| Host Alias | Network | Status | Notes |
+|------------|---------|--------|-------|
+| `FGSRV03` | Public IP | ✅ Working | 191.252.201.205 |
+| `fgsrv3` | Tailscale | ✅ Working | 100.67.99.115 |
+| `FGSRV04` | Public DNS | ✅ Working | vps22826.publiccloud.com.br |
+| `fgsrv4` | Tailscale | ✅ Working | 100.111.79.2 |
+| `FGSRV05` | Public IP | ✅ Working | 191.252.200.20 |
+| `fgsrv5` | Tailscale | ❌ Timeout | 100.71.107.26 (needs investigation) |
+| `FGSRV06` | Public IP | ✅ Working | 186.202.57.120 |
+| `AGLSRV1` | LAN | ✅ Working | 192.168.0.245 |
+| `aglsrv5` | Tailscale | ✅ Working | 100.119.223.113 |
+
+**See**: `docs/SSH-CONFIG.md` for complete documentation, troubleshooting, and all host configurations.
+
+---
+
 ## 📝 Recent Changes
 
+**v2.5.0 (2025-11-08)**:
+- ✅ **Proxmox Installation Notes Added**: Comprehensive technical documentation for Proxmox VE deployment
+  - Explains why Debian is required as base OS (technical and architectural reasons)
+  - Documents why Ubuntu is NOT supported (official Proxmox stance and package incompatibility)
+  - Provides complete installation process with command examples
+  - Lists current deployment status across all 5 active Proxmox hosts
+  - References successful overlay installations on AGLSRV6C and AGLSRV6D
+- ✅ **Table of Contents Updated**: Added Proxmox Installation Notes section
+- ✅ **Documentation Structure Enhanced**: New section provides critical context before host details
+
 **v2.4.0 (2025-11-08)**:
+- ✅ **SSH Configuration Documented**: Complete SSH config and key management in `docs/SSH-CONFIG.md`
+  - All 21 host aliases with connection priorities
+  - 12 SSH keys documented (location, usage, security notes)
+  - Connection matrix and troubleshooting guide
+  - Verified all major host connections (FGSRV05, fgsrv3, aglsrv5)
+- ✅ **FGSRV5 Connectivity Issue Identified**: Tailscale alias timeout
+  - fgsrv5 (100.71.107.26) - Connection timeout
+  - FGSRV05 (191.252.200.20) - Working via public IP with key auth
+  - Requires local investigation to restore Tailscale
 - ✅ **Physical Location Topology Documented**: Infrastructure organized by 4 physical sites
   - **AGLHQ** (Headquarters): AGLSRV1, AGLSRV3 (offline), AGLHQ11, AGLFA02 (LAN: 192.168.0.x)
   - **AGLFG** (Remote standalone): AGLSRV5 (LAN: 192.168.15.x)
