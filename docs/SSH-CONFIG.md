@@ -134,35 +134,52 @@ Host fgsrv6
 
 ### AGLSRV Hosts (Proxmox)
 
+> **Naming Convention**: All AGLSRV hosts use two aliases for the same physical server:
+> - **`AGLSRVX`** (uppercase) → Primary network route (usually LAN)
+> - **`aglsrvX`** (lowercase) → Alternative route (usually Tailscale/WireGuard)
+
 #### AGLSRV1 - Main Proxmox Host
+> **Note**: `aglsrv1` is an alias for `AGLSRV1` (same physical server, different access routes)
+
 ```ssh-config
 Host AGLSRV1
-  HostName 192.168.0.245
+  HostName 192.168.0.245  # LAN IP
   User root
   Port 22
   IdentityFile ~/.ssh/id_rsa
 
-Host aglsrv1 (Tailscale - resolves to hostname)
-  # Uses default SSH resolution
+Host aglsrv1
+  # Uses default SSH resolution (Tailscale/WireGuard)
+  User root
 ```
 
-**Connection Options**:
-1. `ssh AGLSRV1` - LAN IP (fastest from CT179)
-2. `ssh root@192.168.0.245` - Direct LAN IP
-3. `ssh root@100.107.113.33` - Tailscale IP
-4. `ssh root@10.6.0.19` - WireGuard IP
+**Physical Server**: AGLSRV1 (192.168.0.245)
+
+**Available Routes** (same machine):
+1. `ssh AGLSRV1` - LAN 192.168.0.245 (⚡ fastest from CT179)
+2. `ssh aglsrv1` - Tailscale 100.107.113.33
+3. `ssh root@10.6.0.19` - WireGuard IP
 
 #### AGLSRV5 - Secondary Proxmox Host
+> **Note**: `aglsrv5` is an alias for `AGLSRV5` (same physical server, different access routes)
+
 ```ssh-config
-Host aglsrv5 (Tailscale)
-  HostName 100.119.223.113
+Host AGLSRV5
+  HostName 192.168.15.222  # LAN IP (local network only)
+  User root
+  IdentityFile ~/.ssh/id_rsa
+
+Host aglsrv5
+  HostName 100.119.223.113  # Tailscale IP
   User root
   StrictHostKeyChecking no
 ```
 
-**Connection Options**:
-1. `ssh aglsrv5` - Tailscale (recommended, working)
-2. `ssh root@192.168.15.222` - LAN IP (local network only)
+**Physical Server**: AGLSRV5 (192.168.15.222)
+
+**Available Routes** (same machine):
+1. `ssh aglsrv5` - Tailscale 100.119.223.113 (✅ recommended, working)
+2. `ssh AGLSRV5` - LAN 192.168.15.222 (local network only)
 3. `ssh root@10.6.0.17` - WireGuard IP
 
 ---
@@ -240,14 +257,16 @@ Host AGLLX51
 
 **From CT179 (agldv03)**:
 
+> **Note**: Uppercase/lowercase aliases (e.g., FGSRV03/fgsrv3, AGLSRV1/aglsrv1) are the **same physical server** with different network routes.
+
 | Target | Priority 1 | Priority 2 | Notes |
 |--------|-----------|-----------|-------|
-| FGSRV03 | `ssh fgsrv3` (Tailscale) | `ssh FGSRV03` (Public IP) | ✅ Tailscale working |
-| FGSRV04 | `ssh fgsrv4` (Tailscale) | `ssh FGSRV04` (Public) | ✅ Tailscale working |
-| FGSRV05 | `ssh FGSRV05` (Public IP) | `ssh fgsrv5` (Tailscale) | ⚠️ Use public IP (Tailscale down) |
-| FGSRV06 | `ssh fgsrv6` (Tailscale) | `ssh FGSRV06` (Public) | ✅ Tailscale working |
-| AGLSRV1 | `ssh AGLSRV1` (LAN) | `ssh root@10.6.0.19` (WG) | ⚡ LAN fastest from CT179 |
-| AGLSRV5 | `ssh aglsrv5` (Tailscale) | `ssh root@10.6.0.17` (WG) | ✅ Tailscale working |
+| FGSRV03 | `ssh fgsrv3` (Tailscale) | `ssh FGSRV03` (Public IP) | ✅ Same server, Tailscale working |
+| FGSRV04 | `ssh fgsrv4` (Tailscale) | `ssh FGSRV04` (Public) | ✅ Same server, Tailscale working |
+| FGSRV05 | `ssh FGSRV05` (Public IP) | `ssh fgsrv5` (Tailscale) | ⚠️ Same server, use public (TS down) |
+| FGSRV06 | `ssh fgsrv6` (Tailscale) | `ssh FGSRV06` (Public) | ✅ Same server, Tailscale working |
+| AGLSRV1 | `ssh AGLSRV1` (LAN) | `ssh aglsrv1` (Tailscale) | ⚡ Same server, LAN fastest |
+| AGLSRV5 | `ssh aglsrv5` (Tailscale) | `ssh AGLSRV5` (LAN) | ✅ Same server, TS recommended |
 
 ### Quick Commands by Purpose
 
@@ -383,20 +402,28 @@ ssh -o StrictHostKeyChecking=no root@<host>
 
 ## 📊 SSH Config Summary
 
-**Total Configured Hosts**: 21 SSH aliases → **13 physical servers**
+**Total Configured Hosts**: 21 SSH aliases → **11 physical servers**
 **Total SSH Keys**: 12 (10 public + 2 active private)
 
-**Alias Convention**:
+**Alias Convention** (uppercase/lowercase = same machine):
 - **FGSRV hosts**: Each physical server has 2 aliases (uppercase=public, lowercase=Tailscale)
-  - FGSRV03 + fgsrv3 = 1 server
-  - FGSRV04 + fgsrv4 = 1 server
-  - FGSRV05 + fgsrv5 = 1 server
+  - FGSRV03 + fgsrv3 = 1 server (vps14419)
+  - FGSRV04 + fgsrv4 = 1 server (vps22826)
+  - FGSRV05 + fgsrv5 = 1 server (vps24136)
   - FGSRV06 + fgsrv6 = 1 server
+- **AGLSRV hosts**: Each physical server has 2 aliases (uppercase=primary, lowercase=alternative)
+  - AGLSRV1 + aglsrv1 = 1 server (192.168.0.245)
+  - AGLSRV5 + aglsrv5 = 1 server (192.168.15.222)
+
+**Physical Servers Breakdown**:
+- 4 FGSRV servers (8 aliases)
+- 2 AGLSRV servers (4 aliases)
+- 9 other hosts (AGLDEV, AGLWK, YAPMan, AGLLX51, etc.)
 
 **Network Access**:
-- LAN: 5 hosts (AGLSRV1, AGLSRV2, AGLDEV, FGDEV, FGSRV local)
-- Tailscale: 8 aliases (fgsrv3, fgsrv4, fgsrv5, fgsrv6, aglsrv1, aglsrv5)
-- Public Internet: 7 hosts (FGSRV03-06 public IPs, YAPMan, AGLLX51, AGLWK06/07)
+- LAN: 7 hosts (AGLSRV1, AGLSRV2, AGLSRV5, AGLDEV01/02, FGDEV, FGSRV)
+- Tailscale: 10 aliases (fgsrv3/4/5/6, aglsrv1/5, and uppercase equivalents)
+- Public Internet: 6 unique IPs (FGSRV03-06, YAPMan, AGLLX51)
 - AWS: 2 hosts (YAPMan, AGLLX51)
 
 ---
