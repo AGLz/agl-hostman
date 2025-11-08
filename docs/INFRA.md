@@ -89,35 +89,69 @@
 
 ### AGLSRV5 (Remote Proxmox Host)
 **Hostname**: aglsrv5
-**Type**: Proxmox VE Host
-**Location**: Remote location
+**Type**: Proxmox VE 8.4.14 on Debian 12 (bookworm)
+**Location**: Remote location (different network segment)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
-| WireGuard | 10.6.0.17 | wg0 | ✅ Port 51817 |
-| Tailscale | TBD | tailscale0 | ⚠️ To verify |
+| LAN | 192.168.15.222/24 | vmbr0 | ✅ Active |
+| WireGuard | 10.6.0.17/24 | wg0 | ✅ Port 51817 |
+| Tailscale | 100.119.223.113 | tailscale0 | ✅ Active |
 
-**Current State**:
-- Status: ✅ Active in WireGuard mesh
-- SSH Access: ⚠️ Connection timeout issues (similar to FGSRV5)
-- Proxmox Version: To be verified when SSH access available
-- Last handshake: Active (ping latency ~20-25ms)
+**Hardware**:
+- CPU: Intel Xeon E3-1220 v6 @ 3.00GHz (4 cores, 4 threads)
+- RAM: 62GB (32GB used, 24GB free, 7.2GB buffers/cache)
+- Storage: 66GB root (37GB used, 30GB free - 56%)
 
-**WireGuard Configuration**:
-- IP: 10.6.0.17/24
-- Port: 51817/UDP
-- Connected to hub FGSRV6 (10.6.0.5)
-- Mesh connectivity: ✅ Verified via ping
+**Proxmox Configuration**:
+- Version: 8.4.14 (release 8.4)
+- Kernel: 6.8.12-15-pve
+- OS: Debian GNU/Linux 12 (bookworm)
+- Status: ✅ Fully operational
+
+**Storage Pools**:
+| Storage | Type | Total | Used | Available | Usage |
+|---------|------|-------|------|-----------|-------|
+| base | zfspool | 1.75TB | 1.23TB | 533MB | 70% PRIMARY |
+| bkp | dir | 593MB | 60MB | 533MB | 10% |
+| games | dir | 65GB | 36GB | 29GB | 55% |
+| local | dir | 65GB | 36GB | 29GB | 55% |
+| local-lvm | lvmthin | 130GB | 12GB | 117GB | 9% |
+| shares | dir | 65GB | 36GB | 29GB | 55% |
+
+**Containers** (8 total: 7 running, 1 stopped):
+| VMID | Name | Status |
+|------|------|--------|
+| CT130 | cloudflared5 | ✅ Running |
+| CT132 | plex5 | ✅ Running |
+| CT133 | mesh5 | ✅ Running |
+| CT134 | ipmitool5 | ✅ Running |
+| CT135 | mysql5 | ⚠️ Stopped |
+| CT136 | agldv05 | ✅ Running |
+| CT138 | fileserver5 | ✅ Running |
+| CT139 | pihole5 | ✅ Running |
+
+**Access Methods**:
+- Via Tailscale (recommended): `ssh root@100.119.223.113` (20-42ms latency)
+- Via WireGuard: 10.6.0.17 (SSH connection closes immediately - auth issue)
+- Via LAN: 192.168.15.222 (only from same network segment)
+
+**Network Configuration**:
+- Connected to WireGuard mesh via FGSRV6 hub (10.6.0.5)
+- Part of different LAN segment (192.168.15.x vs 192.168.0.x)
+- Tailscale provides cross-site connectivity
 
 **Role**:
-- Remote Proxmox VE Host
-- Additional compute/storage capacity
-- Part of distributed infrastructure
+- Remote Proxmox VE Host with significant storage capacity (1.75TB ZFS pool)
+- Runs production services: Plex, Pi-hole, file server, Cloudflare tunnel
+- Development container (agldv05) available
+- Part of distributed infrastructure with independent network segment
 
 **Notes**:
-- SSH timeout issues preventing detailed information gathering
-- Access verification pending network troubleshooting
-- WireGuard mesh connectivity confirmed (20-25ms latency)
+- SSH via WireGuard has authentication issues (connection established but closes)
+- Tailscale access works perfectly (✅ verified)
+- Different network segment (192.168.15.x) indicates separate physical location
+- Large ZFS storage pool (base) at 70% capacity - may need monitoring
 
 ---
 
@@ -677,13 +711,19 @@ docker-compose ps          # Compose stack status
 
 ## 📝 Recent Changes
 
+**v2.3.0 (2025-11-08)**:
+- ✅ **AGLSRV5 Complete Analysis**: Full host documentation via Tailscale
+  - Proxmox VE 8.4.14 on Debian 12, kernel 6.8.12-15-pve
+  - Hardware: Intel Xeon E3-1220 v6 @ 3.00GHz, 62GB RAM
+  - Storage: 1.75TB ZFS pool (70% used) + multiple storage pools
+  - Networks: LAN (192.168.15.222), WireGuard (10.6.0.17), Tailscale (100.119.223.113)
+  - Containers: 8 total (7 running) - Plex, Pi-hole, file server, Cloudflare tunnel
+  - Access: Tailscale works perfectly, WireGuard has SSH auth issue
+  - Different network segment (192.168.15.x) indicates separate physical location
+
 **v2.2.0 (2025-11-08)**:
 - ✅ **Infrastructure Inventory Complete**: All 5 Proxmox hosts now documented
   - AGLSRV1 (local), AGLSRV5 (remote), AGLSRV6 (remote), AGLSRV6C (remote), AGLSRV6D (remote)
-- ✅ **AGLSRV5 Initial Documentation**: Added section for AGLSRV5 at 10.6.0.17:51817
-  - WireGuard connectivity confirmed (20-25ms latency)
-  - SSH timeout issues documented (similar to FGSRV5)
-  - Awaiting SSH access for complete details
 - ❌ **AGLSRV6B Deprecated**: Marked as DEAD due to RAID card failure
   - Being replaced by AGLSRV6C (dual-network host at 192.168.0.233)
   - CT172 container marked as offline (host AGLSRV6B is dead)
