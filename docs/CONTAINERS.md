@@ -9,13 +9,13 @@
 
 | Host | Total CTs | Running | Stopped | Key Services |
 |------|-----------|---------|---------|--------------|
-| **AGLSRV1** | 68 | 42 | 26 | Development, AI, DNS, Monitoring |
+| **AGLSRV1** | 69 | 43 | 26 | Development, AI, DNS, Monitoring |
 | **AGLSRV5** | 8 | 7 | 1 | Media, File Server, Cloudflare |
 | **AGLSRV6** | 11 | - | - | NFS, Development, PBS |
 
 ---
 
-## 🖥️ AGLSRV1 Containers (68 Total, 42 Running)
+## 🖥️ AGLSRV1 Containers (69 Total, 43 Running)
 
 ### Infrastructure & Network
 
@@ -29,8 +29,9 @@
 
 | ID | Name | Purpose | Status | Resources |
 |----|------|---------|--------|-----------|
-| **CT179** | agldv03 | Main Development | ✅ | 48GB RAM, WireGuard mesh |
+| **CT179** | agldv03 | Main Development | ✅ | 48GB RAM, WG 10.6.0.19, TS 100.94.221.87 |
 | **CT180** | dokploy | Deployment Platform | ✅ | https://dok.aglz.io |
+| **CT181** | agldv04 | Secondary Development | ✅ | 48GB RAM, WG 10.6.0.24, TS 100.113.9.98 |
 
 ### AI & Machine Learning
 
@@ -86,6 +87,6 @@
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-11-08
+**Document Version**: 1.1.0
+**Last Updated**: 2025-11-10
 **Maintainer**: Claude Code (agl-hostman project)

@@ -12,8 +12,8 @@
 - **Network**: 10.6.0.0/24
 - **Hub**: FGSRV6 (186.202.57.120:51823)
 - **Topology**: Hub-and-spoke with mesh capabilities
-- **Active Nodes**: 15
-- **Total Configured**: 17 (2 offline)
+- **Active Nodes**: 16
+- **Total Configured**: 18 (2 offline)
 - **Encryption**: ChaCha20-Poly1305
 - **Protocol**: UDP
 
@@ -50,12 +50,13 @@
 | **CT183** | 10.6.0.21 | 51821 | Container | AGLSRV1 | AGLHQ | ✅ **Archon AI** |
 | **AGLSRV6C** | 10.6.0.22 | 51822 | Host | Remote | AGLALD | ✅ Active |
 | **AGLSRV6D** | 10.6.0.23 | 51823 | Host | Remote | AGLALD | ✅ Active |
+| **CT181** | 10.6.0.24 | 43373 | Container | AGLSRV1 | AGLHQ | ✅ **Dev** |
 
 ### Node Status Summary
 
 | Status | Count | Nodes |
 |--------|-------|-------|
-| ✅ Active | 15 | FGSRV3/4/5/6, AGLSRV1/5/6/6C/6D, CT111/113/120/121/179/183 |
+| ✅ Active | 16 | FGSRV3/4/5/6, AGLSRV1/5/6/6C/6D, CT111/113/120/121/179/181/183 |
 | ❌ Dead | 1 | AGLSRV6B (RAID failure) |
 | ⚠️ Host Offline | 1 | CT172 (on dead AGLSRV6B host) |
 
@@ -65,6 +66,7 @@
 |------|------|------------|-------|
 | **FGSRV6** | WireGuard Hub | **CRITICAL** | Central routing point - failure affects entire mesh |
 | **CT179** | Development | High | Main development container (48GB RAM) |
+| **CT181** | Development | High | Secondary development container (48GB RAM, cloned from CT179) |
 | **CT111** | NFS Server | High | NFS storage for mesh (10.6.0.20) |
 | **CT183** | Archon AI | High | AI Command Center with MCP server |
 | **AGLSRV6** | Remote Host | High | Primary remote Proxmox host |
@@ -269,13 +271,13 @@ wg-quick down wg0 && wg-quick up wg0
 
 | Range | Status | Notes |
 |-------|--------|-------|
-| 10.6.0.1-10.6.0.23 | ✅ Allocated | Current mesh nodes |
-| 10.6.0.24-10.6.0.50 | 🟢 Available | Next assignments |
+| 10.6.0.1-10.6.0.24 | ✅ Allocated | Current mesh nodes |
+| 10.6.0.25-10.6.0.50 | 🟢 Available | Next assignments |
 | 10.6.0.51-10.6.0.254 | 🟢 Available | Future expansion |
 
 ### Next Available IPs
 
-For new nodes, use IPs starting from **10.6.0.24**.
+For new nodes, use IPs starting from **10.6.0.25**.
 
 ---
 
@@ -289,6 +291,6 @@ For new nodes, use IPs starting from **10.6.0.24**.
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-11-08
+**Document Version**: 1.1.0
+**Last Updated**: 2025-11-10
 **Maintainer**: Claude Code (agl-hostman project)
