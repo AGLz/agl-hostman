@@ -1,6 +1,6 @@
 # AGL Infrastructure Map - Central Reference
 
-> **Last Updated**: 2025-11-08 | **Version**: 3.0.0
+> **Last Updated**: 2025-11-10 | **Version**: 3.1.0
 > **Reference**: Central infrastructure overview with links to detailed documentation
 
 ---
@@ -8,6 +8,8 @@
 ## 📚 Documentation Structure
 
 This document serves as the **central reference point** for the entire infrastructure. For detailed information, refer to the specialized documentation files:
+
+### Infrastructure Documentation
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
@@ -19,6 +21,14 @@ This document serves as the **central reference point** for the entire infrastru
 | **[CONTAINERS.md](CONTAINERS.md)** | Container inventory, key services | Finding containers, checking services |
 | **[CONNECTIONS.md](CONNECTIONS.md)** | Access patterns, connection priorities | Connecting to hosts, troubleshooting access |
 | **[SSH-CONFIG.md](SSH-CONFIG.md)** | SSH configuration, keys, aliases | SSH setup, key management |
+
+### Development & AI Documentation
+
+| Document | Purpose | When to Read |
+|----------|---------|--------------|
+| **[SUPERCLAUDE-DEPLOYMENT.md](SUPERCLAUDE-DEPLOYMENT.md)** | SuperClaude Hive-Mind deployment guide | Installing multi-agent system on new containers |
+| **[AGLDV3-DEPLOYMENT-GUIDE.md](AGLDV3-DEPLOYMENT-GUIDE.md)** | CT179 original deployment guide | Reference for CT179 configuration |
+| **[CT179-vs-CT181-COMPARISON.md](CT179-vs-CT181-COMPARISON.md)** | CT179/CT181 comparison and deployment | Understanding differences between dev containers |
 
 ---
 
