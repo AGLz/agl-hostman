@@ -29,9 +29,9 @@
 
 | ID | Name | Purpose | Status | Resources |
 |----|------|---------|--------|-----------|
-| **CT179** | agldv03 | Main Development | ✅ | 48GB RAM, WG 10.6.0.19, TS 100.94.221.87 |
+| **CT179** | agldv03 | Main Development | ✅ | 48GB RAM, SuperClaude, WG 10.6.0.19, TS 100.94.221.87 |
 | **CT180** | dokploy | Deployment Platform | ✅ | https://dok.aglz.io |
-| **CT181** | agldv04 | Secondary Development | ✅ | 48GB RAM, WG 10.6.0.24, TS 100.113.9.98 |
+| **CT181** | agldv04 | Secondary Development | ✅ | 48GB RAM, SuperClaude ✨, 13 MCPs, WG 10.6.0.24, TS 100.113.9.98 |
 
 ### AI & Machine Learning
 
