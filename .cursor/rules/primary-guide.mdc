@@ -1,0 +1,69 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## 🔄 Context
+- **Read `ai-docs/planning/PROJECT_PLAN.md`** first
+- **Check `ai-docs/tasks/TASKS.md`** before tasks
+- **Use Portuguese** for comments/docs
+- **Follow PROJECT_PLAN.md patterns**
+
+## 🧱 Code
+- **Max 500 lines/file** - refactor if longer
+- **Modular by feature/responsibility**
+- **Clear imports** (relative within packages)
+
+## 🧪 Testing
+- **Unit tests for all features** (expected/edge/failure)
+- **Update tests** when logic changes
+- **Tests in `/tests`** mirroring app structure
+
+## ✅ Tasks
+- **Update `ai-docs/tasks/TASKS.md`** using SCRUM
+- **Mark completed + commit** immediately
+- **Add discoveries** to BACKLOG.md
+
+## 📚 Docs
+- **Update README.md** for features/deps/setup
+- **Comment complex code** with `# Reason:`
+- **Update `ai-docs/api/API.md`** for APIs
+
+## 🧠 AI Rules
+- **Edit in chunks** (avoid JSON issues)
+- **Ask if uncertain**
+- **Use verified packages only**
+- **Confirm paths exist**
+- **Never delete code** unless instructed
+- **Update memories** in tool AND config
+
+## 📋 Acceptance Criteria
+- **ALWAYS consult `ai-docs/planning/ACCEPTANCE_CRITERIA.md`**
+- **Check Definition of Done**
+- **Use templates** for new features
+- **Validate functional/performance/security/usability**
+
+### Apply For:
+🟢 **ALWAYS:** Features, APIs, UIs, integrations, security
+🟡 **CONSIDER:** Refactoring, complex bugs
+🔴 **SKIP:** Simple bugs, docs, configs
+
+### Standards:
+- **Coverage:** >80%
+- **Performance:** Monitor SLAs
+- **Security:** Zero critical vulns
+
+### Validation:
+```bash
+./scripts/test/run_all_tests.sh
+./scripts/test/code_quality_check.sh
+```
+
+### Checklist:
+- [ ] Criteria met
+- [ ] Tests pass
+- [ ] Docs updated
+- [ ] Deploy configured
+
+## 🎯 Flow:
+READ → PLAN → DEVELOP → TEST → VALIDATE → DOCUMENT → DEPLOY

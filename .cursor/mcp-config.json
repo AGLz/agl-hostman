@@ -1,0 +1,69 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp"],
+      "cwd": "/mnt/overpower/apps/dev/agl/apis-evo/api9",
+      "description": "Playwright MCP server for browser automation, testing, and web scraping",
+      "capabilities": [
+        "browser_automation",
+        "screenshot_capture",
+        "form_interaction",
+        "navigation",
+        "element_selection",
+        "performance_monitoring"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "PLAYWRIGHT_BROWSERS_PATH": "/root/.cache/ms-playwright"
+      },
+      "timeout": 30000,
+      "restart": true
+    },
+    "archon": {
+      "command": "python",
+      "args": ["-m", "mcp_archon"],
+      "cwd": "/mnt/overpower/apps/dev/agl/apis-evo/api9",
+      "description": "Archon MCP server for project management, PRP workflows, and task automation",
+      "capabilities": [
+        "project_management",
+        "task_tracking",
+        "document_management",
+        "version_control",
+        "prp_workflows",
+        "code_examples"
+      ],
+      "env": {
+        "PYTHONPATH": "/mnt/overpower/apps/dev/agl/apis-evo/api9"
+      },
+      "timeout": 45000,
+      "restart": true
+    }
+  },
+  "globalSettings": {
+    "enabled": true,
+    "autoStart": true,
+    "logLevel": "info",
+    "maxRetries": 3,
+    "retryDelay": 5000,
+    "healthCheckInterval": 60000
+  },
+  "security": {
+    "allowedOrigins": ["*"],
+    "blockedOrigins": [],
+    "requireAuth": false,
+    "allowLocalhost": true
+  },
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "file": ".cursor/logs/mcp.log",
+    "maxSize": "10MB",
+    "maxFiles": 5
+  }
+}
+
+
+
+
+
