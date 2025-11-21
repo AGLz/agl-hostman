@@ -38,7 +38,7 @@ This document serves as the **central reference point** for the entire infrastru
 
 | Network | CIDR | Purpose | Status | Details |
 |---------|------|---------|--------|---------|
-| **WireGuard Mesh** | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ 15 nodes active | See [WIREGUARD.md](WIREGUARD.md) |
+| **WireGuard Mesh** | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ 16 nodes active | See [WIREGUARD.md](WIREGUARD.md) |
 | **Local LAN** | 192.168.0.0/24 | Primary local network | ✅ Active | AGLHQ, AGLALD locations |
 | **Local LAN Alt** | 192.168.1.0/24 | Secondary local network | ✅ Active | AGLSRV6C secondary |
 | **Remote LAN** | 192.168.15.0/24 | AGLFG standalone network | ✅ Active | AGLSRV5 only |
@@ -61,7 +61,7 @@ This document serves as the **central reference point** for the entire infrastru
 
 | Location | Type | Hosts | Status | Details |
 |----------|------|-------|--------|---------|
-| **AGLHQ** | Headquarters | AGLSRV1, AGLSRV3, AGLHQ11, AGLFA02 | ✅ Active | Main production site |
+| **AGLHQ** | Headquarters | AGLSRV1, AGLSRV3, AGLHQ11, AGLFA02 | ✅ Active | Main production site (2 Proxmox hosts) |
 | **AGLFG** | Remote Site | AGLSRV5 | ✅ Active | Standalone network (192.168.15.x) |
 | **AGLALD** | Remote Site | AGLSRV6, AGLSRV6C, AGLSRV6D | ✅ Active | Backup/failover capacity |
 | **AGLFG-VPS** | Cloud | FGSRV3, FGSRV4, FGSRV5, FGSRV6 | ✅ Active | Cloud infrastructure |
@@ -75,7 +75,7 @@ This document serves as the **central reference point** for the entire infrastru
 | Host | Location | Type | Networks | Status | Details |
 |------|----------|------|----------|--------|---------|
 | **AGLSRV1** | AGLHQ | Production | LAN + WG + TS | ✅ 68 CTs | [HOSTS.md](HOSTS.md#aglsrv1) |
-| **AGLSRV3** | AGLHQ | Standby | TBD | ⚠️ Offline | [HOSTS.md](HOSTS.md#aglsrv3) |
+| **AGLSRV3** | AGLHQ | Production | LAN + WG + TS | ✅ 1 CT + 5 VMs | [HOSTS.md](HOSTS.md#aglsrv3) |
 | **AGLSRV5** | AGLFG | Remote | LAN + WG + TS | ✅ 8 CTs | [HOSTS.md](HOSTS.md#aglsrv5) |
 | **AGLSRV6** | AGLALD | Remote | WG + TS | ✅ 11 CTs | [HOSTS.md](HOSTS.md#aglsrv6) |
 | **AGLSRV6B** | AGLALD | Dead | None | ❌ Dead | Deprecated |
@@ -97,7 +97,7 @@ This document serves as the **central reference point** for the entire infrastru
 
 ## 🔗 WireGuard Mesh Summary
 
-### Active Nodes (15 of 17 total)
+### Active Nodes (16 of 17 total)
 
 | Node | IP | Port | Host | Type | Status |
 |------|-----|------|------|------|--------|
@@ -118,6 +118,7 @@ This document serves as the **central reference point** for the entire infrastru
 | **CT183** | 10.6.0.21 | 51821 | AGLSRV1 | Container | ✅ Archon |
 | **AGLSRV6C** | 10.6.0.22 | 51822 | Host | Host | ✅ Active |
 | **AGLSRV6D** | 10.6.0.23 | 51823 | Host | Host | ✅ Active |
+| **AGLSRV3** | 10.6.0.24 | 51824 | AGLSRV3 | Host | ✅ Active |
 
 ### Critical Nodes
 
@@ -150,12 +151,20 @@ This document serves as the **central reference point** for the entire infrastru
 
 **Total WireGuard Storage**: 6.0 TB (1.2TB NFS + 4.8TB SSHFS)
 
-### CT111 NFS Server
+### CT111 NFS Server (AGLSRV6)
 
 - **WireGuard**: 10.6.0.20 (Port 51820)
 - **Tailscale**: 100.65.189.83
 - **Exports**: /mnt/shares (66GB), /mnt/sistema (819GB)
 - **Networks**: 192.168.0.0/24, 10.6.0.0/24
+
+### CT138 NFS Server (AGLSRV5)
+
+- **WireGuard**: 10.6.0.51
+- **LAN**: 192.168.15.100 (DHCP)
+- **Internal**: 172.2.2.138
+- **Exports**: /storage/nfs-export
+- **Networks**: 192.168.0.0/24, 192.168.15.0/24, 10.6.0.0/24
 
 **Complete Details**: See [STORAGE.md](STORAGE.md) for mount points, NFS configuration, and performance metrics.
 

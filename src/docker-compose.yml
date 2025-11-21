@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agl-admin-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - agl-admin-network
+    depends_on:
+      - mysql
+      - redis
+
+  webserver:
+    image: nginx:alpine
+    container_name: agl-admin-webserver
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d/
+    networks:
+      - agl-admin-network
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: agl-admin-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - "33061:3306"
+    networks:
+      - agl-admin-network
+
+  redis:
+    image: redis:alpine
+    container_name: agl-admin-redis
+    restart: unless-stopped
+    ports:
+      - "63791:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - agl-admin-network
+
+  n8n:
+    image: n8nio/n8n
+    container_name: agl-admin-n8n
+    restart: unless-stopped
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-admin123}
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST:-localhost}:5678/
+      - NODE_ENV=production
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n-data:/home/node/.n8n
+    networks:
+      - agl-admin-network
+    depends_on:
+      - redis
+
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agl-admin-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    volumes:
+      - .:/var/www
+    networks:
+      - agl-admin-network
+    depends_on:
+      - app
+      - redis
+
+networks:
+  agl-admin-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
+  n8n-data:

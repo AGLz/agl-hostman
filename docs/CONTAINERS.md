@@ -55,13 +55,13 @@
 
 ## 🌐 AGLSRV5 Containers (8 Total, 7 Running)
 
-| ID | Name | Purpose | Status | Notes |
-|----|------|---------|--------|-------|
-| CT130 | cloudflared5 | Cloudflare Tunnel | ✅ | Remote access |
-| CT132 | plex5 | Media Server | ✅ | Local media streaming |
-| CT133 | mesh5 | Remote Management | ✅ | MeshCentral |
-| CT138 | fileserver5 | File Server | ✅ | Shared storage |
-| CT139 | pihole5 | DNS/DHCP | ✅ | Local DNS |
+| ID | Name | Purpose | Status | Networks | Notes |
+|----|------|---------|--------|----------|-------|
+| CT130 | cloudflared5 | Cloudflare Tunnel | ✅ | - | Remote access |
+| CT132 | plex5 | Media Server | ✅ | - | Local media streaming |
+| CT133 | mesh5 | Remote Management | ✅ | - | MeshCentral |
+| **CT138** | **fileserver5** | **NFS Server** | ✅ | **LAN 192.168.15.100, Internal 172.2.2.138, WG 10.6.0.51** | **NFS exports to 3 networks** |
+| CT139 | pihole5 | DNS/DHCP | ✅ | - | Local DNS |
 
 ---
 

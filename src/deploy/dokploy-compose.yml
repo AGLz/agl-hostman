@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  app:
+    image: harbor.aglz.io:5000/agl-infrastructure/agl-hostman-app:latest
+    container_name: agl-hostman-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./storage:/var/www/storage
+      - ./public:/var/www/public
+    networks:
+      - agl-network
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
+      - N8N_API_URL=http://n8n:5678
+    depends_on:
+      - mysql
+      - redis
+
+  webserver:
+    image: nginx:alpine
+    container_name: agl-hostman-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./public:/var/www/public
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    networks:
+      - agl-network
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: agl-hostman-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - agl-network
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:alpine
+    container_name: agl-hostman-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - agl-network
+    ports:
+      - "6379:6379"
+
+  horizon:
+    image: harbor.aglz.io:5000/agl-infrastructure/agl-hostman-app:latest
+    container_name: agl-hostman-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    working_dir: /var/www
+    volumes:
+      - ./storage:/var/www/storage
+    networks:
+      - agl-network
+    depends_on:
+      - app
+      - redis
+
+  n8n:
+    image: n8nio/n8n
+    container_name: agl-hostman-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_AUTH_PASSWORD}
+      - N8N_HOST=n8n.aglz.io
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.aglz.io/
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      - n8n-data:/home/node/.n8n
+    networks:
+      - agl-network
+
+  ollama:
+    image: ollama/ollama
+    container_name: agl-hostman-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - agl-network
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+
+networks:
+  agl-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
+  n8n-data:
+  ollama-data:

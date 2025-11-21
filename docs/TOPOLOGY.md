@@ -13,14 +13,14 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 | Location | Network Segment | Hosts | Connectivity | Critical Services |
 |----------|----------------|-------|--------------|-------------------|
-| **AGLHQ** | 192.168.0.0/24 | 4 (3 active, 1 offline) | LAN + WG + TS | Production, Development, AI |
+| **AGLHQ** | 192.168.0.0/24 | 4 (all active) | LAN + WG + TS | Production, Development, AI |
 | **AGLFG** | 192.168.15.0/24, 172.2.2.0/24 | 1 | LAN + WG + TS | Storage, Media |
 | **AGLALD** | 192.168.0.0/24, 192.168.1.0/24, 192.168.60.0/24 | 4 (3 active, 1 dead) | LAN + WG + TS | Backup, Development, NFS |
 | **AGLFG-VPS** | Public IPs | 4 | WG + TS | WireGuard Hub, NFS |
 
 **Total Infrastructure**:
-- 13 physical/virtual hosts (12 active, 1 offline)
-- 6 Proxmox VE hosts (5 active, 1 offline)
+- 13 physical/virtual hosts (all active except AGLSRV6B dead)
+- 6 Proxmox VE hosts (5 active, 1 dead)
 - 3 network layers (LAN, WireGuard, Tailscale)
 
 ---
@@ -36,10 +36,10 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 | Host/Device | Type | Status | Networks |
 |-------------|------|--------|----------|
-| **AGLSRV1** | Proxmox VE Host | ✅ Active | LAN, WG (10.6.0.10), TS (100.107.113.33) |
-| **AGLSRV3** | Proxmox VE Host | ⚠️ Offline | To be analyzed when powered on |
+| **AGLSRV1** | Proxmox VE Host | ✅ Active | LAN (192.168.0.245), WG (10.6.0.10), TS (100.107.113.33) |
+| **AGLSRV3** | Proxmox VE Host | ✅ Active | LAN (192.168.0.247), WG (10.6.0.24), TS (100.123.5.81) |
 | **AGLHQ11** | Physical Machine | ✅ Active | LAN, TS (present in network) |
-| **AGLFA02** | Physical Machine | ✅ Active | LAN only (not in Tailscale yet) |
+| **AGLFA02** | Physical Machine | ✅ Active | LAN (NAS device, separate from CT178 file server) |
 
 ### Key Services
 
@@ -51,11 +51,18 @@ The infrastructure is distributed across **4 physical locations**, each with its
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 - Media: CT113 (plex), CT121-124 (arr stack)
 
+**AGLSRV3 (Secondary Production Host)**:
+- 1 container + 5 VMs (1 running, 5 stopped)
+- Hardware: Intel Xeon E5-2690 v3 (12 cores, 24 threads @ 2.60GHz), 16GB RAM
+- Storage: 96GB local + 27TB NAS (CT178/aglfs1 via CIFS from AGLSRV1)
+- Services: CT104 (cloudflared), VM100 (AGLHQ10 - Windows VM running)
+- Network: 4 bridges (vmbr0-3) with multiple network segments
+
 ### Infrastructure Role
-- Primary production environment
-- Main development containers
-- AI/ML infrastructure
-- Central DNS and monitoring
+- **AGLSRV1**: Primary production environment, main development containers, AI/ML infrastructure, central DNS and monitoring, file server (CT178/aglfs1 with 27TB storage)
+- **AGLSRV3**: Secondary production host consuming storage from AGLSRV1's CT178, Windows VM hosting, standby capacity
+- Co-located on same LAN (192.168.0.0/24) for high-speed inter-host communication
+- Both hosts integrated into WireGuard mesh for remote access
 
 ---
 

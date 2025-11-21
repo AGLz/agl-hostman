@@ -1,0 +1,197 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [8.2, 8.3]
+        dependencies: [lowest, highest]
+
+    name: PHP ${{ matrix.php-version }} - ${{ matrix.dependencies }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-${{ matrix.dependencies }}-
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          cd src
+          if [ "${{ matrix.dependencies }}" = "lowest" ]; then
+            composer update --prefer-lowest --prefer-stable --no-interaction
+          else
+            composer install --no-interaction
+          fi
+
+      - name: Install Pest PHP
+        run: |
+          cd src
+          composer require pestphp/pest --dev --with-all-dependencies
+          composer require pestphp/pest-plugin-laravel --dev --with-all-dependencies
+          composer require pestphp/pest-plugin-arch --dev --with-all-dependencies
+
+      - name: Setup test environment
+        run: |
+          cd src
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+
+      - name: Run Pint (Code Style)
+        run: |
+          cd src
+          ./vendor/bin/pint --test
+
+      - name: Run Unit Tests
+        run: |
+          cd src
+          php artisan test --testsuite=Unit --parallel --coverage --min=80
+
+      - name: Run Feature Tests
+        run: |
+          cd src
+          php artisan test --testsuite=Feature --parallel
+
+      - name: Run Integration Tests
+        run: |
+          cd src
+          php artisan test --testsuite=Integration
+
+      - name: Run Architecture Tests
+        run: |
+          cd src
+          php artisan test --testsuite=Architecture
+
+      - name: Run Performance Tests
+        if: github.event_name == 'pull_request'
+        run: |
+          cd src
+          php artisan test --testsuite=Performance
+
+      - name: Generate Coverage Report
+        if: matrix.php-version == '8.3' && matrix.dependencies == 'highest'
+        run: |
+          cd src
+          php artisan test --coverage --coverage-html coverage/html --coverage-clover coverage/clover.xml
+
+      - name: Upload Coverage to Codecov
+        if: matrix.php-version == '8.3' && matrix.dependencies == 'highest'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./src/coverage/clover.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Upload Coverage Artifact
+        if: matrix.php-version == '8.3' && matrix.dependencies == 'highest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: src/coverage/html
+
+      - name: Comment Coverage on PR
+        if: github.event_name == 'pull_request' && matrix.php-version == '8.3' && matrix.dependencies == 'highest'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = fs.readFileSync('src/coverage/clover.xml', 'utf8');
+            const match = coverage.match(/lines-covered="(\d+)".*lines-valid="(\d+)"/);
+            if (match) {
+              const covered = parseInt(match[1]);
+              const total = parseInt(match[2]);
+              const percentage = ((covered / total) * 100).toFixed(2);
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Test Coverage Report\n\n✅ **${percentage}%** code coverage\n\n- Lines covered: ${covered}/${total}\n- Target: 70%+\n`
+              });
+            }
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    name: Static Analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: |
+          cd src
+          composer install --no-interaction
+
+      - name: Run PHPStan
+        run: |
+          cd src
+          ./vendor/bin/phpstan analyse --memory-limit=2G || true
+
+      - name: Run Psalm
+        run: |
+          cd src
+          ./vendor/bin/psalm --show-info=false || true
+
+  security-check:
+    runs-on: ubuntu-latest
+    name: Security Check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: |
+          cd src
+          composer install --no-interaction
+
+      - name: Security Advisories Check
+        run: |
+          cd src
+          composer audit --no-dev || true

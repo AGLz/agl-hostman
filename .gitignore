@@ -26,4 +26,4 @@ Thumbs.db
 # Build
 dist/
 build/
-*.tsbuildinfo
+*.tsbuildinfosrc-backup-*.tar.gz

@@ -10,7 +10,7 @@
 | Host | Type | Location | Status | Proxmox | Containers | Networks |
 |------|------|----------|--------|---------|------------|----------|
 | **AGLSRV1** | Production | AGLHQ | ✅ Active | 8.4.14 | 68 (42 running) | LAN + WG + TS |
-| **AGLSRV3** | Standby | AGLHQ | ⚠️ Offline | TBD | TBD | TBD |
+| **AGLSRV3** | Standby | AGLHQ | ✅ Active | 8.4.0 | 1 | 10.6.0.24 |
 | **AGLSRV5** | Remote | AGLFG | ✅ Active | 8.4.14 | 8 (7 running) | LAN + WG + TS |
 | **AGLSRV6** | Remote | AGLALD | ✅ Active | TBD | 11 containers | WG + TS |
 | **AGLSRV6B** | Dead | AGLALD | ❌ Dead | - | CT172 offline | ❌ None |
@@ -73,36 +73,121 @@ ssh root@10.6.0.10
 
 ---
 
-## 🖥️ AGLSRV3 (Proxmox VE Host - Offline)
+## 🖥️ AGLSRV3 (Proxmox VE Host)
 
 **Hostname**: aglsrv3
-**Type**: Proxmox VE Host
+**Type**: Proxmox VE 8.4.0 (pve-manager 8.4.14) on Debian 12.9 (bookworm)
 **Physical Location**: **AGLHQ** (Headquarters - same location as AGLSRV1)
-**Status**: ⚠️ **Currently powered off** - pending power-on and analysis
+**Status**: ✅ **Active** - Fully configured and integrated into mesh
 
 ### Network Configuration
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | TBD | vmbr0 | ⚠️ Awaiting power-on |
-| WireGuard | TBD | wg0 | ⚠️ To be configured |
-| Tailscale | TBD | tailscale0 | ⚠️ To be verified |
+| Network | Address | Interface | Status | Purpose |
+|---------|---------|-----------|--------|---------|
+| Local LAN | 192.168.0.247/24 | vmbr0 | ✅ Active | Local access |
+| WireGuard | 10.6.0.24/24 | wg0 | ✅ Port 51824 | Mesh connectivity (14-24ms to hub) |
+| Tailscale | 100.123.5.81 | tailscale0 | ✅ Active | Backup access |
+
+**Additional Bridges**:
+- vmbr1: 172.2.2.247/24 (internal)
+- vmbr2: 10.253.0.247/24 (isolated)
+- vmbr3: 192.168.100.247/24 (management)
+
+### Hardware Specifications
+
+- **CPU**: Intel Xeon E5-2690 v3 @ 2.60GHz (12 cores, 24 threads)
+- **RAM**: 16GB (14GB used, 87.5% utilization)
+- **Kernel**: 6.8.12-15-pve (x86_64)
+
+### Storage Configuration
+
+| Storage | Size | Type | Source | Status |
+|---------|------|------|--------|--------|
+| local | 96GB | Directory | Local disk | ✅ 79% used |
+| local-lvm | 0 | LVM-Thin | Not configured | ⚠️ Unused |
+| CT178-NAS | 27TB | **NFS** | 192.168.0.178 | ✅ **NFSv3** |
+
+**NFS Mounts from 192.168.0.178** (CT178 - aglfs1 on AGLSRV1):
+- **overpower**: 192.168.0.178:/mnt/overpower → /mnt/pve/overpower (9.8TB, 92% used)
+- **power**: 192.168.0.178:/mnt/power → /mnt/pve/power (7.2TB, 97% used)
+- **storage**: 192.168.0.178:/mnt/storage → /mnt/pve/storage (10TB)
+- **spark**: 192.168.0.178:/mnt/spark → /mnt/pve/spark (32GB, 7% used)
+- **Total**: ~27TB available via NFS (NFSv3, async, soft mounts)
+
+**NFS Performance**:
+- Protocol: NFSv3 with TCP
+- Options: `vers=3,soft,async` for optimal performance
+- Write speed: ~11.7 MB/s (tested)
+- Read/write buffers: 1MB (rsize=1048576, wsize=1048576)
+
+### Containers & VMs
+
+**Containers**: 1 running
+- CT106 (cloudflared) - Running (Replaces CT104)
+
+**Virtual Machines**: 5 total (1 running, 4 stopped)
+- VM100 (AGLHQ10) - **Running** - Windows VM
+- VM102 - Stopped
+- VM103 - Stopped
+- VM104 - Stopped
+- VM105 - Stopped
+
+### WireGuard Configuration
+
+**Interface Details**:
+```
+Address: 10.6.0.24/24
+ListenPort: 51824
+PublicKey: ZG8Qrn4QiV56l/v/anXtREB1/g7tD6NuDxR47sjHcVA=
+PresharedKey: (configured)
+MTU: 1420
+```
+
+**Peer** (FGSRV6 Hub):
+```
+PublicKey: Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
+Endpoint: 186.202.57.120:51823
+AllowedIPs: 10.6.0.0/24
+PersistentKeepalive: 25s
+```
+
+**Performance**:
+- Latency to hub (10.6.0.5): 14-24ms
+- Latency to AGLSRV1 (10.6.0.10): 25-37ms
+- Handshake: Active and healthy
+
+### Connection Commands
+
+```bash
+# Via LAN (from same location)
+ssh root@192.168.0.247
+ssh AGLSRV3  # SSH config alias
+
+# Via WireGuard (FASTEST - from mesh)
+ssh root@10.6.0.24
+ssh aglsrv3-wg  # SSH config alias (recommended)
+
+# Via Tailscale (from anywhere)
+ssh root@100.123.5.81
+ssh aglsrv3  # SSH config alias
+
+# Proxmox Web Interface
+https://192.168.0.247:8006  # LAN access
+```
 
 ### Notes
 
-- Located at AGLHQ headquarters with AGLSRV1, AGLHQ11, and AGLFA02
-- Same local network (192.168.0.0/24) as AGLSRV1
-- Will be analyzed when powered on by user
-- Expected to have similar configuration to AGLSRV1 (Proxmox VE host)
-
-### Pending Tasks
-
-- [ ] Power on host
-- [ ] Identify network addresses (LAN, Tailscale)
-- [ ] Configure WireGuard mesh connectivity
-- [ ] Inventory containers and VMs
-- [ ] Document hardware specifications
-- [ ] Update this section with complete information
+- ✅ Located at AGLHQ headquarters with AGLSRV1, AGLHQ11, and AGLFA02
+- ✅ Same local network (192.168.0.0/24) as AGLSRV1
+- ✅ Successfully integrated into WireGuard mesh (10.6.0.24)
+- ✅ All network access methods verified and working
+- ⚠️ IP conflict resolved: Changed from 192.168.0.111 to 192.168.0.247
+- 💾 Large NAS storage available (27TB from CT178/aglfs1 on AGLSRV1)
+- 🔒 SSH key authentication configured for all access methods
+- 🚀 **Storage upgraded**: Converted from CIFS to NFS (2025-11-17) for better performance
+  - NFSv3 with async, soft mounts
+  - 4 NFS exports configured: overpower, power, storage, spark
+  - Old CIFS mounts will be auto-removed on next reboot
 
 ---
 
@@ -198,6 +283,7 @@ https://192.168.1.202:8006  # Inter-host LAN
 |---------|------|-------|------|-----------|-------|
 | base | zfspool | 1.75TB | 1.23TB | 533MB | 70% PRIMARY |
 | bkp | dir | 593MB | 60MB | 533MB | 10% |
+| **ct138-nfs** | **nfs** | **15GB** | **1.7GB** | **12GB** | **11% NFS** |
 | games | dir | 65GB | 36GB | 29GB | 55% |
 | local | dir | 65GB | 36GB | 29GB | 55% |
 | local-lvm | lvmthin | 130GB | 12GB | 117GB | 9% |

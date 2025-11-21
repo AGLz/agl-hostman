@@ -1,0 +1,30 @@
+{
+  "name": "agl-switch-discovery-tests",
+  "version": "1.0.0",
+  "description": "OMAY OM-S107C-62TS switch discovery verification test suite",
+  "main": "switch-verification-tests.js",
+  "scripts": {
+    "test": "node switch-verification-tests.js",
+    "quick": "node quick-test.js",
+    "install-deps": "npm install node-fetch ping dns"
+  },
+  "keywords": [
+    "network",
+    "switch",
+    "discovery",
+    "verification",
+    "omay",
+    "testing",
+    "hive-mind"
+  ],
+  "author": "Tester Agent (Hive Mind Swarm)",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "ping": "^0.4.4"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

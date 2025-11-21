@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  app:
+    image: harbor.aglz.io:5000/agl-hostman-uat/agl-hostman:latest
+    container_name: agl-hostman-uat
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      # Application
+      APP_NAME: "AGL Hostman UAT"
+      APP_ENV: uat
+      APP_DEBUG: "false"
+      APP_URL: https://uat-agl.aglz.io
+
+      # Database
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: agl_hostman_uat
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # Cache & Sessions
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+
+      # Logging
+      LOG_CHANNEL: stack
+      LOG_LEVEL: warning
+
+      # Mail
+      MAIL_MAILER: smtp
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: uat@aglz.io
+      MAIL_FROM_NAME: "AGL Hostman UAT"
+
+      # Dokploy
+      DOKPLOY_API_URL: http://192.168.0.181:3000
+      DOKPLOY_TOKEN: ${DOKPLOY_TOKEN}
+
+      # Harbor
+      HARBOR_REGISTRY: harbor.aglz.io:5000
+      HARBOR_PROJECT: agl-hostman-uat
+      HARBOR_USERNAME: ${HARBOR_USERNAME}
+      HARBOR_PASSWORD: ${HARBOR_PASSWORD}
+
+      # Deployment
+      DEPLOYMENT_RUN_TESTS: "true"
+      DEPLOYMENT_TEST_TYPE: smoke
+      DEPLOYMENT_ROLLBACK_ON_FAILURE: "true"
+      DEPLOYMENT_APPROVAL_REQUIRED: "true"
+      DEPLOYMENT_APPROVER_ROLES: admin,lead-developer
+
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+
+    networks:
+      - uat-network
+
+    depends_on:
+      - postgres
+      - redis
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+        reservations:
+          cpus: '1'
+          memory: 2048M
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: agl-hostman-uat-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: agl_hostman_uat
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - uat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d agl_hostman_uat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: agl-hostman-uat-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - uat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+networks:
+  uat-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local

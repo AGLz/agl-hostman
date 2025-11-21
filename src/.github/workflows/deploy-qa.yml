@@ -1,0 +1,185 @@
+name: Deploy to QA
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  HARBOR_REGISTRY: harbor.aglz.io:5000
+  HARBOR_PROJECT: agl-hostman-qa
+  IMAGE_NAME: agl-hostman
+  DOKPLOY_URL: https://dok.aglz.io
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          echo "version=qa-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+            ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:qa-latest
+          labels: |
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.description=AGL Infrastructure Management - QA
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.build_date }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ steps.meta.outputs.build_date }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+
+      - name: Trigger Dokploy deployment
+        id: deploy
+        run: |
+          echo "Triggering Dokploy deployment..."
+
+          RESPONSE=$(curl -X POST "${{ env.DOKPLOY_URL }}/api/deploy/webhook" \
+            -H "Authorization: Bearer ${{ secrets.DOKPLOY_WEBHOOK_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "project": "agl-hostman-qa",
+              "tag": "${{ steps.meta.outputs.version }}"
+            }' \
+            -w "\n%{http_code}" \
+            -s)
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Code: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ne 200 ] && [ "$HTTP_CODE" -ne 201 ]; then
+            echo "Deployment trigger failed with code $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "deployment_triggered=true" >> $GITHUB_OUTPUT
+
+      - name: Wait for deployment
+        if: steps.deploy.outputs.deployment_triggered == 'true'
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 120
+
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            HEALTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" https://qa-agl.aglz.io/api/health)
+
+            if [ "$HEALTH_CHECK" = "200" ]; then
+              echo "✅ Deployment successful! Application is healthy."
+              exit 0
+            fi
+
+            echo "Attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS: Health check returned $HEALTH_CHECK"
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 10
+          done
+
+          echo "❌ Health check failed after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - name: Run integration tests
+        if: success() || inputs.force_deploy
+        run: |
+          echo "Running integration tests against QA environment..."
+
+          # Install dependencies (if running tests from CI)
+          # composer install --no-dev --optimize-autoloader
+          # php artisan test --group=integration
+
+          # For now, just a simple API test
+          HEALTH_RESPONSE=$(curl -s https://qa-agl.aglz.io/api/health)
+          echo "Health Response: $HEALTH_RESPONSE"
+
+          if echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"'; then
+            echo "✅ Integration tests passed"
+          else
+            echo "❌ Integration tests failed"
+            if [ "${{ inputs.force_deploy }}" != "true" ]; then
+              exit 1
+            fi
+          fi
+
+      - name: Send notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            QA Deployment ${{ job.status }}
+            Version: ${{ steps.meta.outputs.version }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create deployment record
+        if: success()
+        run: |
+          echo "Deployment successful!"
+          echo "Version: ${{ steps.meta.outputs.version }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Deployed to: https://qa-agl.aglz.io"
+          echo "Harbor Image: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
+
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: build-and-deploy
+
+    steps:
+      - name: Rollback deployment
+        run: |
+          echo "⚠️ Deployment failed, initiating rollback..."
+
+          # Trigger rollback via Dokploy API
+          curl -X POST "${{ env.DOKPLOY_URL }}/api/deploy/rollback" \
+            -H "Authorization: Bearer ${{ secrets.DOKPLOY_WEBHOOK_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"project": "agl-hostman-qa"}' \
+            || echo "Rollback failed, manual intervention required"

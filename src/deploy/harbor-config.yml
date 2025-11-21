@@ -1,0 +1,59 @@
+# Harbor Registry Configuration for AGL Infrastructure Admin
+# Harbor URL: harbor.aglz.io:5000
+
+# Build and push configuration
+project:
+  name: agl-infrastructure
+  registry: harbor.aglz.io:5000
+  
+images:
+  - name: agl-hostman-app
+    dockerfile: Dockerfile
+    context: .
+    tag: latest
+    push: true
+    
+  - name: agl-hostman-nginx
+    dockerfile: docker/nginx/Dockerfile
+    context: .
+    tag: latest
+    push: true
+    
+  - name: agl-hostman-horizon
+    dockerfile: docker/horizon/Dockerfile
+    context: .
+    tag: latest
+    push: true
+
+# Webhook configuration for Dokploy
+webhooks:
+  dokploy:
+    url: https://dok.aglz.io/api/webhooks/harbor
+    events:
+      - push
+      - pull
+    
+# CI/CD pipeline
+pipeline:
+  stages:
+    - build
+    - test
+    - push
+    - deploy
+    
+  build:
+    script:
+      - docker build -t ${REGISTRY}/${PROJECT}/${IMAGE}:${TAG} .
+      
+  test:
+    script:
+      - docker run --rm ${REGISTRY}/${PROJECT}/${IMAGE}:${TAG} php artisan test
+      
+  push:
+    script:
+      - docker login -u ${HARBOR_USER} -p ${HARBOR_PASSWORD} ${REGISTRY}
+      - docker push ${REGISTRY}/${PROJECT}/${IMAGE}:${TAG}
+      
+  deploy:
+    script:
+      - curl -X POST ${DOKPLOY_WEBHOOK_URL} -H "Content-Type: application/json" -d '{"image":"${REGISTRY}/${PROJECT}/${IMAGE}:${TAG}"}'

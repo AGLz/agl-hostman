@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         executionOrder="random"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         cacheDirectory=".phpunit.cache"
+         requireCoverageMetadata="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+        <exclude>
+            <directory>app/Console</directory>
+            <directory>app/Providers</directory>
+            <file>app/Http/Controllers/Controller.php</file>
+        </exclude>
+    </source>
+
+    <coverage includeUncoveredFiles="true"
+              pathCoverage="false"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="true">
+        <report>
+            <html outputDirectory="coverage/html"/>
+            <clover outputFile="coverage/clover.xml"/>
+            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+        </report>
+    </coverage>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:2fl3eeOoL4aS1FGHjfYpGxSLnPEZmcEJqBNBXGbPQ78="/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+
+        <!-- Proxmox Testing -->
+        <env name="PROXMOX_HOST" value="test.proxmox.local"/>
+        <env name="PROXMOX_PORT" value="8006"/>
+        <env name="PROXMOX_USER" value="test@pam"/>
+        <env name="PROXMOX_PASSWORD" value="test-password"/>
+
+        <!-- N8N Testing -->
+        <env name="N8N_WEBHOOK_URL" value="http://test.n8n.local/webhook"/>
+        <env name="N8N_API_KEY" value="test-n8n-key"/>
+
+        <!-- WorkOS Testing -->
+        <env name="WORKOS_API_KEY" value="test_workos_key"/>
+        <env name="WORKOS_CLIENT_ID" value="test_client_id"/>
+
+        <!-- Dokploy Testing -->
+        <env name="DOKPLOY_BASE_URL" value="https://dok.aglz.io"/>
+        <env name="DOKPLOY_API_KEY" value="test-dokploy-api-key"/>
+        <env name="HARBOR_URL" value="harbor.aglz.io:5000"/>
+        <env name="HARBOR_PROJECT" value="agl"/>
+
+        <!-- Performance Testing -->
+        <env name="TEST_PERFORMANCE_THRESHOLD_MS" value="200"/>
+        <env name="TEST_MEMORY_LIMIT_MB" value="128"/>
+    </php>
+</phpunit>
