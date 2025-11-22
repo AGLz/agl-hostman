@@ -10,6 +10,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -157,7 +161,7 @@ jobs:
           curl -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{
-              "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.environment }}:${{ github.sha }}",
+              "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.environment }}-${{ github.sha }}",
               "environment": "${{ matrix.environment }}"
             }'
 
@@ -196,7 +200,7 @@ jobs:
           curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL_PRODUCTION }} \
             -H "Content-Type: application/json" \
             -d '{
-              "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-production:${{ github.sha }}",
+              "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production-${{ github.sha }}",
               "environment": "production"
             }'
 
