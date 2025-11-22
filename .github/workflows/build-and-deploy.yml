@@ -17,10 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        environment: [qa, uat, production]
-        exclude:
-          # Production builds only on main branch
-          - environment: production
+        environment: [qa, uat]
 
     steps:
       - name: Checkout code
@@ -147,8 +144,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Dokploy via webhook
+        env:
+          WEBHOOK_URL_QA: ${{ secrets.DOKPLOY_WEBHOOK_URL_QA }}
+          WEBHOOK_URL_UAT: ${{ secrets.DOKPLOY_WEBHOOK_URL_UAT }}
         run: |
-          curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL_${{ matrix.environment }} }} \
+          if [ "${{ matrix.environment }}" = "qa" ]; then
+            WEBHOOK_URL="$WEBHOOK_URL_QA"
+          elif [ "${{ matrix.environment }}" = "uat" ]; then
+            WEBHOOK_URL="$WEBHOOK_URL_UAT"
+          fi
+
+          curl -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{
               "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.environment }}:${{ github.sha }}",
@@ -156,10 +162,19 @@ jobs:
             }'
 
       - name: Verify deployment
+        env:
+          APP_URL_QA: ${{ secrets.APP_URL_QA }}
+          APP_URL_UAT: ${{ secrets.APP_URL_UAT }}
         run: |
           sleep 30
-          HEALTH_URL="${{ secrets.APP_URL_${{ matrix.environment }} }}/health"
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+
+          if [ "${{ matrix.environment }}" = "qa" ]; then
+            HEALTH_URL="$APP_URL_QA/health"
+          elif [ "${{ matrix.environment }}" = "uat" ]; then
+            HEALTH_URL="$APP_URL_UAT/health"
+          fi
+
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
           if [ "$RESPONSE" = "200" ]; then
             echo "✅ Deployment successful - Health check passed"
           else
