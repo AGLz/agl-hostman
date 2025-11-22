@@ -92,8 +92,9 @@ Dockerfile.dev
 !.github/workflows/
 
 # Package manager files
-package-lock.json
-composer.lock
+# NOTE: Lock files are REQUIRED for Docker multi-stage builds
+# They are needed for dependency caching in node-builder and composer-builder stages
+# DO NOT exclude: package-lock.json, composer.lock
 yarn.lock
 
 # Deployment scripts
