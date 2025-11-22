@@ -22,7 +22,7 @@ return [
     | This key is used for all Dokploy API requests via x-api-key header
     |
     */
-    'api_key' => env('DOKPLOY_API_KEY'),
+    'api_key' => env('DOKPLOY_API_KEY', 'dummy-build-token'),
 
     /*
     |--------------------------------------------------------------------------
