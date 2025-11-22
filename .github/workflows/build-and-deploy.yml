@@ -7,8 +7,8 @@ on:
     branches: [develop]
 
 env:
-  REGISTRY: harbor.aglz.io:5000
-  IMAGE_NAME: agl-hostman
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -60,13 +60,13 @@ jobs:
             network=host
             image=moby/buildkit:v0.12.0
 
-      # Login to Harbor Registry
-      - name: Login to Harbor
+      # Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # Cache Strategy 4: Docker Layer Cache
       - name: Build and push Docker image
@@ -76,11 +76,11 @@ jobs:
           context: ./src
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.environment }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.environment }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.environment }}-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.environment }}-${{ github.sha }}
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.environment }}
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.environment }}:latest
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.environment }}-latest
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.environment }},mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
