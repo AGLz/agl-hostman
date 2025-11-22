@@ -351,3 +351,58 @@ Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
         ]);
     })->name('promotion.history');
 });
+// Promotion workflow routes
+Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
+    // Pipeline overview
+    Route::get('/pipeline', [App\Http\Controllers\PromotionDashboardController::class, 'getPromotionPipeline']);
+    Route::get('/metrics', [App\Http\Controllers\PromotionDashboardController::class, 'getPromotionMetrics']);
+    Route::get('/active', [App\Http\Controllers\PromotionDashboardController::class, 'getActivePromotions']);
+    Route::get('/history', [App\Http\Controllers\PromotionDashboardController::class, 'getPromotionHistory']);
+    
+    // Promotion actions
+    Route::post('/qa-to-uat', [App\Http\Controllers\PromotionController::class, 'promoteQAtoUAT']);
+    Route::post('/uat-to-production', [App\Http\Controllers\PromotionController::class, 'promoteUATtoProduction']);
+    
+    // Approval workflow
+    Route::post('/{id}/approve', [App\Http\Controllers\PromotionController::class, 'approvePromotion'])
+        ->middleware('role:admin,lead-developer');
+    Route::post('/{id}/reject', [App\Http\Controllers\PromotionController::class, 'rejectPromotion'])
+        ->middleware('role:admin,lead-developer');
+    Route::get('/{id}/approvals', [App\Http\Controllers\PromotionController::class, 'getApprovalStatus']);
+    Route::get('/pending-approvals', [App\Http\Controllers\PromotionController::class, 'getPendingApprovals']);
+    
+    // Rollback
+    Route::post('/{id}/rollback', [App\Http\Controllers\PromotionController::class, 'rollbackPromotion']);
+});
+
+// GitHub webhook routes
+Route::prefix('webhooks/github')->group(function () {
+    Route::post('/push', [App\Http\Controllers\GitHubWebhookController::class, 'handlePush']);
+    Route::post('/workflow-run', [App\Http\Controllers\GitHubWebhookController::class, 'handleWorkflowRun']);
+});
+
+// ========== Build Metrics API Routes (Phase 4.1) ==========
+Route::prefix('build')->group(function () {
+    // Public webhook endpoint for CI/CD to record metrics (no auth - secured by URL pattern)
+    Route::post('/metrics/record', [App\Http\Controllers\BuildMetricsController::class, 'recordMetrics'])
+        ->name('build.metrics.record')
+        ->middleware('throttle:60,1'); // Max 60 requests per minute
+
+    // Authenticated endpoints for viewing metrics
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/metrics/latest', [App\Http\Controllers\BuildMetricsController::class, 'getLatestMetrics'])
+            ->name('build.metrics.latest');
+
+        Route::get('/metrics/history', [App\Http\Controllers\BuildMetricsController::class, 'getBuildHistory'])
+            ->name('build.metrics.history');
+
+        Route::get('/metrics/trends', [App\Http\Controllers\BuildMetricsController::class, 'getBuildTrends'])
+            ->name('build.metrics.trends');
+
+        Route::get('/metrics/environment/{environment}', [App\Http\Controllers\BuildMetricsController::class, 'getEnvironmentMetrics'])
+            ->name('build.metrics.environment');
+
+        Route::get('/metrics/comparison', [App\Http\Controllers\BuildMetricsController::class, 'getComparison'])
+            ->name('build.metrics.comparison');
+    });
+});

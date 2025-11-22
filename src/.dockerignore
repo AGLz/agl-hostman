@@ -1,0 +1,105 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Documentation
+*.md
+docs/
+README.md
+CHANGELOG.md
+LICENSE
+
+# IDE and editor files
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.editorconfig
+
+# Node modules (will be installed in container)
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm/
+.yarn/
+
+# Vendor (will be installed in container)
+vendor/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+tests/
+phpunit.xml
+.phpunit.result.cache
+Pest.php
+coverage/
+.pest/
+
+# Build artifacts
+storage/logs/*
+!storage/logs/.gitkeep
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+storage/framework/testing/*
+!storage/framework/testing/.gitkeep
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+public/hot
+public/storage
+public/build
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.log
+*.cache
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Development tools
+.claude-flow/
+.hive-mind/
+.swarm/
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile.dev
+
+# CI/CD (keep workflows)
+!.github/workflows/
+
+# Package manager files
+package-lock.json
+composer.lock
+yarn.lock
+
+# Deployment scripts
+deploy/
+deploy.sh
+scripts/deploy/
+
+# Local configuration
+vite.config.js.timestamp-*

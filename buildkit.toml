@@ -1,0 +1,92 @@
+# BuildKit daemon configuration
+# Optimized for Docker layer caching and Harbor registry integration
+
+[worker.oci]
+  max-parallelism = 4
+  # Enable garbage collection
+  gc = true
+  gckeepstorage = 10737418240  # 10 GB
+  # Policy: keep cache under 10GB, run GC when exceeded
+  [[worker.oci.gcpolicy]]
+    keepBytes = 10737418240
+    keepDuration = 604800  # 7 days in seconds
+    filters = ["type==source.local,type==exec.cachemount,type==source.git.checkout"]
+
+[worker.containerd]
+  enabled = true
+  namespace = "buildkit"
+  # Snapshotter configuration
+  snapshotter = "overlayfs"
+
+# Harbor Registry Configuration
+[registry."harbor.aglz.io:5000"]
+  http = false
+  insecure = false
+  # CA certificate path (update if using self-signed certs)
+  # ca = ["/etc/ssl/certs/harbor-ca.crt"]
+
+  # Mirror configuration for proxy cache
+  [[registry."harbor.aglz.io:5000".mirrors]]
+    endpoint = ["https://harbor.aglz.io:5000"]
+
+# Docker Hub proxy through Harbor
+[registry."docker.io"]
+  mirrors = ["https://harbor.aglz.io:5000/dockerhub-proxy"]
+
+# Cache configuration
+[cache]
+  # Enable inline cache for maximum reuse
+  mode = "max"
+
+  # Cache retention policy
+  keep-bytes = 10737418240  # 10 GB
+  keep-duration = 604800     # 7 days
+
+  # Cache import/export
+  [[cache.exporters]]
+    type = "registry"
+    mode = "max"
+    compression = "gzip"
+
+  [[cache.importers]]
+    type = "registry"
+
+# Debug settings (disable in production)
+[debug]
+  # Enable debug logs (set to false in production)
+  enable = false
+
+# GRPC settings
+[grpc]
+  address = ["unix:///run/buildkit/buildkitd.sock"]
+  uid = 0
+  gid = 0
+  debugAddress = "0.0.0.0:6060"
+
+# Frontend settings
+[frontend]
+  # Enable Dockerfile frontend
+  [[frontend.sources]]
+    type = "dockerfile"
+
+# History settings
+[history]
+  # Maximum age of build history to keep
+  maxAge = 2592000  # 30 days
+  maxEntries = 100
+
+# Network settings
+[network]
+  # Default network mode for build containers
+  mode = "host"
+
+# Security settings
+[security]
+  # Enable content trust
+  insecure-entitlements = []
+
+# DNS settings
+[dns]
+  nameservers = ["8.8.8.8", "8.8.4.4"]
+  options = []
+  searches = []
