@@ -29,6 +29,7 @@
 | **Container** | CT180 (dokploy) |
 | **Host** | AGLSRV1 (192.168.0.245) |
 | **LAN IP** | 192.168.0.180 |
+| **WireGuard IP** | 10.6.0.47 |
 | **Public URL** | https://dok.aglz.io |
 | **Alternative Access** | http://192.168.0.180:3000 (local) |
 | **Technology** | Docker-based deployment platform |
@@ -55,6 +56,9 @@
 # LAN access (fastest)
 curl http://192.168.0.180:3000
 
+# WireGuard access
+curl http://10.6.0.47:3000
+
 # Public access (with SSL)
 curl https://dok.aglz.io
 ```
@@ -71,8 +75,9 @@ curl https://dok.aglz.io
 **CT180 (dokploy)** on AGLSRV1:
 - **OS**: Ubuntu/Debian (LXC container)
 - **Docker**: Installed via Dokploy installer
-- **Network**: LAN (192.168.0.180)
-- **Storage**: Local container storage
+- **Network**: LAN (192.168.0.180), WireGuard (10.6.0.47)
+- **Storage**: Local container storage (100GB, 4.1GB usado)
+- **Resources**: 8 cores CPU, 16GB RAM (591MB usado)
 - **Cloudflare**: Proxied via dok.aglz.io
 
 **Key Services**:

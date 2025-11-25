@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # Green Environment - Standby Application Instances
+  app-green-1:
+    image: harbor.aglz.io:5000/agl-hostman-prod:${GREEN_VERSION:-latest}
+    container_name: agl-hostman-prod-green-1
+    restart: always
+    networks:
+      - production
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=postgres-primary
+      - DB_DATABASE=agl_hostman_prod
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-sentinel
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SLOT_NAME=green
+      - INSTANCE_ID=green-1
+    ports:
+      - "3002:3000"
+    volumes:
+      - green-logs:/app/storage/logs
+      - green-data:/app/storage/app
+    deploy:
+      replicas: 0  # Initially inactive
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8192M
+        reservations:
+          cpus: '2'
+          memory: 4096M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.agl.environment=production"
+      - "com.agl.slot=green"
+      - "com.agl.instance=1"
+
+  app-green-2:
+    image: harbor.aglz.io:5000/agl-hostman-prod:${GREEN_VERSION:-latest}
+    container_name: agl-hostman-prod-green-2
+    restart: always
+    networks:
+      - production
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=postgres-primary
+      - DB_DATABASE=agl_hostman_prod
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-sentinel
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SLOT_NAME=green
+      - INSTANCE_ID=green-2
+    ports:
+      - "3003:3000"
+    volumes:
+      - green-logs:/app/storage/logs
+      - green-data:/app/storage/app
+    deploy:
+      replicas: 0  # Initially inactive
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8192M
+        reservations:
+          cpus: '2'
+          memory: 4096M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.agl.environment=production"
+      - "com.agl.slot=green"
+      - "com.agl.instance=2"
+
+networks:
+  production:
+    external: true
+
+volumes:
+  green-logs:
+    driver: local
+  green-data:
+    driver: local

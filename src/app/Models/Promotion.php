@@ -35,8 +35,14 @@ class Promotion extends Model
         'requested_at',
         'approved_at',
         'completed_at',
+        'rolled_back_at',
         'approval_notes',
         'smoke_test_results',
+        'deployment_logs',
+        'rollback_reason',
+        'is_automatic',
+        'requires_approvals',
+        'approval_deadline',
     ];
 
     /**
@@ -48,17 +54,25 @@ class Promotion extends Model
         'requested_at' => 'datetime',
         'approved_at' => 'datetime',
         'completed_at' => 'datetime',
+        'rolled_back_at' => 'datetime',
+        'approval_deadline' => 'datetime',
         'smoke_test_results' => 'array',
+        'deployment_logs' => 'array',
+        'approved_by' => 'array',
+        'is_automatic' => 'boolean',
     ];
 
     /**
      * Possible promotion statuses
      */
-    public const STATUS_PENDING = 'pending';
+    public const STATUS_PENDING = 'pending_approval';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_REJECTED = 'rejected';
+    public const STATUS_DEPLOYING = 'deploying';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_FAILED = 'failed';
+    public const STATUS_ROLLED_BACK = 'rolled_back';
+    public const STATUS_EXPIRED = 'expired';
 
     /**
      * Get source environment
@@ -247,5 +261,45 @@ class Promotion extends Model
         })->whereHas('targetEnvironment', function ($q) use ($targetType) {
             $q->where('type', $targetType);
         });
+    }
+
+    /**
+     * Get production approvals
+     */
+    public function approvals()
+    {
+        return $this->hasMany(ProductionApproval::class);
+    }
+
+    /**
+     * Check if approved by user
+     */
+    public function isApprovedBy(User $user): bool
+    {
+        return in_array($user->id, $this->approved_by ?? []);
+    }
+
+    /**
+     * Get remaining approvals needed
+     */
+    public function getRemainingApprovals(): int
+    {
+        return max(0, $this->requires_approvals - count($this->approved_by ?? []));
+    }
+
+    /**
+     * Scope: Get pending approval promotions
+     */
+    public function scopePendingApproval($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * Scope: Get ready for deployment promotions
+     */
+    public function scopeReadyForDeployment($query)
+    {
+        return $query->where('status', self::STATUS_APPROVED);
     }
 }

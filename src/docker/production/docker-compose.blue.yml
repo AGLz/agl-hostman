@@ -1,0 +1,223 @@
+version: '3.8'
+
+services:
+  # Blue Environment - Primary Application Instances
+  app-blue-1:
+    image: harbor.aglz.io:5000/agl-hostman-prod:${BLUE_VERSION:-latest}
+    container_name: agl-hostman-prod-blue-1
+    restart: always
+    networks:
+      - production
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=postgres-primary
+      - DB_DATABASE=agl_hostman_prod
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-sentinel
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SLOT_NAME=blue
+      - INSTANCE_ID=blue-1
+    ports:
+      - "3000:3000"
+    volumes:
+      - blue-logs:/app/storage/logs
+      - blue-data:/app/storage/app
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8192M
+        reservations:
+          cpus: '2'
+          memory: 4096M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.agl.environment=production"
+      - "com.agl.slot=blue"
+      - "com.agl.instance=1"
+
+  app-blue-2:
+    image: harbor.aglz.io:5000/agl-hostman-prod:${BLUE_VERSION:-latest}
+    container_name: agl-hostman-prod-blue-2
+    restart: always
+    networks:
+      - production
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=postgres-primary
+      - DB_DATABASE=agl_hostman_prod
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-sentinel
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SLOT_NAME=blue
+      - INSTANCE_ID=blue-2
+    ports:
+      - "3001:3000"
+    volumes:
+      - blue-logs:/app/storage/logs
+      - blue-data:/app/storage/app
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8192M
+        reservations:
+          cpus: '2'
+          memory: 4096M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.agl.environment=production"
+      - "com.agl.slot=blue"
+      - "com.agl.instance=2"
+
+  # PostgreSQL Primary (Shared by both blue/green)
+  postgres-primary:
+    image: postgres:16-alpine
+    container_name: postgres-prod-primary
+    restart: always
+    networks:
+      - production
+    environment:
+      - POSTGRES_DB=agl_hostman_prod
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_REPLICATION_MODE=master
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
+    volumes:
+      - postgres-primary-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+        reservations:
+          memory: 2048M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "com.agl.service=database"
+      - "com.agl.role=primary"
+
+  # PostgreSQL Replica (Read replica for HA)
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: postgres-prod-replica
+    restart: always
+    networks:
+      - production
+    environment:
+      - POSTGRES_REPLICATION_MODE=slave
+      - POSTGRES_MASTER_HOST=postgres-primary
+      - POSTGRES_MASTER_PORT=5432
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+    depends_on:
+      - postgres-primary
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "com.agl.service=database"
+      - "com.agl.role=replica"
+
+  # Redis Sentinel for HA cache/queue
+  redis-master:
+    image: redis:7-alpine
+    container_name: redis-prod-master
+    restart: always
+    networks:
+      - production
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-master-data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "com.agl.service=cache"
+      - "com.agl.role=master"
+
+  redis-sentinel:
+    image: redis:7-alpine
+    container_name: redis-prod-sentinel
+    restart: always
+    networks:
+      - production
+    command: redis-sentinel /etc/redis/sentinel.conf
+    volumes:
+      - ./redis/sentinel.conf:/etc/redis/sentinel.conf:ro
+    depends_on:
+      - redis-master
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "com.agl.service=sentinel"
+
+networks:
+  production:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+volumes:
+  blue-logs:
+    driver: local
+  blue-data:
+    driver: local
+  postgres-primary-data:
+    driver: local
+  postgres-replica-data:
+    driver: local
+  redis-master-data:
+    driver: local
