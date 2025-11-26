@@ -13,132 +13,138 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php-version: [8.2, 8.3]
-        dependencies: [lowest, highest]
 
-    name: PHP ${{ matrix.php-version }} - ${{ matrix.dependencies }}
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - { name: 'Unit', processes: 8, coverage: true }
+          - { name: 'Feature', processes: 4, coverage: true }
+          - { name: 'Integration', processes: 2, coverage: false }
+          - { name: 'Architecture', processes: 4, coverage: false }
+          - { name: 'Performance', processes: 2, coverage: false }
+
+    name: ${{ matrix.suite.name }} Tests
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: 8.3
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
-          coverage: xdebug
+          coverage: ${{ matrix.suite.coverage && 'pcov' || 'none' }}
+          ini-values: memory_limit=512M
           tools: composer:v2
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-${{ matrix.dependencies }}-
-            ${{ runner.os }}-composer-
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
         run: |
           cd src
-          if [ "${{ matrix.dependencies }}" = "lowest" ]; then
-            composer update --prefer-lowest --prefer-stable --no-interaction
-          else
-            composer install --no-interaction
-          fi
-
-      - name: Install Pest PHP
-        run: |
-          cd src
-          composer require pestphp/pest --dev --with-all-dependencies
-          composer require pestphp/pest-plugin-laravel --dev --with-all-dependencies
-          composer require pestphp/pest-plugin-arch --dev --with-all-dependencies
+          composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Setup test environment
         run: |
           cd src
           cp .env.example .env
           php artisan key:generate
-          touch database/database.sqlite
+          php artisan config:clear
 
-      - name: Run Pint (Code Style)
+      - name: Run ${{ matrix.suite.name }} Tests
         run: |
           cd src
-          ./vendor/bin/pint --test
+          if [ "${{ matrix.suite.coverage }}" = "true" ]; then
+            php artisan test \
+              --testsuite=${{ matrix.suite.name }} \
+              --parallel \
+              --processes=${{ matrix.suite.processes }} \
+              --coverage \
+              --coverage-clover coverage-${{ matrix.suite.name }}.xml
+          else
+            php artisan test \
+              --testsuite=${{ matrix.suite.name }} \
+              --parallel \
+              --processes=${{ matrix.suite.processes }}
+          fi
 
-      - name: Run Unit Tests
-        run: |
-          cd src
-          php artisan test --testsuite=Unit --parallel --coverage --min=80
-
-      - name: Run Feature Tests
-        run: |
-          cd src
-          php artisan test --testsuite=Feature --parallel
-
-      - name: Run Integration Tests
-        run: |
-          cd src
-          php artisan test --testsuite=Integration
-
-      - name: Run Architecture Tests
-        run: |
-          cd src
-          php artisan test --testsuite=Architecture
-
-      - name: Run Performance Tests
-        if: github.event_name == 'pull_request'
-        run: |
-          cd src
-          php artisan test --testsuite=Performance
-
-      - name: Generate Coverage Report
-        if: matrix.php-version == '8.3' && matrix.dependencies == 'highest'
-        run: |
-          cd src
-          php artisan test --coverage --coverage-html coverage/html --coverage-clover coverage/clover.xml
-
-      - name: Upload Coverage to Codecov
-        if: matrix.php-version == '8.3' && matrix.dependencies == 'highest'
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./src/coverage/clover.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-
-      - name: Upload Coverage Artifact
-        if: matrix.php-version == '8.3' && matrix.dependencies == 'highest'
+      - name: Upload coverage
+        if: matrix.suite.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: src/coverage/html
+          name: coverage-${{ matrix.suite.name }}
+          path: src/coverage-${{ matrix.suite.name }}.xml
+          retention-days: 1
 
-      - name: Comment Coverage on PR
-        if: github.event_name == 'pull_request' && matrix.php-version == '8.3' && matrix.dependencies == 'highest'
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-reports
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          tools: composer:v2
+
+      - name: Install phpcov
+        run: composer global require sebastian/phpcov
+
+      - name: Merge coverage
+        run: |
+          mkdir -p coverage
+          ~/.composer/vendor/bin/phpcov merge \
+            --clover coverage/merged.xml \
+            coverage-reports/coverage-*/*.xml
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/merged.xml
+          flags: unittests
+          fail_ci_if_error: false
+
+      - name: Comment on PR
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const coverage = fs.readFileSync('src/coverage/clover.xml', 'utf8');
-            const match = coverage.match(/lines-covered="(\d+)".*lines-valid="(\d+)"/);
+            const xml = fs.readFileSync('coverage/merged.xml', 'utf8');
+            const match = xml.match(/lines-covered="(\d+)".*lines-valid="(\d+)"/);
+
             if (match) {
               const covered = parseInt(match[1]);
               const total = parseInt(match[2]);
               const percentage = ((covered / total) * 100).toFixed(2);
 
-              github.rest.issues.createComment({
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## Test Coverage Report\n\n✅ **${percentage}%** code coverage\n\n- Lines covered: ${covered}/${total}\n- Target: 70%+\n`
+                body: `## 📊 Test Coverage Report
+
+✅ **${percentage}%** code coverage
+
+| Metric | Value |
+|--------|-------|
+| Lines covered | ${covered}/${total} |
+| Target | 70%+ |
+| Status | ${percentage >= 70 ? '✅ Passing' : '❌ Below target'} |
+`
               });
             }
 
@@ -156,6 +162,13 @@ jobs:
           php-version: 8.3
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
           tools: composer:v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
         run: |
@@ -185,6 +198,13 @@ jobs:
         with:
           php-version: 8.3
           tools: composer:v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
         run: |

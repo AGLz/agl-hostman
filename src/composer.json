@@ -57,25 +57,28 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test --parallel"
+            "@php artisan test --parallel --processes=8"
         ],
         "test:coverage": [
             "@php artisan test --coverage --min=70"
         ],
         "test:unit": [
-            "@php artisan test --testsuite=Unit --parallel"
+            "@php artisan test --testsuite=Unit --parallel --processes=8"
         ],
         "test:feature": [
-            "@php artisan test --testsuite=Feature --parallel"
+            "@php artisan test --testsuite=Feature --parallel --processes=4"
         ],
         "test:integration": [
-            "@php artisan test --testsuite=Integration"
+            "@php artisan test --testsuite=Integration --parallel --processes=2"
         ],
         "test:architecture": [
-            "@php artisan test --testsuite=Architecture"
+            "@php artisan test --testsuite=Architecture --parallel --processes=4"
         ],
         "test:performance": [
-            "@php artisan test --testsuite=Performance"
+            "@php artisan test --testsuite=Performance --parallel --processes=2"
+        ],
+        "test:fast": [
+            "@php artisan test --parallel --processes=8 --without-coverage"
         ],
         "coverage:html": [
             "@php artisan test --coverage-html coverage/html"
