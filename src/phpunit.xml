@@ -9,6 +9,9 @@
          failOnWarning="true"
          cacheDirectory=".phpunit.cache"
          requireCoverageMetadata="true"
+         processIsolation="false"
+         resolveDependencies="true"
+         stopOnFailure="false"
 >
     <testsuites>
         <testsuite name="Unit">
@@ -51,6 +54,10 @@
     </coverage>
 
     <php>
+        <!-- Phase 4.2: Parallel Test Execution -->
+        <env name="PARALLEL_TESTS" value="true"/>
+
+        <!-- Application Configuration -->
         <env name="APP_ENV" value="testing"/>
         <env name="APP_KEY" value="base64:2fl3eeOoL4aS1FGHjfYpGxSLnPEZmcEJqBNBXGbPQ78="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

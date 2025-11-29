@@ -406,3 +406,46 @@ Route::prefix('build')->group(function () {
             ->name('build.metrics.comparison');
     });
 });
+
+// ========== Smart Notifications API Routes (Phase 4.3) ==========
+Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
+    // Notification channels
+    Route::apiResource('channels', App\Http\Controllers\NotificationChannelController::class);
+    Route::post('channels/{channel}/test', [App\Http\Controllers\NotificationChannelController::class, 'test'])
+        ->name('notifications.channels.test');
+    Route::get('channels/{channel}/statistics', [App\Http\Controllers\NotificationChannelController::class, 'statistics'])
+        ->name('notifications.channels.statistics');
+
+    // Notification rules
+    Route::apiResource('rules', App\Http\Controllers\NotificationRuleController::class);
+    Route::post('rules/reorder', [App\Http\Controllers\NotificationRuleController::class, 'reorder'])
+        ->name('notifications.rules.reorder');
+    Route::post('rules/{rule}/test', [App\Http\Controllers\NotificationRuleController::class, 'test'])
+        ->name('notifications.rules.test');
+
+    // On-call schedules
+    Route::get('on-call/current', [App\Http\Controllers\OnCallScheduleController::class, 'current'])
+        ->name('notifications.on-call.current');
+    Route::post('on-call/rotate', [App\Http\Controllers\OnCallScheduleController::class, 'rotate'])
+        ->name('notifications.on-call.rotate');
+    Route::get('on-call/history', [App\Http\Controllers\OnCallScheduleController::class, 'history'])
+        ->name('notifications.on-call.history');
+    Route::apiResource('on-call', App\Http\Controllers\OnCallScheduleController::class);
+});
+
+// Public webhook endpoints (no auth required)
+Route::post('webhooks/slack', [App\Http\Controllers\NotificationWebhookController::class, 'slackInteraction'])
+    ->name('webhooks.slack')
+    ->middleware('throttle:60,1');
+
+Route::post('webhooks/pagerduty', [App\Http\Controllers\NotificationWebhookController::class, 'pagerdutyWebhook'])
+    ->name('webhooks.pagerduty')
+    ->middleware('throttle:60,1');
+
+Route::post('webhooks/deployment', [App\Http\Controllers\NotificationWebhookController::class, 'deploymentWebhook'])
+    ->name('webhooks.deployment')
+    ->middleware('throttle:60,1');
+
+Route::post('webhooks/pr', [App\Http\Controllers\NotificationWebhookController::class, 'prWebhook'])
+    ->name('webhooks.pr')
+    ->middleware('throttle:60,1');

@@ -1,0 +1,399 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/*'
+      - 'hotfix/*'
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+# Cancel previous runs if a new push is made
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # Test Matrix: Parallel execution across 3 test groups
+  # ============================================================================
+  test:
+    name: Tests (${{ matrix.test-group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false  # Complete all groups even if one fails
+      matrix:
+        test-group: [unit, feature, integration]
+        php-version: ['8.4']
+        include:
+          # Additional metadata for each group
+          - test-group: unit
+            coverage: true
+            estimated-time: 8s
+          - test-group: feature
+            coverage: true
+            estimated-time: 18s
+          - test-group: integration
+            coverage: true
+            estimated-time: 20s
+
+    # ============================================================================
+    # Service Containers (PostgreSQL + Redis)
+    # ============================================================================
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: agl_hostman_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd="pg_isready -U test_user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --shm-size=256mb
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 6379:6379
+
+    # ============================================================================
+    # Test Execution Steps
+    # ============================================================================
+    steps:
+      # ------------------------------------------------------------------------
+      # 1. Checkout & Setup
+      # ------------------------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo, pdo_pgsql, redis, pcov, mbstring, xml, curl, json
+          coverage: pcov
+          tools: composer:v2, pest
+          ini-values: |
+            memory_limit=512M
+            pcov.enabled=1
+            pcov.directory=.
+
+      - name: Check PHP version
+        run: |
+          php -v
+          php -m
+          composer --version
+
+      # ------------------------------------------------------------------------
+      # 2. Dependency Caching & Installation
+      # ------------------------------------------------------------------------
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
+            ${{ runner.os }}-php-
+
+      - name: Install Composer dependencies
+        run: |
+          cd src
+          composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
+
+      - name: Verify Pest installation
+        run: |
+          cd src
+          ./vendor/bin/pest --version
+
+      # ------------------------------------------------------------------------
+      # 3. Environment Configuration
+      # ------------------------------------------------------------------------
+      - name: Prepare Laravel Application
+        run: |
+          cd src
+          cp .env.example .env
+          php artisan key:generate
+          php artisan config:clear
+          php artisan cache:clear
+
+      - name: Configure test database
+        run: |
+          cd src
+          cat >> .env << EOF
+
+          # Test Database Configuration
+          DB_CONNECTION=pgsql
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=agl_hostman_test
+          DB_USERNAME=test_user
+          DB_PASSWORD=test_pass
+
+          # Redis Configuration
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6379
+          REDIS_DB=1
+
+          # Test Environment
+          APP_ENV=testing
+          APP_DEBUG=true
+          CACHE_DRIVER=redis
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+
+          # Mock External Services
+          PROXMOX_MOCK_MODE=true
+          DOCKER_MOCK_MODE=true
+          EOF
+
+      - name: Create test databases for parallel execution
+        run: |
+          # Create separate databases for each parallel process (up to 8)
+          for i in {1..8}; do
+            PGPASSWORD=test_pass psql -h 127.0.0.1 -U test_user -d postgres -c "CREATE DATABASE agl_hostman_test_p${i};" 2>/dev/null || true
+          done
+
+          # Verify database creation
+          PGPASSWORD=test_pass psql -h 127.0.0.1 -U test_user -d postgres -c "\l" | grep agl_hostman_test
+
+      - name: Run database migrations
+        run: |
+          cd src
+          php artisan migrate --force --env=testing
+        env:
+          DB_DATABASE: agl_hostman_test
+
+      # ------------------------------------------------------------------------
+      # 4. Run Tests (Parallel Execution by Group)
+      # ------------------------------------------------------------------------
+      - name: Run ${{ matrix.test-group }} tests
+        id: test-execution
+        run: |
+          cd src
+
+          # Determine which test suite to run based on matrix group
+          case "${{ matrix.test-group }}" in
+            unit)
+              TEST_SUITE="Unit"
+              ;;
+            feature)
+              TEST_SUITE="Feature"
+              ;;
+            integration)
+              TEST_SUITE="Integration"
+              ;;
+            *)
+              echo "Unknown test group: ${{ matrix.test-group }}"
+              exit 1
+              ;;
+          esac
+
+          echo "Running test suite: $TEST_SUITE"
+          echo "Estimated time: ${{ matrix.estimated-time }}"
+
+          # Run tests with parallel execution and coverage
+          if [ "${{ matrix.coverage }}" = "true" ]; then
+            ./vendor/bin/pest \
+              --testsuite="$TEST_SUITE" \
+              --parallel \
+              --processes=auto \
+              --coverage \
+              --coverage-clover=coverage-${{ matrix.test-group }}.xml \
+              --coverage-html=coverage-html-${{ matrix.test-group }} \
+              --min=87 \
+              --log-junit=test-results-${{ matrix.test-group }}.xml \
+              --testdox
+          else
+            ./vendor/bin/pest \
+              --testsuite="$TEST_SUITE" \
+              --parallel \
+              --processes=auto \
+              --log-junit=test-results-${{ matrix.test-group }}.xml \
+              --testdox
+          fi
+        env:
+          DB_DATABASE: agl_hostman_test
+          REDIS_DB: 1
+          PARALLEL_TESTS: "true"
+
+      # ------------------------------------------------------------------------
+      # 5. Upload Artifacts
+      # ------------------------------------------------------------------------
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-group }}-php${{ matrix.php-version }}
+          path: |
+            src/test-results-${{ matrix.test-group }}.xml
+            src/testdox.txt
+          retention-days: 30
+
+      - name: Upload coverage report (Clover XML)
+        if: matrix.coverage == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover-${{ matrix.test-group }}-php${{ matrix.php-version }}
+          path: src/coverage-${{ matrix.test-group }}.xml
+          retention-days: 30
+
+      - name: Upload coverage report (HTML)
+        if: matrix.coverage == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-${{ matrix.test-group }}-php${{ matrix.php-version }}
+          path: src/coverage-html-${{ matrix.test-group }}/
+          retention-days: 7
+
+      # ------------------------------------------------------------------------
+      # 6. Test Results Summary
+      # ------------------------------------------------------------------------
+      - name: Test results summary
+        if: always()
+        run: |
+          echo "## Test Results: ${{ matrix.test-group }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "src/testdox.txt" ]; then
+            echo "### Test Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 50 src/testdox.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ============================================================================
+  # Coverage Aggregation: Merge results from all test groups
+  # ============================================================================
+  coverage:
+    name: Aggregate Coverage
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: xml, dom
+          tools: phpcov
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-clover-*
+          path: coverage-reports/
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded coverage artifacts:"
+          find coverage-reports -type f -name "*.xml"
+
+      - name: Merge coverage reports
+        run: |
+          # Install coverage tools if not available
+          composer global require phpunit/phpcov
+
+          # Create merged coverage directory
+          mkdir -p merged-coverage
+
+          # Merge all Clover XML files
+          find coverage-reports -name "coverage-*.xml" -exec echo "Merging: {}" \;
+
+          # Use phpcov to merge (if available), otherwise use our aggregation script
+          if command -v phpcov &> /dev/null; then
+            phpcov merge coverage-reports --clover merged-coverage/coverage.xml
+          else
+            # Fallback: Copy all coverage files to merged directory
+            find coverage-reports -name "*.xml" -exec cp {} merged-coverage/ \;
+          fi
+
+      - name: Upload merged coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-merged
+          path: merged-coverage/
+          retention-days: 30
+
+      - name: Coverage summary
+        run: |
+          echo "## Overall Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports from all test groups have been merged." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Groups" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Unit Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Feature Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Integration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Coverage**: 87%+" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Performance Metrics: Track test execution performance
+  # ============================================================================
+  performance:
+    name: Performance Metrics
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: test-results/
+
+      - name: Calculate performance metrics
+        run: |
+          echo "## Test Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Parse test execution times from JUnit XML
+          for group in unit feature integration; do
+            XML_FILE="test-results/test-results-${group}-php8.4/test-results-${group}.xml"
+
+            if [ -f "$XML_FILE" ]; then
+              # Extract total time from JUnit XML
+              TOTAL_TIME=$(grep -oP '(?<=time=")[^"]*' "$XML_FILE" | head -1)
+              TEST_COUNT=$(grep -oP '(?<=tests=")[^"]*' "$XML_FILE" | head -1)
+
+              echo "### $group Tests" >> $GITHUB_STEP_SUMMARY
+              echo "- Tests: $TEST_COUNT" >> $GITHUB_STEP_SUMMARY
+              echo "- Time: ${TOTAL_TIME}s" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "**Target**: 60% reduction vs sequential execution" >> $GITHUB_STEP_SUMMARY

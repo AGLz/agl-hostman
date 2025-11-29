@@ -1,0 +1,164 @@
+#############################################
+# Docker Compose Override for Local Development
+#############################################
+# This file optimizes the development workflow by:
+# 1. Enabling hot-reload without rebuilding containers
+# 2. Mounting source code as volumes for instant changes
+# 3. Using development build target with Xdebug
+# 4. Exposing additional debugging ports
+#
+# Usage:
+#   docker-compose up -d  (automatically uses this override)
+#   docker-compose -f docker-compose.yml up  (skip override)
+#
+# Phase 4.1: Build Pipeline Optimization
+# Last updated: 2025-11-27
+
+version: '3.8'
+
+services:
+  #############################################
+  # Application Service (Development Mode)
+  #############################################
+  app:
+    # Use development build target (includes Xdebug)
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      cache_from:
+        - type=local,src=/tmp/.buildx-cache
+      # Enable BuildKit for faster builds
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+
+    # Mount source code for hot-reload
+    volumes:
+      # Application code (enables live editing)
+      - ./app:/var/www/html/app
+      - ./resources:/var/www/html/resources
+      - ./routes:/var/www/html/routes
+      - ./config:/var/www/html/config
+      - ./database:/var/www/html/database
+
+      # Laravel storage (writable)
+      - ./storage:/var/www/html/storage
+
+      # Public assets (for Vite dev server)
+      - ./public:/var/www/html/public
+
+      # Composer and NPM (cached in named volumes)
+      - composer-cache:/root/.composer
+      - npm-cache:/root/.npm
+
+      # Configuration files
+      - ./composer.json:/var/www/html/composer.json
+      - ./package.json:/var/www/html/package.json
+      - ./vite.config.js:/var/www/html/vite.config.js
+      - ./.env:/var/www/html/.env
+
+    # Development environment variables
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - LOG_LEVEL=debug
+      - VITE_DEV_SERVER_HOST=0.0.0.0
+      - VITE_DEV_SERVER_PORT=5173
+      - XDEBUG_MODE=debug,coverage,develop
+      - XDEBUG_CONFIG=client_host=host.docker.internal client_port=9003
+
+    # Expose Xdebug port for IDE debugging
+    ports:
+      - "9003:9003"  # Xdebug
+      - "5173:5173"  # Vite dev server
+
+  #############################################
+  # Webserver Service (Development Mode)
+  #############################################
+  webserver:
+    volumes:
+      # Mount entire codebase for live updates
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d/
+
+    # Additional development ports
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8081:8081"  # Alternative HTTP port
+
+  #############################################
+  # Horizon Service (Development Mode)
+  #############################################
+  horizon:
+    build:
+      target: development
+
+    volumes:
+      # Mount application code for hot-reload
+      - ./app:/var/www/html/app
+      - ./config:/var/www/html/config
+      - ./storage:/var/www/html/storage
+      - ./.env:/var/www/html/.env
+
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - LOG_LEVEL=debug
+
+  #############################################
+  # Vite Dev Server (Frontend Hot Reload)
+  #############################################
+  vite:
+    image: node:20-alpine
+    container_name: agl-admin-vite
+    working_dir: /app
+    command: npm run dev
+    volumes:
+      - ./:/app
+      - npm-cache:/root/.npm
+      - /app/node_modules  # Exclude node_modules from sync
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_DEV_SERVER_HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true  # Better file watching in Docker
+    networks:
+      - agl-admin-network
+    depends_on:
+      - app
+
+#############################################
+# Development-Specific Volumes
+#############################################
+# These volumes cache dependencies to speed up container restarts
+volumes:
+  # Composer cache (PHP dependencies)
+  composer-cache:
+    driver: local
+
+  # NPM cache (Node.js dependencies)
+  npm-cache:
+    driver: local
+
+#############################################
+# Performance Notes
+#############################################
+# Hot-Reload Performance:
+# - Code changes: Instant (no rebuild)
+# - Composer changes: ~30 seconds (cache mount)
+# - NPM changes: ~45 seconds (cache mount)
+# - Dockerfile changes: ~2-3 minutes (cached layers)
+#
+# Development Workflow:
+# 1. Edit code in IDE -> Changes reflected instantly
+# 2. Add composer package -> composer install in container
+# 3. Add npm package -> npm install in container
+# 4. Debug with Xdebug -> Connect IDE to port 9003
+# 5. Frontend changes -> Vite hot-reload on port 5173
+#
+# Best Practices:
+# - Don't commit this file to production
+# - Use .env.local for development secrets
+# - Keep vendor/ and node_modules/ in .gitignore
+# - Run `docker-compose down -v` to clear caches

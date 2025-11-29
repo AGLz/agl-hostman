@@ -1,0 +1,113 @@
+{
+  "version": "1.0.0",
+  "description": "Dependency map for affected tests detection - maps source files to test files",
+  "generated": "2025-11-27",
+  "mappings": {
+    "app/Models/": [
+      "tests/Unit/Models/",
+      "tests/Feature/"
+    ],
+    "app/Services/": [
+      "tests/Unit/Services/"
+    ],
+    "app/Http/Controllers/": [
+      "tests/Feature/"
+    ],
+    "app/Console/Commands/": [
+      "tests/Feature/Console/"
+    ],
+    "routes/": [
+      "tests/Feature/"
+    ],
+    "config/": [
+      "tests/Feature/"
+    ],
+    "database/migrations/": [
+      "tests/Feature/Database/"
+    ]
+  },
+  "transitive_dependencies": {
+    "app/Services/Monitoring/MetricsCollector.php": [
+      "tests/Unit/Services/Monitoring/AlertServiceTest.php",
+      "tests/Unit/Services/Monitoring/NotificationServiceTest.php",
+      "tests/Feature/Monitoring/DashboardTest.php",
+      "tests/Feature/Monitoring/RealTimeMetricsTest.php"
+    ],
+    "app/Services/Monitoring/AlertService.php": [
+      "tests/Unit/Services/Monitoring/NotificationServiceTest.php",
+      "tests/Feature/Monitoring/AlertCenterTest.php"
+    ],
+    "app/Services/Deployment/DeploymentService.php": [
+      "tests/Unit/Services/Deployment/RollbackServiceTest.php",
+      "tests/Feature/Deployment/DeploymentWorkflowTest.php"
+    ],
+    "app/Services/Proxmox/ProxmoxApiService.php": [
+      "tests/Unit/Services/Monitoring/",
+      "tests/Feature/Infrastructure/"
+    ],
+    "app/Models/User.php": [
+      "tests/Feature/Auth/",
+      "tests/Feature/Api/",
+      "tests/Feature/Dashboard/"
+    ],
+    "app/Models/Container.php": [
+      "tests/Feature/Infrastructure/",
+      "tests/Feature/Monitoring/"
+    ],
+    "app/Models/Deployment.php": [
+      "tests/Feature/Deployment/",
+      "tests/Feature/Monitoring/",
+      "tests/Unit/Services/Metrics/"
+    ],
+    "app/Models/Alert.php": [
+      "tests/Feature/Monitoring/AlertCenterTest.php",
+      "tests/Unit/Services/Monitoring/AlertServiceTest.php",
+      "tests/Unit/Services/Metrics/DORAMetricsServiceTest.php"
+    ],
+    "app/Http/Middleware/Authenticate.php": [
+      "tests/Feature/Auth/",
+      "tests/Feature/Api/"
+    ],
+    "config/monitoring.php": [
+      "tests/Unit/Services/Monitoring/",
+      "tests/Feature/Monitoring/"
+    ],
+    "config/deployment.php": [
+      "tests/Unit/Services/Deployment/",
+      "tests/Feature/Deployment/"
+    ],
+    "config/scaling.php": [
+      "tests/Unit/Services/Scaling/",
+      "tests/Feature/Scaling/"
+    ]
+  },
+  "global_triggers": {
+    "composer.json": "all",
+    "phpunit.xml": "all",
+    ".env.example": "tests/Feature/",
+    "routes/api.php": "tests/Feature/Api/",
+    "routes/web.php": "tests/Feature/"
+  },
+  "test_categories": {
+    "fast": [
+      "tests/Unit/"
+    ],
+    "medium": [
+      "tests/Feature/"
+    ],
+    "slow": [
+      "tests/Integration/"
+    ]
+  },
+  "exclusions": {
+    "ignore_patterns": [
+      "*.md",
+      "*.txt",
+      ".github/",
+      "storage/",
+      "public/build/",
+      "node_modules/"
+    ],
+    "always_skip_tests": []
+  }
+}

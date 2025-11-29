@@ -1,0 +1,38 @@
+# Phase 5: Advanced Features & DORA Metrics - File Inventory
+
+## 1. Affected Tests Detection
+- scripts/detect-affected-tests.sh (386 lines)
+- tests/dependency-map.json (comprehensive mapping)
+- .github/workflows/pr-affected-tests.yml (GitHub Actions workflow)
+
+## 2. Auto-Scaling Service
+- app/Services/Scaling/AutoScalingService.php (550+ lines)
+- app/Models/ScalingEvent.php
+- config/scaling.php (comprehensive configuration)
+- database/migrations/2025_11_27_000001_create_scaling_events_table.php
+
+## 3. DORA Metrics
+- app/Services/Metrics/DORAMetricsService.php (600+ lines)
+- app/Models/DORAMetric.php
+- app/Console/Commands/DORAMetricsCalculate.php
+- database/migrations/2025_11_27_000002_create_dora_metrics_table.php
+
+## 4. Health Checks
+- app/Services/Health/HealthCheckService.php (280+ lines)
+- app/Console/Commands/HealthCheck.php (70+ lines)
+
+## 5. Training Documentation
+- docs/ONBOARDING.md (529 lines)
+- docs/DEPLOYMENT-GUIDE.md (stub)
+- docs/MONITORING-GUIDE.md (stub)
+- docs/API-DOCUMENTATION.md (stub)
+
+## 6. Scripts & Utilities
+- scripts/generate-phase5-files.sh
+- scripts/generate-documentation.sh
+- scripts/validate-phase5.sh
+
+## 7. Summary Documentation
+- docs/PHASE-5-SUMMARY.md (comprehensive summary)
+
+Total: 20+ files, 2,500+ lines of production code
