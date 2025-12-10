@@ -26,5 +26,15 @@ Thumbs.db
 # Build
 dist/
 build/
-*.tsbuildinfosrc-backup-*.tar.gz
+*.tsbuildinfo
 src-backup-*.tar.gz
+
+# Archives
+archive/
+
+# Claude-Flow / Hive Mind
+.claude-flow/metrics/
+.hive-mind/sessions/
+.swarm/memory.db*
+*.db-shm
+*.db-wal
