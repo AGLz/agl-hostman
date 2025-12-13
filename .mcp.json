@@ -1,5 +1,16 @@
 {
   "mcpServers": {
+    "dokploy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@ahdev/dokploy-mcp@latest"
+      ],
+      "env": {
+        "DOKPLOY_URL": "http://192.168.0.180:3000",
+        "DOKPLOY_API_KEY": "dsXeAeNn29zAMhkcdefcRhcDfwRx0xG2ZvkfkCHF-Rw"
+      }
+    },
     "claude-flow@alpha": {
       "type": "stdio",
       "command": "npx",
