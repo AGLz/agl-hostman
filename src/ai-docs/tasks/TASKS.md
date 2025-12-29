@@ -18,7 +18,11 @@
   - Tests: 3/3 PASSED
 
 ### 📋 Backlog Sprint
-- [ ] **TASK-007**: Setup authentication with WorkOS
+- [x] **TASK-007**: Setup authentication with WorkOS - DONE ✅
+  - Status: COMPLETED
+  - Assignee: Claude
+  - Priority: HIGH
+  - Implementation: OAuth2 flow complete
 - [ ] **TASK-008**: Create role-based access control system
 - [ ] **TASK-009**: Design shadcn UI dashboard
 
@@ -45,11 +49,11 @@
 - [ ] Configure backup system
 
 ## 📊 Métricas Sprint 1
-- **Velocity**: 6 story points
+- **Velocity**: 7 story points
 - **Burndown**: Ahead of schedule
 - **Blockers**: None
-- **Progress**: 40% (6/15 tasks)
-- **Recent Wins**: TASK-006 completed with all tests passing ✅
+- **Progress**: 47% (7/15 tasks)
+- **Recent Wins**: TASK-007 completed with full OAuth2 flow ✅
 
 ## 🚀 Definition of Done
 1. Código implementado e testado
