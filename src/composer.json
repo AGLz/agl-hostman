@@ -12,6 +12,7 @@
         "laravel/horizon": "^5.39",
         "laravel/reverb": "^1.6",
         "laravel/sanctum": "^4.2",
+        "laravel/socialite": "*",
         "laravel/telescope": "^5.15",
         "laravel/tinker": "^2.10.1",
         "predis/predis": "^3.2",

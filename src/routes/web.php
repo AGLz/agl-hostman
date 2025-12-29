@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\WorkOSController;
+use App\Http\Controllers\DashboardController;
 
 // Public routes
 Route::get('/', function () {
@@ -9,8 +10,15 @@ Route::get('/', function () {
 })->name('home');
 
 // WorkOS Authentication
-Route::get('/auth/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
-Route::get('/auth/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
+Route::prefix('auth')->group(function () {
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
+
+    Route::get('/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
+    Route::get('/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
+    Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
+});
 
 // Protected routes
 Route::middleware(['auth'])->group(function () {
