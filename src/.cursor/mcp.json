@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "laravel-boost": {
+      "type": "stdio",
+      "command": "php",
+      "args": [
+        "artisan",
+        "boost:mcp"
+      ],
+      "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src"
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
+    }
+  }
+}

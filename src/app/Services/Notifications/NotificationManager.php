@@ -199,14 +199,172 @@ class NotificationManager
      */
     protected function sendToEmail(string $type, mixed $data, array $options): array
     {
-        // TODO: Implement email notifications
-        // This would integrate with Laravel's mail system
+        try {
+            $recipients = $options['recipients'] ?? $this->getDefaultRecipients($type, $data);
 
-        return [
-            'success' => false,
-            'skipped' => true,
-            'reason' => 'Email notifications not yet implemented'
+            if (empty($recipients)) {
+                return [
+                    'success' => false,
+                    'error' => 'No email recipients specified'
+                ];
+            }
+
+            $subject = $this->generateEmailSubject($type, $data);
+            $view = $this->getEmailView($type);
+            $mailData = $this->prepareMailData($type, $data);
+
+            // Use Laravel's built-in mail functionality
+            $mailSent = false;
+            if (class_exists(\Illuminate\Support\Facades\Mail::class)) {
+
+                // Determine if this is a critical notification that should use queue
+                $shouldQueue = $options['queue'] ?? !($type === 'alert' && ($data->type ?? 'info') === 'critical');
+
+                if (method_exists(\Illuminate\Support\Facades\Mail::class, 'to')) {
+                    if ($shouldQueue && class_exists(\Illuminate\Support\Facades\Queue::class)) {
+                        // Queue the email for non-critical notifications
+                        foreach ($recipients as $recipient) {
+                            \Illuminate\Support\Facades\Queue::push(function ($job) use ($subject, $view, $mailData, $recipient) {
+                                try {
+                                    \Illuminate\Support\Facades\Mail::send($view, $mailData, function ($message) use ($subject, $recipient) {
+                                        $message->to($recipient)
+                                                ->subject($subject)
+                                                ->from(config('mail.from.address'), config('mail.from.name'));
+                                    });
+                                    $job->delete();
+                                } catch (\Exception $e) {
+                                    Log::error('Failed to send queued email', ['recipient' => $recipient, 'error' => $e->getMessage()]);
+                                    $job->failed();
+                                }
+                            });
+                        }
+                        $mailSent = true;
+                    } else {
+                        // Send immediately for critical alerts
+                        foreach ($recipients as $recipient) {
+                            try {
+                                \Illuminate\Support\Facades\Mail::send($view, $mailData, function ($message) use ($subject, $recipient) {
+                                    $message->to($recipient)
+                                            ->subject($subject)
+                                            ->from(config('mail.from.address'), config('mail.from.name'));
+                                });
+                                $mailSent = true;
+                            } catch (\Exception $e) {
+                                Log::error('Failed to send immediate email', ['recipient' => $recipient, 'error' => $e->getMessage()]);
+                                continue;
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback: use raw mail() function
+                    foreach ($recipients as $recipient) {
+                        $headers = "MIME-Version: 1.0\r\n";
+                        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+                        $headers .= "From: " . config('mail.from.address') . "\r\n";
+
+                        $messageBody = view($view, $mailData)->render();
+                        $mailSent = mail($recipient, $subject, $messageBody, $headers);
+                    }
+                }
+            }
+
+            return [
+                'success' => $mailSent,
+                'channel' => 'email',
+                'recipients_count' => count($recipients)
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Email notification failed', [
+                'type' => $type,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get default recipients for email notification
+     */
+    protected function getDefaultRecipients(string $type, mixed $data): array
+    {
+        $recipients = [];
+
+        $roles = match($type) {
+            'alert' => ['admin'],
+            'deployment' => ['admin', 'devops'],
+            'pr' => ['admin', 'developer'],
+            'custom' => ['admin'],
+            default => ['admin']
+        };
+
+        if (class_exists(\App\Models\User::class)) {
+            $users = \App\Models\User::whereHas('roles', function ($query) use ($roles) {
+                $query->whereIn('name', $roles);
+            })->get();
+
+            foreach ($users as $user) {
+                if ($user->email && $user->notification_preferences['email'][$type] ?? true) {
+                    $recipients[] = $user->email;
+                }
+            }
+        }
+
+        $adminEmail = config('notifications.admin_email');
+        if (empty($recipients) && $adminEmail) {
+            $recipients[] = $adminEmail;
+        }
+
+        return array_unique($recipients);
+    }
+
+    /**
+     * Generate email subject based on notification type
+     */
+    protected function generateEmailSubject(string $type, mixed $data): string
+    {
+        return match($type) {
+            'deployment' => sprintf('[Deployment %s] %s', strtoupper($data->status), $data->project_name ?? 'Unknown'),
+            'alert' => sprintf('[%s] %s', strtoupper($data->type ?? 'Alert'), $data->title ?? 'Alert Notification'),
+            'pr' => sprintf('[PR %s] %s by %s', strtoupper($data->pr_action ?? 'Updated'), $data->title ?? 'Unknown', $data->author ?? 'Unknown'),
+            'custom' => $data->title ?? 'Notification',
+            default => $data->title ?? 'AGL Infrastructure Notification'
+        };
+    }
+
+    /**
+     * Get email view based on notification type
+     */
+    protected function getEmailView(string $type): string
+    {
+        return match($type) {
+            'deployment' => 'emails.default.deployment',
+            'alert' => 'emails.default.alert',
+            'pr' => 'emails.default.pull-request',
+            'custom' => 'emails.default.custom',
+            default => 'emails.default.notification'
+        };
+    }
+
+    /**
+     * Prepare mail data for email template
+     */
+    protected function prepareMailData(string $type, mixed $data): array
+    {
+        $baseData = [
+            'title' => $this->generateEmailSubject($type, $data),
+            'timestamp' => now()->toDateTimeString(),
         ];
+
+        return array_merge($baseData, [
+            'notification' => $data,
+            'notification_type' => $type,
+        ]);
     }
 
     /**
