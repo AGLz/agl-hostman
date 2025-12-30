@@ -47,6 +47,12 @@ macOS-specific setup and configuration:
 - `macos-install-improvements.sh` - macOS installation improvements
 - `macos-ssh-config-update.sh` - SSH configuration automation
 
+### Network/
+Network and VPN configuration:
+- `setup-tailscale-ct178.sh` - Setup Tailscale no CT178 (aglfs1)
+- `setup-tailscale-storage.sh` - Tailscale distributed storage setup
+- `macos-ssh-config-update.sh` - SSH configuration automation
+
 ## Usage
 
 All scripts should be executed from the project root directory unless otherwise specified.

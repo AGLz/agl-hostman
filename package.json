@@ -66,12 +66,15 @@
     "jsdoc": "^4.0.3",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
+    "shadcn": "3.6.1",
     "supertest": "^6.3.4"
   },
   "jest": {
     "testEnvironment": "node",
     "coverageDirectory": "coverage",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
     "collectCoverageFrom": [
       "src/**/*.js",
       "!src/**/*.test.js",

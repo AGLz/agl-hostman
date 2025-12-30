@@ -1,18 +1,42 @@
 {
   "mcpServers": {
     "laravel-boost": {
+      "type": "stdio",
       "command": "php",
       "args": [
-        "./artisan",
+        "artisan",
         "boost:mcp"
-      ]
+      ],
+      "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src",
+      "env": {
+        "COMPOSER_ALLOW_SUPERUSER": "1"
+      }
     },
     "shadcn": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "shadcn@latest",
         "mcp"
-      ]
+      ],
+      "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src"
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp"
+      ],
+      "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman",
+      "env": {
+        "NODE_ENV": "development",
+        "PLAYWRIGHT_BROWSERS_PATH": "/root/.cache/ms-playwright"
+      }
+    },
+    "archon": {
+      "type": "sse",
+      "url": "http://192.168.0.183:8051/mcp",
+      "description": "Archon MCP server for project management, PRP workflows, and task automation"
     }
   }
 }

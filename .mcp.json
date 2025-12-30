@@ -36,6 +36,22 @@
         "agentic-payments@latest",
         "mcp"
       ]
+    },
+    "laravel-boost": {
+      "type": "stdio",
+      "command": "php",
+      "args": [
+        "/mnt/overpower/apps/dev/agl/agl-hostman/src/artisan",
+        "boost:mcp"
+      ],
+      "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src"
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
     }
   }
 }
