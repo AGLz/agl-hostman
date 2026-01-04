@@ -1,0 +1,35 @@
+{
+  "name": "greeting-module",
+  "version": "1.0.0",
+  "description": "A flexible greeting utility with multiple output formats",
+  "main": "src/greeting.ts",
+  "scripts": {
+    "demo": "ts-node src/demo.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "keywords": [
+    "greeting",
+    "terminal",
+    "ascii-art",
+    "typescript"
+  ],
+  "author": "Hive Mind Coder Agent",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.5.0",
+    "prettier": "^3.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,57 +1,39 @@
 {
   "mcpServers": {
-    "dokploy": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "@ahdev/dokploy-mcp@latest"
-      ],
-      "env": {
-        "DOKPLOY_URL": "http://192.168.0.180:3000",
-        "DOKPLOY_API_KEY": "dsXeAeNn29zAMhkcdefcRhcDfwRx0xG2ZvkfkCHF-Rw"
-      }
-    },
     "claude-flow@alpha": {
-      "type": "stdio",
       "command": "npx",
       "args": [
         "claude-flow@alpha",
         "mcp",
         "start"
-      ]
+      ],
+      "type": "stdio"
+    },
+    "ruv-swarm": {
+      "command": "npx",
+      "args": [
+        "ruv-swarm@latest",
+        "mcp",
+        "start"
+      ],
+      "type": "stdio"
     },
     "flow-nexus": {
-      "type": "stdio",
       "command": "npx",
       "args": [
         "flow-nexus@latest",
         "mcp",
         "start"
-      ]
+      ],
+      "type": "stdio"
     },
     "agentic-payments": {
-      "type": "stdio",
       "command": "npx",
       "args": [
         "agentic-payments@latest",
         "mcp"
-      ]
-    },
-    "laravel-boost": {
-      "type": "stdio",
-      "command": "php",
-      "args": [
-        "/mnt/overpower/apps/dev/agl/agl-hostman/src/artisan",
-        "boost:mcp"
       ],
-      "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src"
-    },
-    "shadcn": {
-      "command": "npx",
-      "args": [
-        "shadcn@latest",
-        "mcp"
-      ]
+      "type": "stdio"
     }
   }
 }

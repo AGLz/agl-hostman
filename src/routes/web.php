@@ -109,5 +109,60 @@ Route::middleware(['auth'])->prefix('network')->name('network.')->group(function
     Route::get('/topology', [\App\Http\Controllers\NetworkTopologyController::class, 'index'])->name('topology');
 });
 
+// Admin RBAC Routes
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Roles management - Read operations
+    Route::middleware(['permission:roles.view'])->prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\RolesController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\RolesController::class, 'create'])->name('create');
+        Route::get('/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'show'])->name('show');
+    });
+
+    // Roles management - Write operations
+    Route::middleware(['permission:roles.create'])->prefix('roles')->name('roles.')->group(function () {
+        Route::post('/', [\App\Http\Controllers\Admin\RolesController::class, 'store'])->name('store');
+    });
+
+    Route::middleware(['permission:roles.edit'])->prefix('roles')->name('roles.')->group(function () {
+        Route::get('/{role}/edit', [\App\Http\Controllers\Admin\RolesController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])->name('update');
+    });
+
+    Route::middleware(['permission:roles.delete'])->prefix('roles')->name('roles.')->group(function () {
+        Route::delete('/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])->name('destroy');
+    });
+
+    // Permissions management - Read operations
+    Route::middleware(['permission:permissions.view'])->prefix('permissions')->name('permissions.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PermissionsController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\PermissionsController::class, 'create'])->name('create');
+    });
+
+    // Permissions management - Write operations
+    Route::middleware(['permission:permissions.manage'])->prefix('permissions')->name('permissions.')->group(function () {
+        Route::post('/', [\App\Http\Controllers\Admin\PermissionsController::class, 'store'])->name('store');
+        Route::get('/{permission}/edit', [\App\Http\Controllers\Admin\PermissionsController::class, 'edit'])->name('edit');
+        Route::put('/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'update'])->name('update');
+        Route::delete('/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'destroy'])->name('destroy');
+    });
+
+    // User role & permission management
+    Route::middleware(['permission:users.assign_roles'])->prefix('users')->name('users.')->group(function () {
+        Route::get('/{user}/roles', [\App\Http\Controllers\Admin\UserRoleController::class, 'editRoles'])->name('roles.edit');
+        Route::put('/{user}/roles', [\App\Http\Controllers\Admin\UserRoleController::class, 'updateRoles'])->name('roles.update');
+        Route::delete('/{user}/roles/{role}', [\App\Http\Controllers\Admin\UserRoleController::class, 'removeRole'])->name('roles.remove');
+    });
+
+    Route::middleware(['permission:users.manage_permissions'])->prefix('users')->name('users.')->group(function () {
+        Route::get('/{user}/permissions', [\App\Http\Controllers\Admin\UserRoleController::class, 'editPermissions'])->name('permissions.edit');
+        Route::put('/{user}/permissions', [\App\Http\Controllers\Admin\UserRoleController::class, 'updatePermissions'])->name('permissions.update');
+        Route::delete('/{user}/permissions/{permission}', [\App\Http\Controllers\Admin\UserRoleController::class, 'removePermission'])->name('permissions.remove');
+    });
+
+    Route::middleware(['permission:users.view'])->prefix('users')->name('users.')->group(function () {
+        Route::get('/{user}/access', [\App\Http\Controllers\Admin\UserRoleController::class, 'showAccess'])->name('access');
+    });
+});
+
 // Dokploy Dashboard Routes
 require __DIR__.'/dokploy.php';

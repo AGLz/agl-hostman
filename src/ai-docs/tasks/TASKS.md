@@ -23,8 +23,16 @@
   - Assignee: Claude
   - Priority: HIGH
   - Implementation: OAuth2 flow complete
-- [ ] **TASK-008**: Create role-based access control system
-- [ ] **TASK-009**: Design shadcn UI dashboard
+- [x] **TASK-008**: Create role-based access control system - DONE ✅
+  - Status: COMPLETED
+  - Assignee: Claude
+  - Priority: HIGH
+  - Implementation: Full RBAC with Spatie Laravel Permission
+  - Files: 15+ created (models, controllers, views, tests, seeder)
+- [x] **TASK-009**: Design shadcn UI dashboard - DONE ✅
+  - Status: COMPLETED
+  - Assignee: Gemini
+  - Implementation: Premium dashboard with Sidebar, glassmorphism, and framer-motion animations. Integrated Shadcn UI components and WorkOS auth info.
 
 ### ✅ Concluído
 - [x] **TASK-001**: Research Laravel 12 best practices - DONE
@@ -49,11 +57,11 @@
 - [ ] Configure backup system
 
 ## 📊 Métricas Sprint 1
-- **Velocity**: 7 story points
+- **Velocity**: 9 story points
 - **Burndown**: Ahead of schedule
 - **Blockers**: None
-- **Progress**: 47% (7/15 tasks)
-- **Recent Wins**: TASK-007 completed with full OAuth2 flow ✅
+- **Progress**: 60% (9/15 tasks)
+- **Recent Wins**: TASK-008 completed with full RBAC system ✅
 
 ## 🚀 Definition of Done
 1. Código implementado e testado
