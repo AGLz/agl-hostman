@@ -9,7 +9,7 @@
 
 | Host | Total CTs | Running | Stopped | Key Services |
 |------|-----------|---------|---------|--------------|
-| **AGLSRV1** | 69 | 43 | 26 | Development, AI, DNS, Monitoring |
+| **AGLSRV1** | 70 | 44 | 26 | Development, AI, DNS, Monitoring, Database |
 | **AGLSRV5** | 8 | 7 | 1 | Media, File Server, Cloudflare |
 | **AGLSRV6** | 11 | - | - | NFS, Development, PBS |
 
@@ -37,7 +37,8 @@
 
 | ID | Name | Purpose | Status | Key Services |
 |----|------|---------|--------|--------------|
-| **CT183** | archon | AI Command Center | ✅ | Archon MCP server, WG 10.6.0.21 |
+| **CT183** | archon | AI Command Center | ✅ | Archon MCP server (28 tools), WG 10.6.0.21, API: http://192.168.0.183:8051/mcp |
+| **CT184** | supabase | Self-Hosted Database | ✅ | Supabase stack (13 containers), PostgreSQL, Kong API, http://192.168.0.184:8000 |
 | **CT200** | ollama-gpu | GPU Inference | ✅ | Ollama with GPU passthrough |
 | **CT202** | n8n | Workflow Automation | ✅ | n8n workflows |
 
@@ -87,6 +88,11 @@
 
 ---
 
-**Document Version**: 1.1.0
-**Last Updated**: 2025-11-10
+**Document Version**: 1.2.0
+**Last Updated**: 2026-01-04
 **Maintainer**: Claude Code (agl-hostman project)
+
+**Recent Changes:**
+- ✅ Added CT184 (supabase) - Self-hosted Supabase with 13 containers
+- ✅ CT183 (archon) - Fully operational with MCP connected to CT184
+- ✅ Integration complete: Archon MCP + Supabase self-hosted
