@@ -79,7 +79,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --tailscale)
-            TARGET_HOST="10.6.0.5"
+            TARGET_HOST="100.83.51.9"
             log "Using Tailscale IP: $TARGET_HOST"
             shift
             ;;

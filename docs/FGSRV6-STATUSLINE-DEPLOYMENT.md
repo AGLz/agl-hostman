@@ -9,7 +9,7 @@
 ## 📋 Deployment Summary
 
 **Source File**: `/mnt/overpower/apps/dev/agl/agl-hostman/.claude/statusline-command.sh` (177 lines)
-**Target Host**: `root@186.202.57.120` (or `10.6.0.5` via Tailscale)
+**Target Host**: `root@186.202.57.120` (or `100.83.51.9` via Tailscale)
 **Target Directory**: `/root/.claude/`
 **Deployment Script**: `/mnt/overpower/apps/dev/agl/agl-hostman/scripts/copy-statusline-to-fgsrv6.sh`
 
