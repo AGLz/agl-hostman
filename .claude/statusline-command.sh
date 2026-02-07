@@ -265,6 +265,99 @@ TOKENS_LIMIT_K=$(awk "BEGIN {printf \"%.0fK\", $TOKENS_LIMIT/1000}")
 printf " | ${BAR_COLOR}${TOKENS_USED_K}/${TOKENS_LIMIT_K} ${PROGRESS_BAR}\033[0m"
 printf " | \033[90m${RESET_TIME}(${TIME_UNTIL_RESET})[${BLOCK_NAME}]\033[0m"
 
+# =========================
+# V3 Claude Flow Metrics (compact)
+# =========================
+V3_JSON=""
+if [ -f ".claude/helpers/statusline.cjs" ]; then
+  V3_JSON=$(node .claude/helpers/statusline.cjs --compact 2>/dev/null || echo "{}")
+elif [ -f "$PROJECT_DIR/.claude/helpers/statusline.cjs" ]; then
+  V3_JSON=$(node "$PROJECT_DIR/.claude/helpers/statusline.cjs" --compact 2>/dev/null || echo "{}")
+fi
+
+# Parse V3 metrics safely
+DDD_DONE=$(echo "$V3_JSON" | jq -r '.v3Progress.domainsCompleted // 0' 2>/dev/null || echo "0")
+DDD_TOTAL=$(echo "$V3_JSON" | jq -r '.v3Progress.totalDomains // 5' 2>/dev/null || echo "5")
+SWARM_AGENTS=$(echo "$V3_JSON" | jq -r '.swarm.activeAgents // 0' 2>/dev/null || echo "0")
+INTELLIGENCE=$(echo "$V3_JSON" | jq -r '.system.intelligencePct // 0' 2>/dev/null || echo "0")
+SEC_STATUS=$(echo "$V3_JSON" | jq -r '.security.status // "PENDING"' 2>/dev/null || echo "PENDING")
+
+# Show V3 indicators (compact)
+V3_INDICATORS=""
+
+# DDD Progress
+if [ "$DDD_DONE" -gt 0 ] 2>/dev/null; then
+  if [ "$DDD_DONE" -ge "$DDD_TOTAL" ]; then
+    V3_INDICATORS="${V3_INDICATORS} \033[32m🏗️${DDD_DONE}/${DDD_TOTAL}\033[0m"
+  elif [ "$DDD_DONE" -ge 3 ]; then
+    V3_INDICATORS="${V3_INDICATORS} \033[33m🏗️${DDD_DONE}/${DDD_TOTAL}\033[0m"
+  else
+    V3_INDICATORS="${V3_INDICATORS} \033[31m🏗️${DDD_DONE}/${DDD_TOTAL}\033[0m"
+  fi
+fi
+
+# Swarm Status
+if [ "$SWARM_AGENTS" -gt 0 ] 2>/dev/null; then
+  V3_INDICATORS="${V3_INDICATORS} \033[36m🤖${SWARM_AGENTS}\033[0m"
+fi
+
+# Intelligence
+if [ "$INTELLIGENCE" -gt 0 ] 2>/dev/null; then
+  if [ "$INTELLIGENCE" -ge 80 ]; then
+    V3_INDICATORS="${V3_INDICATORS} \033[32m🧠${INTELLIGENCE}%%\033[0m"
+  elif [ "$INTELLIGENCE" -ge 50 ]; then
+    V3_INDICATORS="${V3_INDICATORS} \033[33m🧠${INTELLIGENCE}%%\033[0m"
+  else
+    V3_INDICATORS="${V3_INDICATORS} \033[90m🧠${INTELLIGENCE}%%\033[0m"
+  fi
+fi
+
+# Security Status
+case "$SEC_STATUS" in
+  "CLEAN") V3_INDICATORS="${V3_INDICATORS} \033[32m🟢SEC\033[0m" ;;
+  "IN_PROGRESS") V3_INDICATORS="${V3_INDICATORS} \033[33m🟡SEC\033[0m" ;;
+esac
+
+# Print V3 indicators if any
+[ -n "$V3_INDICATORS" ] && printf "${V3_INDICATORS}"
+
+# =========================
+# Phase 1 Enhancements (GitHub, MCP, Cost)
+# =========================
+EXTRA_METRICS=""
+
+# GitHub PR Count (if in git repo with GitHub remote)
+cd "$CWD" 2>/dev/null
+if git rev-parse --git-dir > /dev/null 2>&1 && command -v gh >/dev/null 2>&1; then
+  REMOTE_URL=$(git remote get-url origin 2>/dev/null | head -n1)
+  if [[ "$REMOTE_URL" == *"github"* ]]; then
+    PR_COUNT=$(gh pr list --json id --limit 100 2>/dev/null | jq '. | length' 2>/dev/null || echo "?")
+    # Show PR count even if 0 to confirm GitHub connectivity
+    EXTRA_METRICS="${EXTRA_METRICS} \033[34m📋${PR_COUNT}\033[0m"
+  fi
+fi
+
+# MCP Server Count (check both settings.json and servers.json)
+MCP_COUNT=0
+if [ -f ~/.claude/settings.json ]; then
+  MCP_COUNT=$(jq '(.servers // {} | length) + (.enabledMcpjsonServers // [] | length)' ~/.claude/settings.json 2>/dev/null || echo "0")
+fi
+if [ -f ~/.claude/servers.json ]; then
+  SERVERS_COUNT=$(jq '.servers | length' ~/.claude/servers.json 2>/dev/null || echo "0")
+  MCP_COUNT=$((MCP_COUNT + SERVERS_COUNT))
+fi
+# Show MCP count (even if 0 to show connectivity checked)
+EXTRA_METRICS="${EXTRA_METRICS} \033[35m🔌${MCP_COUNT}\033[0m"
+
+# Cost Estimate (show when > 0 tokens)
+COST_EST=$(awk "BEGIN {printf \"\$%.2f\", ${TOKENS_USED}/1000000 * 3}")
+if [ "$TOKENS_USED" -gt 0 ] 2>/dev/null; then
+  EXTRA_METRICS="${EXTRA_METRICS} \033[36m💰${COST_EST}\033[0m"
+fi
+
+# Print extra metrics if any
+[ -n "$EXTRA_METRICS" ] && printf "${EXTRA_METRICS}"
+
 # CC version and hostname
 printf " \033[90m│\033[0m"
 printf " \033[36m${CC_VERSION}\033[0m"
