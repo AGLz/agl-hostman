@@ -64,13 +64,21 @@ This audit identified **CRITICAL security vulnerabilities** in the MCP (Model Co
 - **Risk**: Container management system compromise
 - **CVSS Score**: 9.1 (CRITICAL)
 
-#### 1.5 Cloudflare API Tokens (2 instances)
-- **Location**: Lines 312, 315
+#### 1.5 Cloudflare API Tokens (DUPLICATE in .env file!)
+- **Locations**: /root/.claude.json lines 312, 315; /mnt/overpower/apps/dev/agl/agl-hostman/.env
 - **Exposure**:
-  - `08e7b6e3a5084b4a3a2e0b3de153b02e`
-  - `nxdMODvpFhSL146A2OuMZc755FoOKNfi1gfNG3q8`
-- **Risk**: DNS hijacking, CDN compromise
-- **CVSS Score**: 8.6 (HIGH)
+  - Account ID: `08e7b6e3a5084b4a3a2e0b3de153b02e`
+  - Token: `nxdMODvpFhSL146A2OuMZc755FoOKNfi1gfNG3q8`
+- **Risk**: DNS hijacking, CDN compromise, complete zone takeover
+- **CVSS Score**: 9.8 (CRITICAL)
+- **CRITICAL**: Credentials duplicated in `.env` file in project directory!
+
+**Duplicate Exposure:**
+```bash
+# File: /mnt/overpower/apps/dev/agl/agl-hostman/.env
+CLOUDFLARE_API_TOKEN=nxdMODvpFhSL146A2OuMZc755FoOKNfi1gfNG3q8
+CLOUDFLARE_ACCOUNT_ID=08e7b6e3a5084b4a3a2e0b3de153b02e
+```
 
 #### 1.6 Exa AI API Key
 - **Location**: Line 326
