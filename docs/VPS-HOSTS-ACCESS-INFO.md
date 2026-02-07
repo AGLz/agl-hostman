@@ -10,12 +10,13 @@
 ### FGSRV6 (✅ CONFIRMADO)
 ```
 Hostname: fgsrv6
-IP Público: 186.202.57.120
-IP WireGuard: 10.6.0.5
+IP Tailscale: 100.83.51.9 (PREFERIDO - MÉTODO PRIMÁRIO)
+IP Público: 186.202.57.120 (alternativo)
+IP WireGuard: 10.6.0.5 (legado - descontinuado)
 VPS ID: vps41772
 Serviço: WireGuard Hub (18+ peers)
-Acesso SSH: ssh root@186.202.57.120
-         OU ssh root@10.6.0.5 (via WireGuard)
+Acesso SSH: ssh root@100.83.51.9 (via Tailscale - RECOMENDADO)
+         OU ssh root@186.202.57.120 (via IP público)
 ```
 
 ### FGSRV3 (❓ A CONFIRMAR)

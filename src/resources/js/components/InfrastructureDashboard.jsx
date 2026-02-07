@@ -1,27 +1,52 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Activity, Server, AlertTriangle, CheckCircle, XCircle, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
+import { Activity, Server, AlertTriangle, CheckCircle, XCircle, RefreshCw, Clock } from 'lucide-react';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useSystemMonitoring } from '../hooks/useWebSocket';
+import { useContainerStatus } from '../hooks/useWebSocket';
+import ConnectionStatus from './ConnectionStatus';
+import NotificationBadge from './NotificationBadge';
 
 /**
- * Infrastructure Dashboard Component
+ * Infrastructure Dashboard Component with Real-time Updates
  *
  * Real-time monitoring dashboard for Proxmox infrastructure.
  * Features:
- * - Live metrics updates via polling/WebSocket
+ * - Live metrics updates via WebSocket
  * - Container health status indicators
  * - Resource utilization charts
  * - Alert system integration
- * - Responsive grid layout
+ * - Animated status badges
+ * - Loading skeletons
+ * - Connection status indicator
+ * - Notification badges
  *
  * @component
  */
 const InfrastructureDashboard = ({ refreshInterval = 30000, enableWebSocket = true }) => {
+    // UI state
     const [servers, setServers] = useState([]);
     const [containers, setContainers] = useState([]);
     const [metrics, setMetrics] = useState({});
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [initialLoad, setInitialLoad] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(null);
     const [autoRefresh, setAutoRefresh] = useState(true);
+
+    // WebSocket connection status
+    const { isConnected, connectionState } = useWebSocket({
+        enableReconnect: true,
+        reconnectInterval: 1000,
+        maxReconnectInterval: 30000,
+        maxReconnectAttempts: 10,
+    });
+
+    // Real-time system metrics
+    const { metrics: systemMetrics } = useSystemMonitoring((data) => {
+        console.log('[Dashboard] System metrics updated:', data);
+        setMetrics(data);
+        setLastUpdate(new Date());
+    });
 
     /**
      * Fetch infrastructure data from API
@@ -48,293 +73,316 @@ const InfrastructureDashboard = ({ refreshInterval = 30000, enableWebSocket = tr
             setAlerts(alertsData.data || []);
             setLastUpdate(new Date());
             setLoading(false);
+            setInitialLoad(false);
         } catch (error) {
             console.error('Failed to fetch infrastructure data:', error);
             setLoading(false);
+            setInitialLoad(false);
         }
     }, []);
 
     /**
-     * Setup WebSocket connection for real-time updates
+     * Subscribe to individual container status updates
      */
-    useEffect(() => {
-        if (!enableWebSocket) return;
+    const subscribeToContainers = useCallback(() => {
+        if (!enableWebSocket || !containers.length) return;
 
-        const ws = new WebSocket(
-            `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/infrastructure`
-        );
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-
-            switch (data.type) {
-                case 'metrics':
-                    setMetrics(prev => ({ ...prev, ...data.payload }));
-                    break;
-                case 'container_update':
-                    setContainers(prev =>
-                        prev.map(c => c.vmid === data.payload.vmid ? { ...c, ...data.payload } : c)
-                    );
-                    break;
-                case 'alert':
-                    setAlerts(prev => [data.payload, ...prev].slice(0, 10));
-                    break;
-            }
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        return () => ws.close();
-    }, [enableWebSocket]);
+        containers.forEach(container => {
+            useContainerStatus(container.vmid, (data) => {
+                console.log(`[Dashboard] Container ${container.vmid} status:`, data);
+                setContainers(prev =>
+                    prev.map(c => c.vmid === data.vmid ? { ...c, ...data } : c)
+                );
+                setLastUpdate(new Date());
+            });
+        });
+    }, [containers, enableWebSocket]);
 
     /**
-     * Auto-refresh polling
+     * Initial data fetch
      */
     useEffect(() => {
-        if (!autoRefresh) return;
-
         fetchInfrastructureData();
-        const interval = setInterval(fetchInfrastructureData, refreshInterval);
-
-        return () => clearInterval(interval);
-    }, [autoRefresh, refreshInterval, fetchInfrastructureData]);
+    }, [fetchInfrastructureData]);
 
     /**
-     * Calculate aggregate statistics
+     * Subscribe to container updates when containers change
      */
-    const stats = useMemo(() => {
-        const totalContainers = containers.length;
-        const runningContainers = containers.filter(c => c.status === 'running').length;
-        const healthyContainers = containers.filter(c => c.is_healthy).length;
-        const criticalAlerts = alerts.filter(a => a.severity === 'critical').length;
+    useEffect(() => {
+        if (enableWebSocket && !initialLoad) {
+            subscribeToContainers();
+        }
+    }, [containers, enableWebSocket, initialLoad, subscribeToContainers]);
 
-        const avgCpu = containers.reduce((sum, c) => sum + (c.cpu_usage || 0), 0) / totalContainers || 0;
-        const avgMemory = containers.reduce((sum, c) => sum + (c.memory?.percent || 0), 0) / totalContainers || 0;
+    /**
+     * Auto-refresh polling (fallback when WebSocket unavailable)
+     */
+    useEffect(() => {
+        if (!autoRefresh || isConnected) return; // Don't poll if WebSocket is connected
+
+        const interval = setInterval(fetchInfrastructureData, refreshInterval);
+        return () => clearInterval(interval);
+    }, [autoRefresh, isConnected, refreshInterval, fetchInfrastructureData]);
+
+    /**
+     * Manual refresh handler
+     */
+    const handleRefresh = useCallback(() => {
+        setLoading(true);
+        fetchInfrastructureData();
+    }, [fetchInfrastructureData]);
+
+    /**
+     * Memoized metrics for performance
+     */
+    const overallHealth = useMemo(() => {
+        if (!servers.length) return null;
+
+        const onlineServers = servers.filter(s => s.status === 'online').length;
+        const healthScore = (onlineServers / servers.length) * 100;
 
         return {
-            totalContainers,
-            runningContainers,
-            healthyContainers,
-            stoppedContainers: totalContainers - runningContainers,
-            criticalAlerts,
-            avgCpu: avgCpu.toFixed(1),
-            avgMemory: avgMemory.toFixed(1),
-            healthRate: totalContainers > 0 ? ((healthyContainers / totalContainers) * 100).toFixed(1) : 0,
+            score: healthScore,
+            status: healthScore >= 80 ? 'healthy' : healthScore >= 50 ? 'degraded' : 'critical',
+            onlineServers,
+            totalServers: servers.length
         };
-    }, [containers, alerts]);
+    }, [servers]);
+
+    const containerStats = useMemo(() => {
+        return {
+            total: containers.length,
+            running: containers.filter(c => c.status === 'running').length,
+            stopped: containers.filter(c => c.status === 'stopped').length,
+            error: containers.filter(c => c.status === 'error' || !c.status).length,
+        };
+    }, [containers]);
 
     /**
-     * Get status color
+     * Render loading skeleton
      */
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'running':
-            case 'healthy':
-                return 'text-green-600 bg-green-50';
-            case 'stopped':
-                return 'text-gray-600 bg-gray-50';
-            case 'warning':
-                return 'text-yellow-600 bg-yellow-50';
-            case 'critical':
-            case 'error':
-                return 'text-red-600 bg-red-50';
-            default:
-                return 'text-gray-600 bg-gray-50';
-        }
-    };
-
-    /**
-     * Get status icon
-     */
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case 'running':
-            case 'healthy':
-                return <CheckCircle className="w-5 h-5" />;
-            case 'warning':
-                return <AlertTriangle className="w-5 h-5" />;
-            case 'critical':
-            case 'error':
-            case 'stopped':
-                return <XCircle className="w-5 h-5" />;
-            default:
-                return <Activity className="w-5 h-5" />;
-        }
-    };
-
-    if (loading) {
+    if (initialLoad) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="space-y-6">
+                {/* Header skeleton */}
+                <div className="animate-pulse bg-white rounded-lg shadow p-6">
+                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div className="space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                </div>
+
+                {/* Cards skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="animate-pulse bg-white rounded-lg shadow p-6">
+                            <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                            <div className="space-y-2">
+                                <div className="h-3 bg-gray-200 rounded"></div>
+                                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Infrastructure Dashboard</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Last updated: {lastUpdate?.toLocaleTimeString()}
-                    </p>
+            {/* Header with status indicators */}
+            <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Infrastructure Dashboard</h1>
+                        <div className="flex items-center space-x-3 mt-1">
+                            {/* Connection status */}
+                            <div className="flex items-center space-x-1 text-sm text-gray-600">
+                                <ConnectionStatusMini />
+                            </div>
+
+                            {/* Last updated timestamp */}
+                            {lastUpdate && (
+                                <div className="flex items-center space-x-1 text-sm text-gray-500">
+                                    <Clock className="w-4 h-4" />
+                                    <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        {/* Auto-refresh toggle */}
+                        <button
+                            onClick={() => setAutoRefresh(!autoRefresh)}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                autoRefresh
+                                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            Auto-refresh: {autoRefresh ? 'On' : 'Off'}
+                        </button>
+
+                        {/* Manual refresh button */}
+                        <button
+                            onClick={handleRefresh}
+                            disabled={loading}
+                            className="p-2 text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+                            title="Refresh"
+                        >
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+
+                        {/* Notification badge */}
+                        <NotificationBadge />
+                    </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setAutoRefresh(!autoRefresh)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            autoRefresh
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-gray-100 text-gray-700'
-                        }`}
-                    >
-                        Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
-                    </button>
-                    <button
-                        onClick={fetchInfrastructureData}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <RefreshCw className="w-4 h-4" />
-                        Refresh
-                    </button>
+
+                {/* Health score */}
+                {overallHealth && (
+                    <div className="flex items-center space-x-4">
+                        <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                            overallHealth.status === 'healthy'
+                                ? 'bg-green-50 border border-green-200'
+                                : overallHealth.status === 'degraded'
+                                ? 'bg-yellow-50 border border-yellow-200'
+                                : 'bg-red-50 border border-red-200'
+                        }`}>
+                            {overallHealth.status === 'healthy' && (
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                            )}
+                            {overallHealth.status === 'degraded' && (
+                                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                            )}
+                            {overallHealth.status === 'critical' && (
+                                <XCircle className="w-5 h-5 text-red-600" />
+                            )}
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                    Health Score: {overallHealth.score.toFixed(1)}%
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                    {overallHealth.onlineServers}/{overallHealth.totalServers} servers online
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Statistics cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* Containers card */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Containers</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                                {containerStats.total}
+                            </p>
+                            <div className="flex items-center space-x-3 mt-2 text-xs">
+                                <span className="text-green-600">
+                                    ✓ {containerStats.running} running
+                                </span>
+                                <span className="text-red-600">
+                                    ✗ {containerStats.error} errors
+                                </span>
+                            </div>
+                        </div>
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                            <Server className="w-6 h-6 text-blue-600" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Alerts card */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Active Alerts</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                                {alerts.length}
+                            </p>
+                        </div>
+                        <div className={`p-3 rounded-lg ${
+                            alerts.length > 0 ? 'bg-red-50' : 'bg-green-50'
+                        }`}>
+                            <AlertTriangle className={`w-6 h-6 ${
+                                alerts.length > 0 ? 'text-red-600' : 'text-green-600'
+                            }`} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* CPU usage card */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Avg CPU Usage</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                                {metrics.average_cpu ? `${metrics.average_cpu_usage.toFixed(1)}%` : 'N/A'}
+                            </p>
+                        </div>
+                        <div className="p-3 bg-purple-50 rounded-lg">
+                            <Activity className="w-6 h-6 text-purple-600" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Memory usage card */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Avg Memory Usage</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                                {metrics.average_memory ? `${metrics.average_memory_usage.toFixed(1)}%` : 'N/A'}
+                            </p>
+                        </div>
+                        <div className="p-3 bg-yellow-50 rounded-lg">
+                            <TrendingUp className="w-6 h-6 text-yellow-600" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Total Containers"
-                    value={stats.totalContainers}
-                    subtitle={`${stats.runningContainers} running`}
-                    icon={<Server className="w-6 h-6" />}
-                    color="blue"
-                />
-                <StatCard
-                    title="Health Rate"
-                    value={`${stats.healthRate}%`}
-                    subtitle={`${stats.healthyContainers} healthy`}
-                    icon={<CheckCircle className="w-6 h-6" />}
-                    color="green"
-                    trend={stats.healthRate > 90 ? 'up' : stats.healthRate < 70 ? 'down' : null}
-                />
-                <StatCard
-                    title="Avg CPU Usage"
-                    value={`${stats.avgCpu}%`}
-                    subtitle="Across all containers"
-                    icon={<Activity className="w-6 h-6" />}
-                    color="purple"
-                    trend={stats.avgCpu < 70 ? 'up' : stats.avgCpu > 85 ? 'down' : null}
-                />
-                <StatCard
-                    title="Critical Alerts"
-                    value={stats.criticalAlerts}
-                    subtitle={alerts.length > 0 ? `${alerts.length} total` : 'All clear'}
-                    icon={<AlertTriangle className="w-6 h-6" />}
-                    color="red"
-                />
-            </div>
-
-            {/* Servers Grid */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">Proxmox Servers</h2>
-                </div>
-                <div className="divide-y divide-gray-200">
-                    {servers.map((server) => (
-                        <ServerCard key={server.id} server={server} />
-                    ))}
-                </div>
-            </div>
-
-            {/* Containers Grid */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            {/* Containers list with real-time status */}
+            <div className="bg-white rounded-lg shadow">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900">Containers</h2>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Name
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    CPU
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Memory
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Disk
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Uptime
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                <div className="p-6">
+                    {containers.length === 0 ? (
+                        <div className="text-center py-12 text-gray-500">
+                            No containers found
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
                             {containers.map((container) => (
-                                <tr key={container.vmid} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {container.name}
-                                            </div>
-                                            <span className="ml-2 text-xs text-gray-500">
-                                                CT{container.vmid}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(container.health_status)}`}>
-                                            {getStatusIcon(container.health_status)}
-                                            {container.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">
-                                            {container.cpu_usage?.toFixed(1)}%
-                                        </div>
-                                        <ProgressBar value={container.cpu_usage} max={100} color="blue" />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">
-                                            {container.memory?.percent?.toFixed(1)}%
-                                        </div>
-                                        <ProgressBar value={container.memory?.percent} max={100} color="purple" />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">
-                                            {container.disk?.percent?.toFixed(1)}%
-                                        </div>
-                                        <ProgressBar value={container.disk?.percent} max={100} color="green" />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {container.uptime_formatted || 'N/A'}
-                                    </td>
-                                </tr>
+                                <ContainerCard
+                                    key={container.vmid}
+                                    container={container}
+                                    enableRealTime={enableWebSocket}
+                                />
                             ))}
-                        </tbody>
-                    </table>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Recent Alerts */}
+            {/* Alerts list */}
             {alerts.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-white rounded-lg shadow">
                     <div className="px-6 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-semibold text-gray-900">Recent Alerts</h2>
                     </div>
-                    <div className="divide-y divide-gray-200">
-                        {alerts.slice(0, 5).map((alert, index) => (
-                            <AlertItem key={index} alert={alert} />
-                        ))}
+                    <div className="p-6">
+                        <div className="space-y-3">
+                            {alerts.slice(0, 5).map((alert, index) => (
+                                <AlertItem key={`${alert.resource_id}-${index}`} alert={alert} />
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
@@ -343,111 +391,140 @@ const InfrastructureDashboard = ({ refreshInterval = 30000, enableWebSocket = tr
 };
 
 /**
- * Stat Card Component
+ * Container Card Component with Real-time Status
+ *
+ * Displays individual container information with animated status badges
  */
-const StatCard = ({ title, value, subtitle, icon, color, trend }) => {
-    const colorClasses = {
-        blue: 'bg-blue-50 text-blue-600',
-        green: 'bg-green-50 text-green-600',
-        purple: 'bg-purple-50 text-purple-600',
-        red: 'bg-red-50 text-red-600',
+const ContainerCard = React.memo(({ container, enableRealTime = true }) => {
+    const [status, setStatus] = useState(container.status);
+    const { lastUpdate, error } = useContainerStatus(
+        container.vmid,
+        (data) => {
+            console.log(`[ContainerCard] Update for ${container.vmid}:`, data);
+            setStatus(data.status);
+        }
+    );
+
+    // Update status from WebSocket
+    useEffect(() => {
+        if (lastUpdate) {
+            setStatus(lastUpdate.status);
+        }
+    }, [lastUpdate]);
+
+    const getStatusColor = () => {
+        switch (status) {
+            case 'running':
+                return 'bg-green-100 text-green-800 border-green-200';
+            case 'stopped':
+                return 'bg-gray-100 text-gray-800 border-gray-200';
+            case 'error':
+                return 'bg-red-100 text-red-800 border-red-200';
+            default:
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        }
+    };
+
+    const getStatusIcon = () => {
+        switch (status) {
+            case 'running':
+                return <CheckCircle className="w-4 h-4" />;
+            case 'stopped':
+                return <XCircle className="w-4 h-4" />;
+            case 'error':
+                return <AlertTriangle className="w-4 h-4" />;
+            default:
+                return <Clock className="w-4 h-4" />;
+        }
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-                    {icon}
+        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+                {/* Status badge with animation */}
+                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${getStatusColor()}`}>
+                    <div className={lastUpdate ? 'animate-pulse' : ''}>
+                        {getStatusIcon()}
+                    </div>
+                    <span className="capitalize">{status || 'Unknown'}</span>
                 </div>
-                {trend && (
-                    <div className={`flex items-center gap-1 text-sm ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                        {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+
+                {/* Container info */}
+                <div>
+                    <h3 className="font-medium text-gray-900">{container.name || `Container ${container.vmid}`}</h3>
+                    <p className="text-sm text-gray-600">
+                        VMID: {container.vmid} • Node: {container.node || 'Unknown'}
+                    </p>
+                </div>
+            </div>
+
+            {/* Resource usage */}
+            <div className="flex items-center space-x-4 text-sm">
+                {container.cpu !== undefined && (
+                    <div className="text-center">
+                        <p className="text-gray-600">CPU</p>
+                        <p className="font-medium text-gray-900">{container.cpu}%</p>
+                    </div>
+                )}
+                {container.memory && (
+                    <div className="text-center">
+                        <p className="text-gray-600">Memory</p>
+                        <p className="font-medium text-gray-900">
+                            {typeof container.memory === 'object'
+                                ? `${container.memory.used_mb}MB`
+                                : container.memory}
+                        </p>
                     </div>
                 )}
             </div>
-            <div>
-                <p className="text-sm text-gray-500 mb-1">{title}</p>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
-                <p className="text-sm text-gray-500">{subtitle}</p>
-            </div>
-        </div>
-    );
-};
 
-/**
- * Server Card Component
- */
-const ServerCard = ({ server }) => {
-    return (
-        <div className="px-6 py-4 hover:bg-gray-50">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-sm font-medium text-gray-900">{server.name}</h3>
-                    <p className="text-sm text-gray-500">{server.ip_address}</p>
+            {/* Last update indicator */}
+            {lastUpdate && enableRealTime && (
+                <div className="text-xs text-gray-500">
+                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></span>
+                    Live
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    server.status === 'online' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                }`}>
-                    {server.status}
-                </span>
-            </div>
+            )}
         </div>
     );
-};
-
-/**
- * Progress Bar Component
- */
-const ProgressBar = ({ value, max, color }) => {
-    const percentage = (value / max) * 100;
-    const colorClasses = {
-        blue: 'bg-blue-600',
-        purple: 'bg-purple-600',
-        green: 'bg-green-600',
-    };
-
-    return (
-        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-            <div
-                className={`h-1.5 rounded-full transition-all duration-300 ${colorClasses[color]}`}
-                style={{ width: `${Math.min(percentage, 100)}%` }}
-            />
-        </div>
-    );
-};
+});
 
 /**
  * Alert Item Component
  */
-const AlertItem = ({ alert }) => {
-    const severityColors = {
-        critical: 'text-red-600 bg-red-50',
-        high: 'text-orange-600 bg-orange-50',
-        medium: 'text-yellow-600 bg-yellow-50',
-        low: 'text-blue-600 bg-blue-50',
+const AlertItem = React.memo(({ alert }) => {
+    const getSeverityColor = () => {
+        switch (alert.severity) {
+            case 'critical':
+                return 'bg-red-50 border-red-200 text-red-800';
+            case 'warning':
+                return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+            case 'info':
+                return 'bg-blue-50 border-blue-200 text-blue-800';
+            default:
+                return 'bg-gray-50 border-gray-200 text-gray-800';
+        }
     };
 
     return (
-        <div className="px-6 py-4 hover:bg-gray-50">
-            <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityColors[alert.severity]}`}>
-                        {alert.severity}
-                    </span>
-                    <div>
-                        <p className="text-sm font-medium text-gray-900">{alert.title}</p>
-                        <p className="text-sm text-gray-500 mt-1">{alert.message}</p>
-                        {alert.server && (
-                            <p className="text-xs text-gray-400 mt-1">Server: {alert.server}</p>
-                        )}
-                    </div>
+        <div className={`p-4 border rounded-lg ${getSeverityColor()}`}>
+            <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                    <p className="font-medium">{alert.title}</p>
+                    <p className="text-sm mt-1">{alert.message}</p>
+                    {alert.resource_id && (
+                        <p className="text-xs mt-2 opacity-75">
+                            Resource: {alert.resource_type}/{alert.resource_id}
+                        </p>
+                    )}
                 </div>
-                <span className="text-xs text-gray-400">
-                    {new Date(alert.timestamp).toLocaleTimeString()}
-                </span>
             </div>
         </div>
     );
-};
+});
+
+ContainerCard.displayName = 'ContainerCard';
+AlertItem.displayName = 'AlertItem';
 
 export default InfrastructureDashboard;

@@ -114,23 +114,23 @@ Located at the top of the screen, displays:
 
 ### Connection Types
 
-#### 1. WireGuard Connections (Green, Solid)
+#### 1. Tailscale Connections (Blue, Solid) 🔧
 - **Width**: 3px
 - **Style**: Solid line
-- **Latency**: Typically 15-40ms
-- **Use**: Primary mesh network
+- **Latency**: Typically 5-30ms
+- **Use**: PRIMARY network access method - Recommended for all hosts
 
-#### 2. LAN Connections (Gray, Dashed)
+#### 2. LAN Connections (Gray, Dashed) ⚡
 - **Width**: 2px
 - **Style**: Dashed line
 - **Latency**: Typically 1-5ms
-- **Use**: Local container-to-host
+- **Use**: Local container-to-host (fastest for same-location hosts)
 
-#### 3. Tailscale Connections (Blue, Dotted)
+#### 3. WireGuard Connections (Green, Dotted) (Legacy)
 - **Width**: 2px
 - **Style**: Dotted line
-- **Latency**: Typically 40-80ms
-- **Use**: Cross-site VPN overlay
+- **Latency**: Typically 15-40ms
+- **Use**: Legacy mesh network (being phased out)
 
 ### Node Colors (Health Status)
 

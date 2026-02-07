@@ -1,0 +1,8 @@
+task_groups:
+  - name: pre-deployment-validation
+  - name: key-generation-config
+  - name: hub-registration
+  - name: peer-activation
+  - name: verification-testing
+  - name: documentation-update
+  - name: troubleshooting

@@ -36,22 +36,23 @@ This document serves as the **central reference point** for the entire infrastru
 
 ### Network Segments
 
-| Network | CIDR | Purpose | Status | Details |
-|---------|------|---------|--------|---------|
-| **WireGuard Mesh** | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ 16 nodes active | See [WIREGUARD.md](WIREGUARD.md) |
-| **Local LAN** | 192.168.0.0/24 | Primary local network | ✅ Active | AGLHQ, AGLALD locations |
-| **Local LAN Alt** | 192.168.1.0/24 | Secondary local network | ✅ Active | AGLSRV6C secondary |
-| **Remote LAN** | 192.168.15.0/24 | AGLFG standalone network | ✅ Active | AGLSRV5 only |
-| **Tailscale** | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active | Fallback connectivity |
+| Network | CIDR | Purpose | Status | Priority | Details |
+|---------|------|---------|--------|----------|---------|
+| **Tailscale** | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active | **PRIMARY** | Preferred for all host access |
+| **Local LAN** | 192.168.0.0/24 | Primary local network | ✅ Active | Secondary | AGLHQ, AGLALD locations |
+| **Local LAN Alt** | 192.168.1.0/24 | Secondary local network | ✅ Active | Secondary | AGLSRV6C secondary |
+| **Remote LAN** | 192.168.15.0/24 | AGLFG standalone network | ✅ Active | Secondary | AGLSRV5 only |
+| **WireGuard Mesh** | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ 16 nodes active | Legacy | See [WIREGUARD.md](WIREGUARD.md) |
 
-### WireGuard Hub (CRITICAL)
+### WireGuard Hub (LEGACY - Phase Out)
 
 - **Server**: FGSRV6 (vps41772.publiccloud.com.br)
-- **Public IP**: 186.202.57.120
-- **WireGuard IP**: 10.6.0.5
-- **Port**: 51823/UDP
+- **Tailscale IP**: 100.83.51.9 (**PREFERRED** - use this)
+- **Public IP**: 186.202.57.120 (fallback)
+- **WireGuard IP**: 10.6.0.5 (legacy - deprecated)
+- **Port**: 51823/UDP (WireGuard only)
 - **Type**: Hub-and-spoke + mesh hybrid
-- **Importance**: **CRITICAL** - Central routing point, failure affects entire mesh
+- **Note**: Transitioning to Tailscale as primary access method
 
 **Complete Details**: See [WIREGUARD.md](WIREGUARD.md) for configuration, node inventory, and deployment procedures.
 

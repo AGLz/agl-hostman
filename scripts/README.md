@@ -1,70 +1,172 @@
-# Scripts Directory
+# CT183 Management Scripts
 
-Organized collection of infrastructure management scripts.
+Scripts para gerenciar containers Supabase e Archon no servidor CT183 (192.168.0.183).
 
-## Structure
+## ⚠️ ORDEM CRÍTICA
 
-### backup/
-Backup system management scripts:
-- `monitor_backup_progress.sh` - Monitor ongoing backup operations
-- `verify_backup_system.sh` - Verify backup system integrity
+**Supabase PRECISA iniciar ANTES do Archon**
 
-### forensic/
-Forensic analysis and diagnostic tools:
-- `forensic_collector.sh` - Collect forensic data from systems
-- `disk_forensic_analyzer.sh` - Analyze disk health and issues
-- `disk-diagnostic-suite.sh` - Comprehensive disk diagnostics
-- `validate_forensic_suite.sh` - Validate forensic tools installation
+O Archon depende do Supabase para:
+- Banco de dados PostgreSQL
+- API PostgREST
+- API Gateway (Kong)
 
-### monitoring/
-System monitoring and health check scripts:
-- `dashboard.sh` - System dashboard display
-- `monitor-deployment.sh` - Monitor deployment progress
-- `smart_health_check.sh` - SMART disk health monitoring
+## 📜 Scripts Disponíveis
 
-### recovery/
-System recovery and repair scripts:
-- `recovery_planner.sh` - Plan recovery operations
-- `qmp_timeout_recovery.sh` - Recover from QMP timeouts
+### 1. `ct183-startup.sh` - Iniciar Serviços
 
-### zfs/
-ZFS filesystem management:
-- `zfs_diagnostic.sh` - ZFS diagnostics
-- `zfs_pool_analyzer.sh` - Analyze ZFS pool health
+Inicia todos os containers na ordem correta com health checks.
 
-### deployment/
-Deployment and installation automation:
-- `EXECUTE-NOW.sh` - Main deployment execution script
-- `auto_execute_when_ready.sh` - Conditional auto-execution
-- `phase1_cleanup_surgical.sh` - Phase 1 cleanup operations
-- `optimization_plan.sh` - System optimization automation
-- `fix_fgsrv06_mono.sh` - FGSRV06 specific fixes
-- `vm200-*.ps1` - Windows VM deployment scripts
+```bash
+# Uso normal
+sudo ./ct183-startup.sh
 
-### macOS/
-macOS-specific setup and configuration:
-- `macos-agl-setup.sh` - Automated macOS AGL environment setup
-- `macos-install-improvements.sh` - macOS installation improvements
-- `macos-ssh-config-update.sh` - SSH configuration automation
+# Forçar reinício completa (para + iniciar)
+sudo ./ct183-startup.sh --force-restart
+```
 
-### Network/
-Network and VPN configuration:
-- `setup-tailscale-ct178.sh` - Setup Tailscale no CT178 (aglfs1)
-- `setup-tailscale-storage.sh` - Tailscale distributed storage setup
-- `macos-ssh-config-update.sh` - SSH configuration automation
+**O que faz:**
+1. Verifica instalação do Docker
+2. Inicia Supabase (13 containers)
+3. Aguarda Supabase ficar saudável (timeout: 120s)
+4. Inicia Archon (3 containers)
+5. Aguarda Archon ficar saudável (timeout: 60s)
+6. Verifica conectividade entre serviços
+7. Mostra status final e endpoints
 
-## Usage
+### 2. `ct183-stop.sh` - Parar Serviços
 
-All scripts should be executed from the project root directory unless otherwise specified.
-Most scripts require root privileges or specific environment variables.
+Para containers na ordem reversa (Archon primeiro, depois Supabase).
 
-## Best Practices
+```bash
+# Uso normal
+sudo ./ct183-stop.sh
 
-1. Always review scripts before execution
-2. Check for required dependencies
-3. Ensure proper permissions (chmod +x)
-4. Test in development before production use
-5. Document any modifications
+# Modo verbose (mostra mais detalhes)
+sudo ./ct183-stop.sh --verbose
+```
+
+### 3. `ct183-health.sh` - Verificação de Saúde
+
+Verifica o status de saúde de todos os serviços.
+
+```bash
+# Verificação básica
+sudo ./ct183-health.sh
+
+# Verificação detalhada (com logs)
+sudo ./ct183-health.sh --detailed
+```
+
+**O que verifica:**
+- Status de saúde dos containers (healthy/unhealthy/starting)
+- Supabase: 8 serviços críticos
+- Archon: 3 serviços
+- Conectividade Archon → Supabase
+- Endpoints e portas
+
+## 🚀 Início Rápido
+
+### Primeira Configuração
+
+```bash
+# 1. Copiar scripts para CT183
+scp ./scripts/ct183-*.sh root@192.168.0.183:/root/
+
+# 2. Acessar CT183
+ssh root@192.168.0.183
+
+# 3. Dar permissão de execução
+chmod +x /root/ct183-*.sh
+
+# 4. Executar script de startup
+/root/ct183-startup.sh
+```
+
+### Operações Diárias
+
+```bash
+# Iniciar serviços
+/root/ct183-startup.sh
+
+# Verificar saúde
+/root/ct183-health.sh
+
+# Parar serviços
+/root/ct183-stop.sh
+```
+
+## 🔌 Endpoints de Serviço
+
+### Supabase
+- API Gateway: http://192.168.0.183:8000
+- PostgreSQL: postgres://postgres:***@192.168.0.183:5432/postgres
+
+### Archon
+- Web UI: http://192.168.0.183:3737
+- MCP Server: http://192.168.0.183:8051/mcp
+- API Backend: http://192.168.0.183:8181
+
+## 📊 Códigos de Saída
+
+| Código | Significado | Ação |
+|--------|-------------|------|
+| 0 | Todos os serviços saudáveis | Nenhuma |
+| 1 | Alguns serviços degradados | Verificar logs |
+| 2 | Serviços não rodando | Executar startup |
+
+## 🔧 Troubleshooting
+
+### Archon falha ao iniciar
+
+```bash
+# 1. Verificar se Supabase está rodando
+docker ps | grep supabase
+
+# 2. Iniciar Supabase primeiro
+cd /root/supabase-self-hosted/supabase/docker
+docker compose up -d
+
+# 3. Aguardar Supabase ficar saudável
+docker ps --filter "name=supabase" --filter "health=healthy"
+
+# 4. Iniciar Archon
+cd /root/Archon
+docker compose up -d
+```
+
+### Timeout no health check
+
+```bash
+# Verificar logs dos containers
+docker logs supabase-kong --tail 50
+docker logs archon-server --tail 50
+
+# Verificar conectividade manualmente
+docker exec archon-server curl http://host.docker.internal:8000/rest/v1/
+```
+
+## 📝 Manutenção
+
+```bash
+# Health check diário
+/root/ct183-health.sh
+
+# Health check detalhado semanal
+/root/ct183-health.sh --detailed
+
+# Ver logs recentes
+docker logs --tail 100 archon-server
+docker logs --tail 100 supabase-kong
+```
+
+## 📚 Documentação Relacionada
+
+- `../docs/CT183-STARTUP-GUIDE.md` - Guia completo de startup
+- `../docs/updates/archon-supabase-integration-success.md` - Detalhes da integração
 
 ---
-**Last Updated**: 2025-10-31
+
+**Versão**: 1.0
+**Última atualização**: 2025-01-05
+**Responsável**: AGL Team

@@ -13,13 +13,13 @@
 
 | Destination | Method | Priority | Address | Notes |
 |-------------|--------|----------|---------|-------|
-| CT179 | Tailscale | Only | 100.94.221.87 | Development container |
-| AGLSRV1 | Tailscale | Only | 100.107.113.33 | Main host |
-| AGLSRV5 | Tailscale | Only | 100.119.223.113 | Remote host |
-| AGLSRV6 | Tailscale | Only | 100.98.108.66 | Remote host |
+| CT179 | Tailscale | **PRIMARY** | 100.94.221.87 | Development container |
+| AGLSRV1 | Tailscale | **PRIMARY** | 100.107.113.33 | Main host |
+| AGLSRV5 | Tailscale | **PRIMARY** | 100.119.223.113 | Remote host |
+| AGLSRV6 | Tailscale | **PRIMARY** | 100.98.108.66 | Remote host |
 
 **Limitations**:
-- ❌ No WireGuard access
+- ❌ No WireGuard access (deprecated)
 - ❌ No local LAN access
 - ❌ No Docker (use CT179 for Docker operations)
 
@@ -27,21 +27,22 @@
 
 ### From CT179 (agldv03)
 
-**Available Networks**: LAN + WireGuard + Tailscale
+**Available Networks**: LAN + Tailscale + WireGuard (legacy)
 
 | Destination | 1st Priority | 2nd Priority | 3rd Priority | Recommended |
 |-------------|--------------|--------------|--------------|-------------|
-| AGLSRV1 | LAN (192.168.0.245) | WG (10.6.0.10) | TS (100.107.113.33) | **LAN** ⚡ |
-| AGLSRV5 | WG (10.6.0.17) | TS (100.119.223.113) | - | **Tailscale** 🔧 |
-| AGLSRV6 | WG (10.6.0.12) | TS (100.98.108.66) | - | **WireGuard** |
-| FGSRV6 | WG (10.6.0.5) | TS (100.83.51.9) | Public (186.202.57.120) | **WireGuard** |
-| CT111 (NFS) | WG (10.6.0.20) | TS (100.65.189.83) | - | **WireGuard** |
-| CT183 (Archon) | LAN (192.168.0.183) | WG (10.6.0.21) | TS (100.80.30.59) | **LAN** ⚡ |
+| AGLSRV1 | TS (100.107.113.33) | LAN (192.168.0.245) | WG (10.6.0.10) | **Tailscale** 🔧 |
+| AGLSRV5 | TS (100.119.223.113) | LAN (remote) | WG (10.6.0.17) | **Tailscale** 🔧 |
+| AGLSRV6 | TS (100.98.108.66) | WG (10.6.0.12) | - | **Tailscale** 🔧 |
+| FGSRV6 | TS (100.83.51.9) | WG (10.6.0.5) | Public (186.202.57.120) | **Tailscale** 🔧 |
+| CT111 (NFS) | TS (100.65.189.83) | WG (10.6.0.20) | - | **Tailscale** 🔧 |
+| CT183 (Archon) | TS (100.80.30.59) | LAN (192.168.0.183) | WG (10.6.0.21) | **Tailscale** 🔧 |
 
 **Notes**:
 - ✅ Full network stack available
-- ⚡ LAN is fastest for same-location hosts
-- 🔧 AGLSRV5: Use Tailscale (WireGuard SSH issue)
+- 🔧 **Tailscale is now PRIMARY for all hosts** (per user directive)
+- ⚡ LAN is fastest for same-location hosts when available
+- 📉 WireGuard marked as legacy (deprecated)
 
 ---
 
@@ -56,11 +57,11 @@ Similar to WSL2, but with better container performance and local access to AGLSR
 
 ## 🌐 Network Layer Characteristics
 
-| Network | Speed | Latency | Security | Availability | Use Case |
-|---------|-------|---------|----------|--------------|----------|
-| **LAN** | ⚡⚡⚡ Fastest | <1ms | 🟡 Local only | 🟢 Same location | Local operations |
-| **WireGuard** | ⚡⚡ Fast | 15-30ms | 🟢 Encrypted | 🟢 Mesh nodes | Primary remote |
-| **Tailscale** | ⚡ Medium | 30-100ms | 🟢 Encrypted | 🟢 Universal | Fallback/mobile |
+| Network | Speed | Latency | Security | Availability | Priority | Use Case |
+|---------|-------|---------|----------|--------------|----------|----------|
+| **Tailscale** | ⚡⚡ Fast | 5-30ms | 🟢 Encrypted | 🟢 Universal | **PRIMARY** | All host access |
+| **LAN** | ⚡⚡⚡ Fastest | <1ms | 🟡 Local only | 🟢 Same location | Secondary | Local operations |
+| **WireGuard** | ⚡⚡ Fast | 15-30ms | 🟢 Encrypted | 🟢 Mesh nodes | Legacy | Being phased out |
 
 ---
 
@@ -72,15 +73,20 @@ See `SSH-CONFIG.md` for complete SSH configuration, keys, and aliases.
 
 **From CT179 (full access)**:
 ```bash
-# LAN (fastest for local hosts)
-ssh root@192.168.0.245  # AGLSRV1
+# Tailscale (PRIMARY - recommended for all hosts)
+ssh root@100.107.113.33   # AGLSRV1
+ssh root@100.119.223.113  # AGLSRV5
+ssh root@100.98.108.66    # AGLSRV6
+ssh root@100.80.30.59     # CT183 (Archon)
+ssh root@100.83.51.9      # FGSRV6 (Tailscale)
+ssh root@100.65.189.83    # CT111 (NFS)
 
-# WireGuard (encrypted remote)
-ssh root@10.6.0.12      # AGLSRV6
-ssh root@10.6.0.21      # CT183 (Archon)
+# LAN (fastest for same-location hosts)
+ssh root@192.168.0.245    # AGLSRV1
 
-# Tailscale (universal fallback)
-ssh root@100.119.223.113  # AGLSRV5 (recommended)
+# WireGuard (legacy - being phased out)
+ssh root@10.6.0.12        # AGLSRV6
+ssh root@10.6.0.21        # CT183 (Archon)
 ```
 
 **From WSL2 (Tailscale only)**:

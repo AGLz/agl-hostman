@@ -43,8 +43,8 @@
 ### FGSRV Hosts (VPS Locaweb)
 
 > **Naming Convention**: All FGSRV hosts use two aliases for the same physical server:
-> - **`FGSRVXX`** (uppercase) → Public IP / hostname
-> - **`fgsrvX`** (lowercase) → Tailscale IP (same server, different route)
+> - **`fgsrvX`** (lowercase) → **Tailscale IP (PRIMARY - RECOMMENDED)**
+> - **`FGSRVXX`** (uppercase) → Public IP / hostname (fallback)
 
 #### FGSRV03 - Production Server
 > **Note**: `fgsrv3` is an alias for `FGSRV03` (same physical server, different access routes)

@@ -66,22 +66,24 @@ ssh root@100.107.113.33 'pct list'  # AGLSRV1 containers
 ssh root@100.98.108.66 'pct list'   # AGLSRV6 containers
 ```
 
-### From CT179 (Full Stack - Prefer WireGuard)
+### From CT179 (Full Stack - Prefer Tailscale)
 
 ```bash
-# WireGuard mesh (fastest)
-ssh root@10.6.0.12   # AGLSRV6 via WireGuard
-ssh root@10.6.0.5    # FGSRV6 via WireGuard
-ssh root@10.6.0.20   # CT111 (aluzdivina) via WireGuard
+# Tailscale (PRIMARY - recommended for all hosts)
+ssh root@100.98.108.66  # AGLSRV6 host
+ssh root@100.83.51.9    # FGSRV6 host
+ssh root@100.71.229.12  # CT108
+ssh root@100.65.189.83  # CT111 (aluzdivina)
 
-# Local LAN
+# Local LAN (fastest for local resources)
 ssh root@192.168.0.245  # AGLSRV1 host
 ssh root@192.168.0.202  # n8n container
 ssh root@192.168.0.200  # ollama-gpu container
 
-# Tailscale (fallback)
-ssh root@100.98.108.66  # AGLSRV6 host
-ssh root@100.71.229.12  # CT108
+# WireGuard (legacy - being phased out)
+ssh root@10.6.0.12   # AGLSRV6 via WireGuard
+ssh root@10.6.0.5    # FGSRV6 via WireGuard
+ssh root@10.6.0.20   # CT111 (aluzdivina) via WireGuard
 
 # Proxmox commands (via host)
 ssh root@192.168.0.245 'pct list'
@@ -92,14 +94,15 @@ ssh root@192.168.0.245 'pct exec 183 -- docker ps'
 
 | Target | From WSL2 | From CT179 | From CT108 |
 |--------|-----------|------------|------------|
-| AGLSRV1 Host | 100.107.113.33 (TS) | 192.168.0.245 (LAN) or 10.6.0.10 (WG) | 100.107.113.33 (TS) |
-| AGLSRV6 Host | 100.98.108.66 (TS) | 10.6.0.12 (WG) ⚡ | 10.6.0.12 or 100.98.108.66 |
-| AGLSRV6D Host | 100.76.201.83 (TS) | 192.168.0.234 (LAN) ⏳ 10.6.0.22 (WG) | 100.76.201.83 (TS) |
-| FGSRV6 Host | 100.83.51.9 (TS) | 10.6.0.5 (WG) ⚡ | 100.83.51.9 (TS) |
-| CT179 Dev | 100.94.221.87 (TS) | 192.168.0.179 (LAN) | 100.94.221.87 (TS) |
-| CT183 Archon | Via host | 192.168.0.183 (LAN) or 10.6.0.21 (WG) | Via host |
+| AGLSRV1 Host | 100.107.113.33 (TS) 🔧 | 100.107.113.33 (TS) 🔧 or 192.168.0.245 (LAN) | 100.107.113.33 (TS) 🔧 |
+| AGLSRV6 Host | 100.98.108.66 (TS) 🔧 | 100.98.108.66 (TS) 🔧 | 100.98.108.66 (TS) 🔧 |
+| AGLSRV6D Host | 100.76.201.83 (TS) 🔧 | 100.76.201.83 (TS) 🔧 | 100.76.201.83 (TS) 🔧 |
+| FGSRV6 Host | 100.83.51.9 (TS) 🔧 | 100.83.51.9 (TS) 🔧 | 100.83.51.9 (TS) 🔧 |
+| CT179 Dev | 100.94.221.87 (TS) 🔧 | 100.94.221.87 (TS) 🔧 | 100.94.221.87 (TS) 🔧 |
+| CT183 Archon | Via host | 100.80.30.59 (TS) 🔧 or 192.168.0.183 (LAN) | Via host |
 
-⚡ = Fastest option (WireGuard mesh)
+🔧 = **PRIMARY (Tailscale)** - Use for all host access
+⚡ = LAN (fastest for same-location hosts) |
 
 ---
 
@@ -115,9 +118,12 @@ ssh root@100.98.108.66 'pct list'   # AGLSRV6
 
 **From CT179**:
 ```bash
-# Direct LAN (fastest)
+# Tailscale (PRIMARY - recommended)
+ssh root@100.107.113.33 'pct list'  # AGLSRV1
+ssh root@100.98.108.66 'pct list'   # AGLSRV6
+
+# Local LAN (fastest for same location)
 ssh root@192.168.0.245 'pct list'  # AGLSRV1
-ssh root@10.6.0.12 'pct list'      # AGLSRV6 via WireGuard
 ```
 
 ### Execute Commands in Containers
@@ -134,14 +140,18 @@ ssh root@192.168.0.183  # CT183 (Archon)
 ### Check Network Connectivity
 
 ```bash
-# Test WireGuard mesh
+# Test Tailscale (PRIMARY)
+ping 100.83.51.9   # FGSRV6 hub
+ping 100.98.108.66  # AGLSRV6
+
+# Test WireGuard (legacy)
 ping 10.6.0.5   # FGSRV6 hub
 ping 10.6.0.12  # AGLSRV6
 
-# Test Tailscale
-ping 100.98.108.66  # AGLSRV6
+# Check Tailscale status
+tailscale status
 
-# Check WireGuard status
+# Check WireGuard status (legacy)
 wg show
 ```
 
@@ -252,14 +262,14 @@ ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compo
 ### MCP Connection Setup
 
 ```bash
-# LAN (development)
-claude mcp add --transport http archon http://192.168.0.183:8052/mcp
+# Tailscale (PRIMARY - recommended for all access)
+claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp
 
-# WireGuard (primary external)
+# WireGuard (legacy - being phased out)
 claude mcp add --transport http archon-wg http://10.6.0.21:8051/mcp
 
-# Tailscale (backup external)
-claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp
+# LAN (development - local only)
+claude mcp add --transport http archon http://192.168.0.183:8052/mcp
 
 # Verify connections
 claude mcp list
@@ -268,11 +278,11 @@ claude mcp list
 ### Archon Health Checks
 
 ```bash
-# Test MCP endpoints
-curl http://192.168.0.183:8051/mcp  # Direct Docker
-curl http://192.168.0.183:8052/mcp  # nginx LAN
-curl http://10.6.0.21:8051/mcp      # WireGuard
-curl http://100.80.30.59:8051/mcp   # Tailscale
+# Test MCP endpoints (PRIMARY = Tailscale)
+curl http://100.80.30.59:8051/mcp   # Tailscale (PRIMARY)
+curl http://10.6.0.21:8051/mcp         # WireGuard (legacy)
+curl http://192.168.0.183:8051/mcp     # LAN (development)
+curl http://192.168.0.183:8052/mcp     # nginx LAN
 
 # Test with Basic Auth (public HTTPS)
 curl -u admin:ArchonPass2025 https://archon.aglz.io
@@ -333,11 +343,11 @@ ip route show
 ### Quick Reset Commands
 
 ```bash
-# Restart WireGuard
-sudo wg-quick down wg0 && sudo wg-quick up wg0
-
-# Restart Tailscale
+# Restart Tailscale (PRIMARY)
 sudo systemctl restart tailscaled
+
+# Restart WireGuard (legacy)
+sudo wg-quick down wg0 && sudo wg-quick up wg0
 
 # Restart Docker service
 sudo systemctl restart docker
@@ -386,19 +396,22 @@ Always consult these documents together for infrastructure tasks:
 ### SSH Aliases Quick Card
 
 ```bash
-# Core hosts (from any environment via Tailscale)
+# Core hosts (Tailscale - PRIMARY access method)
 AGLSRV1_HOST="100.107.113.33"  # Main Proxmox host
 AGLSRV6_HOST="100.98.108.66"   # Secondary Proxmox host
 CT179_DEV="100.94.221.87"      # Primary development
 CT108_DEV="100.71.229.12"      # AGLSRV6 development
+FGSRV6_HOST="100.83.51.9"      # FGSRV6 hub
+CT111_HOST="100.65.189.83"     # CT111 storage
+CT183_HOST="100.80.30.59"      # Archon
 
-# WireGuard mesh (from CT179 only)
-AGLSRV6_WG="10.6.0.12"   # AGLSRV6 host (fastest)
-FGSRV6_WG="10.6.0.5"     # FGSRV6 hub
-CT111_WG="10.6.0.20"     # CT111 storage
-CT183_WG="10.6.0.21"     # Archon
+# WireGuard mesh (legacy - from CT179 only)
+AGLSRV6_WG="10.6.0.12"   # AGLSRV6 host (legacy)
+FGSRV6_WG="10.6.0.5"     # FGSRV6 hub (legacy)
+CT111_WG="10.6.0.20"     # CT111 storage (legacy)
+CT183_WG="10.6.0.21"     # Archon (legacy)
 
-# Local LAN (from CT179 only)
+# Local LAN (from CT179 only - fastest for local resources)
 AGLSRV1_LAN="192.168.0.245"  # AGLSRV1 host
 CT183_LAN="192.168.0.183"    # Archon
 CT202_LAN="192.168.0.202"    # n8n
@@ -410,11 +423,11 @@ CT202_LAN="192.168.0.202"    # n8n
 # Current environment
 CURRENT_ENV=$(if [[ -f /proc/version ]] && grep -q microsoft /proc/version; then echo "WSL2"; elif [[ -f /.dockerenv ]]; then echo "Container"; else echo "Unknown"; fi)
 
-# Network availability check
+# Network availability check (Tailscale priority)
 check_network() {
+    ping -c 1 100.83.51.9 &>/dev/null && echo "Tailscale: ✅" || echo "Tailscale: ❌"
     ping -c 1 192.168.0.1 &>/dev/null && echo "LAN: ✅" || echo "LAN: ❌"
     ping -c 1 10.6.0.5 &>/dev/null && echo "WireGuard: ✅" || echo "WireGuard: ❌"
-    ping -c 1 100.98.108.66 &>/dev/null && echo "Tailscale: ✅" || echo "Tailscale: ❌"
 }
 ```
 

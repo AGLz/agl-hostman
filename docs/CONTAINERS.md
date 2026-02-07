@@ -29,9 +29,9 @@
 
 | ID | Name | Purpose | Status | Resources |
 |----|------|---------|--------|-----------|
-| **CT179** | agldv03 | Main Development | ✅ | 48GB RAM, SuperClaude, WG 10.6.0.19, TS 100.94.221.87 |
-| **CT180** | dokploy | Deployment Platform | ✅ | 8 cores, 16GB RAM, WG 10.6.0.47, https://dok.aglz.io |
-| **CT181** | agldv04 | Secondary Development | ✅ | 48GB RAM, SuperClaude ✨, 13 MCPs, WG 10.6.0.24, TS 100.113.9.98 |
+| **CT179** | agldv03 | Main Development | ✅ | 48GB RAM, SuperClaude, TS 100.94.221.87 (PRIMARY), WG 10.6.0.19 (legacy) |
+| **CT180** | dokploy | Deployment Platform | ✅ | 8 cores, 16GB RAM, WG 10.6.0.47 (legacy), https://dok.aglz.io |
+| **CT181** | agldv04 | Secondary Development | ✅ | 48GB RAM, SuperClaude ✨, 13 MCPs, TS 100.113.9.98 (PRIMARY), WG 10.6.0.24 (legacy) |
 
 ### AI & Machine Learning
 
@@ -70,11 +70,11 @@
 
 ### Key Containers
 
-| ID | Name | Purpose | Status | Networks |
-|----|------|---------|--------|----------|
-| **CT111** | aluzdivina | NFS Server | ✅ | WG 10.6.0.20, TS 100.65.189.83 |
+| ID | Name | Purpose | Status | Networks (Priority Order) |
+|----|------|---------|--------|---------------------------|
+| **CT111** | aluzdivina | NFS Server | ✅ | TS 100.65.189.83 (PRIMARY), WG 10.6.0.20 (legacy) |
 | **CT108** | agldv06 | Development | ✅ | Tailscale only |
-| **CT113** | - | Proxmox Backup | ✅ | WG 10.6.0.14 |
+| **CT113** | - | Proxmox Backup | ✅ | WG 10.6.0.14 (legacy) |
 | **CT172** | - | Proxmox Backup | ⚠️ | Host AGLSRV6B offline |
 
 ---

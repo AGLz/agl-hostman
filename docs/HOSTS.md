@@ -61,13 +61,13 @@
 ### Connection Commands
 
 ```bash
-# From WSL2 (Tailscale only)
+# Via Tailscale (PREFERRED - from anywhere)
 ssh root@100.107.113.33
 
 # From CT179 (prefer LAN)
 ssh root@192.168.0.245  # Fastest (<1ms)
 
-# From remote (prefer WireGuard)
+# Via WireGuard (fallback - legacy)
 ssh root@10.6.0.10
 ```
 
@@ -159,17 +159,17 @@ PersistentKeepalive: 25s
 ### Connection Commands
 
 ```bash
+# Via Tailscale (PREFERRED - from anywhere)
+ssh root@100.123.5.81
+ssh aglsrv3  # SSH config alias
+
 # Via LAN (from same location)
 ssh root@192.168.0.247
 ssh AGLSRV3  # SSH config alias
 
-# Via WireGuard (FASTEST - from mesh)
+# Via WireGuard (fallback - legacy)
 ssh root@10.6.0.24
-ssh aglsrv3-wg  # SSH config alias (recommended)
-
-# Via Tailscale (from anywhere)
-ssh root@100.123.5.81
-ssh aglsrv3  # SSH config alias
+ssh aglsrv3-wg  # SSH config alias (fallback)
 
 # Proxmox Web Interface
 https://192.168.0.247:8006  # LAN access
@@ -305,14 +305,14 @@ https://192.168.1.202:8006  # Inter-host LAN
 ### Access Methods
 
 ```bash
-# Via Tailscale (recommended - 20-42ms latency)
+# Via Tailscale (PREFERRED - 20-42ms latency)
 ssh root@100.119.223.113
-
-# Via WireGuard (SSH connection closes immediately - auth issue)
-ssh root@10.6.0.17  # ⚠️ Known issue
 
 # Via LAN (only from same network segment)
 ssh root@192.168.15.222
+
+# Via WireGuard (SSH connection closes immediately - auth issue)
+ssh root@10.6.0.17  # ⚠️ Known issue - NOT RECOMMENDED
 ```
 
 ### Network Configuration
@@ -410,17 +410,18 @@ ssh root@192.168.15.222
 ### Access Methods
 
 ```bash
-# Via inter-host LAN (from AGLSRV6 or containers - RECOMMENDED)
-ssh root@192.168.1.233  # PRIMARY for local communication
+# Via Tailscale (PREFERRED - from anywhere)
+ssh root@100.124.53.91
+
+# Via inter-host LAN (from AGLSRV6 or containers)
+ssh root@192.168.1.233  # Primary for local communication
 
 # Via external LAN
 ssh root@192.168.0.233
 
-# Via Tailscale
-ssh root@100.124.53.91
-
-# Via WireGuard
+# Via WireGuard (fallback - legacy)
 ssh root@10.6.0.22
+```
 
 # Via Jump Host (AGLSRV6 Tailscale)
 ssh -J root@100.98.108.66 root@192.168.1.233
@@ -450,11 +451,11 @@ https://192.168.1.233:8006  # Inter-host LAN
 
 ### Network Configuration
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | 192.168.0.234 | enp2s0 | ✅ Active |
-| Tailscale | 100.76.201.83 | tailscale0 | ✅ Active |
-| WireGuard | 10.6.0.23 | wg0 | ✅ Port 51823 |
+| Network | Address | Interface | Status | Priority |
+|---------|---------|-----------|--------|----------|
+| Tailscale | 100.76.201.83 | tailscale0 | ✅ Active | **PRIMARY** |
+| Local LAN | 192.168.0.234 | enp2s0 | ✅ Active | Secondary |
+| WireGuard | 10.6.0.23 | wg0 | ✅ Port 51823 | Legacy |
 
 ### Hardware
 
@@ -488,13 +489,13 @@ https://192.168.1.233:8006  # Inter-host LAN
 ### Access Methods
 
 ```bash
-# Via LAN
-ssh root@192.168.0.234
-
-# Via Tailscale
+# Via Tailscale (PREFERRED - from anywhere)
 ssh root@100.76.201.83
 
-# Via WireGuard
+# Via LAN (local only)
+ssh root@192.168.0.234
+
+# Via WireGuard (fallback - legacy)
 ssh root@10.6.0.23
 
 # Proxmox Web Interface
@@ -512,11 +513,11 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 186.202.57.120 | - | ✅ Internet |
-| WireGuard | 10.6.0.5 | 51823/UDP | ✅ **Hub** |
-| Tailscale | 100.83.51.9 | - | ✅ Active |
+| Network | Address | Port | Status | Priority |
+|---------|---------|------|--------|----------|
+| Tailscale | 100.83.51.9 | - | ✅ Active | **PRIMARY** |
+| Public IP | 186.202.57.120 | - | ✅ Internet | Secondary |
+| WireGuard | 10.6.0.5 | 51823/UDP | ✅ **Hub** | Legacy |
 
 ### NFS Exports
 
@@ -540,11 +541,11 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.200.20 | - | ✅ Internet |
-| WireGuard | 10.6.0.11 | 51811/UDP | ✅ Active |
-| Tailscale | 100.71.107.26 | - | ✅ Active |
+| Network | Address | Port | Status | Priority |
+|---------|---------|------|--------|----------|
+| Tailscale | 100.71.107.26 | - | ✅ Active | **PRIMARY** |
+| Public IP | 191.252.200.20 | - | ✅ Internet | Secondary |
+| WireGuard | 10.6.0.11 | 51811/UDP | ✅ Active | Legacy |
 
 ### NFS Exports
 
@@ -566,10 +567,10 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active |
-| Tailscale | 100.111.79.2 | - | ✅ Active |
+| Network | Address | Port | Status | Priority |
+|---------|---------|------|--------|----------|
+| Tailscale | 100.111.79.2 | - | ✅ Active | **PRIMARY** |
+| WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active | Legacy |
 
 ### Access
 
@@ -585,11 +586,11 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.201.205 | - | ✅ Internet |
-| WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active |
-| Tailscale | 100.67.99.115 | - | ✅ Active |
+| Network | Address | Port | Status | Priority |
+|---------|---------|------|--------|----------|
+| Tailscale | 100.67.99.115 | - | ✅ Active | **PRIMARY** |
+| Public IP | 191.252.201.205 | - | ✅ Internet | Secondary |
+| WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active | Legacy |
 
 ---
 

@@ -1,176 +1,274 @@
 
 #!/bin/bash
 
+# ===============================================
+# Claude Code Global Statusline
+# ===============================================
+# Shows useful info across ALL directories:
+# - Current directory (shortened path)
+# - Git info (branch, status, repo name)
+# - Todo list status (if available)
+# - Claude Flow metrics (if present)
+# - System info (hostname, user)
+# ===============================================
+
 # Read JSON input from stdin
 INPUT=$(cat)
 MODEL=$(echo "$INPUT" | jq -r '.model.display_name // "Claude"')
 CWD=$(echo "$INPUT" | jq -r '.workspace.current_dir // .cwd')
-DIR=$(basename "$CWD")
+PROJECT_DIR=$(echo "$INPUT" | jq -r '.workspace.project_dir // .cwd')
+OUTPUT_STYLE=$(echo "$INPUT" | jq -r '.output_style.name // "default"')
+CC_VERSION=$(claude --version 2>/dev/null | sed 's/ (Claude Code)//' | sed 's/^/CC v/')
 
-# Replace claude-code-flow with branded name
-if [ "$DIR" = "claude-code-flow" ]; then
-  DIR="🌊 Claude Flow"
+# =========================
+# Git Project Information
+# =========================
+cd "$CWD" 2>/dev/null
+PROJECT_NAME=""
+BRANCH=""
+
+if git rev-parse --git-dir > /dev/null 2>&1; then
+  # Get project name from remote URL or directory
+  REMOTE_URL=$(git remote get-url origin 2>/dev/null | head -n1)
+
+  if [ -n "$REMOTE_URL" ]; then
+    # Extract project name from git URL
+    PROJECT_NAME=$(basename "$REMOTE_URL" .git)
+  fi
+
+  # Fallback to directory name if no remote or parsing failed
+  if [ -z "$PROJECT_NAME" ] || [ "$PROJECT_NAME" = "$REMOTE_URL" ]; then
+    GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+    PROJECT_NAME=$(basename "$GIT_ROOT")
+  fi
+
+  # Special branded names
+  case "$PROJECT_NAME" in
+    "claude-code-flow") PROJECT_NAME="🌊 Claude Flow" ;;
+    "agl-hostman") PROJECT_NAME="AGL HostMan" ;;
+    "gemini-flow") PROJECT_NAME="💎 Gemini Flow" ;;
+  esac
+
+  # Get branch name
+  BRANCH=$(git branch --show-current 2>/dev/null)
+  [ -z "$BRANCH" ] && BRANCH=$(git describe --tags --exact-match 2>/dev/null || echo "detached")
 fi
 
-# Get git branch
-BRANCH=$(cd "$CWD" 2>/dev/null && git branch --show-current 2>/dev/null)
+# Detect environment
+ENV_TYPE=""
+if grep -q microsoft /proc/version 2>/dev/null; then
+  ENV_TYPE="WSL2"
+elif [ -f /.dockerenv ]; then
+  CONTAINER_NAME=$(hostname)
+  ENV_TYPE="🐳 $CONTAINER_NAME"
+fi
 
 # Start building statusline
-printf "\033[1m$MODEL\033[0m in \033[36m$DIR\033[0m"
-[ -n "$BRANCH" ] && printf " on \033[33m⎇ $BRANCH\033[0m"
+printf "\033[1m$MODEL\033[0m"
 
-# Claude-Flow integration
-FLOW_DIR="$CWD/.claude-flow"
+# Show environment if detected
+[ -n "$ENV_TYPE" ] && printf " [\033[35m$ENV_TYPE\033[0m]"
 
-if [ -d "$FLOW_DIR" ]; then
-  printf " │"
+# Show project and branch if in git repo
+if [ -n "$PROJECT_NAME" ] && [ -n "$BRANCH" ]; then
+  printf " in \033[36m${PROJECT_NAME}\033[0m"
+  printf " on \033[33m⎇ ${BRANCH}\033[0m │"
+else
+  # Fallback to directory display
+  DIR_FULL=$(echo "$CWD" | sed "s|^$HOME|~|")
+  DIR_NAME=$(basename "$CWD")
+  DEPTH=$(echo "$CWD" | tr '/' '\n' | wc -l)
 
-  # 1. Swarm Configuration & Topology
-  if [ -f "$FLOW_DIR/swarm-config.json" ]; then
-    STRATEGY=$(jq -r '.defaultStrategy // empty' "$FLOW_DIR/swarm-config.json" 2>/dev/null)
-    if [ -n "$STRATEGY" ]; then
-      # Map strategy to topology icon
-      case "$STRATEGY" in
-        "balanced") TOPO_ICON="⚡mesh" ;;
-        "conservative") TOPO_ICON="⚡hier" ;;
-        "aggressive") TOPO_ICON="⚡ring" ;;
-        *) TOPO_ICON="⚡$STRATEGY" ;;
-      esac
-      printf " \033[35m$TOPO_ICON\033[0m"
-
-      # Count agent profiles as "configured agents"
-      AGENT_COUNT=$(jq -r '.agentProfiles | length' "$FLOW_DIR/swarm-config.json" 2>/dev/null)
-      if [ -n "$AGENT_COUNT" ] && [ "$AGENT_COUNT" != "null" ] && [ "$AGENT_COUNT" -gt 0 ]; then
-        printf "  \033[35m🤖 $AGENT_COUNT\033[0m"
-      fi
-    fi
+  if [ $DEPTH -le 3 ]; then
+    DIR_DISPLAY="$DIR_FULL"
+  else
+    PARENT=$(basename "$(dirname "$CWD")")
+    DIR_DISPLAY=".../$PARENT/$DIR_NAME"
   fi
 
-  # 2. Real-time System Metrics
-  if [ -f "$FLOW_DIR/metrics/system-metrics.json" ]; then
-    # Get latest metrics (last entry in array)
-    LATEST=$(jq -r '.[-1]' "$FLOW_DIR/metrics/system-metrics.json" 2>/dev/null)
+  printf " in \033[36m${DIR_DISPLAY}\033[0m"
+fi
 
-    if [ -n "$LATEST" ] && [ "$LATEST" != "null" ]; then
-      # Memory usage
-      MEM_PERCENT=$(echo "$LATEST" | jq -r '.memoryUsagePercent // 0' | awk '{printf "%.0f", $1}')
-      if [ -n "$MEM_PERCENT" ] && [ "$MEM_PERCENT" != "null" ]; then
-        # Color-coded memory (green <60%, yellow 60-80%, red >80%)
-        if [ "$MEM_PERCENT" -lt 60 ]; then
-          MEM_COLOR="\033[32m"  # Green
-        elif [ "$MEM_PERCENT" -lt 80 ]; then
-          MEM_COLOR="\033[33m"  # Yellow
-        else
-          MEM_COLOR="\033[31m"  # Red
-        fi
-        printf "  ${MEM_COLOR}💾 ${MEM_PERCENT}%\033[0m"
-      fi
+# Git status info (compact)
+cd "$CWD" 2>/dev/null
+if git rev-parse --git-dir > /dev/null 2>&1; then
+  # Get git status (skip optional locks for speed)
+  git config --local core.commitGraph false 2>/dev/null
+  STATUS=$(git status --porcelain --untracked-files=normal 2>/dev/null)
 
-      # CPU load
-      CPU_LOAD=$(echo "$LATEST" | jq -r '.cpuLoad // 0' | awk '{printf "%.0f", $1 * 100}')
-      if [ -n "$CPU_LOAD" ] && [ "$CPU_LOAD" != "null" ]; then
-        # Color-coded CPU (green <50%, yellow 50-75%, red >75%)
-        if [ "$CPU_LOAD" -lt 50 ]; then
-          CPU_COLOR="\033[32m"  # Green
-        elif [ "$CPU_LOAD" -lt 75 ]; then
-          CPU_COLOR="\033[33m"  # Yellow
-        else
-          CPU_COLOR="\033[31m"  # Red
-        fi
-        printf "  ${CPU_COLOR}⚙ ${CPU_LOAD}%\033[0m"
-      fi
-    fi
+  if [ -n "$STATUS" ]; then
+    # Count changes
+    MODIFIED=$(echo "$STATUS" | grep -c "^ M" || true)
+    ADDED=$(echo "$STATUS" | grep -c "^A" || true)
+    DELETED=$(echo "$STATUS" | grep -c "^ D" || true)
+    UNTRACKED=$(echo "$STATUS" | grep -c "^??" || true)
+
+    # Show compact status (only if changes exist)
+    STATUS_STR=""
+    [ $MODIFIED -gt 0 ] && STATUS_STR="${STATUS_STR}\033[33m~${MODIFIED}\033[0m"
+    [ $ADDED -gt 0 ] && STATUS_STR="${STATUS_STR}\033[32m+${ADDED}\033[0m"
+    [ $DELETED -gt 0 ] && STATUS_STR="${STATUS_STR}\033[31m-${DELETED}\033[0m"
+    [ $UNTRACKED -gt 0 ] && STATUS_STR="${STATUS_STR}\033[90m?${UNTRACKED}\033[0m"
+
+    [ -n "$STATUS_STR" ] && printf " [${STATUS_STR}]"
   fi
 
-  # 3. Session State
-  if [ -f "$FLOW_DIR/session-state.json" ]; then
-    SESSION_ID=$(jq -r '.sessionId // empty' "$FLOW_DIR/session-state.json" 2>/dev/null)
-    ACTIVE=$(jq -r '.active // false' "$FLOW_DIR/session-state.json" 2>/dev/null)
+  # Check if repo has remote
+  REMOTE=$(git remote 2>/dev/null | head -n1)
+  if [ -n "$REMOTE" ]; then
+    # Check ahead/behind
+    AHEAD=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0)
+    BEHIND=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0)
 
-    if [ "$ACTIVE" = "true" ] && [ -n "$SESSION_ID" ]; then
-      # Show abbreviated session ID
-      SHORT_ID=$(echo "$SESSION_ID" | cut -d'-' -f1)
-      printf "  \033[34m🔄 $SHORT_ID\033[0m"
-    fi
-  fi
-
-  # 4. Performance Metrics from task-metrics.json
-  if [ -f "$FLOW_DIR/metrics/task-metrics.json" ]; then
-    # Parse task metrics for success rate, avg time, and streak
-    METRICS=$(jq -r '
-      # Calculate metrics
-      (map(select(.success == true)) | length) as $successful |
-      (length) as $total |
-      (if $total > 0 then ($successful / $total * 100) else 0 end) as $success_rate |
-      (map(.duration // 0) | add / length) as $avg_duration |
-      # Calculate streak (consecutive successes from end)
-      (reverse |
-        reduce .[] as $task (0;
-          if $task.success == true then . + 1 else 0 end
-        )
-      ) as $streak |
-      {
-        success_rate: $success_rate,
-        avg_duration: $avg_duration,
-        streak: $streak,
-        total: $total
-      } | @json
-    ' "$FLOW_DIR/metrics/task-metrics.json" 2>/dev/null)
-
-    if [ -n "$METRICS" ] && [ "$METRICS" != "null" ]; then
-      # Success Rate
-      SUCCESS_RATE=$(echo "$METRICS" | jq -r '.success_rate // 0' | awk '{printf "%.0f", $1}')
-      TOTAL_TASKS=$(echo "$METRICS" | jq -r '.total // 0')
-
-      if [ -n "$SUCCESS_RATE" ] && [ "$TOTAL_TASKS" -gt 0 ]; then
-        # Color-code: Green (>80%), Yellow (60-80%), Red (<60%)
-        if [ "$SUCCESS_RATE" -gt 80 ]; then
-          SUCCESS_COLOR="\033[32m"  # Green
-        elif [ "$SUCCESS_RATE" -ge 60 ]; then
-          SUCCESS_COLOR="\033[33m"  # Yellow
-        else
-          SUCCESS_COLOR="\033[31m"  # Red
-        fi
-        printf "  ${SUCCESS_COLOR}🎯 ${SUCCESS_RATE}%\033[0m"
-      fi
-
-      # Average Time
-      AVG_TIME=$(echo "$METRICS" | jq -r '.avg_duration // 0')
-      if [ -n "$AVG_TIME" ] && [ "$TOTAL_TASKS" -gt 0 ]; then
-        # Format smartly: seconds, minutes, or hours
-        if [ $(echo "$AVG_TIME < 60" | bc -l 2>/dev/null || echo 0) -eq 1 ]; then
-          TIME_STR=$(echo "$AVG_TIME" | awk '{printf "%.1fs", $1}')
-        elif [ $(echo "$AVG_TIME < 3600" | bc -l 2>/dev/null || echo 0) -eq 1 ]; then
-          TIME_STR=$(echo "$AVG_TIME" | awk '{printf "%.1fm", $1/60}')
-        else
-          TIME_STR=$(echo "$AVG_TIME" | awk '{printf "%.1fh", $1/3600}')
-        fi
-        printf "  \033[36m⏱️  $TIME_STR\033[0m"
-      fi
-
-      # Streak (only show if > 0)
-      STREAK=$(echo "$METRICS" | jq -r '.streak // 0')
-      if [ -n "$STREAK" ] && [ "$STREAK" -gt 0 ]; then
-        printf "  \033[91m🔥 $STREAK\033[0m"
-      fi
-    fi
-  fi
-
-  # 5. Active Tasks (check for task files)
-  if [ -d "$FLOW_DIR/tasks" ]; then
-    TASK_COUNT=$(find "$FLOW_DIR/tasks" -name "*.json" -type f 2>/dev/null | wc -l)
-    if [ "$TASK_COUNT" -gt 0 ]; then
-      printf "  \033[36m📋 $TASK_COUNT\033[0m"
-    fi
-  fi
-
-  # 6. Check for hooks activity
-  if [ -f "$FLOW_DIR/hooks-state.json" ]; then
-    HOOKS_ACTIVE=$(jq -r '.enabled // false' "$FLOW_DIR/hooks-state.json" 2>/dev/null)
-    if [ "$HOOKS_ACTIVE" = "true" ]; then
-      printf " \033[35m🔗\033[0m"
-    fi
+    [ $AHEAD -gt 0 ] && printf " \033[32m↑$AHEAD\033[0m"
+    [ $BEHIND -gt 0 ] && printf " \033[31m↓$BEHIND\033[0m"
   fi
 fi
+
+# ===============================================
+# Current Session Usage (5-hour windows)
+# ===============================================
+# 5-hour blocks:
+# 1-6    (01:00 to 06:00)
+# 6-11   (06:00 to 11:00)
+# 11-4   (11:00 to 16:00)
+# 4-9    (16:00 to 21:00)
+# 9-1    (21:00 to 01:00) - 4 hour block to accommodate 24h
+
+# Get current hour and minute
+CURRENT_HOUR=$(date +%H | sed 's/^0//')
+CURRENT_MIN=$(date +%M | sed 's/^0//')
+
+# Define 5-hour blocks
+# Block 1: 01:00-06:00
+# Block 2: 06:00-11:00
+# Block 3: 11:00-16:00
+# Block 4: 16:00-21:00
+# Block 5: 21:00-01:00 (next day)
+
+BLOCK_START=""
+BLOCK_END=""
+BLOCK_NAME=""
+
+if [ $CURRENT_HOUR -ge 1 ] && [ $CURRENT_HOUR -lt 6 ]; then
+  # Block 1: 1-6
+  BLOCK_START=1
+  BLOCK_END=6
+  BLOCK_NAME="1-6"
+elif [ $CURRENT_HOUR -ge 6 ] && [ $CURRENT_HOUR -lt 11 ]; then
+  # Block 2: 6-11
+  BLOCK_START=6
+  BLOCK_END=11
+  BLOCK_NAME="6-11"
+elif [ $CURRENT_HOUR -ge 11 ] && [ $CURRENT_HOUR -lt 16 ]; then
+  # Block 3: 11-4
+  BLOCK_START=11
+  BLOCK_END=16
+  BLOCK_NAME="11-4"
+elif [ $CURRENT_HOUR -ge 16 ] && [ $CURRENT_HOUR -lt 21 ]; then
+  # Block 4: 4-9
+  BLOCK_START=16
+  BLOCK_END=21
+  BLOCK_NAME="4-9"
+else
+  # Block 5: 9-1 (or 21-1)
+  BLOCK_START=21
+  BLOCK_END=1
+  BLOCK_NAME="9-1"
+fi
+
+# Calculate time until reset
+CURRENT_TIME_MIN=$((CURRENT_HOUR * 60 + CURRENT_MIN))
+
+if [ "$BLOCK_END" = "1" ]; then
+  # Special case: block 5 (21:00 to 01:00 next day)
+  if [ $CURRENT_HOUR -ge 21 ]; then
+    # Before midnight: count until 00:00 + 1 hour
+    MINUTES_UNTIL_MIDNIGHT=$((24 * 60 - CURRENT_TIME_MIN))
+    TIME_UNTIL_RESET_MIN=$((MINUTES_UNTIL_MIDNIGHT + 60))  # +1 hour to 01:00
+  else
+    # After midnight (hour 0): count until 01:00
+    TIME_UNTIL_RESET_MIN=$((60 - CURRENT_TIME_MIN))
+  fi
+else
+  # All other blocks
+  BLOCK_END_MIN=$((BLOCK_END * 60))
+  TIME_UNTIL_RESET_MIN=$((BLOCK_END_MIN - CURRENT_TIME_MIN))
+fi
+
+HOURS_UNTIL_RESET=$((TIME_UNTIL_RESET_MIN / 60))
+MINS_UNTIL_RESET=$((TIME_UNTIL_RESET_MIN % 60))
+
+TIME_UNTIL_RESET="${HOURS_UNTIL_RESET}h ${MINS_UNTIL_RESET}m"
+
+# Format reset time
+if [ "$BLOCK_END" = "1" ]; then
+  RESET_TIME="01:00"
+else
+  RESET_TIME="$(printf '%02d' $BLOCK_END):00"
+fi
+
+# Count tokens in current session (use latest session file with actual tokens)
+TOKENS_USED=$(/root/.claude/scripts/count-tokens.sh 2>/dev/null || echo "0")
+
+# Ensure TOKENS_USED is a valid number (handle empty or non-numeric results)
+TOKENS_USED=${TOKENS_USED:-0}
+case "$TOKENS_USED" in
+  ''|*[!0-9]*) TOKENS_USED=0 ;;
+esac
+
+# Token limit per 5-hour window (Claude Pro: ~44K, Max5: ~88K)
+# Using Pro limit as default (can be adjusted for Max5)
+# glm-* models have 3x limit (132K tokens)
+TOKENS_LIMIT_BASE=44000
+case "$MODEL" in
+  glm-*)
+    TOKENS_LIMIT=$((TOKENS_LIMIT_BASE * 3))
+    ;;
+  *)
+    TOKENS_LIMIT=$TOKENS_LIMIT_BASE
+    ;;
+esac
+
+# Calculate usage percentage (cap at 100% for progress bar)
+USAGE_PCT=$((TOKENS_USED * 100 / TOKENS_LIMIT))
+if [ $USAGE_PCT -gt 100 ]; then
+  USAGE_PCT=100
+fi
+
+# Create visual progress bar [░░░░░░░░░░] (10 blocks)
+FILLED=$((USAGE_PCT / 10))
+EMPTY=$((10 - FILLED))
+
+PROGRESS_BAR="["
+for i in $(seq 1 $FILLED); do
+  PROGRESS_BAR="${PROGRESS_BAR}█"
+done
+for i in $(seq 1 $EMPTY); do
+  PROGRESS_BAR="${PROGRESS_BAR}░"
+done
+PROGRESS_BAR="${PROGRESS_BAR}]"
+
+# Color based on usage
+if [ $USAGE_PCT -lt 50 ]; then
+  BAR_COLOR="\033[32m"  # Green
+elif [ $USAGE_PCT -lt 80 ]; then
+  BAR_COLOR="\033[33m"  # Yellow
+else
+  BAR_COLOR="\033[31m"  # Red
+fi
+
+# Format output: | 40.8K/44K tokens [██████░░░░] | reset 21:00(2h 31m)[4-9]
+# Format tokens with K suffix for better readability
+TOKENS_USED_K=$(awk "BEGIN {printf \"%.1fK\", $TOKENS_USED/1000}")
+TOKENS_LIMIT_K=$(awk "BEGIN {printf \"%.0fK\", $TOKENS_LIMIT/1000}")
+printf " | ${BAR_COLOR}${TOKENS_USED_K}/${TOKENS_LIMIT_K} ${PROGRESS_BAR}\033[0m"
+printf " | \033[90m${RESET_TIME}(${TIME_UNTIL_RESET})[${BLOCK_NAME}]\033[0m"
+
+# CC version and hostname
+printf " \033[90m│\033[0m"
+printf " \033[36m${CC_VERSION}\033[0m"
+printf " \033[90m│\033[0m"
+printf "\033[33m $(hostname)\033[0m"
 
 echo

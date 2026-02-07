@@ -239,30 +239,39 @@ The hive mind approach enabled:
 
 ## 🔧 Network Topology
 
-### WireGuard Mesh (Primary - Fastest)
+### Tailscale Overlay (PRIMARY - Recommended) 🔧
+
+**Network**: 100.x.x.x
+**Purpose**: PRIMARY network access method - Recommended for all hosts
+**Integration**: Universal access across all infrastructure
+
+**Key Nodes** (Tailscale IPs):
+- 100.94.221.87 - CT179 (agldv03 - Primary Development)
+- 100.107.113.33 - AGLSRV1 (Main Proxmox Host)
+- 100.98.108.66 - AGLSRV6 (Remote Proxmox Host)
+- 100.83.51.9 - FGSRV6 (WireGuard Hub)
+- 100.80.30.59 - CT183 (Archon MCP)
+- 100.65.189.83 - CT111 (NFS Storage)
+
+### WireGuard Mesh (Legacy - Being Phased Out)
 
 **Active Nodes**: 14 of 17 configured
 **Network**: 10.6.0.0/24
 **Hub**: AGLFS1 (10.6.0.5) - NFS storage server
+**Status**: Legacy network, being deprecated in favor of Tailscale
 
-**Key Nodes**:
+**Key Nodes** (WireGuard IPs):
 - 10.6.0.5 - AGLFS1 (NFS hub)
 - 10.6.0.12 - AGLSRV6 (Proxmox remote)
 - 10.6.0.21 - CT183 (Archon MCP)
 - 10.6.0.23 - CT179 (agldv03 dev)
 - 10.6.0.24 - CT180 (Dokploy)
 
-### Tailscale Overlay (Backup/Cross-Site)
-
-**Network**: 100.x.x.x
-**Purpose**: Remote access, cross-site VPN
-**Integration**: Backup when WireGuard unavailable
-
 ### Connection Priority
 
-1. **WireGuard** (fastest, lowest latency)
-2. **LAN** (local network access)
-3. **Tailscale** (fallback, remote access)
+1. **Tailscale** 🔧 (PRIMARY - recommended for all host access)
+2. **LAN** ⚡ (fastest for same-location hosts)
+3. **WireGuard** (legacy - being phased out)
 
 ---
 

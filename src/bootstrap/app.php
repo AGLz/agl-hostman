@@ -26,6 +26,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'location' => \App\Http\Middleware\CheckLocationAccess::class,
+            'cache.api' => \App\Http\Middleware\CacheApiResponse::class,
+            'throttle' => \App\Http\Middleware\RateLimiting::class,
+        ]);
+
+        // Apply security middleware to API routes (Laravel 11)
+        $middleware->api(prepend: [
+            \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\RateLimiting::class,
+            \App\Http\Middleware\CacheApiResponse::class,
+        ]);
+
+        // Apply security middleware to web routes
+        $middleware->web(prepend: [
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -11,12 +11,12 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 ### Location Summary
 
-| Location | Network Segment | Hosts | Connectivity | Critical Services |
-|----------|----------------|-------|--------------|-------------------|
-| **AGLHQ** | 192.168.0.0/24 | 4 (all active) | LAN + WG + TS | Production, Development, AI |
-| **AGLFG** | 192.168.15.0/24, 172.2.2.0/24 | 1 | LAN + WG + TS | Storage, Media |
-| **AGLALD** | 192.168.0.0/24, 192.168.1.0/24, 192.168.60.0/24 | 4 (3 active, 1 dead) | LAN + WG + TS | Backup, Development, NFS |
-| **AGLFG-VPS** | Public IPs | 4 | WG + TS | WireGuard Hub, NFS |
+| Location | Network Segment | Hosts | Connectivity | Priority | Critical Services |
+|----------|----------------|-------|--------------|----------|-------------------|
+| **AGLHQ** | 192.168.0.0/24 | 4 (all active) | TS + LAN + WG | **TS First** | Production, Development, AI |
+| **AGLFG** | 192.168.15.0/24, 172.2.2.0/24 | 1 | TS + LAN + WG | **TS First** | Storage, Media |
+| **AGLALD** | 192.168.0.0/24, 192.168.1.0/24, 192.168.60.0/24 | 4 (3 active, 1 dead) | TS + LAN + WG | **TS First** | Backup, Development, NFS |
+| **AGLFG-VPS** | Public IPs | 4 | TS + WG | **TS First** | WireGuard Hub, NFS |
 
 **Total Infrastructure**:
 - 13 physical/virtual hosts (all active except AGLSRV6B dead)
@@ -34,11 +34,11 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 ### Hosts and Devices
 
-| Host/Device | Type | Status | Networks |
-|-------------|------|--------|----------|
-| **AGLSRV1** | Proxmox VE Host | ✅ Active | LAN (192.168.0.245), WG (10.6.0.10), TS (100.107.113.33) |
-| **AGLSRV3** | Proxmox VE Host | ✅ Active | LAN (192.168.0.247), WG (10.6.0.24), TS (100.123.5.81) |
-| **AGLHQ11** | Physical Machine | ✅ Active | LAN, TS (present in network) |
+| Host/Device | Type | Status | Networks (Priority Order) |
+|-------------|------|--------|---------------------------|
+| **AGLSRV1** | Proxmox VE Host | ✅ Active | TS (100.107.113.33), LAN (192.168.0.245), WG (10.6.0.10) |
+| **AGLSRV3** | Proxmox VE Host | ✅ Active | TS (100.123.5.81), LAN (192.168.0.247), WG (10.6.0.24) |
+| **AGLHQ11** | Physical Machine | ✅ Active | TS (100.75.205.122), LAN |
 | **AGLFA02** | Physical Machine | ✅ Active | LAN (NAS device, separate from CT178 file server) |
 
 ### Key Services
@@ -75,9 +75,9 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 ### Hosts and Devices
 
-| Host/Device | Type | Status | Networks |
-|-------------|------|--------|----------|
-| **AGLSRV5** | Proxmox VE Host | ✅ Active | LAN1 (192.168.15.222), LAN2 (172.2.2.222), WG (10.6.0.17), TS (100.119.223.113) |
+| Host/Device | Type | Status | Networks (Priority Order) |
+|-------------|------|--------|---------------------------|
+| **AGLSRV5** | Proxmox VE Host | ✅ Active | TS (100.119.223.113), LAN1 (192.168.15.222), LAN2 (172.2.2.222), WG (10.6.0.17) |
 
 ### Key Services
 

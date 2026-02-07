@@ -9,7 +9,7 @@
 ## 📋 Deployment Summary
 
 **Source File**: `/mnt/overpower/apps/dev/agl/agl-hostman/.claude/statusline-command.sh` (177 lines)
-**Target Host**: `root@186.202.57.120` (or `100.83.51.9` via Tailscale)
+**Target Host**: `root@100.83.51.9` (Tailscale - PREFERRED, or `186.202.57.120` via public IP)
 **Target Directory**: `/root/.claude/`
 **Deployment Script**: `/mnt/overpower/apps/dev/agl/agl-hostman/scripts/copy-statusline-to-fgsrv6.sh`
 
@@ -43,8 +43,9 @@ cd /mnt/overpower/apps/dev/agl/agl-hostman
    - Verify: File size and permissions
 
 2. **Test SSH connection to FGSRV6**
-   - Primary: `root@186.202.57.120`
-   - Fallback: `root@10.6.0.5` (Tailscale)
+   - Primary: `root@100.83.51.9` (Tailscale - PREFERRED)
+   - Fallback: `root@186.202.57.120` (Public IP)
+   - Legacy: `root@10.6.0.5` (WireGuard - deprecated)
    - Timeout: 10 seconds
 
 ### Phase 2: Backup ✅
