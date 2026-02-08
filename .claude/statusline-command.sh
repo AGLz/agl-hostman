@@ -208,30 +208,52 @@ else
   RESET_TIME="$(printf '%02d' $BLOCK_END):00"
 fi
 
-# Count tokens in current session (use latest session file with actual tokens)
-TOKENS_USED=$(/root/.claude/scripts/count-tokens.sh 2>/dev/null || echo "0")
+# ===============================================
+# IMPROVED TOKEN COUNTING
+# ===============================================
+# Uses context-aware token counting with zones
+# Combines features from:
+# - lukaskraic/claude-status-line: Autocompact buffer, MCP overhead
+# - luongnv89/cc-context-stats: Context zones (Smart/Dumb/Wrap-up)
 
-# Ensure TOKENS_USED is a valid number (handle empty or non-numeric results)
+# Get token info from improved counter (uses session context)
+TOKEN_JSON=$(echo "$INPUT" | /root/.claude/scripts/count-context-tokens.sh json 2>/dev/null || echo '{}')
+
+# Parse token metrics safely
+TOKENS_USED=$(echo "$TOKEN_JSON" | jq -r '.tokens // 0' 2>/dev/null || echo "0")
+TOKEN_BUDGET=$(echo "$TOKEN_JSON" | jq -r '.budget // 200000' 2>/dev/null || echo "200000")
+TOKEN_PCT=$(echo "$TOKEN_JSON" | jq -r '.percentage // 0' 2>/dev/null || echo "0")
+TOKEN_ZONE=$(echo "$TOKEN_JSON" | jq -r '.zone // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+MCP_COUNT_TOKEN=$(echo "$TOKEN_JSON" | jq -r '.mcp_count // 0' 2>/dev/null || echo "0")
+
+# Ensure valid values
 TOKENS_USED=${TOKENS_USED:-0}
+TOKEN_BUDGET=${TOKEN_BUDGET:-200000}
 case "$TOKENS_USED" in
-  ''|*[!0-9]*) TOKENS_USED=0 ;;
+  ''|'null'|*[!0-9]*) TOKENS_USED=0 ;;
 esac
 
-# Token limit per 5-hour window (Claude Pro: ~44K, Max5: ~88K)
-# Using Pro limit as default (can be adjusted for Max5)
-# glm-* models have 3x limit (132K tokens)
-TOKENS_LIMIT_BASE=44000
-case "$MODEL" in
-  glm-*)
-    TOKENS_LIMIT=$((TOKENS_LIMIT_BASE * 3))
+# Get zone indicator and color
+ZONE_INDICATOR="?"
+ZONE_COLOR="90"  # Gray default
+
+case "$TOKEN_ZONE" in
+  SMART)
+    ZONE_INDICATOR="✓"
+    ZONE_COLOR="32"  # Green
     ;;
-  *)
-    TOKENS_LIMIT=$TOKENS_LIMIT_BASE
+  DUMB)
+    ZONE_INDICATOR="⚠"
+    ZONE_COLOR="33"  # Yellow
+    ;;
+  WRAP_UP)
+    ZONE_INDICATOR="⚠⚠"
+    ZONE_COLOR="31"  # Red
     ;;
 esac
 
 # Calculate usage percentage (cap at 100% for progress bar)
-USAGE_PCT=$((TOKENS_USED * 100 / TOKENS_LIMIT))
+USAGE_PCT=$((TOKENS_USED * 100 / TOKEN_BUDGET))
 if [ $USAGE_PCT -gt 100 ]; then
   USAGE_PCT=100
 fi
@@ -249,20 +271,12 @@ for i in $(seq 1 $EMPTY); do
 done
 PROGRESS_BAR="${PROGRESS_BAR}]"
 
-# Color based on usage
-if [ $USAGE_PCT -lt 50 ]; then
-  BAR_COLOR="\033[32m"  # Green
-elif [ $USAGE_PCT -lt 80 ]; then
-  BAR_COLOR="\033[33m"  # Yellow
-else
-  BAR_COLOR="\033[31m"  # Red
-fi
-
-# Format output: | 40.8K/44K tokens [██████░░░░] | reset 21:00(2h 31m)[4-9]
-# Format tokens with K suffix for better readability
+# Format output: | ✓ 45.2k/200k [████░░░░░░░] SMART | reset 21:00(2h 31m)[4-9]
 TOKENS_USED_K=$(awk "BEGIN {printf \"%.1fK\", $TOKENS_USED/1000}")
-TOKENS_LIMIT_K=$(awk "BEGIN {printf \"%.0fK\", $TOKENS_LIMIT/1000}")
-printf " | ${BAR_COLOR}${TOKENS_USED_K}/${TOKENS_LIMIT_K} ${PROGRESS_BAR}\033[0m"
+TOKENS_BUDGET_K=$(awk "BEGIN {printf \"%.0fK\", $TOKEN_BUDGET/1000}")
+printf " | \033[${ZONE_COLOR}m${ZONE_INDICATOR} ${TOKENS_USED_K}/${TOKENS_BUDGET_K}\033[0m"
+printf " \033[90m${PROGRESS_BAR}\033[0m"
+printf " \033[${ZONE_COLOR}m${TOKEN_ZONE}\033[0m"
 printf " | \033[90m${RESET_TIME}(${TIME_UNTIL_RESET})[${BLOCK_NAME}]\033[0m"
 
 # =========================
@@ -330,28 +344,35 @@ EXTRA_METRICS=""
 cd "$CWD" 2>/dev/null
 if git rev-parse --git-dir > /dev/null 2>&1 && command -v gh >/dev/null 2>&1; then
   REMOTE_URL=$(git remote get-url origin 2>/dev/null | head -n1)
-  if [[ "$REMOTE_URL" == *"github"* ]]; then
-    PR_COUNT=$(gh pr list --json id --limit 100 2>/dev/null | jq '. | length' 2>/dev/null || echo "?")
-    # Show PR count even if 0 to confirm GitHub connectivity
-    EXTRA_METRICS="${EXTRA_METRICS} \033[34m📋${PR_COUNT}\033[0m"
-  fi
+  case "$REMOTE_URL" in
+    *github*)
+      PR_COUNT=$(gh pr list --json id --limit 100 2>/dev/null | jq '. | length' 2>/dev/null || echo "?")
+      # Show PR count even if 0 to confirm GitHub connectivity
+      EXTRA_METRICS="${EXTRA_METRICS} \033[34m📋${PR_COUNT}\033[0m"
+      ;;
+  esac
 fi
 
-# MCP Server Count (check both settings.json and servers.json)
-MCP_COUNT=0
-if [ -f ~/.claude/settings.json ]; then
-  MCP_COUNT=$(jq '(.servers // {} | length) + (.enabledMcpjsonServers // [] | length)' ~/.claude/settings.json 2>/dev/null || echo "0")
-fi
-if [ -f ~/.claude/servers.json ]; then
-  SERVERS_COUNT=$(jq '.servers | length' ~/.claude/servers.json 2>/dev/null || echo "0")
-  MCP_COUNT=$((MCP_COUNT + SERVERS_COUNT))
+# MCP Server Count (use detected value from token counter or fallback to detection)
+if [ -n "$MCP_COUNT_TOKEN" ] && [ "$MCP_COUNT_TOKEN" -gt 0 ] 2>/dev/null; then
+  MCP_DISPLAY=$MCP_COUNT_TOKEN
+else
+  # Fallback detection
+  MCP_DISPLAY=0
+  if [ -f ~/.claude/settings.json ]; then
+    MCP_DISPLAY=$(jq '(.mcpServers // {} | length) + (.servers // {} | length) + (.enabledMcpjsonServers // [] | length)' ~/.claude/settings.json 2>/dev/null || echo "0")
+  fi
+  if [ -f ~/.claude/servers.json ]; then
+    SERVERS_COUNT=$(jq '.servers | length' ~/.claude/servers.json 2>/dev/null || echo "0")
+    MCP_DISPLAY=$((MCP_DISPLAY + SERVERS_COUNT))
+  fi
 fi
 # Show MCP count (even if 0 to show connectivity checked)
-EXTRA_METRICS="${EXTRA_METRICS} \033[35m🔌${MCP_COUNT}\033[0m"
+EXTRA_METRICS="${EXTRA_METRICS} \033[35m🔌${MCP_DISPLAY}\033[0m"
 
 # Cost Estimate (show when > 0 tokens)
 COST_EST=$(awk "BEGIN {printf \"\$%.2f\", ${TOKENS_USED}/1000000 * 3}")
-if [ "$TOKENS_USED" -gt 0 ] 2>/dev/null; then
+if [ -n "$TOKENS_USED" ] && [ "$TOKENS_USED" -gt 0 ] 2>/dev/null; then
   EXTRA_METRICS="${EXTRA_METRICS} \033[36m💰${COST_EST}\033[0m"
 fi
 
