@@ -1,83 +1,292 @@
-version: '3.8'
+# Docker Compose for Local Development
+# AGL Hostman - Infrastructure Management Platform
+#
+# Usage:
+#   docker compose up -d           # Start all services
+#   docker compose up app db       # Start specific services
+#   docker compose logs -f         # View logs
+#   docker compose down            # Stop all services
+#
+# Services:
+#   - app: Laravel application (PHP-FPM + Nginx)
+#   - db: PostgreSQL database
+#   - redis: Redis cache/queue
+#   - mailhog: Email testing
+#   - adminer: Database management UI
 
 services:
-  # Development dashboard service with hot reloading
-  dashboard-dev:
+  # ============================================================================
+  # Application Service (Laravel + Nginx)
+  # ============================================================================
+  app:
     build:
-      context: .
-      dockerfile: docker/development/Dockerfile.dev
-    container_name: agl-hostman-dev
-    ports:
-      - "3000:3000"      # HTTP
-      - "9229:9229"      # Node.js debugger
+      context: ./src
+      dockerfile: Dockerfile
+      target: development
+      args:
+        BUILD_DATE: ${BUILD_DATE:-}
+        VCS_REF: ${VCS_REF:-}
+        VERSION: ${VERSION:-dev}
+    image: agl-hostman:dev
+    container_name: agl-hostman-app
+    restart: unless-stopped
+    working_dir: /var/www/html
     volumes:
-      - ./src:/app/src:ro                    # Source code (read-only)
-      - ./config:/app/config:ro              # Configuration (read-only)
-      - ./logs:/app/logs                     # Logs (read-write)
-      - node_modules:/app/node_modules       # Named volume for node_modules
+      - ./src:/var/www/html:cached
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
     environment:
-      - NODE_ENV=development
-      - LOG_LEVEL=debug
-      - PORT=3000
-      # Proxmox API configuration
-      - PROXMOX_HOST=${PROXMOX_HOST:-192.168.0.245}
-      - PROXMOX_PORT=${PROXMOX_PORT:-8006}
-      - PROXMOX_USER=${PROXMOX_USER:-root@pam}
-      - PROXMOX_TOKEN_ID=${PROXMOX_TOKEN_ID}
-      - PROXMOX_TOKEN_SECRET=${PROXMOX_TOKEN_SECRET}
-      # Network configuration
-      - WIREGUARD_ENABLED=${WIREGUARD_ENABLED:-true}
-      - TAILSCALE_ENABLED=${TAILSCALE_ENABLED:-true}
+      - APP_NAME=${APP_NAME:-AGL-Hostman}
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - APP_URL=${APP_URL:-http://localhost:8080}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-agl_hostman}
+      - DB_USERNAME=${DB_USERNAME:-agl_user}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+      - MAIL_USERNAME=null
+      - MAIL_PASSWORD=null
+      - MAIL_ENCRYPTION=null
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - agl-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Nginx web server (sidecar for app)
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: agl-hostman-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+      - "${NGINX_SSL_PORT:-8443}:443"
+    volumes:
+      - ./src:/var/www/html:cached
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # Production-like service for testing
-  dashboard-prod:
-    build:
-      context: .
-      dockerfile: docker/production/Dockerfile
-    container_name: agl-hostman-prod
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: agl-hostman-db
+    restart: unless-stopped
     ports:
-      - "3001:3000"      # Different port for prod testing
-    volumes:
-      - ./logs:/app/logs                     # Logs
-      - ./data:/app/data                     # Data persistence
+      - "${DB_PORT:-5432}:5432"
     environment:
-      - NODE_ENV=production
-      - LOG_LEVEL=info
-      - PORT=3000
-      # Proxmox API configuration
-      - PROXMOX_HOST=${PROXMOX_HOST:-192.168.0.245}
-      - PROXMOX_PORT=${PROXMOX_PORT:-8006}
-      - PROXMOX_USER=${PROXMOX_USER:-root@pam}
-      - PROXMOX_TOKEN_ID=${PROXMOX_TOKEN_ID}
-      - PROXMOX_TOKEN_SECRET=${PROXMOX_TOKEN_SECRET}
+      - POSTGRES_DB=${DB_DATABASE:-agl_hostman}
+      - POSTGRES_USER=${DB_USERNAME:-agl_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/db/init:/docker-entrypoint-initdb.d:ro
     networks:
       - agl-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-agl_user} -d ${DB_DATABASE:-agl_hostman}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ============================================================================
+  # Redis Cache/Queue
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: agl-hostman-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================================
+  # Horizon Queue Worker
+  # ============================================================================
+  horizon:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: development
+    image: agl-hostman:dev
+    container_name: agl-hostman-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html:cached
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-agl_hostman}
+      - DB_USERNAME=${DB_USERNAME:-agl_user}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - db
+      - redis
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f horizon || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    profiles:
-      - production  # Only start with --profile production
+      start_period: 30s
 
-volumes:
-  node_modules:
-    driver: local
+  # ============================================================================
+  # Reverb WebSocket Server
+  # ============================================================================
+  reverb:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: development
+    image: agl-hostman:dev
+    container_name: agl-hostman-reverb
+    restart: unless-stopped
+    command: php artisan reverb:start
+    working_dir: /var/www/html
+    ports:
+      - "${REVERB_PORT:-8080}:8080"
+      - "${REVERB_SSL_PORT:-8443}:8443"
+    volumes:
+      - ./src:/var/www/html:cached
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - REVERB_APP_ID=${REVERB_APP_ID:-agl-hostman}
+      - REVERB_APP_KEY=${REVERB_APP_KEY:-}
+      - REVERB_APP_SECRET=${REVERB_APP_SECRET:-}
+      - REVERB_HOST=0.0.0.0
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
+  # ============================================================================
+  # Mailhog - Email Testing
+  # ============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: agl-hostman-mail
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_PORT:-8025}:8025"
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Adminer - Database Management
+  # ============================================================================
+  adminer:
+    image: adminer:latest
+    container_name: agl-hostman-adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+      - ADMINER_DESIGN=pepa-linha
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Redis Commander - Redis Management UI
+  # ============================================================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: agl-hostman-redis-ui
+    restart: unless-stopped
+    ports:
+      - "${REDIS_UI_PORT:-8082}:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - agl-network
+
+# ============================================================================
+# Networks
+# ============================================================================
 networks:
   agl-network:
+    name: agl-hostman-network
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/24
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  db-data:
+    name: agl-hostman-db-data
+    driver: local
+  redis-data:
+    name: agl-hostman-redis-data
+    driver: local

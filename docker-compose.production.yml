@@ -1,0 +1,322 @@
+# Docker Compose for Production Deployment
+# AGL Hostman - Infrastructure Management Platform
+#
+# This is a production-ready configuration using blue-green deployment strategy
+#
+# Usage:
+#   docker compose -f docker-compose.production.yml up -d
+#   docker compose -f docker-compose.production.yml -p agl-hostman-blue up -d
+#   docker compose -f docker-compose.production.yml -p agl-hostman-green up -d
+
+services:
+  # ============================================================================
+  # Production Application (Blue Slot)
+  # ============================================================================
+  app-blue:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE}
+        VCS_REF: ${VCS_REF}
+        VERSION: ${VERSION}
+    image: agl-hostman:${VERSION-latest}
+    container_name: agl-hostman-app-blue
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ./src/storage:/var/www/html/storage:cached
+      - ./src/bootstrap/cache:/var/www/html/bootstrap/cache:cached
+    environment:
+      - APP_NAME=${APP_NAME}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - LOG_CHANNEL=daily
+      - LOG_LEVEL=error
+    depends_on:
+      - redis
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: ${REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '${CPU_LIMIT:-2}'
+          memory: ${MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: '${CPU_RESERVATION:-0.5}'
+          memory: ${MEMORY_RESERVATION:-512M}
+
+  # Nginx for Blue Slot
+  nginx-blue:
+    image: nginx:1.25-alpine
+    container_name: agl-hostman-nginx-blue
+    restart: always
+    ports:
+      - "${NGINX_BLUE_PORT:-8080}:80"
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app-blue
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================================================
+  # Production Application (Green Slot)
+  # ============================================================================
+  app-green:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE}
+        VCS_REF: ${VCS_REF}
+        VERSION: ${VERSION}
+    image: agl-hostman:${VERSION-latest}
+    container_name: agl-hostman-app-green
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ./src/storage:/var/www/html/storage:cached
+      - ./src/bootstrap/cache:/var/www/html/bootstrap/cache:cached
+    environment:
+      - APP_NAME=${APP_NAME}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - LOG_CHANNEL=daily
+      - LOG_LEVEL=error
+    depends_on:
+      - redis
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: ${REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '${CPU_LIMIT:-2}'
+          memory: ${MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: '${CPU_RESERVATION:-0.5}'
+          memory: ${MEMORY_RESERVATION:-512M}'
+    profiles:
+      - green
+
+  # Nginx for Green Slot
+  nginx-green:
+    image: nginx:1.25-alpine
+    container_name: agl-hostman-nginx-green
+    restart: always
+    ports:
+      - "${NGINX_GREEN_PORT:-8081}:80"
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app-green
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    profiles:
+      - green
+
+  # ============================================================================
+  # Horizon Queue Worker (shared)
+  # ============================================================================
+  horizon:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: production
+    image: agl-hostman:${VERSION-latest}
+    container_name: agl-hostman-horizon
+    restart: always
+    command: php artisan horizon
+    working_dir: /var/www/html
+    volumes:
+      - ./src/storage:/var/www/html/storage:cached
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=${DB_HOST}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - LOG_LEVEL=error
+    depends_on:
+      - redis
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f horizon || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: ${HORIZON_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: '${HORIZON_CPU_LIMIT:-1}'
+          memory: ${HORIZON_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: '${HORIZON_CPU_RESERVATION:-0.25}'
+          memory: ${HORIZON_MEMORY_RESERVATION:-256M}
+
+  # ============================================================================
+  # Reverb WebSocket Server (shared)
+  # ============================================================================
+  reverb:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: production
+    image: agl-hostman:${VERSION-latest}
+    container_name: agl-hostman-reverb
+    restart: always
+    command: php artisan reverb:start
+    working_dir: /var/www/html
+    ports:
+      - "${REVERB_PORT:-8080}:8080"
+    volumes:
+      - ./src/storage:/var/www/html/storage:cached
+    environment:
+      - APP_ENV=production
+      - REVERB_APP_ID=${REVERB_APP_ID}
+      - REVERB_APP_KEY=${REVERB_APP_KEY}
+      - REVERB_APP_SECRET=${REVERB_APP_SECRET}
+      - REVERB_HOST=0.0.0.0
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - redis
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================================
+  # Load Balancer (Nginx)
+  # ============================================================================
+  load-balancer:
+    image: nginx:1.25-alpine
+    container_name: agl-hostman-lb
+    restart: always
+    ports:
+      - "${LB_PORT:-80}:80"
+      - "${LB_SSL_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/lb.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Redis Cache/Queue (external connection)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: agl-hostman-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '${REDIS_CPU_LIMIT:-1}'
+          memory: ${REDIS_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: '${REDIS_CPU_RESERVATION:-0.25}'
+          memory: ${REDIS_MEMORY_RESERVATION:-128M}
+
+networks:
+  agl-network:
+    name: agl-hostman-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${NETWORK_SUBNET:-172.20.0.0/16}
+
+volumes:
+  redis-data:
+    name: agl-hostman-redis-data
+    driver: local
