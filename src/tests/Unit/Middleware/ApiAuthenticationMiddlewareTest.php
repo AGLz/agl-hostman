@@ -6,7 +6,6 @@ namespace Tests\Unit\Middleware;
 
 use App\Models\ApiKey;
 use App\Http\Middleware\ApiAuthentication;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +20,6 @@ use Tests\TestCase;
  */
 class ApiAuthenticationMiddlewareTest extends TestCase
 {
-    use RefreshDatabase;
 
     private ApiAuthentication $middleware;
 

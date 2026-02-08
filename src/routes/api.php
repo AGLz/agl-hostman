@@ -17,19 +17,42 @@ Route::prefix('auth')->group(function () {
     Route::post('/workos/logout', [WorkOSController::class, 'logout'])->name('workos.logout');
 });
 
-// N8N Integration routes  
+// N8N Integration routes
 Route::prefix('n8n')->group(function () {
-    // Public webhook endpoint (no auth required)
-    Route::post('/webhook', [N8NController::class, 'webhook'])->name('n8n.webhook');
-    
+    // Public webhook endpoint (no auth required - secured by webhook secret)
+    Route::post('/webhook/{workflow}', [App\Http\Controllers\Api\N8NController::class, 'webhook'])->name('n8n.webhook');
+
     // Authenticated endpoints
     Route::middleware('auth:sanctum')->group(function () {
+        // Legacy endpoints (backward compatibility)
         Route::post('/execute', [N8NController::class, 'executeWorkflow'])->name('n8n.execute');
         Route::post('/monitoring', [N8NController::class, 'triggerMonitoring'])->name('n8n.monitoring');
         Route::post('/ai', [N8NController::class, 'triggerAI'])->name('n8n.ai');
         Route::post('/deployment', [N8NController::class, 'triggerDeployment'])->name('n8n.deployment');
-        Route::get('/status/{executionId}', [N8NController::class, 'getStatus'])->name('n8n.status');
-        Route::get('/workflows', [N8NController::class, 'listWorkflows'])->name('n8n.workflows');
+
+        // New comprehensive API endpoints
+        Route::prefix('workflows')->group(function () {
+            Route::get('/', [App\Http\Controllers\Api\N8NController::class, 'listWorkflows'])->name('n8n.workflows.list');
+            Route::post('/', [App\Http\Controllers\Api\N8NController::class, 'createWorkflow'])->name('n8n.workflows.create');
+            Route::get('/statistics', [App\Http\Controllers\Api\N8NController::class, 'statistics'])->name('n8n.workflows.statistics');
+
+            Route::prefix('{workflow}')->group(function () {
+                Route::get('/', [App\Http\Controllers\Api\N8NController::class, 'showWorkflow'])->name('n8n.workflows.show');
+                Route::put('/', [App\Http\Controllers\Api\N8NController::class, 'updateWorkflow'])->name('n8n.workflows.update');
+                Route::delete('/', [App\Http\Controllers\Api\N8NController::class, 'deleteWorkflow'])->name('n8n.workflows.delete');
+                Route::post('/activate', [App\Http\Controllers\Api\N8NController::class, 'activateWorkflow'])->name('n8n.workflows.activate');
+                Route::post('/deactivate', [App\Http\Controllers\Api\N8NController::class, 'deactivateWorkflow'])->name('n8n.workflows.deactivate');
+                Route::get('/executions', [App\Http\Controllers\Api\N8NController::class, 'executions'])->name('n8n.workflows.executions');
+            });
+        });
+
+        // Trigger workflows
+        Route::post('/trigger/{workflow}', [App\Http\Controllers\Api\N8NController::class, 'trigger'])->name('n8n.trigger');
+
+        // Sync and diagnostics
+        Route::post('/sync', [App\Http\Controllers\Api\N8NController::class, 'sync'])->name('n8n.sync');
+        Route::get('/test-connection', [App\Http\Controllers\Api\N8NController::class, 'testConnection'])->name('n8n.test');
+        Route::get('/status/{executionId}', [App\Http\Controllers\Api\N8NController::class, 'getStatus'])->name('n8n.status');
     });
 });
 
@@ -54,31 +77,54 @@ Route::middleware(['auth:sanctum'])->prefix('ai')->group(function () {
     Route::post('/review-code', [App\Http\Controllers\AIController::class, 'reviewCode'])->name('ai.review-code');
 });
 
+// AI Service Integration routes (New AIService - OpenAI, Claude, Ollama)
+Route::middleware(['auth:sanctum'])->prefix('ai-service')->group(function () {
+    Route::post('/predict', [App\Http\Controllers\Api\AIController::class, 'predict'])->name('ai-service.predict');
+    Route::post('/analyze', [App\Http\Controllers\Api\AIController::class, 'analyze'])->name('ai-service.analyze');
+    Route::post('/chat', [App\Http\Controllers\Api\AIController::class, 'chat'])->name('ai-service.chat');
+    Route::get('/models', [App\Http\Controllers\Api\AIController::class, 'models'])->name('ai-service.models');
+    Route::get('/usage', [App\Http\Controllers\Api\AIController::class, 'usage'])->name('ai-service.usage');
+});
+
 // Scrum Board routes
 Route::middleware(['auth:sanctum'])->prefix('scrum')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [App\Http\Controllers\ScrumController::class, 'dashboard'])->name('scrum.dashboard');
-    Route::get('/board', [App\Http\Controllers\ScrumController::class, 'board'])->name('scrum.board');
-    
     // Sprints
-    Route::get('/sprints', [App\Http\Controllers\ScrumController::class, 'listSprints'])->name('scrum.sprints.list');
-    Route::post('/sprints', [App\Http\Controllers\ScrumController::class, 'createSprint'])->name('scrum.sprints.create');
-    Route::put('/sprints/{sprint}', [App\Http\Controllers\ScrumController::class, 'updateSprint'])->name('scrum.sprints.update');
-    Route::post('/sprints/{sprint}/start', [App\Http\Controllers\ScrumController::class, 'startSprint'])->name('scrum.sprints.start');
-    
+    Route::get('/sprints', [App\Http\Controllers\Api\ScrumController::class, 'listSprints'])->name('scrum.sprints.list');
+    Route::post('/sprints', [App\Http\Controllers\Api\ScrumController::class, 'createSprint'])->name('scrum.sprints.create');
+    Route::get('/sprints/{id}/backlog', [App\Http\Controllers\Api\ScrumController::class, 'getSprintBacklog'])->name('scrum.sprints.backlog');
+    Route::post('/sprints/{id}/start', [App\Http\Controllers\Api\ScrumController::class, 'startSprint'])->name('scrum.sprints.start');
+    Route::post('/sprints/{id}/complete', [App\Http\Controllers\Api\ScrumController::class, 'completeSprint'])->name('scrum.sprints.complete');
+
     // Tasks
-    Route::get('/tasks', [App\Http\Controllers\ScrumController::class, 'listTasks'])->name('scrum.tasks.list');
-    Route::post('/tasks', [App\Http\Controllers\ScrumController::class, 'createTask'])->name('scrum.tasks.create');
-    Route::put('/tasks/{task}', [App\Http\Controllers\ScrumController::class, 'updateTask'])->name('scrum.tasks.update');
-    Route::post('/tasks/{task}/move', [App\Http\Controllers\ScrumController::class, 'moveTask'])->name('scrum.tasks.move');
-    
-    // AI Features
-    Route::post('/ai/suggest-tasks', [App\Http\Controllers\ScrumController::class, 'suggestTasks'])->name('scrum.ai.suggest');
-    Route::post('/ai/estimate-points', [App\Http\Controllers\ScrumController::class, 'estimateStoryPoints'])->name('scrum.ai.estimate');
-    
-    // Metrics
-    Route::get('/metrics/velocity', [App\Http\Controllers\ScrumController::class, 'velocity'])->name('scrum.metrics.velocity');
-    Route::get('/metrics/team', [App\Http\Controllers\ScrumController::class, 'teamPerformance'])->name('scrum.metrics.team');
+    Route::get('/tasks', [App\Http\Controllers\Api\ScrumController::class, 'listTasks'])->name('scrum.tasks.list');
+    Route::post('/tasks', [App\Http\Controllers\Api\ScrumController::class, 'createTask'])->name('scrum.tasks.create');
+    Route::put('/tasks/{id}', [App\Http\Controllers\Api\ScrumController::class, 'updateTask'])->name('scrum.tasks.update');
+    Route::delete('/tasks/{id}', [App\Http\Controllers\Api\ScrumController::class, 'deleteTask'])->name('scrum.tasks.delete');
+    Route::post('/tasks/{id}/move', [App\Http\Controllers\Api\ScrumController::class, 'moveTask'])->name('scrum.tasks.move');
+
+    // Stories
+    Route::get('/stories', [App\Http\Controllers\Api\ScrumController::class, 'listStories'])->name('scrum.stories.list');
+    Route::post('/stories', [App\Http\Controllers\Api\ScrumController::class, 'createStory'])->name('scrum.stories.create');
+    Route::put('/stories/{id}', [App\Http\Controllers\Api\ScrumController::class, 'updateStory'])->name('scrum.stories.update');
+    Route::delete('/stories/{id}', [App\Http\Controllers\Api\ScrumController::class, 'deleteStory'])->name('scrum.stories.delete');
+
+    // Bugs
+    Route::get('/bugs', [App\Http\Controllers\Api\ScrumController::class, 'listBugs'])->name('scrum.bugs.list');
+    Route::post('/bugs', [App\Http\Controllers\Api\ScrumController::class, 'createBug'])->name('scrum.bugs.create');
+    Route::put('/bugs/{id}', [App\Http\Controllers\Api\ScrumController::class, 'updateBug'])->name('scrum.bugs.update');
+
+    // Sprint Members
+    Route::get('/sprints/{sprintId}/members', [App\Http\Controllers\Api\ScrumController::class, 'getSprintMembers'])->name('scrum.sprints.members');
+    Route::post('/sprints/{sprintId}/members', [App\Http\Controllers\Api\ScrumController::class, 'addSprintMember'])->name('scrum.sprints.members.add');
+    Route::delete('/sprints/{sprintId}/members/{userId}', [App\Http\Controllers\Api\ScrumController::class, 'removeSprintMember'])->name('scrum.sprints.members.remove');
+
+    // Metrics & Reports
+    Route::get('/burndown', [App\Http\Controllers\Api\ScrumController::class, 'getBurndown'])->name('scrum.burndown');
+    Route::get('/velocity', [App\Http\Controllers\Api\ScrumController::class, 'getVelocity'])->name('scrum.velocity');
+    Route::get('/epics', [App\Http\Controllers\Api\ScrumController::class, 'listEpics'])->name('scrum.epics');
+
+    // Kanban Board
+    Route::get('/kanban', [App\Http\Controllers\Api\ScrumController::class, 'getKanban'])->name('scrum.kanban');
 });
 
 // Infrastructure Analytics Routes
@@ -119,6 +165,46 @@ Route::prefix('backup')->middleware('auth:sanctum')->group(function () {
     Route::get('/download/{id}', [App\Http\Controllers\Api\BackupController::class, 'download']);
 });
 
+// Harbor Integration Routes
+Route::prefix('harbor')->middleware('auth:sanctum')->group(function () {
+    // Projects
+    Route::get('/projects', [App\Http\Controllers\Api\HarborController::class, 'projects']);
+    Route::post('/projects', [App\Http\Controllers\Api\HarborController::class, 'createProject']);
+    Route::get('/projects/{project}', [App\Http\Controllers\Api\HarborController::class, 'getProject']);
+    Route::put('/projects/{project}', [App\Http\Controllers\Api\HarborController::class, 'updateProject']);
+    Route::delete('/projects/{project}', [App\Http\Controllers\Api\HarborController::class, 'deleteProject']);
+
+    // Repositories
+    Route::get('/repositories', [App\Http\Controllers\Api\HarborController::class, 'repositories']);
+    Route::get('/repositories/{project}/{repository}', [App\Http\Controllers\Api\HarborController::class, 'getRepository']);
+    Route::delete('/repositories/{project}/{repository}', [App\Http\Controllers\Api\HarborController::class, 'deleteRepository']);
+
+    // Artifacts
+    Route::get('/artifacts', [App\Http\Controllers\Api\HarborController::class, 'artifacts']);
+    Route::get('/artifacts/{project}/{repository}/{reference}', [App\Http\Controllers\Api\HarborController::class, 'getArtifact']);
+    Route::delete('/artifacts/{project}/{repository}/{reference}', [App\Http\Controllers\Api\HarborController::class, 'deleteArtifact']);
+    Route::post('/artifacts/copy', [App\Http\Controllers\Api\HarborController::class, 'copyArtifact']);
+
+    // Vulnerability Scanning
+    Route::get('/vulnerabilities/{project}/{repository}/{reference}', [App\Http\Controllers\Api\HarborController::class, 'vulnerabilities']);
+    Route::post('/scan', [App\Http\Controllers\Api\HarborController::class, 'triggerScan']);
+
+    // Retention Policies
+    Route::get('/retention/{projectId}', [App\Http\Controllers\Api\HarborController::class, 'retentionPolicies']);
+    Route::post('/retention/{projectId}', [App\Http\Controllers\Api\HarborController::class, 'createRetentionPolicy']);
+
+    // Webhooks
+    Route::get('/webhooks/{projectId}', [App\Http\Controllers\Api\HarborController::class, 'webhooks']);
+    Route::post('/webhooks/{projectId}', [App\Http\Controllers\Api\HarborController::class, 'createWebhook']);
+    Route::delete('/webhooks/{projectId}/{webhookId}', [App\Http\Controllers\Api\HarborController::class, 'deleteWebhook']);
+
+    // System & Health
+    Route::get('/system/info', [App\Http\Controllers\Api\HarborController::class, 'systemInfo']);
+    Route::get('/system/health', [App\Http\Controllers\Api\HarborController::class, 'health']);
+    Route::get('/credentials', [App\Http\Controllers\Api\HarborController::class, 'credentials']);
+    Route::get('/test', [App\Http\Controllers\Api\HarborController::class, 'testConnection']);
+});
+
 // Dokploy Integration Routes
 Route::prefix('dokploy')->group(function () {
     // Public webhook endpoint (no auth - Harbor webhooks)
@@ -135,11 +221,38 @@ Route::prefix('dokploy')->group(function () {
         Route::post('/applications/{applicationId}/redeploy', [App\Http\Controllers\Api\Dokploy\DokployApplicationController::class, 'redeploy']);
         Route::delete('/applications/{applicationId}', [App\Http\Controllers\Api\Dokploy\DokployApplicationController::class, 'destroy']);
 
+        // Service management (new unified controller)
+        Route::get('/services', [App\Http\Controllers\Api\DokployController::class, 'services']);
+        Route::post('/services/{id}/start', [App\Http\Controllers\Api\DokployController::class, 'startService']);
+        Route::post('/services/{id}/stop', [App\Http\Controllers\Api\DokployController::class, 'stopService']);
+        Route::post('/services/{id}/restart', [App\Http\Controllers\Api\DokployController::class, 'restartService']);
+
+        // Deployment management
+        Route::post('/deploy', [App\Http\Controllers\Api\DokployController::class, 'deploy']);
+        Route::post('/redeploy', [App\Http\Controllers\Api\DokployController::class, 'redeploy']);
+        Route::get('/deployments', [App\Http\Controllers\Api\DokployController::class, 'deployments']);
+        Route::get('/deployments/{applicationId}/status', [App\Http\Controllers\Api\DokployController::class, 'deploymentStatus']);
+        Route::post('/deployments/{applicationId}/cancel', [App\Http\Controllers\Api\DokployController::class, 'cancelDeployment']);
+
+        // Domain management
+        Route::get('/domains', [App\Http\Controllers\Api\DokployController::class, 'domains']);
+        Route::post('/domains', [App\Http\Controllers\Api\DokployController::class, 'addDomain']);
+        Route::delete('/domains/{domainId}', [App\Http\Controllers\Api\DokployController::class, 'removeDomain']);
+
+        // Environment management
+        Route::get('/environment', [App\Http\Controllers\Api\DokployController::class, 'environment']);
+        Route::post('/environment', [App\Http\Controllers\Api\DokployController::class, 'setEnvironment']);
+
+        // Logs
+        Route::get('/logs', [App\Http\Controllers\Api\DokployController::class, 'logs']);
+
         // Project management
         Route::get('/projects', [App\Http\Controllers\Api\Dokploy\DokployApplicationController::class, 'projects']);
+        Route::post('/projects', [App\Http\Controllers\Api\DokployController::class, 'createProject']);
 
         // Testing & diagnostics
         Route::get('/test-connection', [App\Http\Controllers\Api\Dokploy\DokployApplicationController::class, 'testConnection']);
+        Route::get('/health', [App\Http\Controllers\Api\DokployController::class, 'health']);
         Route::post('/webhooks/harbor/test', [App\Http\Controllers\Api\Dokploy\DokployWebhookController::class, 'testHarborWebhook']);
     });
 });
@@ -449,3 +562,32 @@ Route::post('webhooks/deployment', [App\Http\Controllers\NotificationWebhookCont
 Route::post('webhooks/pr', [App\Http\Controllers\NotificationWebhookController::class, 'prWebhook'])
     ->name('webhooks.pr')
     ->middleware('throttle:60,1');
+
+// ========== Monitoring API Routes ==========
+Route::prefix('monitoring')->middleware('auth:sanctum')->group(function () {
+    // Metrics endpoints
+    Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'metrics'])
+        ->name('monitoring.metrics');
+    Route::get('/health', [App\Http\Controllers\Api\MonitoringController::class, 'health'])
+        ->name('monitoring.health');
+    Route::get('/trends', [App\Http\Controllers\Api\MonitoringController::class, 'trends'])
+        ->name('monitoring.trends');
+    Route::get('/stats', [App\Http\Controllers\Api\MonitoringController::class, 'stats'])
+        ->name('monitoring.stats');
+    Route::get('/server/{serverCode}', [App\Http\Controllers\Api\MonitoringController::class, 'serverMetrics'])
+        ->name('monitoring.server');
+
+    // Alert management
+    Route::get('/alerts', [App\Http\Controllers\Api\MonitoringController::class, 'alerts'])
+        ->name('monitoring.alerts');
+    Route::post('/alerts/read', [App\Http\Controllers\Api\MonitoringController::class, 'markAlertsRead'])
+        ->name('monitoring.alerts.read');
+    Route::post('/alerts/{alertId}/resolve', [App\Http\Controllers\Api\MonitoringController::class, 'resolveAlert'])
+        ->name('monitoring.alerts.resolve');
+
+    // Collection management
+    Route::post('/collect', [App\Http\Controllers\Api\MonitoringController::class, 'collect'])
+        ->name('monitoring.collect');
+    Route::post('/refresh', [App\Http\Controllers\Api\MonitoringController::class, 'refresh'])
+        ->name('monitoring.refresh');
+});

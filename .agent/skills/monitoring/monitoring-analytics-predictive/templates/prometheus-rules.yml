@@ -1,0 +1,332 @@
+# Prometheus Alerting Rules
+# Part of monitoring-analytics-predictive skill
+
+groups:
+  # Application-level alerts
+  - name: application_alerts
+    interval: 30s
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(app_errors_total[5m])) by (instance)
+          /
+          sum(rate(app_requests_total[5m])) by (instance)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.instance }}"
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # Critical error rate
+      - alert: CriticalErrorRate
+        expr: |
+          sum(rate(app_errors_total[5m])) by (instance)
+          /
+          sum(rate(app_requests_total[5m])) by (instance)
+          > 0.10
+        for: 2m
+        labels:
+          severity: critical
+          service: "{{ $labels.instance }}"
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # High request latency
+      - alert: HighRequestLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(app_http_request_duration_bucket[5m])) by (instance, le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.instance }}"
+        annotations:
+          summary: "High request latency detected"
+          description: "P95 latency is {{ $value }}s for {{ $labels.instance }}"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up{job="agl-hostman"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.instance }}"
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.instance }} has been down for more than 1 minute"
+
+  # System resource alerts
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: app_cpu_usage_percent > 70
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "server"
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.host }}"
+
+      # Critical CPU usage
+      - alert: CriticalCPUUsage
+        expr: app_cpu_usage_percent > 85
+        for: 2m
+        labels:
+          severity: critical
+          resource_type: "server"
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.host }}"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: app_memory_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "server"
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.host }}"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: app_memory_usage_percent > 90
+        for: 2m
+        labels:
+          severity: critical
+          resource_type: "server"
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.host }}"
+
+      # High disk usage
+      - alert: HighDiskUsage
+        expr: app_disk_usage_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+          resource_type: "storage"
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is {{ $value }}% on {{ $labels.host }}"
+
+      # Critical disk usage
+      - alert: CriticalDiskUsage
+        expr: app_disk_usage_percent > 90
+        for: 5m
+        labels:
+          severity: critical
+          resource_type: "storage"
+        annotations:
+          summary: "Critical disk usage detected"
+          description: "Disk usage is {{ $value }}% on {{ $labels.host }}. Immediate action required."
+
+      # High load average
+      - alert: HighLoadAverage
+        expr: app_load_average > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "server"
+        annotations:
+          summary: "High load average detected"
+          description: "Load average is {{ $value }} on {{ $labels.host }}"
+
+  # Database alerts
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # High active connections
+      - alert: HighDatabaseConnections
+        expr: app_database_connections_active > 80
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "database"
+        annotations:
+          summary: "High database connections"
+          description: "{{ $value }} active database connections"
+
+      # Slow query rate
+      - alert: HighSlowQueryRate
+        expr: |
+          sum(rate(app_database_slow_queries[5m])) by (database)
+          > 10
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "database"
+        annotations:
+          summary: "High slow query rate"
+          description: "{{ $value }} slow queries per second on {{ $labels.database }}"
+
+      # Database connection failure
+      - alert: DatabaseConnectionFailure
+        expr: |
+          rate(app_database_connection_failures[1m])
+          > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          resource_type: "database"
+        annotations:
+          summary: "Database connection failures detected"
+          description: "Connection failure rate is {{ $value | humanizePercentage }}"
+
+  # Predictive alerts (based on trends)
+  - name: predictive_alerts
+    interval: 5m
+    rules:
+      # Predicted CPU threshold breach
+      - alert: PredictedCPUThresholdBreach
+        expr: |
+          predict_linear(app_cpu_usage_percent[1h], 3600) > 85
+        for: 5m
+        labels:
+          severity: warning
+          alert_type: "predictive"
+        annotations:
+          summary: "CPU threshold breach predicted"
+          description: "At current rate, CPU will exceed 85% in 1 hour on {{ $labels.host }}"
+
+      # Predicted memory threshold breach
+      - alert: PredictedMemoryThresholdBreach
+        expr: |
+          predict_linear(app_memory_usage_percent[1h], 3600) > 90
+        for: 5m
+        labels:
+          severity: warning
+          alert_type: "predictive"
+        annotations:
+          summary: "Memory threshold breach predicted"
+          description: "At current rate, memory will exceed 90% in 1 hour on {{ $labels.host }}"
+
+      # Predicted disk capacity exhaustion
+      - alert: PredictedDiskCapacityExhaustion
+        expr: |
+          predict_linear(app_disk_usage_percent[24h], 86400) > 95
+        for: 10m
+        labels:
+          severity: warning
+          alert_type: "predictive"
+        annotations:
+          summary: "Disk capacity exhaustion predicted"
+          description: "At current rate, disk will exceed 95% in 24 hours on {{ $labels.host }}"
+
+  # Anomaly detection alerts
+  - name: anomaly_alerts
+    interval: 1m
+    rules:
+      # CPU usage anomaly
+      - alert: CPUUsageAnomaly
+        expr: |
+          abs(app_cpu_usage_percent - avg_over_time(app_cpu_usage_percent[1h]))
+          / stddev_over_time(app_cpu_usage_percent[1h])
+          > 3
+        for: 2m
+        labels:
+          severity: warning
+          alert_type: "anomaly"
+        annotations:
+          summary: "CPU usage anomaly detected"
+          description: "CPU usage deviates significantly from normal on {{ $labels.host }}"
+
+      # Memory usage anomaly
+      - alert: MemoryUsageAnomaly
+        expr: |
+          abs(app_memory_usage_percent - avg_over_time(app_memory_usage_percent[1h]))
+          / stddev_over_time(app_memory_usage_percent[1h])
+          > 3
+        for: 2m
+        labels:
+          severity: warning
+          alert_type: "anomaly"
+        annotations:
+          summary: "Memory usage anomaly detected"
+          description: "Memory usage deviates significantly from normal on {{ $labels.host }}"
+
+  # SLO/SLI alerts
+  - name: slo_alerts
+    interval: 1m
+    rules:
+      # Availability SLO breach
+      - alert: AvailabilitySLOBreach
+        expr: |
+          (
+            sum(rate(app_requests_total{status!~"5.."}[5m])) by (service)
+            /
+            sum(rate(app_requests_total[5m])) by (service)
+          ) < 0.99
+        for: 5m
+        labels:
+          severity: critical
+          slo: "availability"
+        annotations:
+          summary: "Availability SLO breach"
+          description: "Service {{ $labels.service }} availability is below 99% target"
+
+      # Latency SLO breach
+      - alert: LatencySLOBreach
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(app_http_request_duration_bucket[5m])) by (service, le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          slo: "latency_p95"
+        annotations:
+          summary: "Latency SLO breach"
+          description: "Service {{ $labels.service }} P95 latency exceeds 500ms target"
+
+      # Error rate SLO breach
+      - alert: ErrorRateSLOBreach
+        expr: |
+          (
+            sum(rate(app_errors_total[5m])) by (service)
+            /
+            sum(rate(app_requests_total[5m])) by (service)
+          ) > 0.001
+        for: 5m
+        labels:
+          severity: critical
+          slo: "error_rate"
+        annotations:
+          summary: "Error rate SLO breach"
+          description: "Service {{ $labels.service }} error rate exceeds 0.1% target"
+
+  # Network alerts
+  - name: network_alerts
+    interval: 30s
+    rules:
+      # High network latency
+      - alert: HighNetworkLatency
+        expr: app_network_latency_ms > 150
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "network"
+        annotations:
+          summary: "High network latency detected"
+          description: "Network latency is {{ $value }}ms"
+
+      # Low connection rate
+      - alert: LowConnectionRate
+        expr: app_network_connection_rate < 80
+        for: 5m
+        labels:
+          severity: warning
+          resource_type: "network"
+        annotations:
+          summary: "Low connection rate detected"
+          description: "Connection rate is {{ $value | humanizePercentage }}"

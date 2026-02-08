@@ -6,7 +6,6 @@ namespace Tests\Unit\Services;
 
 use App\Services\CacheService;
 use App\Services\RedisCacheStrategy;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;

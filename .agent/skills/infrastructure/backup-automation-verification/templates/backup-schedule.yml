@@ -1,0 +1,126 @@
+################################################################################
+# Backup Schedule Template (Crontab Format)
+#
+# Usage:
+#   1. Copy this file to /etc/cron.d/backup-schedule
+#   2. Customize paths and environment variables
+#   3. Ensure scripts are executable: chmod +x /path/to/backup-*.sh
+#   4. Reload cron: sudo systemctl reload cron
+#
+# Environment Variables:
+#   BACKUP_DIR        - Base directory for backups (default: /var/backups)
+#   DB_CONNECTION     - Database type: mysql, postgres, sqlite
+#   DB_HOST           - Database host
+#   DB_USERNAME       - Database username
+#   DB_PASSWORD       - Database password
+#   DB_DATABASE       - Database name
+#   COMPRESS          - Enable compression (true/false)
+#   ENCRYPT           - Enable encryption (true/false)
+#   ENCRYPT_KEY       - Encryption key
+#   UPLOAD_S3         - Upload to S3 (true/false)
+#   S3_BUCKET         - S3 bucket name
+#   RETENTION_DAYS    - Days to keep backups
+#   ALERT_EMAIL       - Email for alerts
+################################################################################
+
+# Environment variables for all backup jobs
+BACKUP_DIR=/var/backups
+RETENTION_DAYS=30
+COMPRESS=true
+UPLOAD_S3=false
+
+# =============================================================================
+# DATABASE BACKUP SCHEDULE
+# =============================================================================
+
+# Hourly incremental backups (keep 24 hours)
+# */5 * * * * root /usr/local/bin/backup-database.sh mysql --compress >> /var/log/backup-hourly.log 2>&1
+
+# Daily full backups at 2 AM (keep 7-30 days)
+0 2 * * * root /usr/local/bin/backup-database.sh mysql --compress >> /var/log/backup-daily.log 2>&1
+
+# Weekly full backups on Sunday at 3 AM (keep 4-12 weeks)
+0 3 * * 0 root /usr/local/bin/backup-database.sh mysql --compress --weekly >> /var/log/backup-weekly.log 2>&1
+
+# Monthly full backups on 1st at 4 AM (keep 12 months)
+0 4 1 * * root /usr/local/bin/backup-database.sh mysql --compress --monthly >> /var/log/backup-monthly.log 2>&1
+
+# =============================================================================
+# FILE BACKUP SCHEDULE
+# =============================================================================
+
+# Daily file backups at 3 AM (keep 7-30 days)
+0 3 * * * root /usr/local/bin/backup-files.sh >> /var/log/backup-files.log 2>&1
+
+# Weekly file backups on Sunday at 4 AM (keep 4-12 weeks)
+0 4 * * 0 root /usr/local/bin/backup-files.sh --weekly >> /var/log/backup-files-weekly.log 2>&1
+
+# =============================================================================
+# BACKUP VERIFICATION SCHEDULE
+# =============================================================================
+
+# Verify backup integrity daily at 5 AM
+0 5 * * * root /usr/local/bin/backup-verify.sh >> /var/log/backup-verify.log 2>&1
+
+# =============================================================================
+# BACKUP CLEANUP SCHEDULE
+# =============================================================================
+
+# Clean old backups daily at 6 AM
+0 6 * * * root /usr/local/bin/backup-cleanup.sh >> /var/log/backup-cleanup.log 2>&1
+
+# =============================================================================
+# BACKUP TESTING SCHEDULE
+# =============================================================================
+
+# Automated restore testing weekly on Sunday at 1 AM
+# WARNING: This will restore to a test database
+0 1 * * 0 root /usr/local/bin/backup-restore-test.sh --type database >> /var/log/backup-restore-test.log 2>&1
+
+# =============================================================================
+# BACKUP REPORTING SCHEDULE
+# =============================================================================
+
+# Generate daily backup report at 7 AM and email it
+0 7 * * * root /usr/local/bin/backup-report.sh --format markdown --email ops@example.com >> /var/log/backup-report.log 2>&1
+
+# =============================================================================
+# APPLICATION-SPECIFIC BACKUPS
+# =============================================================================
+
+# Laravel application storage backup
+0 3 * * * root cd /var/www/html && php artisan backup:run --only-files >> /var/log/backup-laravel.log 2>&1
+
+# Redis backup (if using Redis)
+0 */6 * * * root redis-cli --rdb /var/backups/redis/dump_$(date +\%Y\%m\%d_\%H\%M\%S).rdb >> /var/log/backup-redis.log 2>&1
+
+# =============================================================================
+# REMOTE REPLICATION
+# =============================================================================
+
+# Sync to remote server via rsync
+# 0 */4 * * * root rsync -avz --delete /var/backups/ backup-server:/backups/ >> /var/log/backup-sync.log 2>&1
+
+# =============================================================================
+# CLUSTERED/MULTI-SERVER CONFIGURATIONS
+# =============================================================================
+
+# For Proxmox/LXC container backups
+# 0 2 * * * root /usr/local/bin/pct-backup-all.sh >> /var/log/backup-containers.log 2>&1
+
+# For Docker volume backups
+# 0 3 * * * root /usr/local/bin/docker-backup-volumes.sh >> /var/log/backup-docker.log 2>&1
+
+################################################################################
+# END OF BACKUP SCHEDULE
+################################################################################
+
+# Additional Notes:
+# ------------------
+# 1. Adjust schedules based on RTO/RPO requirements
+# 2. Use different times for different backup types to avoid conflicts
+# 3. Monitor cron logs regularly: tail -f /var/log/backup-*.log
+# 4. Test backup restoration procedures monthly
+# 5. Keep documentation up to date with any changes
+# 6. Ensure adequate disk space for backups
+# 7. Consider using backup monitoring tools like Backup Ninja, Bacula

@@ -1,0 +1,14 @@
+# Network Traffic Analysis & Optimization Assets
+
+This directory contains reference materials and assets for network traffic analysis and optimization.
+
+## Contents
+
+- Configuration templates
+- Protocol references
+- Performance benchmarks
+- Network diagrams
+
+## Templates Directory
+
+See `templates/` for configuration file templates.

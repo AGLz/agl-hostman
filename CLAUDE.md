@@ -169,6 +169,48 @@ This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Co
 4. **Refinement** - TDD implementation (`sparc tdd`)
 5. **Completion** - Integration (`sparc run integration`)
 
+## Skills Management
+
+Skills are specialized instruction sets that guide Claude Code in adhering to specific coding standards and best practices. Skills are stored in `.claude/skills/*/SKILL.md` and provide domain-specific guidance.
+
+### Skill Management Commands
+
+```bash
+# List all available skills
+python scripts/skills/list_skills.py
+python scripts/skills/list_skills.py --format json
+python scripts/skills/list_skills.py --category "Backend Development"
+
+# Search skills by keyword
+python scripts/skills/search_skills.py "API"
+python scripts/skills/search_skills.py "testing" --fields name,description
+
+# Validate skill structure
+python scripts/skills/validate_skill.py backend-api
+python scripts/skills/validate_skill.py --all
+
+# Create new skill from template
+python scripts/skills/init_skill.py "API Design" --category backend
+python scripts/skills/init_skill.py "React Hooks" --description "Best practices for React hooks" --tags react,hooks
+```
+
+### Available Skill Categories
+
+- **Backend Development**: API design, migrations, models, queries
+- **Frontend Development**: Components, CSS, accessibility, responsive design
+- **GitHub & Repository**: Code review, multi-repo, project management, releases
+- **Global Standards**: Coding style, conventions, error handling, validation
+- **Swarm & Coordination**: Hive Mind, hooks, pair programming, orchestration
+- **Claude Flow V3**: CLI modernization, core implementation, DDD architecture
+- **AI & Learning**: AgentDB, ReasoningBank, Flow Nexus, neural networks
+- **Testing & Quality**: Test writing, verification
+- **DevOps & Infrastructure**: CI/CD, monitoring, deployment
+
+### See Also
+
+- **SKILLS.md**: Complete skills registry with all available skills
+- **scripts/skills/**: Skill management utilities
+
 ## Code Style & Best Practices
 
 - **Modular Design**: Files under 500 lines

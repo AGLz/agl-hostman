@@ -1,0 +1,318 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Anomaly Detection",
+    "tags": ["anomalies", "detection", "outliers"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 0,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "CPU Z-Score Anomalies",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "abs(app_cpu_usage_percent - avg_over_time(app_cpu_usage_percent[1h])) / stddev_over_time(app_cpu_usage_percent[1h])",
+            "legendFormat": "Z-Score"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 2, "color": "green" },
+                { "value": 3, "color": "yellow" },
+                { "value": 4, "color": "orange" },
+                { "value": 5, "color": "red" }
+              ]
+            },
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Memory Z-Score Anomalies",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "abs(app_memory_usage_percent - avg_over_time(app_memory_usage_percent[1h])) / stddev_over_time(app_memory_usage_percent[1h])",
+            "legendFormat": "Z-Score"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 2, "color": "green" },
+                { "value": 3, "color": "yellow" },
+                { "value": 4, "color": "orange" },
+                { "value": 5, "color": "red" }
+              ]
+            },
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Request Rate Anomalies",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "abs(\n  sum(rate(app_requests_total[5m]))\n  - avg_over_time(sum(rate(app_requests_total[5m]))[1h])\n) / stddev_over_time(sum(rate(app_requests_total[5m]))[1h])",
+            "legendFormat": "Z-Score"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 2, "color": "green" },
+                { "value": 3, "color": "yellow" },
+                { "value": 4, "color": "orange" },
+                { "value": 5, "color": "red" }
+              ]
+            },
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Anomalies (Alerts)",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ALERTS{alertstate=\"firing\",alerttype=\"anomaly\"}",
+            "legendFormat": "{{alertname}}",
+            "format": "table"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": { "__name__": true, "alertstate": true },
+              "indexByName": { "Time": 0, "alertname": 1, "severity": 2, "host": 3 },
+              "renameByName": {
+                "alertname": "Anomaly Type",
+                "severity": "Severity",
+                "host": "Host",
+                "instance": "Instance"
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": { "align": "auto" },
+            "thresholds": { "mode": "absolute", "steps": [{ "value": null }] },
+            "mappings": []
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Severity" },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 150
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "type": "value",
+                      "options": { "critical": { "color": "red", "index": 0 } }
+                    },
+                    {
+                      "type": "value",
+                      "options": { "warning": { "color": "yellow", "index": 1 } }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "title": "CPU vs Normal Range",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "app_cpu_usage_percent",
+            "legendFormat": "CPU Usage"
+          },
+          {
+            "expr": "avg_over_time(app_cpu_usage_percent[1h]) + 2*stddev_over_time(app_cpu_usage_percent[1h])",
+            "legendFormat": "Upper Bound (2σ)"
+          },
+          {
+            "expr": "avg_over_time(app_cpu_usage_percent[1h]) - 2*stddev_over_time(app_cpu_usage_percent[1h])",
+            "legendFormat": "Lower Bound (2σ)"
+          },
+          {
+            "expr": "avg_over_time(app_cpu_usage_percent[1h])",
+            "legendFormat": "Mean (1h)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Memory vs Normal Range",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "app_memory_usage_percent",
+            "legendFormat": "Memory Usage"
+          },
+          {
+            "expr": "avg_over_time(app_memory_usage_percent[1h]) + 2*stddev_over_time(app_memory_usage_percent[1h])",
+            "legendFormat": "Upper Bound (2σ)"
+          },
+          {
+            "expr": "avg_over_time(app_memory_usage_percent[1h]) - 2*stddev_over_time(app_memory_usage_percent[1h])",
+            "legendFormat": "Lower Bound (2σ)"
+          },
+          {
+            "expr": "avg_over_time(app_memory_usage_percent[1h])",
+            "legendFormat": "Mean (1h)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Anomaly Count by Type",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "count(ALERTS{alertstate=\"firing\",alerttype=\"anomaly\"}) by (alertname)",
+            "legendFormat": "{{alertname}}"
+          }
+        ],
+        "options": {
+          "legend": { "displayMode": "table", "placement": "right" },
+          "pieType": "pie",
+          "tooltip": { "mode": "single" }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Recent Anomaly Events",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ALERTS{alertstate=\"firing\",alerttype=\"anomaly\"}",
+            "legendFormat": "",
+            "format": "table"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "__name__": true,
+                "alertstate": true,
+                "alerttype": true,
+                "job": true
+              },
+              "renameByName": {
+                "alertname": "Anomaly",
+                "severity": "Severity",
+                "host": "Host",
+                "Time": "Detected At"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Deviation from Mean (All Metrics)",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "abs(app_cpu_usage_percent - avg_over_time(app_cpu_usage_percent[1h])) / stddev_over_time(app_cpu_usage_percent[1h])",
+            "legendFormat": "CPU"
+          },
+          {
+            "expr": "abs(app_memory_usage_percent - avg_over_time(app_memory_usage_percent[1h])) / stddev_over_time(app_memory_usage_percent[1h])",
+            "legendFormat": "Memory"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 24 },
+        "options": {
+          "calculate": false,
+          "color": {
+            "exponent": 0.5,
+            "fill": "dark-blue",
+            "mode": "spectrum",
+            "reverse": false,
+            "scale": "exponential",
+            "scheme": "Spectral"
+          },
+          "exemplars": { "color": "rgba(255,0,255,0.7)" },
+          "filterValues": { "le": 1e-9 },
+          "legend": { "showLegend": true },
+          "rowsFrame": { "layout": "auto" },
+          "tooltip": { "show": true },
+          "yAxis": {
+            "axisPlacement": "left",
+            "reverse": false,
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["30s", "1m", "5m"]
+    }
+  },
+  "overwrite": true,
+  "message": "Anomaly Detection Dashboard"
+}

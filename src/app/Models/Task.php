@@ -68,6 +68,14 @@ class Task extends Model
     }
 
     /**
+     * Get the story this task belongs to
+     */
+    public function story(): BelongsTo
+    {
+        return $this->belongsTo(Story::class);
+    }
+
+    /**
      * Scope for backlog tasks
      */
     public function scopeBacklog($query)

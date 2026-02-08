@@ -11,7 +11,6 @@ use App\Models\LxcContainer;
 use App\Models\PerformanceTrend;
 use App\Models\User;
 use App\Services\DatabaseQueryOptimizer;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -24,7 +23,6 @@ use Tests\TestCase;
  */
 class DatabaseQueryOptimizerTest extends TestCase
 {
-    use RefreshDatabase;
 
     private DatabaseQueryOptimizer $optimizer;
 

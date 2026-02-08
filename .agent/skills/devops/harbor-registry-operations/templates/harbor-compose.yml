@@ -1,0 +1,248 @@
+version: '3.8'
+
+services:
+  # Harbor Core - Main API and UI
+  core:
+    image: goharbor/harbor-core:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-core
+    restart: unless-stopped
+    depends_on:
+      - jobservice
+      - registry
+      - redis
+      - database
+    env_file:
+      - ./config/core/env
+    networks:
+      - harbor
+    volumes:
+      - ./data/ca_download/:/etc/core/ca/
+      - ./data/psc/:/etc/core/token/
+      - ./data/core/:/data/
+      - ./common/config/core:/etc/core/app.conf
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v2.0/systeminfo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Harbor Portal - Web UI
+  portal:
+    image: goharbor/harbor-portal:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-portal
+    restart: unless-stopped
+    networks:
+      - harbor
+    volumes:
+      - ./data/ssl/:/etc/harbor/ssl/
+      - ./data/portal/:/data/
+    ports:
+      - "80:80"
+      - "443:443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Job Service - Background jobs
+  jobservice:
+    image: goharbor/harbor-jobservice:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-jobservice
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - database
+    env_file:
+      - ./config/jobservice/env
+    networks:
+      - harbor
+    volumes:
+      - ./data/job_logs:/var/log/jobs
+      - ./common/config/jobservice/:/etc/jobservice
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/systeminfo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Registry - Image storage backend
+  registry:
+    image: goharbor/registry-photon:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-registry
+    restart: unless-stopped
+    networks:
+      - harbor
+    volumes:
+      - ./data/registry:/storage
+      - ./common/config/registry/:/etc/registry/
+      - ./data/registry/root.crt:/etc/registry/root.crt
+    environment:
+      - REGISTRY_HTTP_ADDR=0.0.0.0:5000
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+      - REGISTRY_LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/v2/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Registry Controller - Handles registry requests
+  registryctl:
+    image: goharbor/harbor-registryctl:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-registryctl
+    restart: unless-stopped
+    depends_on:
+      - registry
+    networks:
+      - harbor
+    volumes:
+      - ./data/registry:/storage
+      - ./common/config/registry/:/etc/registry/
+      - ./common/config/registryctl/:/etc/registryctl
+    environment:
+      - CORE_URL=http://core:8080
+      - JOBSERVICE_URL=http://jobservice:8080
+      - REGISTRY_URL=http://registry:5000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database - PostgreSQL
+  database:
+    image: goharbor/harbor-db:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-db
+    restart: unless-stopped
+    networks:
+      - harbor
+    volumes:
+      - ./data/database:/var/lib/postgresql/data
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=changeit
+      - POSTGRESQL_DATABASE=registry
+      - POSTGRESQL_MAX_IDLE_CONNS=100
+      - POSTGRESQL_MAX_OPEN_CONNS=900
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Cache and job queue
+  redis:
+    image: goharbor/redis-photon:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-redis
+    restart: unless-stopped
+    networks:
+      - harbor
+    volumes:
+      - ./data/redis:/var/lib/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Trivy - Vulnerability scanner
+  trivy-adapter:
+    image: goharbor/trivy-adapter:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-trivy
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - harbor
+    volumes:
+      - ./data/trivy-adapter:/home/scanner/.cache
+      - ./data/trivy-reports:/home/scanner/src/github.com/aquasecurity/trivy/reports
+      - ./common/config/trivy-adapter:/etc/scanner
+    environment:
+      - SCANNER_STORE_REDIS_URL=redis://redis:6379
+      - SCANNER_JOB_QUEUE_REDIS_URL=redis://redis:6379
+      - SCANNER_TRIVY_CACHE_DIR=/home/scanner/.cache/trivy
+      - SCANNER_TRIVY_REPORTS_DIR=/home/scanner/src/github.com/aquasecurity/trivy/reports
+      - SCANNER_TRIVY_DEBUG_MODE=false
+      - SCANNER_TRIVY_VULN_TYPE=os,library
+      - SCANNER_TRIVY_SEVERITY=UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      - SCANNER_TRIVY_IGNORE_UNFIXED=false
+      - SCANNER_TRIVY_SKIP_UPDATE=false
+    healthcheck:
+      test: ["CMD", "/home/scanner/trivy", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx - Reverse proxy
+  proxy:
+    image: goharbor/nginx-photon:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-nginx
+    restart: unless-stopped
+    depends_on:
+      - portal
+      - core
+      - registry
+      - registryctl
+      - jobservice
+      - trivy-adapter
+    networks:
+      - harbor
+    volumes:
+      - ./common/config/nginx:/etc/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Notary - Content trust (optional)
+  notary-server:
+    image: goharbor/notary-server-photon:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-notary-server
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - database
+      - notary-signer
+    networks:
+      - harbor
+    volumes:
+      - ./common/config/notary:/etc/notary
+      - ./data/notary-server:/var/lib/notary
+    environment:
+      - MIGRATE=true
+      - NOTARY_SERVER_BASE_URL=https://${HARBOR_HOST:-harbor.local}
+      - NOTARY_SERVER_STORAGE_BACKEND=postgres
+      - NOTARY_SERVER_DB_URL=postgres://postgres:changeit@database:5432/notaryserver?sslmode=disable
+
+  notary-signer:
+    image: goharbor/notary-signer-photon:${HARBOR_VERSION:-v2.10.0}
+    container_name: harbor-notary-signer
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - database
+    networks:
+      - harbor
+    volumes:
+      - ./common/config/notary:/etc/notary
+      - ./data/notary-signer:/var/lib/notary
+    environment:
+      - MIGRATE=true
+      - NOTARY_SIGNER_STORAGE_BACKEND=postgres
+      - NOTARY_SIGNER_DB_URL=postgres://postgres:changeit@database:5432/notarysigner?sslmode=disable
+
+networks:
+  harbor:
+    external: false
+
+volumes:
+  data:
+    driver: local

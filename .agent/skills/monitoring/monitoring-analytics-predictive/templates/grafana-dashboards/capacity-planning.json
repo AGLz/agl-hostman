@@ -1,0 +1,259 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Capacity Planning",
+    "tags": ["capacity", "forecast", "planning"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 0,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "CPU Capacity Forecast",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "app_cpu_usage_percent",
+            "legendFormat": "Current"
+          },
+          {
+            "expr": "predict_linear(app_cpu_usage_percent[1h], 7*24*3600)",
+            "legendFormat": "7 Day Forecast"
+          },
+          {
+            "expr": "predict_linear(app_cpu_usage_percent[24h], 30*24*3600)",
+            "legendFormat": "30 Day Forecast"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Memory Capacity Forecast",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "app_memory_usage_percent",
+            "legendFormat": "Current"
+          },
+          {
+            "expr": "predict_linear(app_memory_usage_percent[1h], 7*24*3600)",
+            "legendFormat": "7 Day Forecast"
+          },
+          {
+            "expr": "predict_linear(app_memory_usage_percent[24h], 30*24*3600)",
+            "legendFormat": "30 Day Forecast"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Disk Capacity Forecast",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "app_disk_usage_percent",
+            "legendFormat": "Current"
+          },
+          {
+            "expr": "predict_linear(app_disk_usage_percent[24h], 30*24*3600)",
+            "legendFormat": "30 Day Forecast"
+          },
+          {
+            "expr": "predict_linear(app_disk_usage_percent[7*24*3600], 90*24*3600)",
+            "legendFormat": "90 Day Forecast"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Resource Growth Rate (7d)",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "(\n  predict_linear(app_cpu_usage_percent[24h], 7*24*3600)\n  - app_cpu_usage_percent\n) / 7",
+            "legendFormat": "CPU %/day",
+            "format": "table"
+          },
+          {
+            "expr": "(\n  predict_linear(app_memory_usage_percent[24h], 7*24*3600)\n  - app_memory_usage_percent\n) / 7",
+            "legendFormat": "Memory %/day",
+            "format": "table"
+          },
+          {
+            "expr": "(\n  predict_linear(app_disk_usage_percent[24h], 7*24*3600)\n  - app_disk_usage_percent\n) / 7",
+            "legendFormat": "Disk %/day",
+            "format": "table"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Days Until Capacity Breach",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "(85 - app_cpu_usage_percent) / (\n  predict_linear(app_cpu_usage_percent[1h], 3600)\n  - app_cpu_usage_percent\n) * 24",
+            "legendFormat": "CPU until 85%",
+            "format": "table"
+          },
+          {
+            "expr": "(90 - app_memory_usage_percent) / (\n  predict_linear(app_memory_usage_percent[1h], 3600)\n  - app_memory_usage_percent\n) * 24",
+            "legendFormat": "Memory until 90%",
+            "format": "table"
+          },
+          {
+            "expr": "(90 - app_disk_usage_percent) / (\n  predict_linear(app_disk_usage_percent[24h], 24*3600)\n  - app_disk_usage_percent\n)",
+            "legendFormat": "Disk until 90% (days)",
+            "format": "table"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "calculateField",
+            "options": {
+              "mode": "reduceRow",
+              "reduce": {
+                "reducer": "lastNotNull"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Request Growth Trend",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(app_requests_total[5m]))",
+            "legendFormat": "Current Requests/sec"
+          },
+          {
+            "expr": "predict_linear(sum(rate(app_requests_total[5m]))[1h], 7*24*3600)",
+            "legendFormat": "7 Day Forecast"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Historical Usage Patterns",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "app_cpu_usage_percent",
+            "legendFormat": "{{host}}"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 24 },
+        "options": {
+          "calculate": false,
+          "cellGap": 2,
+          "cellRadius": 0,
+          "cellValues": {},
+          "color": {
+            "exponent": 0.5,
+            "fill": "dark-orange",
+            "mode": "spectrum",
+            "reverse": false,
+            "scale": "exponential",
+            "scheme": "Oranges",
+            "steps": 128
+          },
+          "exemplars": {
+            "color": "rgba(255,0,255,0.7)"
+          },
+          "filterValues": { "le": 1e-9 },
+          "legend": { "showLegend": true },
+          "rowsFrame": {
+            "layout": "auto"
+          },
+          "tooltip": {
+            "show": true,
+            "yHistogram": false
+          },
+          "yAxis": {
+            "axisPlacement": "left",
+            "reverse": false,
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Peak Usage Hours",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "avg_over_time(app_cpu_usage_percent[24h])",
+            "legendFormat": "24h Avg"
+          },
+          {
+            "expr": "max_over_time(app_cpu_usage_percent[24h])",
+            "legendFormat": "24h Peak"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 70, "color": "yellow" },
+                { "value": 85, "color": "red" }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["1m", "5m", "15m"]
+    }
+  },
+  "overwrite": true,
+  "message": "Capacity Planning Dashboard"
+}

@@ -26,13 +26,26 @@ return new class extends Migration
             $table->timestamp('resolved_at')->nullable();
             $table->json('metadata')->nullable(); // Additional context (metrics, thresholds, etc.)
             $table->timestamp('muted_until')->nullable(); // Temporary mute
+
+            // Polymorphic relationship fields
+            $table->string('resource_type')->nullable();
+            $table->string('resource_id')->nullable();
+
+            // Additional fields for test compatibility
+            $table->string('alert_type')->nullable();
+            $table->boolean('is_resolved')->default(false);
+            $table->text('resolution_notes')->nullable();
+            $table->integer('auto_resolve_after_hours')->nullable();
+
             $table->timestamps();
 
             // Indexes for efficient querying
             $table->index(['status', 'type', 'created_at']); // Most common query pattern
             $table->index(['source', 'source_id']);
+            $table->index(['resource_type', 'resource_id']); // Polymorphic index
             $table->index('created_at');
             $table->index('severity');
+            $table->index('is_resolved');
         });
     }
 

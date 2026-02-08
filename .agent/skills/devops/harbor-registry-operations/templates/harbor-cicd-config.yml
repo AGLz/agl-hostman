@@ -1,0 +1,312 @@
+# Harbor CI/CD Integration Templates
+# GitHub Actions workflows for Harbor container registry
+
+name: Build and Push to Harbor Registry
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  HARBOR_HOST: ${{ secrets.HARBOR_HOST }}
+  HARBOR_PROJECT: ${{ secrets.HARBOR_PROJECT }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.HARBOR_HOST }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.HARBOR_HOST }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.HARBOR_HOST }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.HARBOR_HOST }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+
+      - name: Trigger vulnerability scan
+        run: |
+          # Wait for Harbor to process the image
+          sleep 10
+
+          # Get the pushed tag
+          IMAGE_TAG="${{ github.ref_name }}"
+
+          # Trigger scan via Harbor API
+          curl -X POST \
+            "https://${{ env.HARBOR_HOST }}/api/v2.0/projects/${{ env.HARBOR_PROJECT }}/repositories/${{ env.IMAGE_NAME }}/artifacts/${IMAGE_TAG}/scan" \
+            -u "${{ secrets.HARBOR_USERNAME }}:${{ secrets.HARBOR_PASSWORD }}"
+
+      - name: Wait for scan completion
+        run: |
+          MAX_WAIT=300
+          WAIT_TIME=0
+
+          while [[ $WAIT_TIME -lt $MAX_WAIT ]]; do
+            SCAN_STATUS=$(curl -s \
+              -u "${{ secrets.HARBOR_USERNAME }}:${{ secrets.HARBOR_PASSWORD }}" \
+              "https://${{ env.HARBOR_HOST }}/api/v2.0/projects/${{ env.HARBOR_PROJECT }}/repositories/${{ env.IMAGE_NAME }}/artifacts/${{ github.ref_name }}?with_scan_overview=true" | \
+              jq -r '.scan_overview."application/vnd.security.vulnerability.report; version=1.1".scan_status // "pending"')
+
+            if [[ "$SCAN_STATUS" == "Success" ]]; then
+              echo "Scan completed successfully"
+              exit 0
+            elif [[ "$SCAN_STATUS" == "Error" ]]; then
+              echo "Scan failed"
+              exit 1
+            fi
+
+            echo "Waiting for scan... ($WAIT_TIME/$MAX_WAIT)"
+            sleep 10
+            WAIT_TIME=$((WAIT_TIME + 10))
+          done
+
+          echo "Scan timed out"
+          exit 1
+
+      - name: Check scan results
+        run: |
+          # Get vulnerability report
+          REPORT=$(curl -s \
+            -u "${{ secrets.HARBOR_USERNAME }}:${{ secrets.HARBOR_PASSWORD }}" \
+            "https://${{ env.HARBOR_HOST }}/api/v2.0/projects/${{ env.HARBOR_PROJECT }}/repositories/${{ env.IMAGE_NAME }}/artifacts/${{ github.ref_name }}?with_scan_overview=true")
+
+          # Count vulnerabilities by severity
+          CRITICAL=$(echo "$REPORT" | jq -r '.scan_overview."application/vnd.security.vulnerability.report; version=1.1".vulnerabilities[] | select(.severity == "Critical")' | jq -s 'length')
+          HIGH=$(echo "$REPORT" | jq -r '.scan_overview."application/vnd.security.vulnerability.report; version=1.1".vulnerabilities[] | select(.severity == "High")' | jq -s 'length')
+
+          echo "Critical vulnerabilities: $CRITICAL"
+          echo "High vulnerabilities: $HIGH"
+
+          # Fail if critical or high vulnerabilities found
+          if [[ $CRITICAL -gt 0 || $HIGH -gt 0 ]]; then
+            echo "Vulnerabilities found above threshold"
+            exit 1
+          fi
+
+      - name: Generate SBOM
+        run: |
+          # Install Syft for SBOM generation
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+          # Generate SBOM and push to Harbor
+          syft ${{ env.IMAGE_NAME }}:${{ github.ref_name }} -o spdx-json > sbom.json
+
+          # Upload SBOM to Harbor
+          curl -X PUT \
+            "https://${{ env.HARBOR_HOST }}/api/v2.0/projects/${{ env.HARBOR_PROJECT }}/repositories/${{ env.IMAGE_NAME }}/artifacts/${{ github.ref_name }}/attachments" \
+            -u "${{ secrets.HARBOR_USERNAME }}:${{ secrets.HARBOR_PASSWORD }}" \
+            -H "Content-Type: application/vnd.security.vuln.report+json; version=1.1" \
+            --data-binary @sbom.json
+
+      - name: Sign image with Cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.2.0'
+
+      - name: Sign container image
+        if: github.event_name != 'pull_request'
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
+            ${{ env.HARBOR_HOST }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }})
+
+          echo "$COSIGN_PRIVATE_KEY" > /tmp/cosign.key
+          cosign sign --key /tmp/cosign.key $IMAGE_DIGEST
+          rm /tmp/cosign.key
+
+---
+# Alternative: Multi-stage build with test
+
+name: Test, Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  HARBOR_HOST: ${{ secrets.HARBOR_HOST }}
+  HARBOR_PROJECT: ${{ secrets.HARBOR_PROJECT }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          # Run your test suite here
+          npm test
+          # or
+          # python -m pytest
+
+      - name: Build test image
+        run: |
+          docker build -t test-image --target test .
+
+      - name: Run integration tests
+        run: |
+          docker run --rm test-image
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.HARBOR_HOST }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.HARBOR_HOST }}/${{ env.HARBOR_PROJECT }}/app
+          tags: |
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  security-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check Harbor scan results
+        run: |
+          # Wait for Harbor scan and check results
+          # Similar to previous workflow
+
+  deploy-staging:
+    needs: [build, security-scan]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy to staging
+        run: |
+          # Trigger deployment webhook
+          curl -X POST ${{ secrets.STAGING_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{"image": "${{ needs.build.outputs.image-tag }}"}'
+
+  deploy-production:
+    needs: [build, security-scan]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy to production
+        run: |
+          # Trigger deployment webhook
+          curl -X POST ${{ secrets.PRODUCTION_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{"image": "${{ needs.build.outputs.image-tag }}"}'
+
+---
+# Harbor Webhook Handler
+
+# Save this as your webhook receiver endpoint
+# Harbor will trigger this when images are pushed
+
+#!/bin/bash
+# webhook-handler.sh
+
+# Receive Harbor webhook payload
+PAYLOAD=$(cat)
+
+# Extract image information
+IMAGE_URL=$(echo "$PAYLOAD" | jq -r '.event_data.resources[0].resource_url')
+TAG=$(echo "$PAYLOAD" | jq -r '.event_data.resources[0].tag')
+EVENT_TYPE=$(echo "$PAYLOAD" | jq -r '.type')
+
+echo "Received webhook: $EVENT_TYPE for $IMAGE_URL:$TAG"
+
+case $EVENT_TYPE in
+  "PUSH_ARTIFACT")
+    echo "New image pushed, triggering deployment..."
+    # Update deployment
+    kubectl set image deployment/app \
+      app=$IMAGE_URL:$TAG \
+      -n production
+    ;;
+  "SCAN_FAILED")
+    echo "Vulnerability scan failed!"
+    # Send alert
+    send_alert "Vulnerability scan failed for $IMAGE_URL:$TAG"
+    ;;
+  "DELETE_ARTIFACT")
+    echo "Image deleted: $IMAGE_URL:$TAG"
+    ;;
+esac

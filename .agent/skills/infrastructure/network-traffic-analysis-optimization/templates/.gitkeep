@@ -1,0 +1,35 @@
+# Network Traffic Analysis & Optimization Templates
+
+This directory contains configuration templates for network monitoring and optimization tools.
+
+## Available Templates
+
+### netdata.conf
+Netdata configuration for comprehensive network monitoring.
+
+### tc-qos.conf
+Traffic control (tc) QoS configuration templates.
+
+### sysctl-tuning.conf
+Kernel sysctl tuning parameters for network optimization.
+
+### ntopng.conf
+ntopng configuration for deep packet inspection.
+
+## Usage
+
+Copy templates to their respective locations and customize for your environment:
+
+```bash
+# Netdata configuration
+cp templates/netdata.conf /etc/netdata/netdata.conf
+
+# Traffic control
+cp templates/tc-qos.conf /etc/tc/qos.conf
+
+# Sysctl tuning
+cp templates/sysctl-tuning.conf /etc/sysctl.d/99-network-tuning.conf
+
+# ntopng configuration
+cp templates/ntopng.conf /etc/ntopng/ntopng.conf
+```

@@ -1,0 +1,375 @@
+---
+# Ansible Playbook Template
+# This template demonstrates best practices for configuration management
+
+# Playbook metadata
+- name: Configure Application Infrastructure
+  hosts: all
+  become: true
+
+  # Playbook variables
+  vars:
+    # Application settings
+    app_name: "{{ lookup('env', 'APP_NAME') | default('myapp', true) }}"
+    app_version: "{{ lookup('env', 'APP_VERSION') | default('latest', true) }}"
+    app_port: 8080
+
+    # Deployment settings
+    deploy_user: "appuser"
+    deploy_group: "appgroup"
+    deploy_dir: "/opt/{{ app_name }}"
+    log_dir: "/var/log/{{ app_name }}"
+
+    # Repository settings
+    app_repository: "https://github.com/myorg/{{ app_name }}.git"
+    app_branch: "{{ lookup('env', 'APP_BRANCH') | default('main', true) }}"
+
+    # Health check
+    health_check_enabled: true
+    health_check_path: "/health"
+    health_check_interval: 30
+
+  # Load environment-specific variables
+  vars_files:
+    - vars/common.yml
+    - "vars/{{ inventory_file | regex_search('inventory/([^/]+)/') | first }}/{{ environment }}.yml"
+    - "vars/{{ inventory_file | regex_search('inventory/([^/]+)/') | first }}/vault.yml"
+
+  # Pre-flight validation tasks
+  pre_tasks:
+    - name: Display target host information
+      debug:
+        msg: "Configuring {{ app_name }} on {{ inventory_hostname }} ({{ environment }})"
+
+    - name: Verify OS compatibility
+      assert:
+        that:
+          - ansible_distribution in ['Ubuntu', 'Debian', 'RedHat', 'CentOS']
+          - ansible_distribution_version is version('20.04', '>=')
+        fail_msg: "Operating system not supported"
+        success_msg: "Operating system validated"
+
+    - name: Verify minimum memory
+      assert:
+        that:
+          - ansible_memtotal_mb >= 2048
+        fail_msg: "Minimum 2GB RAM required"
+        success_msg: "Memory requirements met"
+
+    - name: Verify disk space
+      shell: df --output=avail / | tail -1
+      register: disk_space
+      changed_when: false
+
+    - name: Verify minimum disk space
+      assert:
+        that:
+          - disk_space.stdout | int >= 10240 # 10GB in MB
+        fail_msg: "Minimum 10GB disk space required"
+        success_msg: "Disk space requirements met"
+
+  # Main role-based tasks
+  roles:
+    - role: geerlingguy.docker
+      tags: docker
+      when: container_runtime == 'docker'
+
+    - role: geerlingguy.containerd
+      tags: containerd
+      when: container_runtime == 'containerd'
+
+    - role: geerlingguy.nginx
+      tags: nginx
+      when: enable_nginx | default(false)
+
+    - role: geerlingguy.redis
+      tags: redis
+      when: enable_redis | default(false)
+
+    - role: custom.application
+      tags: application
+
+    - role: custom.monitoring
+      tags: monitoring
+      when: enable_monitoring | default(true)
+
+    - role: custom.logging
+      tags: logging
+      when: enable_logging | default(true)
+
+  # Post-deployment tasks
+  post_tasks:
+    - name: Verify application deployment
+      uri:
+        url: "http://localhost:{{ app_port }}{{ health_check_path }}"
+        status_code: 200
+        timeout: 5
+      register: health_check
+      until: health_check.status == 200
+      retries: 10
+      delay: 5
+      when: health_check_enabled | default(false)
+
+    - name: Display deployment status
+      debug:
+        msg:
+          - "Application: {{ app_name }}"
+          - "Version: {{ app_version }}"
+          - "Status: Deployed successfully"
+          - "URL: http://{{ ansible_default_ipv4.address }}:{{ app_port }}"
+
+---
+# Database Configuration Playbook
+- name: Configure Database Servers
+  hosts: databases
+  become: true
+
+  vars:
+    # Database settings
+    db_engine: postgresql
+    db_version: "15"
+    db_port: 5432
+
+    # Database credentials (from vault)
+    db_admin_user: "{{ vault_db_admin_user }}"
+    db_admin_password: "{{ vault_db_admin_password }}"
+    db_name: "{{ app_name }}_{{ environment }}"
+    db_user: "{{ app_name }}_user"
+    db_password: "{{ vault_db_password }}"
+
+    # Backup settings
+    enable_backups: true
+    backup_retention_days: 30
+    backup_schedule: "0 2 * * *" # Daily at 2 AM
+
+  vars_files:
+    - vars/database.yml
+    - "vars/{{ environment }}/vault.yml"
+
+  handlers:
+    - name: Restart PostgreSQL
+      systemd:
+        name: postgresql
+        state: restarted
+      become: true
+
+    - name: Reload PostgreSQL
+      systemd:
+        name: postgresql
+        state: reloaded
+      become: true
+
+  pre_tasks:
+    - name: Verify database engine support
+      assert:
+        that:
+          - db_engine in ['postgresql', 'mysql', 'mongodb']
+        fail_msg: "Database engine not supported"
+
+  tasks:
+    - name: Install database packages
+      apt:
+        name:
+          - "{{ db_engine }}"
+          - "{{ db_engine }}-contrib"
+          - python3-{{ db_engine }} # For Ansible modules
+        state: present
+        update_cache: true
+      when: ansible_distribution in ['Ubuntu', 'Debian']
+
+    - name: Create database directory
+      file:
+        path: /var/lib/{{ db_engine }}/{{ db_name }}
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0700'
+
+    - name: Create database user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "ALL"
+        state: present
+      when: db_engine == 'postgresql'
+      no_log: true
+
+    - name: Create database
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        owner: "{{ db_user }}"
+        encoding: UTF8
+        template: template0
+        state: present
+      when: db_engine == 'postgresql'
+
+    - name: Configure PostgreSQL for remote connections
+      lineinfile:
+        path: /etc/postgresql/{{ db_version }}/main/postgresql.conf
+        regexp: "^#?listen_addresses"
+        line: "listen_addresses = '*'"
+        state: present
+      notify: Reload PostgreSQL
+      when: db_engine == 'postgresql'
+
+    - name: Configure pg_hba.conf for remote access
+      blockinfile:
+        path: /etc/postgresql/{{ db_version }}/main/pg_hba.conf
+        block: |
+          host {{ db_name }} {{ db_user }} 10.0.0.0/8 md5
+          host {{ db_name }} {{ db_user }} 172.16.0.0/12 md5
+        state: present
+      notify: Reload PostgreSQL
+      when: db_engine == 'postgresql'
+
+    - name: Create backup script
+      template:
+        src: templates/db_backup.sh.j2
+        dest: /usr/local/bin/db_backup_{{ db_name }}.sh
+        mode: '0755'
+        owner: postgres
+        group: postgres
+      when: enable_backups | default(false)
+
+    - name: Configure backup cron job
+      cron:
+        name: "Backup {{ db_name }}"
+        job: "/usr/local/bin/db_backup_{{ db_name }}.sh"
+        cron_file: db_backup_{{ db_name }}
+        user: postgres
+        minute: "{{ backup_schedule.split()[0] }}"
+        hour: "{{ backup_schedule.split()[1] }}"
+        day: "{{ backup_schedule.split()[2] }}"
+        month: "{{ backup_schedule.split()[3] }}"
+        weekday: "{{ backup_schedule.split()[4] }}"
+        state: present
+      when: enable_backups | default(false)
+
+    - name: Start and enable database service
+      systemd:
+        name: "{{ db_engine }}"
+        state: started
+        enabled: true
+
+    - name: Verify database connectivity
+      become_user: postgres
+      postgresql_ping:
+        db: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+      when: db_engine == 'postgresql'
+
+---
+# Monitoring Configuration Playbook
+- name: Configure Monitoring
+  hosts: all
+  become: true
+
+  vars:
+    # Prometheus settings
+    prometheus_version: "2.45.0"
+    prometheus_port: 9090
+    prometheus_retention: "15d"
+
+    # Grafana settings
+    grafana_version: "10.0.0"
+    grafana_port: 3000
+    grafana_admin_password: "{{ vault_grafana_admin_password }}"
+
+    # Alertmanager settings
+    alertmanager_port: 9093
+    enable_alertmanager: true
+
+    # Node exporter
+    node_exporter_port: 9100
+    enable_node_exporter: true
+
+  vars_files:
+    - vars/monitoring.yml
+    - "vars/{{ environment }}/vault.yml"
+
+  tasks:
+    - name: Create monitoring user
+      user:
+        name: monitoring
+        system: true
+        shell: /bin/bash
+        home: /opt/monitoring
+        create_home: true
+
+    - name: Download node exporter
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: /tmp/node_exporter.tar.gz
+        mode: '0644'
+      when: enable_node_exporter | default(true)
+
+    - name: Extract node exporter
+      unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /tmp
+        remote_src: true
+        creates: /tmp/node_exporter-{{ node_exporter_version }}.linux-amd64
+      when: enable_node_exporter | default(true)
+
+    - name: Install node exporter
+      copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+        dest: /usr/local/bin/node_exporter
+        mode: '0755'
+        remote_src: true
+      when: enable_node_exporter | default(true)
+
+    - name: Create node exporter service
+      template:
+        src: templates/node_exporter.service.j2
+        dest: /etc/systemd/system/node_exporter.service
+        mode: '0644'
+      notify: Reload systemd
+      when: enable_node_exporter | default(true)
+
+    - name: Start and enable node exporter
+      systemd:
+        name: node_exporter
+        state: started
+        enabled: true
+        daemon_reload: true
+      when: enable_node_exporter | default(true)
+
+    - name: Configure firewall for monitoring
+      block:
+        - name: Allow Prometheus port
+          firewalld:
+            port: "{{ prometheus_port }}/tcp"
+            permanent: true
+            state: enabled
+          when: ansible_os_family == 'RedHat'
+
+        - name: Allow Grafana port
+          firewalld:
+            port: "{{ grafana_port }}/tcp"
+            permanent: true
+            state: enabled
+          when: ansible_os_family == 'RedHat'
+
+        - name: Reload firewalld
+          systemd:
+            name: firewalld
+            state: reloaded
+          when: ansible_os_family == 'RedHat'
+
+    - name: Install monitoring agents (AWS CloudWatch, etc.)
+      include_tasks: tasks/install_cloudwatch_agent.yml
+      when: cloud_provider == 'aws'
+
+  handlers:
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: Restart node exporter
+      systemd:
+        name: node_exporter
+        state: restarted

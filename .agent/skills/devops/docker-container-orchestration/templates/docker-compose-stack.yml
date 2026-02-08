@@ -1,0 +1,426 @@
+# Docker Compose Multi-Container Stack Template
+# Complete production-ready stack with application, database, cache, and reverse proxy
+#
+# This template includes:
+#   - Application service with health checks
+#   - Database with persistence and backups
+#   - Cache/queue service
+#   - Reverse proxy with SSL
+#   - Queue workers
+#   - Monitoring and logging
+#
+# Usage:
+#   docker compose -f docker-compose-stack.yml up -d
+#   docker compose -f docker-compose-stack.yml -p myapp up -d
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Application Service
+  # ============================================================================
+  app:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE:-}
+        VCS_REF: ${VCS_REF:-}
+        VERSION: ${VERSION:-latest}
+    image: ${REGISTRY_URL:-}myapp:${VERSION:-latest}
+    container_name: myapp-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      # Persistent storage
+      - app-storage:/var/www/html/storage
+      - app-cache:/var/www/html/bootstrap/cache
+      # Configuration (read-only)
+      - ./config/app.conf:/etc/app/app.conf:ro
+    environment:
+      # Application
+      - APP_NAME=${APP_NAME:-MyApp}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL:-https://app.example.com}
+      # Database
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-myapp}
+      - DB_USERNAME=${DB_USERNAME:-appuser}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      # Cache/Queue
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      # Logging
+      - LOG_CHANNEL=daily
+      - LOG_LEVEL=${LOG_LEVEL:-error}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: ${APP_REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '${APP_CPU_LIMIT:-2}'
+          memory: ${APP_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: '${APP_CPU_RESERVATION:-0.5}'
+          memory: ${APP_MEMORY_RESERVATION:-512M}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+
+  # ============================================================================
+  # Web Server (Reverse Proxy)
+  # ============================================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: myapp-nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      # Application files (read-only)
+      - ./src/public:/var/www/html/public:ro
+      # Nginx configuration
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      # SSL certificates
+      - ./config/nginx/ssl:/etc/nginx/ssl:ro
+      # Logs
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '${NGINX_CPU_LIMIT:-1}'
+          memory: ${NGINX_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: '${NGINX_CPU_RESERVATION:-0.25}'
+          memory: ${NGINX_MEMORY_RESERVATION:-128M}
+
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: myapp-db
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-myapp}
+      - POSTGRES_USER=${DB_USERNAME:-appuser}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Initialization scripts
+      - ./config/db/init:/docker-entrypoint-initdb.d:ro
+      # Backup directory
+      - ./backups/db:/backups:rw
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-appuser} -d ${DB_DATABASE:-myapp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '${DB_CPU_LIMIT:-4}'
+          memory: ${DB_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${DB_CPU_RESERVATION:-1}'
+          memory: ${DB_MEMORY_RESERVATION:-1G}
+
+  # ============================================================================
+  # Redis Cache/Queue
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: myapp-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-}
+      --maxmemory ${REDIS_MAX_MEMORY:-512mb}
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+      # Backup directory
+      - ./backups/redis:/backups:rw
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '${REDIS_CPU_LIMIT:-1}'
+          memory: ${REDIS_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: '${REDIS_CPU_RESERVATION:-0.25}'
+          memory: ${REDIS_MEMORY_RESERVATION:-128M}
+
+  # ============================================================================
+  # Queue Worker
+  # ============================================================================
+  worker:
+    image: ${REGISTRY_URL:-}myapp:${VERSION:-latest}
+    container_name: myapp-worker
+    restart: unless-stopped
+    command: php artisan queue:work --daemon --sleep=3 --tries=3 --timeout=90 --max-time=3600
+    working_dir: /var/www/html
+    volumes:
+      - app-storage:/var/www/html/storage
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-myapp}
+      - DB_USERNAME=${DB_USERNAME:-appuser}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - LOG_LEVEL=${LOG_LEVEL:-error}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'queue:work' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '${WORKER_CPU_LIMIT:-1}'
+          memory: ${WORKER_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: '${WORKER_CPU_RESERVATION:-0.25}'
+          memory: ${WORKER_MEMORY_RESERVATION:-256M}
+
+  # ============================================================================
+  # Scheduler
+  # ============================================================================
+  scheduler:
+    image: ${REGISTRY_URL:-}myapp:${VERSION:-latest}
+    container_name: myapp-scheduler
+    restart: unless-stopped
+    command: >
+      sh -c "
+      while true; do
+        php artisan schedule:run --verbose --no-interaction &
+        sleep 60
+      done
+      "
+    working_dir: /var/www/html
+    volumes:
+      - app-storage:/var/www/html/storage
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_DATABASE=${DB_DATABASE:-myapp}
+      - DB_USERNAME=${DB_USERNAME:-appuser}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=redis
+      - CACHE_DRIVER=redis
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '${SCHEDULER_CPU_LIMIT:-0.5}'
+          memory: ${SCHEDULER_MEMORY_LIMIT:-256M}
+        reservations:
+          cpus: '${SCHEDULER_CPU_RESERVATION:-0.1}'
+          memory: ${SCHEDULER_MEMORY_RESERVATION:-64M}
+
+  # ============================================================================
+  # Monitoring (Optional - Prometheus + Grafana)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: myapp-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitoring
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: myapp-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    networks:
+      - monitoring
+    profiles:
+      - monitoring
+
+  # ============================================================================
+  # Log Aggregation (Optional - Loki)
+  # ============================================================================
+  loki:
+    image: grafana/loki:latest
+    container_name: myapp-loki
+    restart: unless-stopped
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./config/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+    profiles:
+      - monitoring
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  # Frontend network (public-facing services)
+  frontend:
+    name: myapp-frontend
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${FRONTEND_SUBNET:-172.20.0.0/24}
+
+  # Backend network (internal services)
+  backend:
+    name: myapp-backend
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: ${BACKEND_SUBNET:-172.20.1.0/24}
+
+  # Monitoring network (monitoring services)
+  monitoring:
+    name: myapp-monitoring
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${MONITORING_SUBNET:-172.20.2.0/24}
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  # Application storage
+  app-storage:
+    name: myapp-storage
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${STORAGE_PATH:-./data/storage}
+
+  app-cache:
+    name: myapp-cache
+    driver: local
+
+  # Database persistence
+  db-data:
+    name: myapp-db-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DB_DATA_PATH:-./data/postgres}
+
+  # Redis persistence
+  redis-data:
+    name: myapp-redis-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_DATA_PATH:-./data/redis}
+
+  # Nginx logs
+  nginx-logs:
+    name: myapp-nginx-logs
+    driver: local
+
+  # Monitoring data
+  prometheus-data:
+    name: myapp-prometheus-data
+    driver: local
+
+  grafana-data:
+    name: myapp-grafana-data
+    driver: local
+
+  loki-data:
+    name: myapp-loki-data
+    driver: local

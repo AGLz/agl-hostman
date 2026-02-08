@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Alert extends Model
 {
@@ -27,6 +28,13 @@ class Alert extends Model
         'resolved_at',
         'metadata',
         'muted_until',
+        // For polymorphic relationship
+        'resource_type',
+        'resource_id',
+        'alert_type',
+        'is_resolved',
+        'resolution_notes',
+        'auto_resolve_after_hours',
     ];
 
     protected $casts = [
@@ -37,7 +45,16 @@ class Alert extends Model
         'muted_until' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'is_resolved' => 'boolean',
     ];
+
+    /**
+     * Get the parent resource (polymorphic)
+     */
+    public function resource(): MorphTo
+    {
+        return $this->morphTo();
+    }
 
     /**
      * Scope: Active alerts (not acknowledged or resolved)
@@ -68,19 +85,51 @@ class Alert extends Model
     }
 
     /**
+     * Scope: Unresolved alerts
+     */
+    public function scopeUnresolved(Builder $query): void
+    {
+        $query->where('status', '!=', 'resolved');
+    }
+
+    /**
+     * Scope: High severity alerts
+     */
+    public function scopeHigh(Builder $query): void
+    {
+        $query->where('severity', '>=', 70)->where('severity', '<', 90);
+    }
+
+    /**
+     * Scope: Medium severity alerts
+     */
+    public function scopeMedium(Builder $query): void
+    {
+        $query->where('severity', '>=', 40)->where('severity', '<', 70);
+    }
+
+    /**
+     * Scope: Low severity alerts
+     */
+    public function scopeLow(Builder $query): void
+    {
+        $query->where('severity', '<', 40);
+    }
+
+    /**
      * Scope: By alert type
      */
     public function scopeByType(Builder $query, string $type): void
     {
-        $query->where('type', $type);
+        $query->where('alert_type', $type);
     }
 
     /**
      * Scope: By severity level
      */
-    public function scopeBySeverity(Builder $query, int $minSeverity): void
+    public function scopeBySeverity(Builder $query, string $severity): void
     {
-        $query->where('severity', '>=', $minSeverity);
+        $query->where('severity', $severity);
     }
 
     /**
@@ -88,7 +137,7 @@ class Alert extends Model
      */
     public function scopeCritical(Builder $query): void
     {
-        $query->where('severity', '>=', 90)->where('type', 'critical');
+        $query->where('severity', 'critical');
     }
 
     /**
@@ -115,6 +164,15 @@ class Alert extends Model
     public function scopeBySource(Builder $query, string $source): void
     {
         $query->where('source', $source);
+    }
+
+    /**
+     * Scope: By resource (polymorphic)
+     */
+    public function scopeByResource(Builder $query, string $resourceType, string $resourceId): void
+    {
+        $query->where('resource_type', $resourceType)
+              ->where('resource_id', $resourceId);
     }
 
     /**
@@ -151,12 +209,27 @@ class Alert extends Model
     /**
      * Mark alert as resolved
      */
-    public function resolve(string $userId): bool
+    public function resolve(string $resolutionNotes = ''): bool
     {
         return $this->update([
             'status' => 'resolved',
-            'resolved_by' => $userId,
+            'is_resolved' => true,
+            'resolution_notes' => $resolutionNotes,
+            'resolved_by' => auth()->id(),
             'resolved_at' => now(),
+        ]);
+    }
+
+    /**
+     * Reopen a resolved alert
+     */
+    public function reopen(): bool
+    {
+        return $this->update([
+            'status' => 'active',
+            'is_resolved' => false,
+            'resolved_at' => null,
+            'resolution_notes' => null,
         ]);
     }
 
@@ -168,6 +241,36 @@ class Alert extends Model
         return $this->update([
             'muted_until' => now()->addMinutes($minutes),
         ]);
+    }
+
+    /**
+     * Check if alert should auto-resolve based on TTL
+     */
+    public function shouldAutoResolve(): bool
+    {
+        if (!$this->auto_resolve_after_hours) {
+            return false;
+        }
+
+        return $this->created_at->lt(now()->subHours($this->auto_resolve_after_hours));
+    }
+
+    /**
+     * Get alert priority for sorting
+     */
+    public function getPriorityAttribute(): int
+    {
+        if ($this->is_resolved) {
+            return 0;
+        }
+
+        return match($this->severity) {
+            'critical' => 100,
+            'high' => 80,
+            'medium' => 60,
+            'low' => 40,
+            default => 20,
+        };
     }
 
     /**

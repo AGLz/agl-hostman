@@ -273,12 +273,21 @@ abstract class TestCase extends BaseTestCase
     /**
      * Begin a database transaction for test isolation.
      *
-     * @return void
+     * Note: This method is overridden from RefreshDatabase trait.
+     * Do not call this method directly when using RefreshDatabase trait.
      */
-    protected function beginDatabaseTransaction(): void
+    protected function beginDatabaseTransaction()
     {
+        // Skip if RefreshDatabase trait is being used
+        if (in_array(RefreshDatabase::class, class_uses_recursive($this))) {
+            return;
+        }
+
         try {
-            DB::connection('pgsql')->beginTransaction();
+            $connection = $this->shouldUseDatabase() ? DB::connection(config('database.default')) : null;
+            if ($connection) {
+                $connection->beginTransaction();
+            }
         } catch (\Exception $e) {
             // Transaction already started or connection issue
         }

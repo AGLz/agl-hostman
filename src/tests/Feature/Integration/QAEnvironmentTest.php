@@ -46,7 +46,7 @@ describe('QA Environment Integration Tests', function () {
         $dokployService = app(DokployService::class);
 
         expect($dokployService->testConnection())->toBeTrue();
-    })->group('integration')->skip(!config('dokploy.api_url'), 'Dokploy not configured');
+    })->group('integration')->skip(fn () => !config('dokploy.api_url'), 'Dokploy not configured');
 
     it('has Dokploy project created', function () {
         expect($this->environment->dokploy_project_id)->not->toBeNull();
@@ -56,7 +56,7 @@ describe('QA Environment Integration Tests', function () {
 
         expect($project)->not->toBeNull()
             ->and($project->projectId)->toBe($this->environment->dokploy_project_id);
-    })->group('integration')->skip(!config('dokploy.api_url'), 'Dokploy not configured');
+    })->group('integration')->skip(fn () => !config('dokploy.api_url'), 'Dokploy not configured');
 
     it('can reach QA deployment health endpoint', function () {
         $primaryDomain = $this->environment->getPrimaryDomain();

@@ -1,0 +1,307 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-02-07",
+  "categories": {
+    "development": {
+      "description": "Laravel, PHP, and Testing skills",
+      "path": "development/",
+      "skills": [
+        {
+          "name": "pest-testing",
+          "description": "Pest PHP testing framework patterns including unit vs integration tests, mocking, factories, and test organization",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["php", "testing", "pest", "tdd", "quality"],
+          "file": "development/pest-testing/SKILL.md"
+        },
+        {
+          "name": "laravel-migrations",
+          "description": "Laravel migration design patterns, index strategies, rollback safety, and data seeding",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["laravel", "php", "database", "migrations"],
+          "file": "development/laravel-migrations/SKILL.md"
+        },
+        {
+          "name": "laravel-performance-optimization",
+          "description": "Comprehensive Laravel performance optimization covering caching strategies, query optimization, eager loading, lazy evaluation, and HTTP caching",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["laravel", "performance", "optimization", "caching"],
+          "file": "development/laravel-performance-optimization/SKILL.md"
+        },
+        {
+          "name": "rest-api-design",
+          "description": "REST API design principles, resource naming, HTTP methods, status codes, pagination, and filtering",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["api", "rest", "laravel", "http"],
+          "file": "development/rest-api-design/SKILL.md"
+        },
+        {
+          "name": "database-migration-optimization",
+          "description": "Safe database migrations with zero-downtime strategies, rollback procedures, and testing for MySQL, PostgreSQL, and SQLite",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["laravel", "database", "migration", "zero-downtime"],
+          "file": "development/database-migration-optimization/SKILL.md"
+        },
+        {
+          "name": "php-modern-standards",
+          "description": "Modern PHP 8+ features including typed properties, named arguments, enums, PSR standards compliance, and static analysis tools",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["php", "php8", "typing", "psr", "static-analysis"],
+          "file": "development/php-modern-standards/SKILL.md"
+        },
+        {
+          "name": "laravel-best-practices",
+          "description": "Laravel best practices for service patterns, repository pattern, middleware, request validation, form requests, and API standards",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["laravel", "php", "architecture", "patterns"],
+          "file": "development/laravel-best-practices/SKILL.md"
+        }
+      ]
+    },
+    "monitoring": {
+      "description": "Performance, Alerts, and Harbor integration skills",
+      "path": "monitoring/",
+      "skills": [
+        {
+          "name": "alert-management",
+          "description": "Alert creation, lifecycle management, severity levels, notification patterns, auto-resolution, and alert deduplication",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["monitoring", "alerts", "notifications", "operations"],
+          "file": "monitoring/alert-management/SKILL.md"
+        },
+        {
+          "name": "query-optimization",
+          "description": "Database query optimization using DatabaseQueryOptimizer service, N+1 prevention, indexing strategies, and query caching",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["database", "performance", "optimization", "queries"],
+          "file": "monitoring/query-optimization/SKILL.md"
+        },
+        {
+          "name": "redis-caching",
+          "description": "Redis caching strategies using RedisCacheStrategy service, TTL management, cache invalidation, and multi-layer caching",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["redis", "caching", "performance", "storage"],
+          "file": "monitoring/redis-caching/SKILL.md"
+        },
+        {
+          "name": "monitoring-analytics-predictive",
+          "description": "Predictive analytics for performance monitoring, trend analysis, anomaly detection, and capacity planning",
+          "status": "production_ready",
+          "priority": "P1",
+          "tags": ["monitoring", "analytics", "predictions", "performance"],
+          "file": "monitoring/monitoring-analytics-predictive/SKILL.md"
+        },
+        {
+          "name": "harbor-registry",
+          "description": "Harbor container registry integration for image management, vulnerability scanning, and registry operations",
+          "status": "production_ready",
+          "priority": "P1",
+          "tags": ["harbor", "containers", "registry", "security"],
+          "file": "monitoring/harbor-registry/SKILL.md"
+        },
+        {
+          "name": "performance-monitoring",
+          "description": "Performance monitoring with PerformanceTrend model, metrics collection, threshold management, and alerting",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["monitoring", "performance", "metrics", "trends"],
+          "file": "monitoring/performance-monitoring/SKILL.md"
+        }
+      ]
+    },
+    "devops": {
+      "description": "Docker, CI/CD, and Dokploy skills",
+      "path": "devops/",
+      "skills": [
+        {
+          "name": "docker-container-orchestration",
+          "description": "Docker container orchestration, multi-container management, networking, volume management, and Docker Compose",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["docker", "containers", "orchestration", "devops"],
+          "file": "devops/docker-container-orchestration/SKILL.md"
+        },
+        {
+          "name": "infrastructure-as-code",
+          "description": "Infrastructure as Code with Ansible, Terraform, configuration management, and environment provisioning",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["iac", "terraform", "ansible", "devops"],
+          "file": "devops/infrastructure-as-code/SKILL.md"
+        },
+        {
+          "name": "harbor-registry-operations",
+          "description": "Harbor registry operations including image pushing, pulling, tagging, retention policies, and webhook integration",
+          "status": "production_ready",
+          "priority": "P1",
+          "tags": ["harbor", "registry", "containers", "operations"],
+          "file": "devops/harbor-registry-operations/SKILL.md"
+        },
+        {
+          "name": "ci-cd-pipeline-optimization",
+          "description": "GitHub Actions CI/CD pipeline optimization including caching strategies, parallel execution, trunk-based development, deployment gates, and monitoring",
+          "status": "production_ready",
+          "priority": "P2",
+          "tags": ["ci-cd", "github-actions", "pipeline", "optimization", "deployment"],
+          "file": "devops/ci-cd-pipeline-optimization/SKILL.md",
+          "scripts": [
+            "ci-speed-test.sh",
+            "ci-cache-stats.sh",
+            "ci-deploy-status.sh",
+            "ci-rollback.sh"
+          ],
+          "templates": [
+            "ci-optimized.yml",
+            "cd-with-gates.yml"
+          ]
+        }
+      ]
+    },
+    "hive-mind": {
+      "description": "Swarm coordination and consensus skills",
+      "path": "hive-mind/",
+      "skills": [
+        {
+          "name": "agent-spawning",
+          "description": "Worker agent creation, specialization patterns, resource allocation, and load balancing for hierarchical swarm systems",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["swarm", "agents", "coordination", "distributed"],
+          "file": "hive-mind/agent-spawning/SKILL.md"
+        },
+        {
+          "name": "byzantine-consensus",
+          "description": "Byzantine fault tolerance, voting mechanisms, conflict resolution, and agreement protocols for distributed agent systems",
+          "status": "production_ready",
+          "priority": "P1",
+          "tags": ["consensus", "byzantine", "fault-tolerance", "distributed"],
+          "file": "hive-mind/byzantine-consensus/SKILL.md"
+        },
+        {
+          "name": "hive-mind-coordinator",
+          "description": "Hive Mind coordination, queen agent orchestration, strategic decision making, and swarm-level optimization",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["hive-mind", "coordination", "orchestration", "swarm"],
+          "file": "hive-mind/hive-mind-coordinator/SKILL.md"
+        },
+        {
+          "name": "task-distribution",
+          "description": "Task distribution across swarm agents, workload balancing, priority queues, and dependency management",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["tasks", "distribution", "scheduling", "swarm"],
+          "file": "hive-mind/task-distribution/SKILL.md"
+        },
+        {
+          "name": "swarm-communication",
+          "description": "Agent-to-agent communication protocols, message passing, event broadcasting, and memory coordination",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["communication", "messaging", "events", "coordination"],
+          "file": "hive-mind/swarm-communication/SKILL.md"
+        }
+      ]
+    },
+    "integration": {
+      "description": "API, Database, and Redis integration skills",
+      "path": "integration/",
+      "skills": []
+    },
+    "infrastructure": {
+      "description": "Network, storage, Proxmox, and infrastructure skills",
+      "path": "infrastructure/",
+      "skills": [
+        {
+          "name": "network-traffic-analysis-optimization",
+          "description": "Network traffic monitoring, bandwidth optimization, traffic shaping, and performance analysis",
+          "status": "production_ready",
+          "priority": "P2",
+          "tags": ["network", "monitoring", "bandwidth", "optimization", "tcpdump"],
+          "scripts": [
+            "net-capture.sh",
+            "net-bandwidth.sh",
+            "net-protocols.sh",
+            "net-optimize-tcp.sh",
+            "net-qos.sh"
+          ]
+        },
+        {
+          "name": "wireguard-network-management",
+          "description": "WireGuard VPN setup, peer management, network routing, firewall configuration, and secure tunneling",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["wireguard", "vpn", "networking", "security"],
+          "file": "infrastructure/wireguard-network-management/SKILL.md"
+        },
+        {
+          "name": "proxmox-infrastructure-management",
+          "description": "Proxmox VE management, VM/CT operations, storage management, clustering, and resource allocation",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["proxmox", "virtualization", "infrastructure", "management"],
+          "file": "infrastructure/proxmox-infrastructure-management/SKILL.md"
+        },
+        {
+          "name": "backup-automation-verification",
+          "description": "Automated backup systems, backup verification, disaster recovery, and restoration procedures",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["backup", "automation", "disaster-recovery", "storage"],
+          "file": "infrastructure/backup-automation-verification/SKILL.md"
+        },
+        {
+          "name": "infrastructure-diagnostics",
+          "description": "Infrastructure diagnostics, health checks, system monitoring, log analysis, and troubleshooting procedures",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["diagnostics", "monitoring", "troubleshooting", "health"],
+          "file": "infrastructure/infrastructure-diagnostics/SKILL.md"
+        },
+        {
+          "name": "database-high-availability",
+          "description": "Database high availability setup, replication, failover, clustering, and backup strategies for MySQL and PostgreSQL",
+          "status": "production_ready",
+          "priority": "P0",
+          "tags": ["database", "ha", "replication", "failover"],
+          "file": "infrastructure/database-high-availability/SKILL.md"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "total_skills": 28,
+    "pending_creation": 0,
+    "in_development": 0,
+    "production_ready": 28,
+    "phases": {
+      "phase_1": {
+        "name": "Core Development Skills",
+        "skills_count": 7,
+        "categories": ["development"],
+        "status": "complete"
+      },
+      "phase_2": {
+        "name": "Monitoring & Infrastructure Skills",
+        "skills_count": 12,
+        "categories": ["monitoring", "infrastructure"],
+        "status": "complete"
+      },
+      "phase_3": {
+        "name": "DevOps & Swarm Coordination Skills",
+        "skills_count": 9,
+        "categories": ["devops", "hive-mind"],
+        "status": "complete"
+      }
+    }
+  }
+}

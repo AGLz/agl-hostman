@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,11 +16,11 @@ use Carbon\Carbon;
  * capacity planning, and predictive maintenance.
  *
  * @property int $id
+ * @property string $resource_type
+ * @property string $resource_id
  * @property string $metric_type
- * @property string $metric_name
- * @property string|null $node_code
- * @property string|null $vmid
  * @property float $value
+ * @property string $unit
  * @property array|null $metadata
  * @property Carbon $recorded_at
  * @property Carbon $created_at
@@ -31,11 +33,11 @@ class PerformanceTrend extends Model
     use HasFactory;
 
     protected $fillable = [
+        'resource_type',
+        'resource_id',
         'metric_type',
-        'metric_name',
-        'node_code',
-        'vmid',
         'value',
+        'unit',
         'metadata',
         'recorded_at',
     ];
@@ -49,36 +51,20 @@ class PerformanceTrend extends Model
     ];
 
     /**
+     * Scope: Filter by resource type and id
+     */
+    public function scopeByResource(Builder $query, string $resourceType, string $resourceId): Builder
+    {
+        return $query->where('resource_type', $resourceType)
+                     ->where('resource_id', $resourceId);
+    }
+
+    /**
      * Scope: Filter by metric type
      */
-    public function scopeOfType(Builder $query, string $type): Builder
+    public function scopeByMetricType(Builder $query, string $type): Builder
     {
         return $query->where('metric_type', $type);
-    }
-
-    /**
-     * Scope: Filter by metric name
-     */
-    public function scopeNamed(Builder $query, string $name): Builder
-    {
-        return $query->where('metric_name', $name);
-    }
-
-    /**
-     * Scope: Filter by node
-     */
-    public function scopeForNode(Builder $query, string $node): Builder
-    {
-        return $query->where('node_code', $node);
-    }
-
-    /**
-     * Scope: Filter by container
-     */
-    public function scopeForContainer(Builder $query, string $node, int $vmid): Builder
-    {
-        return $query->where('node_code', $node)
-                     ->where('vmid', $vmid);
     }
 
     /**
@@ -100,96 +86,53 @@ class PerformanceTrend extends Model
     /**
      * Scope: Order by recording time
      */
-    public function scopeChronological(Builder $query): Builder
+    public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('recorded_at', 'asc');
+        return $query->orderBy('recorded_at', 'desc');
+    }
+
+    /**
+     * Scope: Latest per resource
+     */
+    public function scopeLatestPerResource(Builder $query, array $resourceIds, string $metricType): Builder
+    {
+        return $query->whereIn('resource_id', $resourceIds)
+                     ->where('metric_type', $metricType)
+                     ->orderBy('recorded_at', 'desc')
+                     ->distinct('resource_id');
+    }
+
+    /**
+     * Scope: For time range in hours
+     */
+    public function scopeForTimeRange(Builder $query, int $minHours, int $maxHours): Builder
+    {
+        return $query->whereBetween('recorded_at', [
+            now()->subHours($maxHours),
+            now()->subHours($minHours)
+        ]);
     }
 
     /**
      * Record a new performance metric
      */
     public static function record(
+        string $resourceType,
+        string $resourceId,
         string $metricType,
-        string $metricName,
         float $value,
-        ?string $nodeCode = null,
-        ?string $vmid = null,
+        string $unit = '%',
         ?array $metadata = null
     ): self {
         return static::create([
+            'resource_type' => $resourceType,
+            'resource_id' => $resourceId,
             'metric_type' => $metricType,
-            'metric_name' => $metricName,
-            'node_code' => $nodeCode,
-            'vmid' => $vmid,
             'value' => $value,
+            'unit' => $unit,
             'metadata' => $metadata,
             'recorded_at' => now(),
         ]);
-    }
-
-    /**
-     * Get trend statistics for a metric
-     */
-    public static function getTrendStats(
-        string $metricType,
-        string $metricName,
-        int $hours = 24,
-        ?string $nodeCode = null,
-        ?string $vmid = null
-    ): array {
-        $query = static::ofType($metricType)
-            ->named($metricName)
-            ->recent($hours)
-            ->chronological();
-
-        if ($nodeCode) {
-            $query->forNode($nodeCode);
-        }
-
-        if ($vmid) {
-            $query->where('vmid', $vmid);
-        }
-
-        $records = $query->get();
-
-        if ($records->isEmpty()) {
-            return [
-                'count' => 0,
-                'min' => null,
-                'max' => null,
-                'avg' => null,
-                'current' => null,
-                'trend' => 'unknown',
-            ];
-        }
-
-        $values = $records->pluck('value');
-        $first = $values->first();
-        $last = $values->last();
-
-        return [
-            'count' => $records->count(),
-            'min' => $values->min(),
-            'max' => $values->max(),
-            'avg' => round($values->avg(), 2),
-            'current' => $last,
-            'trend' => $last > $first ? 'increasing' : ($last < $first ? 'decreasing' : 'stable'),
-            'change_percent' => $first > 0 ? round((($last - $first) / $first) * 100, 2) : 0,
-        ];
-    }
-
-    /**
-     * Get cluster-wide metric aggregation
-     */
-    public static function getClusterMetric(
-        string $metricType,
-        string $metricName,
-        int $hours = 1
-    ): ?float {
-        return static::ofType($metricType)
-            ->named($metricName)
-            ->recent($hours)
-            ->avg('value');
     }
 
     /**

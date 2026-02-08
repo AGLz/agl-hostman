@@ -1,0 +1,400 @@
+# Docker Swarm Stack Configuration Template
+# Production-ready Swarm deployment with services, secrets, configs, and placement constraints
+#
+# This template includes:
+#   - Deployable services with replicas
+#   - Rolling update configurations
+#   - Resource constraints and reservations
+#   - Placement constraints for distribution
+#   - Health checks and rollback policies
+#   - Secrets and configs management
+#
+# Usage:
+#   docker swarm init
+#   docker stack deploy -c docker-swarm.yml myapp
+#   docker service ls
+#   docker stack ps myapp
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Application Service (Multiple Replicas)
+  # ============================================================================
+  app:
+    image: ${REGISTRY_URL:-}myapp:${VERSION:-latest}
+    deploy:
+      mode: replicated
+      replicas: ${APP_REPLICAS:-3}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '${APP_CPU_LIMIT:-2}'
+          memory: ${APP_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: '${APP_CPU_RESERVATION:-0.5}'
+          memory: ${APP_MEMORY_RESERVATION:-512M}
+      placement:
+        constraints:
+          - node.labels.app-tier == frontend
+          - node.role == worker
+        preferences:
+          - spread: node.labels.zone
+    environment:
+      - APP_NAME=${APP_NAME:-MyApp}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-https://app.example.com}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-myapp}
+      - DB_USERNAME_FILE=/run/secrets/db_username
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    secrets:
+      - db_username
+      - db_password
+      - app_key
+    configs:
+      - source: app_config
+        target: /etc/app/config.ini
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service,version"
+
+  # ============================================================================
+  # Web Server (Global Mode for Load Balancing)
+  # ============================================================================
+  nginx:
+    image: nginx:1.25-alpine
+    deploy:
+      mode: global
+      update_config:
+        parallelism: 2
+        delay: 10s
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '${NGINX_CPU_LIMIT:-1}'
+          memory: ${NGINX_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: '${NGINX_CPU_RESERVATION:-0.25}'
+          memory: ${NGINX_MEMORY_RESERVATION:-128M}
+      placement:
+        constraints:
+          - node.labels.app-tier == frontend
+          - node.role == worker
+    ports:
+      - target: 80
+        published: ${HTTP_PORT:-80}
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: ${HTTPS_PORT:-443}
+        protocol: tcp
+        mode: host
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/nginx.conf
+      - source: nginx_site_config
+        target: /etc/nginx/conf.d/default.conf
+    secrets:
+      - ssl_cert
+      - ssl_key
+    networks:
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # PostgreSQL Database (Single Replica with Constraints)
+  # ============================================================================
+  db:
+    image: postgres:16-alpine
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 30s
+        failure_action: rollback
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 300s
+      resources:
+        limits:
+          cpus: '${DB_CPU_LIMIT:-4}'
+          memory: ${DB_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${DB_CPU_RESERVATION:-1}'
+          memory: ${DB_MEMORY_RESERVATION:-1G}
+      placement:
+        constraints:
+          - node.labels.database == true
+          - node.labels.storage == ssd
+        preferences:
+          - spread: node.labels.zone
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-myapp}
+      - POSTGRES_USER_FILE=/run/secrets/db_username
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    secrets:
+      - db_username
+      - db_password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ============================================================================
+  # Redis Cache/Queue (Multiple Replicas)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    deploy:
+      mode: replicated
+      replicas: ${REDIS_REPLICAS:-2}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '${REDIS_CPU_LIMIT:-1}'
+          memory: ${REDIS_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: '${REDIS_CPU_RESERVATION:-0.25}'
+          memory: ${REDIS_MEMORY_RESERVATION:-128M}
+      placement:
+        constraints:
+          - node.labels.cache == true
+        preferences:
+          - spread: node.labels.zone
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-}
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ============================================================================
+  # Queue Workers (Multiple Replicas)
+  # ============================================================================
+  worker:
+    image: ${REGISTRY_URL:-}myapp:${VERSION:-latest}
+    command: php artisan queue:work --daemon --sleep=3 --tries=3 --timeout=90
+    deploy:
+      mode: replicated
+      replicas: ${WORKER_REPLICAS:-3}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '${WORKER_CPU_LIMIT:-1}'
+          memory: ${WORKER_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: '${WORKER_CPU_RESERVATION:-0.25}'
+          memory: ${WORKER_MEMORY_RESERVATION:-256M}
+      placement:
+        constraints:
+          - node.labels.worker == true
+        preferences:
+          - spread: node.labels.zone
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DB_HOST=db
+      - DB_DATABASE=${DB_DATABASE:-myapp}
+      - DB_USERNAME_FILE=/run/secrets/db_username
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_HOST=redis
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    secrets:
+      - db_username
+      - db_password
+      - app_key
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'queue:work' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================================
+  # Visualizer (Swarm Visualization)
+  # ============================================================================
+  visualizer:
+    image: dockersamples/visualizer:latest
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run.sock:ro
+    networks:
+      - frontend
+    profiles:
+      - monitoring
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  frontend:
+    name: myapp-frontend
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    attachable: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${FRONTEND_SUBNET:-10.0.0.0/24}
+
+  backend:
+    name: myapp-backend
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    internal: true
+    attachable: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${BACKEND_SUBNET:-10.0.1.0/24}
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  db-data:
+    name: myapp-db-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DB_DATA_PATH:-/data/postgres}
+
+  redis-data:
+    name: myapp-redis-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_DATA_PATH:-/data/redis}
+
+# ============================================================================
+# Secrets (Create with: docker secret create <name> <file>)
+# ============================================================================
+secrets:
+  db_username:
+    name: myapp_db_username_v1
+    external: true
+
+  db_password:
+    name: myapp_db_password_v1
+    external: true
+
+  app_key:
+    name: myapp_app_key_v1
+    external: true
+
+  ssl_cert:
+    name: myapp_ssl_cert_v1
+    external: true
+
+  ssl_key:
+    name: myapp_ssl_key_v1
+    external: true
+
+# ============================================================================
+# Configs (Create with: docker config create <name> <file>)
+# ============================================================================
+configs:
+  app_config:
+    name: myapp_app_config_v1
+    external: true
+
+  nginx_config:
+    name: myapp_nginx_config_v1
+    external: true
+
+  nginx_site_config:
+    name: myapp_nginx_site_config_v1
+    external: true
