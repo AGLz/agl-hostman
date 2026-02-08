@@ -1,0 +1,175 @@
+# ===============================================
+# Expected Output Patterns for statusline-command.sh
+# ===============================================
+# This file documents expected output patterns for various inputs
+# Used for validation and regression testing
+# ===============================================
+
+## ANSI Color Codes
+- Bold: \033[1m
+- Reset: \033[0m
+- Cyan (36): \033[36m
+- Yellow (33): \033[33m
+- Green (32): \033[32m
+- Red (31): \033[31m
+- Magenta (35): \033[35m
+- Blue (34): \033[34m
+- Gray (90): \033[90m
+
+## Output Structure
+[MODEL_NAME] [ENV_TYPE] in PROJECT on ⎇ BRANCH | [~MODIFIED +ADDED -DELETED ?UNTRACKED] ↑AHEAD ↓BEHIND | ✓ TOKENS/BUDGET [PROGRESS_BAR] ZONE | RESET_TIME(TIME_UNTIL)[BLOCK_NAME] 🏗️DDD/SWARM 🧠INTEL% 🟢SEC 📋PR_COUNT 🔌MCP 💰COST | CC_VERSION │ HOSTNAME
+
+## Icons and Their Meanings
+- ⎇ : Git branch indicator
+- ~ : Modified files
+- + : Added/staged files
+- - : Deleted files
+- ? : Untracked files
+- ↑ : Ahead of remote
+- ↓ : Behind remote
+- ✓ : SMART zone (low token usage)
+- ⚠ : DUMB zone (medium token usage)
+- ⚠⚠ : WRAP_UP zone (high token usage)
+- █ : Filled progress bar block
+- ░ : Empty progress bar block
+- 🏗️ : DDD (Domain-Driven Design) progress
+- 🤖 : Swarm agents count
+- 🧠 : Intelligence percentage
+- 🟢 : Security clean
+- 🟡 : Security in progress
+- 📋 : GitHub pull requests
+- 🔌 : MCP servers count
+- 💰 : Cost estimate
+- 🐳 : Docker environment
+- 🌊 : Special branded name for claude-code-flow
+- 💎 : Special branded name for gemini-flow
+
+## Model Name Patterns
+- "Claude" (default when model.display_name is missing)
+- "Sonnet 4.5"
+- "Opus 4.5"
+- Custom model names from JSON
+
+## Project Name Patterns
+- Git remote repository name (e.g., "my-project" from "https://github.com/user/my-project.git")
+- Special branded names:
+  - "claude-code-flow" → "🌊 Claude Flow"
+  - "agl-hostman" → "AGL HostMan"
+  - "gemini-flow" → "💎 Gemini Flow"
+- Fallback to directory name when no remote
+
+## Git Status Patterns
+- [~1] : 1 modified file
+- [+2] : 2 added files
+- [-1] : 1 deleted file
+- [?3] : 3 untracked files
+- [~1 +2 ?1] : Combined status indicators
+
+## Token Zone Patterns
+- SMART (0-50%): Green (32), indicator: ✓
+- DUMB (50-75%): Yellow (33), indicator: ⚠
+- WRAP_UP (75-100%+): Red (31), indicator: ⚠⚠
+- UNKNOWN: Gray (90), indicator: ?
+
+## Progress Bar Patterns
+- [░░░░░░░░░░] : 0% empty
+- [███░░░░░░░] : ~30% filled
+- [████████░░] : ~80% filled
+- [██████████] : 100% filled
+
+## Time Block Patterns
+- [1-6] : 01:00-06:00
+- [6-11] : 06:00-11:00
+- [11-4] : 11:00-16:00
+- [4-9] : 16:00-21:00
+- [9-1] : 21:00-01:00
+
+## Reset Time Patterns
+- 06:00 (end of block 1)
+- 11:00 (end of block 2)
+- 16:00 (end of block 3)
+- 21:00 (end of block 4)
+- 01:00 (end of block 5)
+
+## Time Until Reset Patterns
+- "1h 30m" : 1 hour 30 minutes
+- "45m" : 45 minutes (when hours = 0)
+
+## DDD Progress Patterns
+- Red (31): 0-2 domains completed
+- Yellow (33): 3 domains completed
+- Green (32): 4-5 domains completed
+
+## Intelligence Patterns
+- Gray (90): 0-49%
+- Yellow (33): 50-79%
+- Green (32): 80-100%
+
+## Directory Display Patterns
+- "~" : Home directory replacement
+- "../parent/dir" : Relative path for deep directories
+- "full/path" : Full path for shallow directories (≤3 levels)
+
+## Environment Patterns
+- [WSL2] : WSL2 environment
+- [🐳 hostname] : Docker container
+
+## Token Format Patterns
+- "45.2K/200K" : Tokens used / Total budget
+- "0.5K/200K" : Less than 1K used
+
+## Cost Format Patterns
+- "$0.14" : Cost estimate (tokens/1000000 * $3)
+
+## Claude Code Version Pattern
+- "CC v1.x.x" : Version string
+
+## Performance Expectations
+- Execution time: <100ms typical, <300ms maximum
+- Output length: 200-500 characters typical
+- Single line output only
+
+## Error Handling Patterns
+- Invalid JSON: Falls back to defaults, still produces output
+- Missing fields: Uses null coalescing (//) in jq
+- Git errors: Gracefully handles non-git directories
+- Missing tools: Continues without optional features
+
+## Example Outputs
+
+### Minimal Input (empty JSON)
+Input: {}
+Output: Claude in ~/current/dir | ✓ 45.2K/200K [██░░░░░░░░] SMART | 16:00(2h 30m)[11-4] │ CC v1.x.x │ hostname
+
+### Full Git Repository
+Input: {"cwd":"/home/user/my-project"}
+Output: Claude in my-project on ⎇ main | [+1 ~2] | ✓ 45.2K/200K [██░░░░░░░░] SMART | 16:00(2h 30m)[11-4] │ CC v1.x.x │ hostname
+
+### High Token Usage
+Input: {} (with 175K tokens used)
+Output: Claude in ~/current/dir | ⚠⚠ 175.0K/200K [███████░░░] WRAP_UP | 16:00(2h 30m)[11-4] │ CC v1.x.x │ hostname
+
+### With V3 Metrics
+Input: {"cwd":"/home/user/my-project"} (with V3 helper)
+Output: Claude in my-project on ⎇ main | ✓ 45.2K/200K [██░░░░░░░░] SMART | 16:00(2h 30m)[11-4] 🏗️3/5 🤖2 🧠65% │ CC v1.x.x │ hostname
+
+### Docker Environment
+Input: {} (in Docker container)
+Output: Claude [🐳 container-name] in ~/current/dir | ✓ 45.2K/200K [██░░░░░░░░] SMART | 16:00(2h 30m)[11-4] │ CC v1.x.x │ hostname
+
+### WSL2 Environment
+Input: {} (in WSL2)
+Output: Claude [WSL2] in ~/current/dir | ✓ 45.2K/200K [██░░░░░░░░] SMART | 16:00(2h 30m)[11-4] │ CC v1.x.x │ hostname
+
+## Regression Test Markers
+These patterns should remain consistent across versions:
+1. Model name always appears first (bold)
+2. Environment indicator in square brackets if present
+3. "in" keyword before project/directory
+4. "on ⎇" before branch name
+5. Git status in square brackets after branch
+6. Token info with zone indicator
+7. Progress bar always 10 characters
+8. Reset time format: HH:MM(hh mm)[block]
+9. V3 metrics at end before version
+10. Version and hostname at very end

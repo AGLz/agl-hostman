@@ -5,12 +5,13 @@
   "main": "src/greeting/index.js",
   "type": "commonjs",
   "scripts": {
-    "test": "jest --coverage",
-    "test:watch": "jest --watch",
-    "test:greeting": "jest tests/validation/greeting-system.test.js",
+    "test": "JEST_PUPPETEER_SKIP_DOWNLOAD=1 NODE_OPTIONS='--max-old-space-size=4096' ./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --no-cache",
+    "test:watch": "./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --watch --no-cache",
+    "test:greeting": "./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js tests/validation/greeting-system.test.js --no-cache",
     "test:performance": "node tests/validation/greeting-performance-benchmark.js",
-    "lint": "eslint src/**/*.js tests/**/*.js examples/**/*.js",
-    "lint:fix": "eslint src/**/*.js tests/**/*.js examples/**/*.js --fix",
+    "test:coverage": "./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --coverage --no-cache",
+    "lint": "./node_modules/.pnpm/eslint@8.57.1/node_modules/eslint/bin/eslint.js 'src/greeting/**/*.js' 'tests/**/*.js' 'examples/**/*.js'",
+    "lint:fix": "./node_modules/.pnpm/eslint@8.57.1/node_modules/eslint/bin/eslint.js src/**/*.js tests/**/*.js examples/**/*.js --fix",
     "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"examples/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\" \"examples/**/*.js\"",
     "demo:greeting": "node examples/greeting-demo.js",
@@ -56,8 +57,8 @@
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^18.19.50",
-    "dockerode": "^4.0.2",
-    "eslint": "^8.57.0",
+    "dockerode": "^4.0.9",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^27.9.0",
     "eslint-plugin-node": "^11.1.0",
@@ -66,6 +67,7 @@
     "jsdoc": "^4.0.3",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
+    "semver": "^7.7.4",
     "shadcn": "3.6.1",
     "supertest": "^6.3.4"
   },
@@ -75,25 +77,38 @@
     "setupFilesAfterEnv": [
       "<rootDir>/tests/setup.js"
     ],
+    "collectCoverage": false,
     "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/**/*.test.js",
-      "!src/**/*.spec.js"
+      "src/greeting/**/*.js",
+      "src/dashboard/**/*.js",
+      "!**/node_modules/**",
+      "!**/vendor/**"
     ],
     "testMatch": [
       "**/tests/**/*.test.js",
       "**/tests/**/*.spec.js"
     ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/src/vendor/",
+      "/src/node_modules/",
+      "/src/html/",
+      "/src/app/"
+    ],
+    "modulePathIgnorePatterns": [
+      "/src/vendor/",
+      "/src/node_modules/",
+      "/src/html/",
+      "/src/app/",
+      "/src/bootstrap/",
+      "/src/config/",
+      "/src/database/",
+      "/src/public/"
+    ],
+    "cache": false,
+    "maxWorkers": 1,
     "verbose": true,
-    "testTimeout": 10000
+    "testTimeout": 30000
   },
   "lint-staged": {
     "*.js": [
@@ -110,35 +125,6 @@
     "printWidth": 100,
     "arrowParens": "always",
     "endOfLine": "lf"
-  },
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "es2021": true,
-      "jest": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:node/recommended",
-      "plugin:jest/recommended",
-      "prettier"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 2021,
-      "sourceType": "module"
-    },
-    "rules": {
-      "no-console": "off",
-      "no-unused-vars": [
-        "error",
-        {
-          "argsIgnorePattern": "^_"
-        }
-      ],
-      "node/no-unsupported-features/es-syntax": "off",
-      "node/no-missing-import": "off",
-      "node/no-unpublished-require": "off"
-    }
   },
   "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8"
 }

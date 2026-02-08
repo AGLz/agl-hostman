@@ -8,7 +8,7 @@ const { promisify } = require('util');
 const NetworkMonitor = require('../../src/dashboard/api/network');
 const NetworkMock = require('./mocks/network-mock');
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 describe('Network Connectivity Tests', () => {
   let networkMonitor;
@@ -344,7 +344,7 @@ describe('Network Connectivity Tests', () => {
       // Create a command that writes to stderr but succeeds
       const { exec } = require('child_process');
       const { promisify } = require('util');
-      const execAsync = promisify(exec);
+      const _execAsync = promisify(exec);
 
       // Mock exec to simulate stderr
       const originalExecCommand = networkMonitor.execCommand.bind(networkMonitor);

@@ -1,0 +1,32 @@
+# Vendor dependencies
+src/vendor/
+src/node_modules/
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Config files
+*.config.js
+vite.config.js
+webpack.config.js
+babel.config.js
+
+# Minified files
+*.min.js
+
+# Third-party libraries
+src/vendor/**/*.js
+
+# Documentation
+docs/
+
+# Test coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/

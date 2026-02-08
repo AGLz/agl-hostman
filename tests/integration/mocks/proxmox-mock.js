@@ -30,7 +30,7 @@ class ProxmoxMock {
     this.scope
       .get(/\/api2\/json\/.*/)
       .matchHeader('Authorization', /^PVEAPIToken=.*/)
-      .reply(200, (uri, requestBody) => {
+      .reply(200, (uri, _requestBody) => {
         return this.getMockResponse(uri);
       });
 

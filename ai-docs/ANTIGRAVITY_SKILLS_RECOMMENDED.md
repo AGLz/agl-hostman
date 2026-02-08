@@ -2,11 +2,55 @@
 
 > Skills do [antigravity-awesome-skills](https://github.com/sickn33/antigravity-awesome-skills) pertinentes ao parque tecnológico do projeto. Instaladas em `~/.cursor/skills`. Use `@skill-name` no chat do Cursor.
 
-## Status da Instalação
+## ✅ Status da Instalação
 
+- **Data**: 2025-02-08
 - **Local**: `C:\Users\kakos\.cursor\skills`
-- **Total disponível**: 713+ skills
-- **Symlinks**: Alguns symlinks (docx, pdf, pptx, xlsx) podem falhar no Windows — não afetam as skills abaixo
+- **Total instalado**: 38 skills (30 prioritárias + 8 opcionais)
+- **Status**: ✅ Instalação concluída com sucesso
+- **Total disponível**: 713+ skills no repositório
+
+## 📚 Documentação Instalada
+
+- **Guia Completo**: [`ANTIGRAVITY_SKILLS_INTEGRATION.md`](./ANTIGRAVITY_SKILLS_INTEGRATION.md) - Guia detalhado com exemplos e workflows
+- **Referência Rápida**: [`ANTIGRAVITY_SKILLS_QUICKREF.md`](./ANTIGRAVITY_SKILLS_QUICKREF.md) - Consulta rápida das 38 skills
+- **Lista Completa**: [`ANTIGRAVITY_SKILLS_INSTALLED.md`](./ANTIGRAVITY_SKILLS_INSTALLED.md) - Documentação gerada automaticamente
+
+## 🚀 Início Rápido
+
+### Como Usar
+Digite `@skill-name` no chat do Cursor seguido da sua pergunta:
+
+```
+@concise-planning Implementar autenticação JWT
+@docker-expert Otimizar este Dockerfile
+@systematic-debugging Analisar este erro
+```
+
+### Workflows Essenciais
+
+**Nova Feature:**
+```
+@concise-planning → @test-driven-development → @nodejs-backend-patterns → @git-pushing
+```
+
+**Bug Fix:**
+```
+@systematic-debugging → @testing-patterns → @kaizen → @git-pushing
+```
+
+**Deploy:**
+```
+@deployment-procedures → @docker-expert → @observability-engineer
+```
+
+## 🔄 Atualização
+
+Para atualizar as skills:
+
+```powershell
+.\scripts\skills\install-antigravity-skills.ps1
+```
 
 ## Parque Tecnológico (Relevância)
 
@@ -15,6 +59,7 @@
 | Backend | Laravel 11, PHP 8.4, Node.js/Express | `backend-dev-guidelines`, `nodejs-backend-patterns`, `api-patterns` |
 | Frontend | Vue 3, Inertia, Tailwind v3 | `tailwind-patterns`, `tailwind-design-system`, `frontend-design` |
 | Infra | Docker, Proxmox, WireGuard, Dokploy | `docker-expert`, `bash-linux`, `deployment-procedures` |
+| Cloud | AWS, Azure, GCP, on-premise | `aws-skills`, `azure-functions`, `gcp-cloud-run`, `hybrid-cloud-architect` |
 | AI/Agents | AgentDB, Archon MCP, Claude Flow | `mcp-builder`, `rag-engineer`, `ai-agents-architect` |
 | Testes | Pest, Jest | `test-driven-development`, `testing-patterns`, `e2e-testing-patterns` |
 | BD | PostgreSQL, MySQL | `postgres-best-practices`, `postgresql`, `database-design` |
@@ -36,7 +81,49 @@ Use estes em qualquer tarefa:
 
 ---
 
-## DevOps & Cloud
+## AWS
+
+| Skill | Quando usar |
+|-------|-------------|
+| `@aws-skills` | Desenvolvimento AWS, IaC, arquitetura cloud |
+| `@aws-serverless` | Lambda, API Gateway, DynamoDB, SQS/SNS, SAM/CDK |
+| `@aws-penetration-testing` | Pentest AWS, IAM, S3, Lambda (segurança) |
+
+---
+
+## Azure
+
+| Skill | Quando usar |
+|-------|-------------|
+| `@azure-functions` | Azure Functions, Durable Functions, .NET/Python/Node.js |
+| `@cloud-architect` | Arquitetura multi-cloud (inclui Azure) |
+| `@cloud-penetration-testing` | Pentest Azure, O365, avaliação de segurança |
+
+---
+
+## GCP (Google Cloud)
+
+| Skill | Quando usar |
+|-------|-------------|
+| `@gcp-cloud-run` | Cloud Run (containers), Cloud Run Functions, Pub/Sub |
+| `@cloud-architect` | Arquitetura multi-cloud (inclui GCP) |
+| `@cloud-penetration-testing` | Pentest GCP, avaliação de segurança |
+
+---
+
+## On-Premise & Híbrido
+
+| Skill | Quando usar |
+|-------|-------------|
+| `@hybrid-cloud-architect` | AWS/Azure/GCP + OpenStack/VMware, Azure Arc, AWS Outposts, Anthos |
+| `@hybrid-cloud-networking` | VPN, Direct Connect, ExpressRoute — conectar datacenter à cloud |
+| `@kubernetes-architect` | EKS, AKS, GKE e Kubernetes on-premise (OpenShift, Rancher, Tanzu) |
+| `@terraform-specialist` | IaC, deploy híbrido, edge, integração on-premise |
+| `@observability-engineer` | Monitoramento multi-cloud e on-premise |
+
+---
+
+## DevOps & Cloud (geral)
 
 | Skill | Quando usar |
 |-------|-------------|
@@ -48,6 +135,8 @@ Use estes em qualquer tarefa:
 | `@observability-engineer` | Monitoramento, métricas, alertas |
 | `@incident-responder` | Resposta a incidentes em produção |
 | `@postmortem-writing` | Postmortems após incidentes |
+| `@cloud-architect` | Arquitetura AWS/Azure/GCP, IaC, FinOps, multi-cloud |
+| `@cost-optimization` | Redução de custos em AWS, Azure, GCP |
 
 ---
 

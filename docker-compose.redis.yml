@@ -1,0 +1,64 @@
+# Docker Compose - Redis 7 Enhanced Configuration
+# AGL Hostman - Infrastructure Management Platform
+#
+# This file extends the base docker-compose.yml with enhanced Redis 7
+# Usage: docker compose -f docker-compose.yml -f docker-compose.redis.yml up -d
+
+services:
+  # ============================================================================
+  # Redis 7 - Enhanced Configuration
+  # ============================================================================
+  redis-enhanced:
+    image: redis:7-alpine
+    container_name: agl-hostman-redis-enhanced
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis-data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - agl-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================================
+  # Redis Insight - Redis Management UI
+  # ============================================================================
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: agl-hostman-redis-insight
+    restart: unless-stopped
+    ports:
+      - "${REDIS_INSIGHT_PORT:-8001}:8001"
+    volumes:
+      - redis-insight-data:/db
+    networks:
+      - agl-network
+    depends_on:
+      redis-enhanced:
+        condition: service_healthy
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  agl-network:
+    name: agl-hostman-network
+    external: true
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  redis-data:
+    name: agl-hostman-redis-data
+    driver: local
+  redis-insight-data:
+    name: agl-hostman-redis-insight-data
+    driver: local

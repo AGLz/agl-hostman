@@ -7,7 +7,7 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 const Docker = require('dockerode');
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 describe('Docker Container Health Tests', () => {
   let docker;
@@ -179,7 +179,7 @@ describe('Docker Container Health Tests', () => {
 
       const container = docker.getContainer(testContainerId);
       const beforeInfo = await container.inspect();
-      const restartCountBefore = beforeInfo.RestartCount;
+      const _restartCountBefore = beforeInfo.RestartCount;
 
       // Restart container
       await container.restart();

@@ -10,11 +10,7 @@
  */
 
 const {
-  SwitchVerificationRunner,
-  ConnectivityTests,
-  ServiceIdentificationTests,
-  ModelVerificationTests,
-  SecurityTests
+  SwitchVerificationRunner
 } = require('./switch-verification-tests.js');
 
 // Parse command line arguments

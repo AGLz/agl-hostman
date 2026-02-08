@@ -390,7 +390,7 @@ class MCPMemoryWrapper {
    */
   _simulateDelete(key) {
     const fullKey = `${this.namespace}:${key}`;
-    const existed = this.simulationStorage.hasOwnProperty(fullKey);
+    const existed = Object.prototype.hasOwnProperty.call(this.simulationStorage, fullKey);
 
     if (existed) {
       delete this.simulationStorage[fullKey];
@@ -465,7 +465,7 @@ class MCPMemoryWrapper {
    * @param {number} ttl - TTL in seconds
    * @returns {Promise<Object>} MCP tool result
    */
-  async _callMCPTool(action, key, value, ttl) {
+  async _callMCPTool(_action, _key, _value, _ttl) {
     // This method will be implemented when real MCP tool integration is added
     // For now, it throws an error to indicate it's not yet available
     throw new Error(
@@ -481,11 +481,6 @@ class MCPMemoryWrapper {
 const defaultWrapper = new MCPMemoryWrapper();
 
 /**
- * Export the class and singleton instance
+ * Export the class and singleton instance for CommonJS
  */
-export { MCPMemoryWrapper, defaultWrapper };
-
-// Export for CommonJS compatibility
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { MCPMemoryWrapper, defaultWrapper };
-}
+module.exports = { MCPMemoryWrapper, defaultWrapper };

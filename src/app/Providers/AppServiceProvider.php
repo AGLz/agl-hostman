@@ -39,6 +39,44 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(\App\Services\Container\ContainerLifecycleService::class)
             );
         });
+
+        // ========== Agent OS v3 Services ==========
+        // Register AgentOSService with all dependencies
+        $this->app->singleton(\App\Services\AgentOS\AgentOSService::class, function ($app) {
+            return new \App\Services\AgentOS\AgentOSService(
+                $app->make(\App\Services\AgentOS\MemoryService::class),
+                $app->make(\App\Services\AgentOS\Coordination\AdaptiveCoordinator::class),
+                $app->make(\App\Services\AgentOS\Consensus\ByzantineCoordinator::class)
+            );
+        });
+
+        // Register Memory Service with HNSW indexing
+        $this->app->singleton(\App\Services\AgentOS\MemoryService::class);
+
+        // Register HNSW Indexer
+        $this->app->singleton(\App\Services\AgentOS\HNSWIndexer::class);
+
+        // Register Vector Quantization
+        $this->app->singleton(\App\Services\AgentOS\VectorQuantization::class);
+
+        // Register ReasoningBank
+        $this->app->singleton(\App\Services\AgentOS\ReasoningBank::class);
+
+        // Register Coordination Services
+        $this->app->singleton(\App\Services\AgentOS\Coordination\HierarchicalCoordinator::class);
+        $this->app->singleton(\App\Services\AgentOS\Coordination\MeshCoordinator::class);
+        $this->app->singleton(\App\Services\AgentOS\Coordination\AdaptiveCoordinator::class, function ($app) {
+            return new \App\Services\AgentOS\Coordination\AdaptiveCoordinator(
+                config('agent-os.coordination')
+            );
+        });
+
+        // Register Consensus Services
+        $this->app->singleton(\App\Services\AgentOS\Consensus\ByzantineCoordinator::class, function ($app) {
+            return new \App\Services\AgentOS\Consensus\ByzantineCoordinator(
+                config('agent-os.consensus')
+            );
+        });
     }
 
     /**

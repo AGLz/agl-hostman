@@ -1,0 +1,372 @@
+{
+  "description": "Test input fixtures for statusline-command.sh",
+  "version": "1.0.0",
+  "test_cases": {
+    "minimal_valid": {
+      "description": "Minimal valid JSON input",
+      "input": "{}"
+    },
+    "full_claude_code": {
+      "description": "Full Claude Code JSON input",
+      "input": {
+        "session_id": "test-session-123",
+        "model": {
+          "id": "claude-sonnet-4-5-20250929",
+          "display_name": "Sonnet 4.5"
+        },
+        "workspace": {
+          "current_dir": "/home/user/projects/test-project",
+          "project_dir": "/home/user/projects/test-project"
+        },
+        "cwd": "/home/user/projects/test-project",
+        "output_style": {
+          "name": "default"
+        }
+      }
+    },
+    "with_model_only": {
+      "description": "JSON with only model specified",
+      "input": {
+        "model": {
+          "display_name": "Claude Opus 4.5"
+        }
+      }
+    },
+    "with_cwd_only": {
+      "description": "JSON with only current directory",
+      "input": {
+        "cwd": "/home/user/test"
+      }
+    },
+    "null_values": {
+      "description": "JSON with null values",
+      "input": {
+        "model": null,
+        "cwd": null,
+        "workspace": null
+      }
+    },
+    "empty_strings": {
+      "description": "JSON with empty strings",
+      "input": {
+        "model": {
+          "display_name": ""
+        },
+        "cwd": ""
+      }
+    },
+    "special_characters": {
+      "description": "JSON with special characters",
+      "input": {
+        "model": {
+          "display_name": "Test<>&\"'Model"
+        },
+        "cwd": "/path/with spaces & special-chars_123"
+      }
+    },
+    "unicode": {
+      "description": "JSON with unicode characters",
+      "input": {
+        "model": {
+          "display_name": "🤖 Claude Bot 🚀"
+        },
+        "cwd": "/home/user/日本語/プロジェクト"
+      }
+    },
+    "long_path": {
+      "description": "Very long directory path",
+      "input": {
+        "cwd": "/very/long/path/to/deeply/nested/directory/structure/that/goes/on/and/on"
+      }
+    },
+    "home_directory": {
+      "description": "Home directory path",
+      "input": {
+        "cwd": "/home/user/project"
+      }
+    },
+    "workspace_with_project_dir": {
+      "description": "Workspace with separate project directory",
+      "input": {
+        "workspace": {
+          "current_dir": "/home/user/projects/my-project/src",
+          "project_dir": "/home/user/projects/my-project"
+        },
+        "cwd": "/home/user/projects/my-project/src"
+      }
+    },
+    "numeric_values": {
+      "description": "JSON with numeric values",
+      "input": {
+        "model": 12345,
+        "cwd": 67890
+      }
+    },
+    "boolean_values": {
+      "description": "JSON with boolean values",
+      "input": {
+        "model": true,
+        "cwd": false
+      }
+    },
+    "array_values": {
+      "description": "JSON with array values",
+      "input": {
+        "model": ["Claude", "Sonnet"],
+        "workspace": ["dir1", "dir2"]
+      }
+    },
+    "nested_structure": {
+      "description": "Deeply nested JSON structure",
+      "input": {
+        "level1": {
+          "level2": {
+            "level3": {
+              "level4": {
+                "model": {
+                  "display_name": "Nested Model"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "whitespace_variations": {
+      "description": "JSON with unusual whitespace",
+      "input": "{  \"model\"  :  {  \"display_name\"  :  \"Test\"  }  }"
+    },
+    "with_newlines": {
+      "description": "JSON with newlines",
+      "input": "{\n  \"model\": {\n    \"display_name\": \"Test\"\n  }\n}"
+    },
+    "invalid": {
+      "description": "Invalid JSON",
+      "input": "not valid json at all"
+    },
+    "truncated": {
+      "description": "Truncated JSON",
+      "input": "{\"model\":{\"display_name\":\"Test\""
+    },
+    "empty": {
+      "description": "Empty string input",
+      "input": ""
+    }
+  },
+  "git_scenarios": {
+    "in_git_repo": {
+      "description": "Inside a git repository",
+      "expected_indicators": ["⎇"]
+    },
+    "not_in_git_repo": {
+      "description": "Outside a git repository",
+      "expected_indicators": ["/", "~"]
+    },
+    "on_main_branch": {
+      "description": "On main branch",
+      "expected_text": "main"
+    },
+    "on_feature_branch": {
+      "description": "On feature branch",
+      "expected_text": "feature/"
+    },
+    "detached_head": {
+      "description": "Detached HEAD state",
+      "expected_indicators": ["⎇"]
+    },
+    "with_modifications": {
+      "description": "Repository with modified files",
+      "expected_indicators": ["~"]
+    },
+    "with_staged_files": {
+      "description": "Repository with staged files",
+      "expected_indicators": ["+"]
+    },
+    "with_untracked_files": {
+      "description": "Repository with untracked files",
+      "expected_indicators": ["?"]
+    },
+    "with_deleted_files": {
+      "description": "Repository with deleted files",
+      "expected_indicators": ["-"]
+    },
+    "with_remote_ahead": {
+      "description": "Branch ahead of remote",
+      "expected_indicators": ["↑"]
+    },
+    "with_remote_behind": {
+      "description": "Branch behind remote",
+      "expected_indicators": ["↓"]
+    },
+    "clean_repo": {
+      "description": "Clean repository with no changes",
+      "expected_no_indicators": ["~", "+", "?", "-"]
+    }
+  },
+  "token_scenarios": {
+    "low_usage": {
+      "description": "Low token usage (<25%)",
+      "tokens": 25000,
+      "budget": 200000,
+      "expected_zone": "SMART"
+    },
+    "medium_usage": {
+      "description": "Medium token usage (25-50%)",
+      "tokens": 75000,
+      "budget": 200000,
+      "expected_zone": "SMART"
+    },
+    "high_usage": {
+      "description": "High token usage (50-75%)",
+      "tokens": 125000,
+      "budget": 200000,
+      "expected_zone": "DUMB"
+    },
+    "very_high_usage": {
+      "description": "Very high token usage (75-90%)",
+      "tokens": 175000,
+      "budget": 200000,
+      "expected_zone": "WRAP_UP"
+    },
+    "over_budget": {
+      "description": "Over token budget (>100%)",
+      "tokens": 250000,
+      "budget": 200000,
+      "expected_zone": "WRAP_UP"
+    },
+    "zero_tokens": {
+      "description": "Zero token usage",
+      "tokens": 0,
+      "budget": 200000,
+      "expected_zone": "SMART"
+    },
+    "large_budget": {
+      "description": "Large token budget",
+      "tokens": 50000,
+      "budget": 1000000,
+      "expected_zone": "SMART"
+    }
+  },
+  "time_blocks": {
+    "block_1_6": {
+      "description": "Time block 1-6 (01:00-06:00)",
+      "hour": 3,
+      "minute": 30,
+      "expected_block": "1-6"
+    },
+    "block_6_11": {
+      "description": "Time block 6-11 (06:00-11:00)",
+      "hour": 8,
+      "minute": 45,
+      "expected_block": "6-11"
+    },
+    "block_11_4": {
+      "description": "Time block 11-4 (11:00-16:00)",
+      "hour": 14,
+      "minute": 15,
+      "expected_block": "11-4"
+    },
+    "block_4_9": {
+      "description": "Time block 4-9 (16:00-21:00)",
+      "hour": 18,
+      "minute": 0,
+      "expected_block": "4-9"
+    },
+    "block_9_1_before_midnight": {
+      "description": "Time block 9-1 before midnight (21:00-00:00)",
+      "hour": 23,
+      "minute": 30,
+      "expected_block": "9-1"
+    },
+    "block_9_1_after_midnight": {
+      "description": "Time block 9-1 after midnight (00:00-01:00)",
+      "hour": 0,
+      "minute": 45,
+      "expected_block": "9-1"
+    }
+  },
+  "v3_metrics": {
+    "no_progress": {
+      "description": "No V3 progress",
+      "input": {
+        "v3Progress": {
+          "domainsCompleted": 0,
+          "totalDomains": 5
+        }
+      }
+    },
+    "partial_progress_low": {
+      "description": "Low V3 progress (1/5)",
+      "input": {
+        "v3Progress": {
+          "domainsCompleted": 1,
+          "totalDomains": 5
+        }
+      }
+    },
+    "partial_progress_medium": {
+      "description": "Medium V3 progress (3/5)",
+      "input": {
+        "v3Progress": {
+          "domainsCompleted": 3,
+          "totalDomains": 5
+        }
+      }
+    },
+    "complete_progress": {
+      "description": "Complete V3 progress (5/5)",
+      "input": {
+        "v3Progress": {
+          "domainsCompleted": 5,
+          "totalDomains": 5
+        }
+      }
+    },
+    "with_swarm": {
+      "description": "With active swarm agents",
+      "input": {
+        "swarm": {
+          "activeAgents": 5
+        }
+      }
+    },
+    "with_intelligence": {
+      "description": "With intelligence metric",
+      "input": {
+        "system": {
+          "intelligencePct": 85
+        }
+      }
+    },
+    "security_clean": {
+      "description": "Security status clean",
+      "input": {
+        "security": {
+          "status": "CLEAN"
+        }
+      }
+    },
+    "security_in_progress": {
+      "description": "Security scan in progress",
+      "input": {
+        "security": {
+          "status": "IN_PROGRESS"
+        }
+      }
+    }
+  },
+  "environment_types": {
+    "wsl2": {
+      "description": "WSL2 environment",
+      "indicator": "WSL2"
+    },
+    "docker": {
+      "description": "Docker container",
+      "indicator": "🐳"
+    },
+    "native_linux": {
+      "description": "Native Linux environment",
+      "indicator": null
+    }
+  }
+}

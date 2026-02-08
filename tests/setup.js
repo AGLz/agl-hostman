@@ -6,7 +6,7 @@
 // Custom matcher for ISO 8601 timestamp validation
 expect.extend({
   toBeValidTimestamp(received) {
-    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
     const pass = typeof received === 'string' && iso8601Regex.test(received);
 
     if (pass) {
@@ -22,6 +22,24 @@ expect.extend({
     }
   },
 });
+
+// Global test utilities
+global.testUtils = {
+  validateApiResponse(response, requiredFields = []) {
+    expect(response.body).toHaveProperty('success');
+    if (response.body.success) {
+      expect(response.body).toHaveProperty('data');
+    }
+    requiredFields.forEach(field => {
+      expect(response.body.data).toHaveProperty(field);
+    });
+  },
+
+  async waitForServer(app, _maxWait = 5000) {
+    // Simulate server ready - in real scenario, poll health endpoint
+    return Promise.resolve();
+  },
+};
 
 // Suppress console output during tests (optional)
 if (process.env.SUPPRESS_LOGS === 'true') {

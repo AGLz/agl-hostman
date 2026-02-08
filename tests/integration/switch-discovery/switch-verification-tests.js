@@ -11,7 +11,6 @@
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const net = require('net');
-const dns = require('dns');
 const execAsync = promisify(exec);
 
 // Test Configuration
@@ -114,7 +113,7 @@ class ConnectivityTests {
    */
   static async testPing(ip, timeout = TEST_CONFIG.timeout.ping) {
     try {
-      const { stdout, stderr } = await execAsync(
+      const { stdout, stderr: _stderr } = await execAsync(
         `ping -c 1 -W ${timeout / 1000} ${ip}`,
         { timeout }
       );
@@ -425,7 +424,7 @@ class ModelVerificationTests {
   /**
    * Verify port count through web interface
    */
-  static async verifyPortCount(ip) {
+  static async verifyPortCount(_ip) {
     // This would require parsing the web interface HTML
     // Implementation depends on actual web UI structure
     return {

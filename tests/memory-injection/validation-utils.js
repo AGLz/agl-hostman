@@ -3,7 +3,7 @@
  * Provides validation functions for memory coordination protocol testing
  */
 
-export class MemoryValidator {
+class MemoryValidator {
   constructor() {
     this.validationErrors = [];
     this.validationResults = [];
@@ -192,4 +192,4 @@ export class MemoryValidator {
   }
 }
 
-export default MemoryValidator;
+module.exports = MemoryValidator;

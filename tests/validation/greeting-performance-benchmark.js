@@ -12,7 +12,7 @@
  * @author Tester Agent (Hive Mind)
  */
 
-const Benchmark = require('benchmark');
+const _Benchmark = require('benchmark');
 
 // Mock GreetingService for benchmarking
 class GreetingService {

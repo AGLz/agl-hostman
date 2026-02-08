@@ -591,3 +591,139 @@ Route::prefix('monitoring')->middleware('auth:sanctum')->group(function () {
     Route::post('/refresh', [App\Http\Controllers\Api\MonitoringController::class, 'refresh'])
         ->name('monitoring.refresh');
 });
+
+// ========== Agent OS v3 API Routes ==========
+require __DIR__ . '/agent-os.php';
+
+// ========== RBAC API Routes ==========
+Route::prefix('rbac')->middleware('auth:sanctum')->group(function () {
+    // RBAC overview
+    Route::get('/overview', [App\Http\Controllers\Api\Rbac\RbacController::class, 'overview'])
+        ->middleware('permission:roles.view')
+        ->name('rbac.overview');
+
+    // Current user RBAC
+    Route::get('/me', [App\Http\Controllers\Api\Rbac\RbacController::class, 'me'])
+        ->name('rbac.me');
+
+    // User RBAC summary (admin only)
+    Route::get('/users/{user}', [App\Http\Controllers\Api\Rbac\RbacController::class, 'userSummary'])
+        ->middleware('permission:users.view')
+        ->name('rbac.user.summary');
+
+    // Grant/revoke roles and permissions
+    Route::post('/grant-role', [App\Http\Controllers\Api\Rbac\RbacController::class, 'grantRole'])
+        ->middleware('permission:users.assign_roles')
+        ->name('rbac.grant-role');
+
+    Route::post('/revoke-role', [App\Http\Controllers\Api\Rbac\RbacController::class, 'revokeRole'])
+        ->middleware('permission:users.assign_roles')
+        ->name('rbac.revoke-role');
+
+    Route::post('/grant-permission', [App\Http\Controllers\Api\Rbac\RbacController::class, 'grantPermission'])
+        ->middleware('permission:users.manage_permissions')
+        ->name('rbac.grant-permission');
+
+    Route::post('/revoke-permission', [App\Http\Controllers\Api\Rbac\RbacController::class, 'revokePermission'])
+        ->middleware('permission:users.manage_permissions')
+        ->name('rbac.revoke-permission');
+
+    // Get users by role/permission
+    Route::get('/users/role/{role}', [App\Http\Controllers\Api\Rbac\RbacController::class, 'usersWithRole'])
+        ->middleware('permission:users.view')
+        ->name('rbac.users.role');
+
+    Route::get('/users/permission/{permission}', [App\Http\Controllers\Api\Rbac\RbacController::class, 'usersWithPermission'])
+        ->middleware('permission:users.view')
+        ->name('rbac.users.permission');
+});
+
+// Roles API
+Route::prefix('roles')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'index'])
+        ->middleware('permission:roles.view')
+        ->name('roles.index');
+
+    Route::post('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'store'])
+        ->middleware('permission:roles.create')
+        ->name('roles.store');
+
+    Route::get('/statistics', [App\Http\Controllers\Api\Rbac\RoleController::class, 'statistics'])
+        ->middleware('permission:roles.view')
+        ->name('roles.statistics');
+
+    Route::prefix('{role}')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'show'])
+            ->middleware('permission:roles.view')
+            ->name('roles.show');
+
+        Route::put('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'update'])
+            ->middleware('permission:roles.edit')
+            ->name('roles.update');
+
+        Route::delete('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'destroy'])
+            ->middleware('permission:roles.delete')
+            ->name('roles.destroy');
+
+        Route::post('/assign', [App\Http\Controllers\Api\Rbac\RoleController::class, 'assignToUser'])
+            ->middleware('permission:users.assign_roles')
+            ->name('roles.assign');
+
+        Route::delete('/revoke', [App\Http\Controllers\Api\Rbac\RoleController::class, 'revokeFromUser'])
+            ->middleware('permission:users.assign_roles')
+            ->name('roles.revoke');
+
+        Route::post('/clone', [App\Http\Controllers\Api\Rbac\RoleController::class, 'clone'])
+            ->middleware('permission:roles.create')
+            ->name('roles.clone');
+    });
+});
+
+// Permissions API
+Route::prefix('permissions')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'index'])
+        ->middleware('permission:permissions.view')
+        ->name('permissions.index');
+
+    Route::get('/grouped', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'grouped'])
+        ->middleware('permission:permissions.view')
+        ->name('permissions.grouped');
+
+    Route::get('/modules', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'modules'])
+        ->middleware('permission:permissions.view')
+        ->name('permissions.modules');
+
+    Route::get('/statistics', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'statistics'])
+        ->middleware('permission:permissions.view')
+        ->name('permissions.statistics');
+
+    Route::post('/', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'store'])
+        ->middleware('permission:permissions.manage')
+        ->name('permissions.store');
+
+    Route::prefix('{permission}')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'show'])
+            ->middleware('permission:permissions.view')
+            ->name('permissions.show');
+
+        Route::put('/', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'update'])
+            ->middleware('permission:permissions.manage')
+            ->name('permissions.update');
+
+        Route::delete('/', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'destroy'])
+            ->middleware('permission:permissions.manage')
+            ->name('permissions.destroy');
+
+        Route::post('/assign-role', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'assignToRole'])
+            ->middleware('permission:roles.edit')
+            ->name('permissions.assign-role');
+
+        Route::delete('/revoke-role', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'revokeFromRole'])
+            ->middleware('permission:roles.edit')
+            ->name('permissions.revoke-role');
+
+        Route::post('/assign-user', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'assignToUser'])
+            ->middleware('permission:users.manage_permissions')
+            ->name('permissions.assign-user');
+    });
+});

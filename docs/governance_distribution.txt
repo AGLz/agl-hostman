@@ -1,0 +1,17 @@
+
+    CMN RPPS GOVERNANCE LEVEL DISTRIBUTION
+    ======================================
+
+    Current Distribution (Before CMN 5.272 Implementation):
+
+    ┌─────────────────────────────────────────────────────────┐
+    │                                                         │
+    │  Nível I (Basic) ████████████████████████████████████ 40%
+    │  Nível II (Enhanced) ████████████████████████████████ 40%
+    │  Nível III (Advanced) ████████████████████           15%
+    │  Nível IV (Sophisticated) ████████                     5%
+    │                                                         │
+    └─────────────────────────────────────────────────────────┘
+
+    Total Institutions: 100%
+    

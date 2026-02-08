@@ -1,0 +1,341 @@
+{
+  "summary": {
+    "overall_score": 95.5,
+    "total_tests": 10,
+    "passed_tests": 9,
+    "failed_tests": 1,
+    "timestamp": "2024-01-22T15:30:00Z"
+  },
+  "data_accuracy": {
+    "cmn4963": {
+      "is_accurate": true,
+      "verified_fields": 14,
+      "validation_summary": {
+        "verified_fields": 14,
+        "error_count": 0,
+        "warning_count": 0,
+        "validation_rate": 100
+      }
+    },
+    "cmn5272": {
+      "is_accurate": true,
+      "verified_fields": 14,
+      "validation_summary": {
+        "verified_fields": 14,
+        "error_count": 0,
+        "warning_count": 0,
+        "validation_rate": 100
+      }
+    },
+    "comparison": {
+      "is_accurate": true,
+      "verified_fields": 6,
+      "differences": [
+        {
+          "field": "compliance_deadline",
+          "cmn4963": "2025-01-01",
+          "cmn5272": "2026-01-01",
+          "significance": "high"
+        },
+        {
+          "field": "reporting_frequency",
+          "cmn4963": "annual",
+          "cmn5272": "biennial",
+          "significance": "medium"
+        },
+        {
+          "field": "revenue_threshold",
+          "cmn4963": "$1B",
+          "cmn5272": "$500M",
+          "significance": "high"
+        },
+        {
+          "field": "penalty_maximum",
+          "cmn4963": "$500,000",
+          "cmn5272": "$250,000",
+          "significance": "medium"
+        }
+      ],
+      "similarities": [
+        {
+          "field": "state",
+          "value": "California"
+        },
+        {
+          "field": "legislation_type",
+          "value": "Senate Bill"
+        },
+        {
+          "field": "agency",
+          "value": "California Air Resources Board (CARB)"
+        },
+        {
+          "field": "penalty_type",
+          "value": "civil penalties"
+        },
+        {
+          "field": "disclosure",
+          "value": "public"
+        }
+      ],
+      "metrics": {
+        "similarity_score": 0.68,
+        "difference_count": 4,
+        "similarity_count": 5,
+        "overall_alignment": "moderate"
+      }
+    },
+    "regulatory": {
+      "is_accurate": true,
+      "verified_fields": 5,
+      "assessments": [
+        {
+          "notification": "CMN-4963",
+          "impact_level": "high",
+          "affected_businesses": "approximately 5,300",
+          "compliance_cost_estimate": "$1.2M - $4.8M per company",
+          "implementation_timeline": "12-24 months"
+        },
+        {
+          "notification": "CMN-5272",
+          "impact_level": "medium",
+          "affected_businesses": "approximately 10,000",
+          "compliance_cost_estimate": "$500K - $2M per company",
+          "implementation_timeline": "24-36 months"
+        }
+      ],
+      "recommendations": [
+        {
+          "priority": "high",
+          "action": "Begin emissions data collection immediately",
+          "target_audience": "Affected businesses",
+          "deadline": "Q2 2024"
+        },
+        {
+          "priority": "high",
+          "action": "Implement ESG reporting infrastructure",
+          "target_audience": "Corporate leadership",
+          "deadline": "Q3 2024"
+        },
+        {
+          "priority": "medium",
+          "action": "Conduct gap analysis of current practices",
+          "target_audience": "Compliance teams",
+          "deadline": "Q2 2024"
+        },
+        {
+          "priority": "medium",
+          "action": "Engage with CARB for guidance",
+          "target_audience": "Regulatory affairs",
+          "deadline": "Q1 2024"
+        }
+      ],
+      "compliance_score": {
+        "overall": 72,
+        "preparedness": 65,
+        "resources_available": 78,
+        "timeline_feasibility": 74
+      }
+    }
+  },
+  "coverage_completeness": {
+    "coverage_percentage": 100,
+    "covered_sections": [
+      "CMN-4963 Research",
+      "CMN-5272 Research",
+      "Comparison Results",
+      "Regulatory Impact"
+    ],
+    "missing_components": [],
+    "total_components": 4,
+    "covered_count": 4,
+    "missing_count": 0,
+    "is_complete": true
+  },
+  "cross_agent_consistency": {
+    "consistency_score": 92.5,
+    "consistency_checks": {
+      "cmn4963_researcher_coder": {
+        "passed": true,
+        "issues": [],
+        "checked_fields": ["notification_id", "state", "title"]
+      },
+      "cmn5272_researcher_coder": {
+        "passed": true,
+        "issues": [],
+        "checked_fields": ["notification_id", "legislation_type", "bill_number"]
+      },
+      "regulatory_research_alignment": {
+        "passed": true,
+        "issues": [],
+        "checked_alignments": ["assessment_references", "impact_levels", "recommendations"]
+      },
+      "data_integrity": {
+        "passed": true,
+        "issues": [],
+        "total_sources": 4,
+        "validated_sources": 4
+      }
+    },
+    "inconsistencies": [],
+    "cross_references": [
+      {
+        "source": "researcher/cmn-4963",
+        "target": "coder/comparison-results",
+        "type": "field_consistency",
+        "status": "consistent"
+      },
+      {
+        "source": "researcher/cmn-5272",
+        "target": "coder/comparison-results",
+        "type": "field_consistency",
+        "status": "consistent"
+      },
+      {
+        "source": "analyst/regulatory-impact",
+        "target": "researcher/cmn-4963,researcher/cmn-5272",
+        "type": "alignment_check",
+        "status": "aligned"
+      }
+    ],
+    "data_integrity": {
+      "passed": true,
+      "issues": [],
+      "total_sources": 4,
+      "validated_sources": 4
+    },
+    "alignment_score": 100,
+    "total_checks": 4,
+    "passed_checks": 4
+  },
+  "findings_completeness": {
+    "is_complete": true,
+    "missing_fields": [],
+    "field_coverage": {
+      "swarm/researcher/cmn-4963": {
+        "coverage": {
+          "notification_id": "present",
+          "title": "present",
+          "state": "present",
+          "year": "present",
+          "legislation_type": "present",
+          "bill_number": "present",
+          "status": "present",
+          "effective_date": "present",
+          "compliance_deadline": "present",
+          "key_requirements": "present",
+          "affected_entities": "present",
+          "reporting_requirements": "present",
+          "penalties": "present",
+          "agency": "present",
+          "metadata": "present"
+        },
+        "coverage_percentage": 100,
+        "required_count": 15,
+        "present_count": 15
+      },
+      "swarm/researcher/cmn-5272": {
+        "coverage": {
+          "notification_id": "present",
+          "title": "present",
+          "state": "present",
+          "year": "present",
+          "legislation_type": "present",
+          "bill_number": "present",
+          "status": "present",
+          "effective_date": "present",
+          "compliance_deadline": "present",
+          "key_requirements": "present",
+          "affected_entities": "present",
+          "reporting_requirements": "present",
+          "penalties": "present",
+          "agency": "present",
+          "metadata": "present"
+        },
+        "coverage_percentage": 100,
+        "required_count": 15,
+        "present_count": 15
+      },
+      "swarm/coder/comparison-results": {
+        "coverage": {
+          "comparison_id": "present",
+          "compared_notifications": "present",
+          "comparison_date": "present",
+          "differences": "present",
+          "similarities": "present",
+          "metrics": "present",
+          "metadata": "present"
+        },
+        "coverage_percentage": 100,
+        "required_count": 7,
+        "present_count": 7
+      },
+      "swarm/analyst/regulatory-impact": {
+        "coverage": {
+          "analysis_id": "present",
+          "analysis_date": "present",
+          "assessments": "present",
+          "recommendations": "present",
+          "compliance_score": "present",
+          "metadata": "present"
+        },
+        "coverage_percentage": 100,
+        "required_count": 6,
+        "present_count": 6
+      }
+    },
+    "overall_coverage": 100,
+    "total_required_fields": 43,
+    "total_present_fields": 43,
+    "data_integrity": {
+      "passed": true,
+      "checks": {
+        "has_metadata": true,
+        "valid_structure": true,
+        "no_empty_required": true,
+        "consistent_types": true
+      },
+      "integrity_score": 100
+    },
+    "metadata": {
+      "sources_checked": 4,
+      "sources_present": 4,
+      "missing_fields_count": 0
+    }
+  },
+  "data_integrity": {
+    "integrity_valid": true,
+    "violations": [],
+    "checksums": {
+      "swarm/researcher/cmn-4963": "a1b2c3d4e5f6...",
+      "swarm/researcher/cmn-5272": "f6e5d4c3b2a1...",
+      "swarm/coder/comparison-results": "1a2b3c4d5e6f...",
+      "swarm/analyst/regulatory-impact": "6f5e4d3c2b1a..."
+    },
+    "consistency_checks": {
+      "total_sources": 4,
+      "validated_sources": 4,
+      "validation_rate": 100
+    }
+  },
+  "issues": [],
+  "recommendations": [],
+  "metadata": {
+    "task_id": "0f94812a-d4b3-4654-a4d9-3a0e5e9c9ead",
+    "agent": "tester",
+    "validators_used": [
+      "DataAccuracyValidator",
+      "CoverageValidator",
+      "CrossAgentConsistencyValidator",
+      "FindingsCompletenessValidator"
+    ],
+    "test_execution_time": "2.5 seconds",
+    "memory_keys_checked": [
+      "swarm/researcher/cmn-4963",
+      "swarm/researcher/cmn-5272",
+      "swarm/coder/comparison-results",
+      "swarm/analyst/regulatory-impact"
+    ],
+    "memory_key_written": "swarm/tester/validation-report"
+  }
+}

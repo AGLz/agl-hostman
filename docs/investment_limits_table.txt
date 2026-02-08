@@ -1,0 +1,32 @@
+
+    INVESTMENT LIMITS COMPARISON BY GOVERNANCE LEVEL
+    =================================================
+
+    Segment                     | Nível II | Nível III | Nível IV
+    -----------------------------------------------------------
+    Renda Fixa                 |   100%   |   100%   |   100%
+    ├─ Tesouro Nacional         |   100%   |   100%   |   100%
+    ├─ Fundos ETF RF            |   100%   |   100%   |   100%
+    └─ Crédito Privado         |   20%    |   20%    |   20%
+
+    Renda Variável             |    40%   |    50%   |    60%
+    ├─ Ações/ETF Ações         |    40%   |    40%   |    40%
+    ├─ BDR/ETF Internacional   |     -    |    10%   |    10%
+    └─ Outros                  |     -    |     -    |    10%
+
+    Investimentos Estruturados |    15%   |    25%   |    20%
+    ├─ Fundos Multimercado      |    15%   |    15%   |    15%
+    ├─ Fiagro                  |     -    |     5%   |     5%
+    ├─ FIP (Private Equity)    |     -    |     -    |    10%
+    └─ Mercado de Acesso       |     -    |     -    |    10%
+
+    Fundos Imobiliários        |     0%   |    20%   |    20%
+    ├─ FII                     |     0%   |    20%   |    20%
+    └─ Imóveis Vinculados      |     0%   |  Integral  |  Integral
+
+    Investimentos no Exterior  |     0%   |    10%   |    20%
+    ├─ Renda Fixa Externa      |     0%   |    10%   |    10%
+    └─ Fundos Internacionais   |     0%   |     0%   |    10%
+
+    Empréstimos Consignados    |    10%   |    10%   |    15%
+    
