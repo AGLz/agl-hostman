@@ -1,0 +1,2259 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-Host Storage Management System Documentation">
+      
+      
+        <meta name="author" content="AGL Hostman Team">
+      
+      
+        <link rel="canonical" href="https://docs.aglhostman.local/development/contributing/">
+      
+      
+        <link rel="prev" href="../../api/overview/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Contributing - AGL Hostman Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contributing-to-agl-hostman" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AGL Hostman Documentation" class="md-header__button md-logo" aria-label="AGL Hostman Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AGL Hostman Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contributing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aglhostman/agl-hostman" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/overview/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AGL Hostman Documentation" class="md-nav__button md-logo" aria-label="AGL Hostman Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    AGL Hostman Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aglhostman/agl-hostman" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/storage-protocols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Protocols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-of-conduct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code of Conduct
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-fork-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Fork the Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-clone-your-fork" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Clone Your Fork
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-install-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Install Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-environment-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Environment Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Environment Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-database-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Database Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-development-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Development Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-code-quality-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Code Quality Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#branching-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Branching Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#branch-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-feature-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Feature Branch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commit-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commit Guidelines
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commit Guidelines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commit-message-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commit Message Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commit Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-request-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull Request Process
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pull Request Process">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Create Pull Request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-pull-request-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pull Request Template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-review-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Review Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-after-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. After Merge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coding-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding Standards
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding Standards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#javascripttypescript" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JavaScript/TypeScript
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JavaScript/TypeScript">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Go
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Categories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unit-test-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit Test Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-test-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration Test Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#markdown-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Markdown Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#feature-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-development-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Development Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-code-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Code Review
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-release-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Release Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Community
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Community">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#communication-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication Channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recognition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/aglhostman/agl-hostman/edit/main/docs/development/contributing.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/aglhostman/agl-hostman/raw/main/docs/development/contributing.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="contributing-to-agl-hostman">Contributing to AGL Hostman<a class="headerlink" href="#contributing-to-agl-hostman" title="Permanent link">&para;</a></h1>
+<p>We welcome contributions to AGL Hostman! This guide will help you get started with contributing to the project.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#code-of-conduct">Code of Conduct</a></li>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#development-environment-setup">Development Environment Setup</a></li>
+<li><a href="#branching-strategy">Branching Strategy</a></li>
+<li><a href="#commit-guidelines">Commit Guidelines</a></li>
+<li><a href="#pull-request-process">Pull Request Process</a></li>
+<li><a href="#coding-standards">Coding Standards</a></li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#reporting-issues">Reporting Issues</a></li>
+</ol>
+<h2 id="code-of-conduct">Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Permanent link">&para;</a></h2>
+<p>Please read and follow our <a href="CODE_OF_CONDUCT.md">Code of Conduct</a>. This code outlines the rules for participating in the community and maintaining a positive environment.</p>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<h3 id="1-fork-the-repository">1. Fork the Repository<a class="headerlink" href="#1-fork-the-repository" title="Permanent link">&para;</a></h3>
+<p>Fork the <a href="https://github.com/aglhostman/agl-hostman">AGL Hostman repository</a> on GitHub.</p>
+<h3 id="2-clone-your-fork">2. Clone Your Fork<a class="headerlink" href="#2-clone-your-fork" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-username/agl-hostman.git
+<span class="nb">cd</span><span class="w"> </span>agl-hostman
+git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/aglhostman/agl-hostman.git
+</code></pre></div>
+<h3 id="3-install-dependencies">3. Install Dependencies<a class="headerlink" href="#3-install-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install Node.js dependencies</span>
+npm<span class="w"> </span>install
+
+<span class="c1"># Install Python dependencies for documentation</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>docs/requirements.txt
+</code></pre></div>
+<h2 id="development-environment-setup">Development Environment Setup<a class="headerlink" href="#development-environment-setup" title="Permanent link">&para;</a></h2>
+<h3 id="1-environment-variables">1. Environment Variables<a class="headerlink" href="#1-environment-variables" title="Permanent link">&para;</a></h3>
+<p>Create a <code>.env</code> file in the root directory:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># .env</span>
+<span class="nv">NODE_ENV</span><span class="o">=</span>development
+<span class="nv">API_URL</span><span class="o">=</span>http://localhost:8080
+<span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://localhost:5432/agl_hostman
+<span class="nv">REDIS_URL</span><span class="o">=</span>redis://localhost:6379
+</code></pre></div>
+<h3 id="2-database-setup">2. Database Setup<a class="headerlink" href="#2-database-setup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create database</span>
+createdb<span class="w"> </span>agl_hostman_dev
+
+<span class="c1"># Run migrations</span>
+npm<span class="w"> </span>run<span class="w"> </span>migrate
+
+<span class="c1"># Seed database</span>
+npm<span class="w"> </span>run<span class="w"> </span>seed
+</code></pre></div>
+<h3 id="3-development-server">3. Development Server<a class="headerlink" href="#3-development-server" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Start development server</span>
+npm<span class="w"> </span>run<span class="w"> </span>dev
+
+<span class="c1"># Start documentation server</span>
+npm<span class="w"> </span>run<span class="w"> </span>docs:serve
+</code></pre></div>
+<h3 id="4-code-quality-tools">4. Code Quality Tools<a class="headerlink" href="#4-code-quality-tools" title="Permanent link">&para;</a></h3>
+<p>Install pre-commit hooks:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install pre-commit</span>
+npm<span class="w"> </span>install<span class="w"> </span>--save-dev<span class="w"> </span>pre-commit
+
+<span class="c1"># Configure pre-commit</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>.pre-commit-config.yaml<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+<span class="s">repos:</span>
+<span class="s">  - repo: local</span>
+<span class="s">    hooks:</span>
+<span class="s">      - id: eslint</span>
+<span class="s">        name: Run ESLint</span>
+<span class="s">        entry: npm run lint</span>
+<span class="s">        language: system</span>
+<span class="s">        pass_filenames: false</span>
+<span class="s">      - id: prettier</span>
+<span class="s">        name: Run Prettier</span>
+<span class="s">        entry: npx prettier --write</span>
+<span class="s">        language: system</span>
+<span class="s">        files: \.(js|jsx|ts|tsx|json|md|yml|yaml)$</span>
+<span class="s">      - id: test</span>
+<span class="s">        name: Run tests</span>
+<span class="s">        entry: npm run test</span>
+<span class="s">        language: system</span>
+<span class="s">        pass_filenames: false</span>
+<span class="s">EOF</span>
+
+git<span class="w"> </span>config<span class="w"> </span>core.hooksPath<span class="w"> </span>.git/hooks
+</code></pre></div>
+<h2 id="branching-strategy">Branching Strategy<a class="headerlink" href="#branching-strategy" title="Permanent link">&para;</a></h2>
+<p>We use GitFlow for branching:</p>
+<div class="highlight"><pre><span></span><code>main
+├── develop
+├── feature/*
+├── hotfix/*
+└── release/*
+</code></pre></div>
+<h3 id="branch-types">Branch Types<a class="headerlink" href="#branch-types" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>main</code></strong>: Production-ready code</li>
+<li><strong><code>develop</code></strong>: Integration branch for new features</li>
+<li><strong><code>feature/*</code></strong>: New feature branches</li>
+<li><strong><code>release/*</code></strong>: Release preparation branches</li>
+<li><strong><code>hotfix/*</code></strong>: Critical bug fixes</li>
+</ul>
+<h3 id="creating-a-feature-branch">Creating a Feature Branch<a class="headerlink" href="#creating-a-feature-branch" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/user-management<span class="w"> </span>develop
+
+<span class="c1"># Push to remote</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/user-management
+</code></pre></div>
+<h2 id="commit-guidelines">Commit Guidelines<a class="headerlink" href="#commit-guidelines" title="Permanent link">&para;</a></h2>
+<h3 id="commit-message-format">Commit Message Format<a class="headerlink" href="#commit-message-format" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>type(scope): description
+
+[optional body]
+
+[optional footer]
+</code></pre></div>
+<h3 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>feat</strong>: New feature</li>
+<li><strong>fix</strong>: Bug fix</li>
+<li><strong>docs</strong>: Documentation change</li>
+<li><strong>style</strong>: Code style change</li>
+<li><strong>refactor</strong>: Code refactoring</li>
+<li><strong>perf</strong>: Performance improvement</li>
+<li><strong>test</strong>: Test addition or modification</li>
+<li><strong>chore</strong>: Build or tooling changes</li>
+</ul>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>feat(storage): add NFS mount management
+
+Add support for creating and managing NFS mounts with automatic
+discovery and configuration. Includes validation for mount points
+and remote servers.
+
+Fixes #123
+
+feat(auth): implement OAuth2 support
+
+Add OAuth2 authentication with GitHub and Google providers.
+Includes token refresh and session management.
+
+Closes #456
+
+docs(api): update API documentation
+
+Add new endpoints for backup management and update existing
+API documentation with examples and response formats.
+</code></pre></div>
+<h3 id="commit-best-practices">Commit Best Practices<a class="headerlink" href="#commit-best-practices" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Keep commits focused</strong>: Each commit should do one thing</li>
+<li><strong>Write clear messages</strong>: Use descriptive subjects</li>
+<li><strong>Use present tense</strong>: "Add feature" not "Added feature"</li>
+<li><strong>Include references</strong>: Reference related issues with <code>#123</code></li>
+<li><strong>Break large changes</strong>: Split large feature implementations into smaller commits</li>
+</ol>
+<h2 id="pull-request-process">Pull Request Process<a class="headerlink" href="#pull-request-process" title="Permanent link">&para;</a></h2>
+<h3 id="1-create-pull-request">1. Create Pull Request<a class="headerlink" href="#1-create-pull-request" title="Permanent link">&para;</a></h3>
+<p>After pushing your feature branch:</p>
+<ol>
+<li>Open the repository on GitHub</li>
+<li>Click "New Pull Request"</li>
+<li>Select your branch and <code>develop</code> as the target</li>
+<li>Fill out the PR template</li>
+</ol>
+<h3 id="2-pull-request-template">2. Pull Request Template<a class="headerlink" href="#2-pull-request-template" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="gu">## Description</span>
+Brief description of the changes
+
+<span class="gu">## Type of Change</span>
+<span class="k">- [ ]</span> Bug fix (non-breaking change which fixes an issue)
+<span class="k">- [ ]</span> New feature (non-breaking change which adds functionality)
+<span class="k">- [ ]</span> Breaking change (fix or feature that would cause existing functionality to change)
+<span class="k">- [ ]</span> Documentation change
+
+<span class="gu">## How to Test</span>
+Steps to test the changes
+
+<span class="gu">## Checklist</span>
+<span class="k">- [ ]</span> My code follows the style guidelines of this project
+<span class="k">- [ ]</span> I have performed a self-review of my own code
+<span class="k">- [ ]</span> I have run tests locally and they pass
+<span class="k">- [ ]</span> I have added tests that prove my fix is effective or that my feature works
+<span class="k">- [ ]</span> New and existing unit tests pass locally with my changes
+<span class="k">- [ ]</span> Any changes that affect user-facing functionality are documented in the PR
+<span class="k">- [ ]</span> I have updated the documentation accordingly
+
+<span class="gu">## Related Issues</span>
+Fixes <span class="ni">#123</span>
+Related to <span class="ni">#456</span>
+</code></pre></div>
+<h3 id="3-review-process">3. Review Process<a class="headerlink" href="#3-review-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Automated Checks</strong>: CI/CD pipeline runs automatically</li>
+<li><strong>Code Review</strong>: At least one maintainer must approve</li>
+<li><strong>Testing</strong>: All tests must pass</li>
+<li><strong>Merge</strong>: Maintainer merges to <code>develop</code></li>
+</ol>
+<h3 id="4-after-merge">4. After Merge<a class="headerlink" href="#4-after-merge" title="Permanent link">&para;</a></h3>
+<p>After your PR is merged:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fetch latest changes</span>
+git<span class="w"> </span>fetch<span class="w"> </span>upstream
+
+<span class="c1"># Update local develop</span>
+git<span class="w"> </span>checkout<span class="w"> </span>develop
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>develop
+
+<span class="c1"># Clean up feature branch</span>
+git<span class="w"> </span>branch<span class="w"> </span>-d<span class="w"> </span>feature/user-management
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>--delete<span class="w"> </span>feature/user-management
+</code></pre></div>
+<h2 id="coding-standards">Coding Standards<a class="headerlink" href="#coding-standards" title="Permanent link">&para;</a></h2>
+<h3 id="javascripttypescript">JavaScript/TypeScript<a class="headerlink" href="#javascripttypescript" title="Permanent link">&para;</a></h3>
+<p>We use ESLint and Prettier for code formatting:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check code style</span>
+npm<span class="w"> </span>run<span class="w"> </span>lint
+
+<span class="c1"># Fix code style</span>
+npm<span class="w"> </span>run<span class="w"> </span>lint:fix
+
+<span class="c1"># Format code</span>
+npm<span class="w"> </span>run<span class="w"> </span>format
+</code></pre></div>
+<h4 id="key-rules">Key Rules<a class="headerlink" href="#key-rules" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Use TypeScript for all new code</li>
+<li>Use meaningful variable and function names</li>
+<li>Follow the existing code style</li>
+<li>Write JSDoc comments for public APIs</li>
+<li>Use async/await for async operations</li>
+</ul>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">&para;</a></h3>
+<p>For documentation scripts and tools:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Format Python code</span>
+black<span class="w"> </span>docs/
+</code></pre></div>
+<h3 id="go">Go<a class="headerlink" href="#go" title="Permanent link">&para;</a></h3>
+<p>For infrastructure tools:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Format Go code</span>
+gofmt<span class="w"> </span>-w<span class="w"> </span>infrastructure/
+</code></pre></div>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="test-categories">Test Categories<a class="headerlink" href="#test-categories" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Unit Tests</strong>: Test individual components in isolation</li>
+<li><strong>Integration Tests</strong>: Test component interactions</li>
+<li><strong>E2E Tests</strong>: Test complete user workflows</li>
+<li><strong>Performance Tests</strong>: Test under load</li>
+</ol>
+<h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run all tests</span>
+npm<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Run unit tests only</span>
+npm<span class="w"> </span>run<span class="w"> </span>test:unit
+
+<span class="c1"># Run integration tests</span>
+npm<span class="w"> </span>run<span class="w"> </span>test:integration
+
+<span class="c1"># Run E2E tests</span>
+npm<span class="w"> </span>run<span class="w"> </span>test:e2e
+
+<span class="c1"># Run tests with coverage</span>
+npm<span class="w"> </span>run<span class="w"> </span>test:coverage
+</code></pre></div>
+<h3 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>tests/
+├── unit/
+│   ├── storage/
+│   │   ├── nfs.test.js
+│   │   └── iscsi.test.js
+│   ├── api/
+│   │   ├── authentication.test.js
+│   │   └── endpoints.test.js
+│   └── utils/
+│       └── helpers.test.js
+├── integration/
+│   ├── api.test.js
+│   ├── storage.test.js
+│   └── backup.test.js
+└── e2e/
+    ├── login.spec.js
+    ├── backup.spec.js
+    └── recovery.spec.js
+</code></pre></div>
+<h3 id="writing-tests">Writing Tests<a class="headerlink" href="#writing-tests" title="Permanent link">&para;</a></h3>
+<h4 id="unit-test-example">Unit Test Example<a class="headerlink" href="#unit-test-example" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// tests/unit/storage/nfs.test.js</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">NFSManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../../../src/storage/nfs&#39;</span><span class="p">);</span>
+
+<span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;NFS Manager&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">let</span><span class="w"> </span><span class="nx">nfsManager</span><span class="p">;</span>
+
+<span class="w">  </span><span class="nx">beforeEach</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">nfsManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">NFSManager</span><span class="p">({</span>
+<span class="w">      </span><span class="nx">server</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;aglsrv1.local&#39;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">mountPoint</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;/mnt/test&#39;</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">  </span><span class="p">});</span>
+
+<span class="w">  </span><span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;mount&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">it</span><span class="p">(</span><span class="s1">&#39;should create NFS mount&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">nfsManager</span><span class="p">.</span><span class="nx">mount</span><span class="p">();</span>
+<span class="w">      </span><span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">).</span><span class="nx">to</span><span class="p">.</span><span class="nx">be</span><span class="p">.</span><span class="kc">true</span><span class="p">;</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="nx">it</span><span class="p">(</span><span class="s1">&#39;should handle mount errors&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">nfsManager</span><span class="p">.</span><span class="nx">server</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;invalid-server&#39;</span><span class="p">;</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">nfsManager</span><span class="p">.</span><span class="nx">mount</span><span class="p">();</span>
+<span class="w">      </span><span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">).</span><span class="nx">to</span><span class="p">.</span><span class="nx">be</span><span class="p">.</span><span class="kc">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div>
+<h4 id="integration-test-example">Integration Test Example<a class="headerlink" href="#integration-test-example" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// tests/integration/api.test.js</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;supertest&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../../../src/app&#39;</span><span class="p">);</span>
+
+<span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;API Integration&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;GET /api/v1/status&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">it</span><span class="p">(</span><span class="s1">&#39;should return system status&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">request</span><span class="p">(</span><span class="nx">app</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/api/v1/status&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="nx">expect</span><span class="p">(</span><span class="mf">200</span><span class="p">);</span>
+
+<span class="w">      </span><span class="nx">expect</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">).</span><span class="nx">to</span><span class="p">.</span><span class="nx">have</span><span class="p">.</span><span class="nx">property</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">expect</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">).</span><span class="nx">to</span><span class="p">.</span><span class="nx">have</span><span class="p">.</span><span class="nx">property</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">expect</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">data</span><span class="p">).</span><span class="nx">to</span><span class="p">.</span><span class="nx">have</span><span class="p">.</span><span class="nx">property</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<h3 id="documentation-types">Documentation Types<a class="headerlink" href="#documentation-types" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Code Documentation</strong>: JSDoc for code</li>
+<li><strong>API Documentation</strong>: Swagger/OpenAPI</li>
+<li><strong>User Documentation</strong>: Getting started guides</li>
+<li><strong>Developer Documentation</strong>: Contributing guides</li>
+</ol>
+<h3 id="writing-documentation">Writing Documentation<a class="headerlink" href="#writing-documentation" title="Permanent link">&para;</a></h3>
+<h4 id="code-documentation">Code Documentation<a class="headerlink" href="#code-documentation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * NFS Manager for handling NFS mounts</span>
+<span class="cm"> * @class NFSManager</span>
+<span class="cm"> * @param {Object} config - Configuration options</span>
+<span class="cm"> * @param {string} config.server - NFS server hostname</span>
+<span class="cm"> * @param {string} config.mountPoint - Mount point path</span>
+<span class="cm"> */</span>
+<span class="kd">class</span><span class="w"> </span><span class="nx">NFSManager</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="cm">/**</span>
+<span class="cm">   * Create an NFS mount</span>
+<span class="cm">   * @returns {Promise&lt;boolean&gt;} True if successful</span>
+<span class="cm">   */</span>
+<span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">mount</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Implementation</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="cm">/**</span>
+<span class="cm">   * Unmount NFS mount</span>
+<span class="cm">   * @returns {Promise&lt;boolean&gt;} True if successful</span>
+<span class="cm">   */</span>
+<span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">unmount</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Implementation</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="markdown-documentation">Markdown Documentation<a class="headerlink" href="#markdown-documentation" title="Permanent link">&para;</a></h4>
+<p>Use the existing documentation structure in <code>docs/</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="gh"># API Endpoint</span>
+
+<span class="gu">## Description</span>
+Brief description of the endpoint
+
+<span class="gu">## Method</span>
+HTTP method (GET, POST, PUT, DELETE)
+
+<span class="gu">## URL</span>
+<span class="sb">`/api/v1/endpoint`</span>
+
+<span class="gu">## Parameters</span>
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string | Yes | Resource ID |
+
+<span class="gu">## Response</span>
+```json
+{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;123&quot;,
+    &quot;name&quot;: &quot;Example&quot;
+  }
+}
+</code></pre></div>
+<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://api.aglhostman.local/api/v1/endpoint/123&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>## Reporting Issues
+
+### Bug Reports
+
+When reporting bugs, please include:
+
+1. **Environment**: OS, Node.js version, etc.
+2. **Steps to Reproduce**: Clear steps to reproduce the issue
+3. **Expected Behavior**: What should happen
+4. **Actual Behavior**: What actually happens
+5. **Error Messages**: Any error messages or stack traces
+6. **Relevant Code**: Code snippets that cause the issue
+
+### Issue Template
+
+```markdown
+## Bug Description
+Brief description of the bug
+
+## Environment
+- OS: [e.g., Ubuntu 20.04]
+- Node.js: [e.g., 18.0.0]
+- AGL Hostman: [e.g., 1.0.0]
+
+## Steps to Reproduce
+1. Step one
+2. Step two
+3. Step three
+
+## Expected Behavior
+What should happen
+
+## Actual Behavior
+What actually happens
+
+## Error Messages
+</code></pre></div>
+Error message here
+<div class="highlight"><pre><span></span><code>## Additional Context
+Any additional information that might help
+</code></pre></div></p>
+<h3 id="feature-requests">Feature Requests<a class="headerlink" href="#feature-requests" title="Permanent link">&para;</a></h3>
+<p>For feature requests, please include:</p>
+<ol>
+<li><strong>Problem</strong>: What problem does the feature solve?</li>
+<li><strong>Proposed Solution</strong>: How would you like the feature to work?</li>
+<li><strong>Alternatives</strong>: Any alternative solutions you've considered</li>
+<li><strong>Use Cases</strong>: Real-world use cases for the feature</li>
+</ol>
+<h2 id="development-workflow">Development Workflow<a class="headerlink" href="#development-workflow" title="Permanent link">&para;</a></h2>
+<h3 id="1-development-process">1. Development Process<a class="headerlink" href="#1-development-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Check existing issues and PRs</li>
+<li>Create a feature branch from <code>develop</code></li>
+<li>Implement changes with tests</li>
+<li>Run test suite</li>
+<li>Update documentation</li>
+<li>Create pull request</li>
+<li>Address feedback</li>
+<li>Merge after approval</li>
+</ol>
+<h3 id="2-code-review">2. Code Review<a class="headerlink" href="#2-code-review" title="Permanent link">&para;</a></h3>
+<p>Code review checklist:
+- [ ] Code follows project standards
+- [ ] Tests are comprehensive
+- [ ] Documentation is updated
+- [ ] No breaking changes (unless intended)
+- [ ] Performance considerations
+- [ ] Security implications
+- [ ] Error handling</p>
+<h3 id="3-release-process">3. Release Process<a class="headerlink" href="#3-release-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Prepare release branch</li>
+<li>Update version numbers</li>
+<li>Update CHANGELOG.md</li>
+<li>Run full test suite</li>
+<li>Create release tag</li>
+<li>Update documentation</li>
+<li>Deploy to production</li>
+</ol>
+<h2 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h2>
+<h3 id="communication-channels">Communication Channels<a class="headerlink" href="#communication-channels" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>GitHub Issues</strong>: Bug reports and feature requests</li>
+<li><strong>Discussions</strong>: General discussion and Q&amp;A</li>
+<li><strong>Email</strong>: Private questions and sensitive issues</li>
+</ul>
+<h3 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Check existing issues and documentation</li>
+<li>Search the codebase</li>
+<li>Create a detailed issue report</li>
+<li>Be patient and responsive to questions</li>
+</ol>
+<h2 id="recognition">Recognition<a class="headerlink" href="#recognition" title="Permanent link">&para;</a></h2>
+<p>Contributors will be recognized in:
+- Contributors list in README
+- Commit history
+- Release notes for significant contributions</p>
+<p>Thank you for contributing to AGL Hostman!</p>
+<hr />
+<p><em>Next: <a href="code-standards.md">Code Standards</a></em></p>
+<p><em>Previous: <a href="environment.md">Development Environment</a></em></p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 9, 2026 03:54:41 UTC">February 9, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/aglhostman/agl-hostman" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+  
+
+
+<h4>Cookie consent</h4>
+<p>We use cookies to improve your experience.</p>
+<input class="md-toggle" type="checkbox" id="__settings" >
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" >
+      <span class="task-list-indicator"></span>
+      analytics_cookies
+    </label>
+  </li>
+
+      
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "content.action.view", "content.tabs.link", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "main", "provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

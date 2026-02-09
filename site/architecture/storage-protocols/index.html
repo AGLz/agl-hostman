@@ -1,0 +1,2747 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-Host Storage Management System Documentation">
+      
+      
+        <meta name="author" content="AGL Hostman Team">
+      
+      
+        <link rel="canonical" href="https://docs.aglhostman.local/architecture/storage-protocols/">
+      
+      
+        <link rel="prev" href="../overview/">
+      
+      
+        <link rel="next" href="../../api/overview/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Storage Protocols - AGL Hostman Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#storage-protocols" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AGL Hostman Documentation" class="md-header__button md-logo" aria-label="AGL Hostman Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AGL Hostman Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Storage Protocols
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aglhostman/agl-hostman" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/overview/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/contributing/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AGL Hostman Documentation" class="md-nav__button md-logo" aria-label="AGL Hostman Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    AGL Hostman Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aglhostman/agl-hostman" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Protocols
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Protocols
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nfs-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NFS Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="NFS Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-nfs-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. NFS Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-nfs-server-configuration-on-aglsrv1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. NFS Server Configuration on AGLSRV1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. NFS Server Configuration on AGLSRV1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etcexports-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /etc/exports Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-and-enable-nfs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start and Enable NFS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-nfs-client-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. NFS Client Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. NFS Client Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-nfs-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install NFS Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mount-nfs-shares" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mount NFS Shares
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-nfs-performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. NFS Performance Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. NFS Performance Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kernel-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kernel Tuning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mount-options-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mount Options Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jumbo-frames" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jumbo Frames
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-nfs-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. NFS Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. NFS Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring Scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iscsi-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        iSCSI Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="iSCSI Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-iscsi-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. iSCSI Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-iscsi-target-configuration-on-aglsrv1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. iSCSI Target Configuration on AGLSRV1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. iSCSI Target Configuration on AGLSRV1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-and-enable-iscsi-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start and Enable iSCSI Target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-iscsi-initiator-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. iSCSI Initiator Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. iSCSI Initiator Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-initiator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure Initiator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discover-and-connect-to-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discover and Connect to Targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-and-mount-iscsi-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Format and Mount iSCSI Devices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-iscsi-performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. iSCSI Performance Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. iSCSI Performance Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multipathing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multipathing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kernel-tuning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kernel Tuning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-iscsi-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. iSCSI Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. iSCSI Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-scripts_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring Scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pbs-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PBS Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PBS Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-pbs-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. PBS Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-pbs-installation-on-aglsrv1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. PBS Installation on AGLSRV1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. PBS Installation on AGLSRV1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-client-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Client Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Client Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-pbs-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install PBS Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-backup-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Backup Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Backup Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schedule-backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schedule Backups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-exclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup Exclusions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-pbs-performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. PBS Performance Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. PBS Performance Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storage-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-optimization_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-pbs-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. PBS Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. PBS Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-scripts_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring Scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-protocol-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Protocol Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage Protocol Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-performance-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Performance Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-feature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Feature Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nfs-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NFS Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iscsi-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        iSCSI Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pbs-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PBS Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-nfs-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. NFS Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-iscsi-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. iSCSI Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-pbs-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. PBS Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Common Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nfs-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NFS Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iscsi-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        iSCSI Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pbs-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PBS Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-troubleshooting-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Troubleshooting Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Troubleshooting Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nfs-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NFS Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iscsi-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        iSCSI Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pbs-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PBS Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/aglhostman/agl-hostman/edit/main/docs/architecture/storage-protocols.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/aglhostman/agl-hostman/raw/main/docs/architecture/storage-protocols.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="storage-protocols">Storage Protocols<a class="headerlink" href="#storage-protocols" title="Permanent link">&para;</a></h1>
+<p>This document provides detailed information about the storage protocols used in AGL Hostman, including NFS, iSCSI, and PBS.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>AGL Hostman supports multiple storage protocols to meet different use cases:</p>
+<ul>
+<li><strong>NFS (Network File System)</strong>: File-based storage for general file sharing</li>
+<li><strong>iSCSI (Internet Small Computer System Interface)</strong>: Block-based storage for VMs</li>
+<li><strong>PBS (Proxmox Backup Server)</strong>: Dedicated backup storage system</li>
+</ul>
+<h2 id="nfs-configuration">NFS Configuration<a class="headerlink" href="#nfs-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="1-nfs-overview">1. NFS Overview<a class="headerlink" href="#1-nfs-overview" title="Permanent link">&para;</a></h3>
+<p>NFS (Network File System) is a distributed file system protocol that allows clients to access files over a network. It's ideal for:</p>
+<ul>
+<li>VM disk images and templates</li>
+<li>General file sharing</li>
+<li>ISO library storage</li>
+<li>User home directories</li>
+</ul>
+<h3 id="2-nfs-server-configuration-on-aglsrv1">2. NFS Server Configuration on AGLSRV1<a class="headerlink" href="#2-nfs-server-configuration-on-aglsrv1" title="Permanent link">&para;</a></h3>
+<h4 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install NFS server</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>nfs-kernel-server
+
+<span class="c1"># Create export directories</span>
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/export/data
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/export/backups
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/export/iso
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/export/vms
+
+<span class="c1"># Set permissions</span>
+sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span>nobody:nogroup<span class="w"> </span>/export/*
+sudo<span class="w"> </span>chmod<span class="w"> </span>-R<span class="w"> </span><span class="m">755</span><span class="w"> </span>/export/*
+</code></pre></div>
+<h4 id="etcexports-configuration"><code>/etc/exports</code> Configuration<a class="headerlink" href="#etcexports-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Edit exports file</span>
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/exports
+
+<span class="c1"># Add the following exports:</span>
+/export/data<span class="w">       </span><span class="m">100</span>.64.0.0/16<span class="o">(</span>rw,sync,no_subtree_check,no_root_squash<span class="o">)</span>
+/export/backups<span class="w">    </span><span class="m">100</span>.64.0.0/16<span class="o">(</span>ro,sync,no_subtree_check<span class="o">)</span>
+/export/iso<span class="w">        </span><span class="m">100</span>.64.0.0/16<span class="o">(</span>rw,sync,no_subtree_check,no_root_squash<span class="o">)</span>
+/export/vms<span class="w">        </span><span class="m">100</span>.64.0.0/16<span class="o">(</span>rw,sync,no_subtree_check,no_root_squash<span class="o">)</span>
+</code></pre></div>
+<h4 id="start-and-enable-nfs">Start and Enable NFS<a class="headerlink" href="#start-and-enable-nfs" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Start NFS services</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>nfs-server
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>nfs-server
+
+<span class="c1"># Check status</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>nfs-server
+</code></pre></div>
+<h3 id="3-nfs-client-configuration">3. NFS Client Configuration<a class="headerlink" href="#3-nfs-client-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="install-nfs-client">Install NFS Client<a class="headerlink" href="#install-nfs-client" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install NFS client</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>nfs-common
+</code></pre></div>
+<h4 id="mount-nfs-shares">Mount NFS Shares<a class="headerlink" href="#mount-nfs-shares" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create mount points</span>
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/nfs/data
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/nfs/backups
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/nfs/iso
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/nfs/vms
+
+<span class="c1"># Mount NFS shares</span>
+sudo<span class="w"> </span>mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>aglsrv1.local:/export/data<span class="w"> </span>/nfs/data
+sudo<span class="w"> </span>mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>aglsrv1.local:/export/backups<span class="w"> </span>/nfs/backups
+sudo<span class="w"> </span>mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>aglsrv1.local:/export/iso<span class="w"> </span>/nfs/iso
+sudo<span class="w"> </span>mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>aglsrv1.local:/export/vms<span class="w"> </span>/nfs/vms
+
+<span class="c1"># Add to fstab for automatic mounting</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;aglsrv1.local:/export/data /nfs/data nfs defaults,_netdev,hard,intr,tcp,nfsvers=4.2 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;aglsrv1.local:/export/backups /nfs/backups nfs defaults,_netdev,hard,intr,tcp,nfsvers=4.2,ro 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;aglsrv1.local:/export/iso /nfs/iso nfs defaults,_netdev,hard,intr,tcp,nfsvers=4.2 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;aglsrv1.local:/export/vms /nfs/vms nfs defaults,_netdev,hard,intr,tcp,nfsvers=4.2 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+</code></pre></div>
+<h3 id="4-nfs-performance-optimization">4. NFS Performance Optimization<a class="headerlink" href="#4-nfs-performance-optimization" title="Permanent link">&para;</a></h3>
+<h4 id="kernel-tuning">Kernel Tuning<a class="headerlink" href="#kernel-tuning" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Edit sysctl.conf</span>
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/sysctl.conf
+
+<span class="c1"># Add the following optimizations:</span>
+net.core.rmem_max<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">16777216</span>
+net.core.wmem_max<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">16777216</span>
+net.core.rmem_default<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">262144</span>
+net.core.wmem_default<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">262144</span>
+net.core.netdev_max_backlog<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">30000</span>
+net.ipv4.tcp_rmem<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4096</span><span class="w"> </span><span class="m">87380</span><span class="w"> </span><span class="m">16777216</span>
+net.ipv4.tcp_wmem<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4096</span><span class="w"> </span><span class="m">65536</span><span class="w"> </span><span class="m">16777216</span>
+net.ipv4.tcp_congestion_control<span class="w"> </span><span class="o">=</span><span class="w"> </span>bbr
+net.core.somaxconn<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">65535</span>
+</code></pre></div>
+<h4 id="mount-options-optimization">Mount Options Optimization<a class="headerlink" href="#mount-options-optimization" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Optimized fstab entries</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;aglsrv1.local:/export/vms /nfs/vms nfs rw,_netdev,hard,intr,tcp,rsize=1048576,wsize=1048576,nfsvers=4.2,async,noatime,nodiratime 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;aglsrv1.local:/export/data /nfs/data nfs rw,_netdev,hard,intr,tcp,rsize=1048576,wsize=1048576,nfsvers=4.2,async,noatime,nodiratime 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+</code></pre></div>
+<h4 id="jumbo-frames">Jumbo Frames<a class="headerlink" href="#jumbo-frames" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable jumbo frames for high-performance transfers</span>
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>tx<span class="w"> </span>off
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>rx<span class="w"> </span>off
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>sg<span class="w"> </span>on
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>tso<span class="w"> </span>on
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>gso<span class="w"> </span>on
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>gro<span class="w"> </span>on
+</code></pre></div>
+<h3 id="5-nfs-monitoring">5. NFS Monitoring<a class="headerlink" href="#5-nfs-monitoring" title="Permanent link">&para;</a></h3>
+<h4 id="performance-metrics">Performance Metrics<a class="headerlink" href="#performance-metrics" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check NFS performance</span>
+nfsstat<span class="w"> </span>-c
+nfsstat<span class="w"> </span>-s
+
+<span class="c1"># Check mounted file systems</span>
+df<span class="w"> </span>-h<span class="w"> </span>/nfs/*
+
+<span class="c1"># Check I/O operations</span>
+iostat<span class="w"> </span>-x<span class="w"> </span>/nfs/data<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<h4 id="monitoring-scripts">Monitoring Scripts<a class="headerlink" href="#monitoring-scripts" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># nfs-monitor.sh</span>
+<span class="c1"># Monitor NFS performance</span>
+
+<span class="c1"># Check mount status</span>
+mountpoint<span class="w"> </span>-q<span class="w"> </span>/nfs/data<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NFS data not mounted&quot;</span>
+
+<span class="c1"># Check response time</span>
+<span class="nv">time_out</span><span class="o">=</span><span class="k">$(</span>ping<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span><span class="w"> </span>aglsrv1.local<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;/time=/ {print $8}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;=&#39;</span><span class="w"> </span>-f2<span class="k">)</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NFS response time: </span><span class="nv">$time_out</span><span class="s2">&quot;</span>
+
+<span class="c1"># Check throughput</span>
+dd<span class="w"> </span><span class="k">if</span><span class="o">=</span>/nfs/data/testfile<span class="w"> </span><span class="nv">of</span><span class="o">=</span>/dev/null<span class="w"> </span><span class="nv">bs</span><span class="o">=</span>1M<span class="w"> </span><span class="nv">count</span><span class="o">=</span><span class="m">1000</span><span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>copied
+</code></pre></div>
+<h2 id="iscsi-configuration">iSCSI Configuration<a class="headerlink" href="#iscsi-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="1-iscsi-overview">1. iSCSI Overview<a class="headerlink" href="#1-iscsi-overview" title="Permanent link">&para;</a></h3>
+<p>iSCSI is a storage networking standard that allows data storage over TCP/IP. It's ideal for:</p>
+<ul>
+<li>VM disk storage</li>
+<li>Database storage</li>
+<li>High-performance block storage</li>
+<li>SAN-like functionality</li>
+</ul>
+<h3 id="2-iscsi-target-configuration-on-aglsrv1">2. iSCSI Target Configuration on AGLSRV1<a class="headerlink" href="#2-iscsi-target-configuration-on-aglsrv1" title="Permanent link">&para;</a></h3>
+<h4 id="installation_1">Installation<a class="headerlink" href="#installation_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install iSCSI target</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>tgt
+
+<span class="c1"># Create iSCSI storage</span>
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/iscsi/storage
+sudo<span class="w"> </span>truncate<span class="w"> </span>-s<span class="w"> </span>500G<span class="w"> </span>/iscsi/storage/main.img
+sudo<span class="w"> </span>truncate<span class="w"> </span>-s<span class="w"> </span>1T<span class="w"> </span>/iscsi/storage/backup.img
+sudo<span class="w"> </span>truncate<span class="w"> </span>-s<span class="w"> </span>2T<span class="w"> </span>/iscsi/storage/archive.img
+</code></pre></div>
+<h4 id="target-configuration">Target Configuration<a class="headerlink" href="#target-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create iSCSI target configuration</span>
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/tgt/conf.d/agl-hostman.conf
+
+<span class="c1"># Add the following configuration:</span>
+&lt;target<span class="w"> </span>iqn.2025-10.com.aglhostman:storage-main&gt;
+<span class="w">    </span>backing-store<span class="w"> </span>/iscsi/storage/main.img
+<span class="w">    </span>initiator-address<span class="w"> </span><span class="m">100</span>.64.0.0/16
+<span class="w">    </span>incominguser<span class="w"> </span>agl-hostman<span class="w"> </span>secure-password
+&lt;/target&gt;
+
+&lt;target<span class="w"> </span>iqn.2025-10.com.aglhostman:storage-backup&gt;
+<span class="w">    </span>backing-store<span class="w"> </span>/iscsi/storage/backup.img
+<span class="w">    </span>initiator-address<span class="w"> </span><span class="m">100</span>.64.0.0/16
+<span class="w">    </span>incominguser<span class="w"> </span>agl-hostman<span class="w"> </span>secure-password
+&lt;/target&gt;
+
+&lt;target<span class="w"> </span>iqn.2025-10.com.aglhostman:storage-archive&gt;
+<span class="w">    </span>backing-store<span class="w"> </span>/iscsi/storage/archive.img
+<span class="w">    </span>initiator-address<span class="w"> </span><span class="m">100</span>.64.0.0/16
+<span class="w">    </span>incominguser<span class="w"> </span>agl-hostman<span class="w"> </span>secure-password
+&lt;/target&gt;
+</code></pre></div>
+<h4 id="start-and-enable-iscsi-target">Start and Enable iSCSI Target<a class="headerlink" href="#start-and-enable-iscsi-target" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Start tgt service</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>tgt
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>tgt
+
+<span class="c1"># Check target status</span>
+sudo<span class="w"> </span>tgtadm<span class="w"> </span>--mode<span class="w"> </span>target<span class="w"> </span>--op<span class="w"> </span>show
+</code></pre></div>
+<h3 id="3-iscsi-initiator-configuration">3. iSCSI Initiator Configuration<a class="headerlink" href="#3-iscsi-initiator-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="installation_2">Installation<a class="headerlink" href="#installation_2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install iSCSI initiator</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>open-iscsi
+</code></pre></div>
+<h4 id="configure-initiator">Configure Initiator<a class="headerlink" href="#configure-initiator" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Edit initiator configuration</span>
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/iscsi/iscsid.conf
+
+<span class="c1"># Configure initiator</span>
+node.startup<span class="w"> </span><span class="o">=</span><span class="w"> </span>automatic
+node.session.auth.method<span class="w"> </span><span class="o">=</span><span class="w"> </span>CHAP
+node.session.auth.username<span class="w"> </span><span class="o">=</span><span class="w"> </span>agl-hostman
+node.session.auth.password<span class="w"> </span><span class="o">=</span><span class="w"> </span>secure-password
+node.session.timeo.replacement_timeout<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">30</span>
+node.conn<span class="o">[</span><span class="m">0</span><span class="o">]</span>.timeo.login_timeout<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span>
+node.conn<span class="o">[</span><span class="m">0</span><span class="o">]</span>.timeo.logout_timeout<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">15</span>
+</code></pre></div>
+<h4 id="discover-and-connect-to-targets">Discover and Connect to Targets<a class="headerlink" href="#discover-and-connect-to-targets" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Discover targets</span>
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>discovery<span class="w"> </span>-t<span class="w"> </span>st<span class="w"> </span>-p<span class="w"> </span>aglsrv1.local
+
+<span class="c1"># Login to targets</span>
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>node<span class="w"> </span>-T<span class="w"> </span>iqn.2025-10.com.aglhostman:storage-main<span class="w"> </span>-p<span class="w"> </span>aglsrv1.local<span class="w"> </span>-l
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>node<span class="w"> </span>-T<span class="w"> </span>iqn.2025-10.com.aglhostman:storage-backup<span class="w"> </span>-p<span class="w"> </span>aglsrv1.local<span class="w"> </span>-l
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>node<span class="w"> </span>-T<span class="w"> </span>iqn.2025-10.com.aglhostman:storage-archive<span class="w"> </span>-p<span class="w"> </span>aglsrv1.local<span class="w"> </span>-l
+
+<span class="c1"># Check connected sessions</span>
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>session
+</code></pre></div>
+<h4 id="format-and-mount-iscsi-devices">Format and Mount iSCSI Devices<a class="headerlink" href="#format-and-mount-iscsi-devices" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check for iSCSI devices</span>
+lsblk
+
+<span class="c1"># Format devices (first time only)</span>
+sudo<span class="w"> </span>mkfs.ext4<span class="w"> </span>/dev/sdb
+sudo<span class="w"> </span>mkfs.ext4<span class="w"> </span>/dev/sdc
+sudo<span class="w"> </span>mkfs.ext4<span class="w"> </span>/dev/sdd
+
+<span class="c1"># Create mount points</span>
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/iscsi/main
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/iscsi/backup
+sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/iscsi/archive
+
+<span class="c1"># Mount devices</span>
+sudo<span class="w"> </span>mount<span class="w"> </span>/dev/sdb<span class="w"> </span>/iscsi/main
+sudo<span class="w"> </span>mount<span class="w"> </span>/dev/sdc<span class="w"> </span>/iscsi/backup
+sudo<span class="w"> </span>mount<span class="w"> </span>/dev/sdd<span class="w"> </span>/iscsi/archive
+
+<span class="c1"># Add to fstab</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;/dev/sdb /iscsi/main ext4 defaults,_netdev 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;/dev/sdc /iscsi/backup ext4 defaults,_netdev 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;/dev/sdd /iscsi/archive ext4 defaults,_netdev 0 0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+</code></pre></div>
+<h3 id="4-iscsi-performance-optimization">4. iSCSI Performance Optimization<a class="headerlink" href="#4-iscsi-performance-optimization" title="Permanent link">&para;</a></h3>
+<h4 id="multipathing">Multipathing<a class="headerlink" href="#multipathing" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install multipathing tools</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>multipath-tools
+
+<span class="c1"># Configure multipath</span>
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/multipath.conf
+
+<span class="c1"># Add multipath configuration:</span>
+defaults<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span>user_friendly_names<span class="w"> </span>yes
+<span class="w">    </span>path_grouping_policy<span class="w"> </span>multibus
+<span class="w">    </span>failback<span class="w"> </span>immediate
+<span class="w">    </span>no_path_retry<span class="w"> </span>fail
+<span class="o">}</span>
+
+blacklist<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span>devnode<span class="w"> </span><span class="s2">&quot;^(ram|loop|fd|md|sr|scd|st)[0-9]*&quot;</span>
+<span class="w">    </span>devnode<span class="w"> </span><span class="s2">&quot;^sr[0-9]*&quot;</span>
+<span class="o">}</span>
+
+devices<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span>device<span class="w"> </span><span class="o">{</span>
+<span class="w">        </span>vendor<span class="w"> </span><span class="s2">&quot;LIO-ORG&quot;</span>
+<span class="w">        </span>product<span class="w"> </span><span class="s2">&quot;storage&quot;</span>
+<span class="w">        </span>path_grouping_policy<span class="w"> </span>multibus
+<span class="w">        </span>path_selector<span class="w"> </span><span class="s2">&quot;service-time 0&quot;</span>
+<span class="w">        </span>failback<span class="w"> </span>immediate
+<span class="w">        </span>hardware_handler<span class="w"> </span><span class="s2">&quot;1 alua&quot;</span>
+<span class="w">        </span>prio<span class="w"> </span><span class="s2">&quot;alua&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<h4 id="network-optimization">Network Optimization<a class="headerlink" href="#network-optimization" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable jumbo frames for iSCSI</span>
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>rxvlan<span class="w"> </span>off
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>txvlan<span class="w"> </span>off
+sudo<span class="w"> </span>ethtool<span class="w"> </span>-K<span class="w"> </span>eth0<span class="w"> </span>rxhash<span class="w"> </span>off
+
+<span class="c1"># Configure MTU</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>mtu<span class="w"> </span><span class="m">9000</span><span class="w"> </span>dev<span class="w"> </span>eth0
+</code></pre></div>
+<h4 id="kernel-tuning_1">Kernel Tuning<a class="headerlink" href="#kernel-tuning_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add to /etc/sysctl.conf</span>
+net.ipv4.tcp_timestamps<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+net.ipv4.tcp_window_scaling<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+net.ipv4.tcp_sack<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+net.ipv4.tcp_congestion_control<span class="w"> </span><span class="o">=</span><span class="w"> </span>bbr
+</code></pre></div>
+<h3 id="5-iscsi-monitoring">5. iSCSI Monitoring<a class="headerlink" href="#5-iscsi-monitoring" title="Permanent link">&para;</a></h3>
+<h4 id="performance-metrics_1">Performance Metrics<a class="headerlink" href="#performance-metrics_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check iSCSI sessions</span>
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>session<span class="w"> </span>-P<span class="w"> </span><span class="m">3</span>
+
+<span class="c1"># Check block device performance</span>
+iostat<span class="w"> </span>-x<span class="w"> </span>/dev/sd<span class="o">[</span>bcd<span class="o">]</span><span class="w"> </span><span class="m">1</span>
+
+<span class="c1"># Check multipath status</span>
+multipath<span class="w"> </span>-ll
+</code></pre></div>
+<h4 id="monitoring-scripts_1">Monitoring Scripts<a class="headerlink" href="#monitoring-scripts_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># iscsi-monitor.sh</span>
+<span class="c1"># Monitor iSCSI performance</span>
+
+<span class="c1"># Check iSCSI sessions</span>
+<span class="nv">session_count</span><span class="o">=</span><span class="k">$(</span>iscsiadm<span class="w"> </span>-m<span class="w"> </span>session<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l<span class="k">)</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;iSCSI sessions: </span><span class="nv">$session_count</span><span class="s2">&quot;</span>
+
+<span class="c1"># Check device latency</span>
+iostat<span class="w"> </span>-d<span class="w"> </span>/dev/sdb<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-1
+
+<span class="c1"># Check multipath status</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Multipath devices:&quot;</span>
+multipath<span class="w"> </span>-ll<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;No multipath devices configured&quot;</span>
+</code></pre></div>
+<h2 id="pbs-configuration">PBS Configuration<a class="headerlink" href="#pbs-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="1-pbs-overview">1. PBS Overview<a class="headerlink" href="#1-pbs-overview" title="Permanent link">&para;</a></h3>
+<p>Proxmox Backup Server (PBS) is a dedicated backup solution for virtual environments. It features:</p>
+<ul>
+<li>Deduplication</li>
+<li>Compression</li>
+<li>Encryption</li>
+<li>Incremental backups</li>
+<li>Backup verification</li>
+</ul>
+<h3 id="2-pbs-installation-on-aglsrv1">2. PBS Installation on AGLSRV1<a class="headerlink" href="#2-pbs-installation-on-aglsrv1" title="Permanent link">&para;</a></h3>
+<h4 id="system-requirements">System Requirements<a class="headerlink" href="#system-requirements" title="Permanent link">&para;</a></h4>
+<ul>
+<li>CPU: 4 cores minimum</li>
+<li>RAM: 8GB minimum</li>
+<li>Storage: 1TB+ for backups</li>
+</ul>
+<h4 id="installation_3">Installation<a class="headerlink" href="#installation_3" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add Proxmox repository</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [arch=amd64] http://download.proxmox.com/debian/pbs bullseye pbs-no-subscription&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/pbs.list
+
+<span class="c1"># Add repository key</span>
+wget<span class="w"> </span>https://enterprise.proxmox.com/debian/proxmox-release-bullseye.gpg<span class="w"> </span>-O<span class="w"> </span>/etc/apt/trusted.gpg.d/proxmox-release-bullseye.gpg
+apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt<span class="w"> </span>dist-upgrade
+
+<span class="c1"># Install PBS</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>proxmox-backup-server
+
+<span class="c1"># Initialize PBS</span>
+proxmox-backup-manager<span class="w"> </span>setup
+</code></pre></div>
+<h4 id="basic-configuration">Basic Configuration<a class="headerlink" href="#basic-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set up backup user</span>
+proxmox-backup-manager<span class="w"> </span>user<span class="w"> </span>create<span class="w"> </span>agl-hostman@pam<span class="w"> </span>--password<span class="w"> </span>secure-password
+
+<span class="c1"># Create backup repository</span>
+proxmox-backup-manager<span class="w"> </span>datastore<span class="w"> </span>create<span class="w"> </span>agl-backups<span class="w"> </span>--format<span class="w"> </span>zfs<span class="w"> </span>--storage<span class="w"> </span>local-zfs
+
+<span class="c1"># Set up SSH access for remote clients</span>
+sudo<span class="w"> </span>useradd<span class="w"> </span>-m<span class="w"> </span>-s<span class="w"> </span>/bin/bash<span class="w"> </span>agl-backup
+sudo<span class="w"> </span>-u<span class="w"> </span>agl-backup<span class="w"> </span>ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-f<span class="w"> </span>/home/agl-backup/.ssh/pbs_backup
+sudo<span class="w"> </span>chown<span class="w"> </span>agl-backup:agl-backup<span class="w"> </span>/home/agl-backup/.ssh/pbs_backup
+</code></pre></div>
+<h3 id="3-client-configuration">3. Client Configuration<a class="headerlink" href="#3-client-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="install-pbs-client">Install PBS Client<a class="headerlink" href="#install-pbs-client" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># On each Proxmox host</span>
+apt<span class="w"> </span>update
+apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>proxmox-backup-client
+</code></pre></div>
+<h4 id="configure-client">Configure Client<a class="headerlink" href="#configure-client" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create client configuration</span>
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/proxmox-backup/server.conf
+
+<span class="c1"># Add server configuration</span>
+server<span class="w"> </span>aglsrv1.local<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span>auth<span class="w"> </span><span class="o">{</span>
+<span class="w">        </span>password<span class="w"> </span><span class="s2">&quot;secure-password&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<h4 id="register-client">Register Client<a class="headerlink" href="#register-client" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Register with PBS server</span>
+proxmox-backup-client<span class="w"> </span>register<span class="w"> </span>aglsrv1.local<span class="w"> </span>agl-backup-data<span class="w"> </span>--repository<span class="w"> </span>agl-backups
+</code></pre></div>
+<h3 id="4-backup-configuration">4. Backup Configuration<a class="headerlink" href="#4-backup-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="schedule-backups">Schedule Backups<a class="headerlink" href="#schedule-backups" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create backup job</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>create<span class="w"> </span>agl-backupschedule<span class="w"> </span>--schedule<span class="w"> </span><span class="s2">&quot;0 2 * * *&quot;</span><span class="w"> </span>--datastore<span class="w"> </span>agl-backups<span class="w"> </span>--notification<span class="w"> </span>email
+</code></pre></div>
+<h4 id="backup-types">Backup Types<a class="headerlink" href="#backup-types" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Full backup (monthly)</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>create<span class="w"> </span>full-backup<span class="w"> </span>--schedule<span class="w"> </span><span class="s2">&quot;0 2 1 * *&quot;</span><span class="w"> </span>--datastore<span class="w"> </span>agl-backups<span class="w"> </span>--mode<span class="w"> </span>full
+
+<span class="c1"># Differential backup (weekly)</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>create<span class="w"> </span>diff-backup<span class="w"> </span>--schedule<span class="w"> </span><span class="s2">&quot;0 2 * * 0&quot;</span><span class="w"> </span>--datastore<span class="w"> </span>agl-backups<span class="w"> </span>--mode<span class="w"> </span>differential
+
+<span class="c1"># Incremental backup (daily)</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>create<span class="w"> </span>incr-backup<span class="w"> </span>--schedule<span class="w"> </span><span class="s2">&quot;0 2 * * *&quot;</span><span class="w"> </span>--datastore<span class="w"> </span>agl-backups<span class="w"> </span>--mode<span class="w"> </span>snapshot
+</code></pre></div>
+<h4 id="backup-exclusions">Backup Exclusions<a class="headerlink" href="#backup-exclusions" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create backup exclusion list</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>/etc/proxmox-backup/exclude.txt<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+<span class="s">*.log</span>
+<span class="s">*.tmp</span>
+<span class="s">*/cache/*</span>
+<span class="s">*/tmp/*</span>
+<span class="s">*/.git/*</span>
+<span class="s">*/node_modules/*</span>
+<span class="s">EOF</span>
+</code></pre></div>
+<h3 id="5-pbs-performance-optimization">5. PBS Performance Optimization<a class="headerlink" href="#5-pbs-performance-optimization" title="Permanent link">&para;</a></h3>
+<h4 id="storage-configuration">Storage Configuration<a class="headerlink" href="#storage-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># ZFS optimization</span>
+zpool<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">compression</span><span class="o">=</span>lz4<span class="w"> </span>agl-backups
+zpool<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">atime</span><span class="o">=</span>off<span class="w"> </span>agl-backups
+zpool<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">sync</span><span class="o">=</span>always<span class="w"> </span>agl-backups
+</code></pre></div>
+<h4 id="network-optimization_1">Network Optimization<a class="headerlink" href="#network-optimization_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Increase TCP buffer sizes</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;net.core.rmem_max = 16777216&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/sysctl.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;net.core.wmem_max = 16777216&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/sysctl.conf
+sysctl<span class="w"> </span>-p
+</code></pre></div>
+<h4 id="backup-optimization">Backup Optimization<a class="headerlink" href="#backup-optimization" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Configure chunk size</span>
+proxmox-backup-manager<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>agl-backups<span class="w"> </span>chunk-size<span class="o">=</span>4M
+</code></pre></div>
+<h3 id="6-pbs-monitoring">6. PBS Monitoring<a class="headerlink" href="#6-pbs-monitoring" title="Permanent link">&para;</a></h3>
+<h4 id="backup-status">Backup Status<a class="headerlink" href="#backup-status" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check backup status</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>list
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>show<span class="w"> </span>agl-backupschedule
+
+<span class="c1"># Check backup history</span>
+proxmox-backup-manager<span class="w"> </span>datastore<span class="w"> </span><span class="nb">history</span><span class="w"> </span>agl-backups
+</code></pre></div>
+<h4 id="performance-metrics_2">Performance Metrics<a class="headerlink" href="#performance-metrics_2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check ZFS performance</span>
+zpool<span class="w"> </span>iostat<span class="w"> </span>agl-backups<span class="w"> </span><span class="m">1</span>
+
+<span class="c1"># Check network performance</span>
+iftop<span class="w"> </span>-i<span class="w"> </span>eth0
+</code></pre></div>
+<h4 id="monitoring-scripts_2">Monitoring Scripts<a class="headerlink" href="#monitoring-scripts_2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># pbs-monitor.sh</span>
+<span class="c1"># Monitor PBS performance</span>
+
+<span class="c1"># Check backup jobs</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Backup Jobs:&quot;</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--output-format<span class="o">=</span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.[].status&#39;</span>
+
+<span class="c1"># Check storage usage</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Storage Usage:&quot;</span>
+df<span class="w"> </span>-h<span class="w"> </span>/mnt/pbs-data
+
+<span class="c1"># Check ZFS performance</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ZFS Performance:&quot;</span>
+zpool<span class="w"> </span>iostat<span class="w"> </span>agl-backups<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-1
+</code></pre></div>
+<h2 id="storage-protocol-comparison">Storage Protocol Comparison<a class="headerlink" href="#storage-protocol-comparison" title="Permanent link">&para;</a></h2>
+<h3 id="1-performance-comparison">1. Performance Comparison<a class="headerlink" href="#1-performance-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Read Speed</th>
+<th>Write Speed</th>
+<th>Latency</th>
+<th>Best Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NFS 4.2</strong></td>
+<td>300-500 MB/s</td>
+<td>200-400 MB/s</td>
+<td>5-15ms</td>
+<td>File sharing, VM templates</td>
+</tr>
+<tr>
+<td><strong>iSCSI</strong></td>
+<td>400-600 MB/s</td>
+<td>300-500 MB/s</td>
+<td>1-5ms</td>
+<td>VM disks, databases</td>
+</tr>
+<tr>
+<td><strong>PBS</strong></td>
+<td>100-300 MB/s</td>
+<td>50-200 MB/s</td>
+<td>10-30ms</td>
+<td>Backup storage</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-feature-comparison">2. Feature Comparison<a class="headerlink" href="#2-feature-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>NFS</th>
+<th>iSCSI</th>
+<th>PBS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File Sharing</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Block Storage</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Backup</strong></td>
+<td>⚠️</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Deduplication</strong></td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Compression</strong></td>
+<td>Limited</td>
+<td>Limited</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Encryption</strong></td>
+<td>❌</td>
+<td>⚠️</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Mounting</strong></td>
+<td>Simple</td>
+<td>Complex</td>
+<td>Complex</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-use-cases">3. Use Cases<a class="headerlink" href="#3-use-cases" title="Permanent link">&para;</a></h3>
+<h4 id="nfs-use-cases">NFS Use Cases<a class="headerlink" href="#nfs-use-cases" title="Permanent link">&para;</a></h4>
+<ul>
+<li>VM templates and ISO storage</li>
+<li>General file sharing</li>
+<li>Home directories</li>
+<li>Web server content</li>
+<li>Development environments</li>
+</ul>
+<h4 id="iscsi-use-cases">iSCSI Use Cases<a class="headerlink" href="#iscsi-use-cases" title="Permanent link">&para;</a></h4>
+<ul>
+<li>VM disk storage</li>
+<li>Database storage</li>
+<li>High-performance applications</li>
+<li>SAN-like functionality</li>
+<li>Business-critical systems</li>
+</ul>
+<h4 id="pbs-use-cases">PBS Use Cases<a class="headerlink" href="#pbs-use-cases" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Virtual machine backups</li>
+<li>System backups</li>
+<li>Application backups</li>
+<li>Long-term storage</li>
+<li>Disaster recovery</li>
+</ul>
+<h2 id="storage-best-practices">Storage Best Practices<a class="headerlink" href="#storage-best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="1-nfs-best-practices">1. NFS Best Practices<a class="headerlink" href="#1-nfs-best-practices" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Use NFS 4.2 for best performance</li>
+<li>Mount with proper options (hard, intr, tcp)</li>
+<li>Enable jumbo frames for high-throughput scenarios</li>
+<li>Monitor NFS performance regularly</li>
+<li>Use dedicated storage for high-I/O workloads</li>
+</ul>
+<h3 id="2-iscsi-best-practices">2. iSCSI Best Practices<a class="headerlink" href="#2-iscsi-best-practices" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Use multipathing for redundancy</li>
+<li>Enable jumbo frames for performance</li>
+<li>Use CHAP authentication for security</li>
+<li>Monitor I/O performance</li>
+<li>Regularly check connection status</li>
+</ul>
+<h3 id="3-pbs-best-practices">3. PBS Best Practices<a class="headerlink" href="#3-pbs-best-practices" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Use ZFS for optimal performance</li>
+<li>Enable compression and deduplication</li>
+<li>Implement proper retention policies</li>
+<li>Regularly test restores</li>
+<li>Monitor storage capacity</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="1-common-issues">1. Common Issues<a class="headerlink" href="#1-common-issues" title="Permanent link">&para;</a></h3>
+<h4 id="nfs-issues">NFS Issues<a class="headerlink" href="#nfs-issues" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Mount hangs or fails</li>
+<li>Poor performance</li>
+<li>Permission denied</li>
+<li>File locking issues</li>
+</ul>
+<h4 id="iscsi-issues">iSCSI Issues<a class="headerlink" href="#iscsi-issues" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Connection timeouts</li>
+<li>Path failures</li>
+<li>Performance degradation</li>
+<li>Authentication issues</li>
+</ul>
+<h4 id="pbs-issues">PBS Issues<a class="headerlink" href="#pbs-issues" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Backup failures</li>
+<li>Storage capacity</li>
+<li>Network timeouts</li>
+<li>Client connection issues</li>
+</ul>
+<h3 id="2-troubleshooting-commands">2. Troubleshooting Commands<a class="headerlink" href="#2-troubleshooting-commands" title="Permanent link">&para;</a></h3>
+<h4 id="nfs-troubleshooting">NFS Troubleshooting<a class="headerlink" href="#nfs-troubleshooting" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check NFS server status</span>
+showmount<span class="w"> </span>-e<span class="w"> </span>aglsrv1.local
+
+<span class="c1"># Test NFS mount</span>
+mount<span class="w"> </span>-t<span class="w"> </span>nfs<span class="w"> </span>aglsrv1.local:/export/data<span class="w"> </span>/mnt/test
+umount<span class="w"> </span>/mnt/test
+
+<span class="c1"># Check NFS performance</span>
+nfsstat<span class="w"> </span>-c
+</code></pre></div>
+<h4 id="iscsi-troubleshooting">iSCSI Troubleshooting<a class="headerlink" href="#iscsi-troubleshooting" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check iSCSI sessions</span>
+iscsiadm<span class="w"> </span>-m<span class="w"> </span>session
+
+<span class="c1"># Check multipath status</span>
+multipath<span class="w"> </span>-ll
+
+<span class="c1"># Test iSCSI connectivity</span>
+ping<span class="w"> </span>aglsrv1.local
+</code></pre></div>
+<h4 id="pbs-troubleshooting">PBS Troubleshooting<a class="headerlink" href="#pbs-troubleshooting" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check PBS status</span>
+systemctl<span class="w"> </span>status<span class="w"> </span>proxmox-backup-server
+
+<span class="c1"># Check backup jobs</span>
+proxmox-backup-manager<span class="w"> </span>job<span class="w"> </span>list
+
+<span class="c1"># Test connection</span>
+proxmox-backup-client<span class="w"> </span>ping<span class="w"> </span>aglsrv1.local
+</code></pre></div>
+<hr />
+<p><em>Next: <a href="network-topology.md">Network Topology</a></em></p>
+<p><em>Previous: <a href="../overview/">Architecture Overview</a></em></p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 9, 2026 03:54:41 UTC">February 9, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/aglhostman/agl-hostman" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+  
+
+
+<h4>Cookie consent</h4>
+<p>We use cookies to improve your experience.</p>
+<input class="md-toggle" type="checkbox" id="__settings" >
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" >
+      <span class="task-list-indicator"></span>
+      analytics_cookies
+    </label>
+  </li>
+
+      
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "content.action.view", "content.tabs.link", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "main", "provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

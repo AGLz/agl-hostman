@@ -1,0 +1,281 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AGL Hostman API",
+    "description": "API documentation for AGL Hostman - Multi-Host Storage Management System",
+    "version": "1.0.0",
+    "contact": {
+      "name": "AGL Hostman Team",
+      "email": "admin@aglhostman.local"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.aglhostman.local",
+      "description": "Production API"
+    },
+    {
+      "url": "https://staging-api.aglhostman.local",
+      "description": "Staging API"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "oauth2": []
+    }
+  ],
+  "paths": {
+    "/storage/nfs": {
+      "get": {
+        "summary": "List NFS Mounts",
+        "description": "Retrieve all configured NFS mounts",
+        "responses": {
+          "200": {
+            "description": "List of NFS mounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "mount_point": {
+                        "type": "string",
+                        "description": "NFS mount path"
+                      },
+                      "remote_host": {
+                        "type": "string",
+                        "description": "NFS server hostname"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": ["active", "inactive", "error"],
+                        "description": "Mount status"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create NFS Mount",
+        "description": "Create a new NFS mount configuration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mount_point": {
+                    "type": "string",
+                    "description": "Mount path"
+                  },
+                  "remote_host": {
+                    "type": "string",
+                    "description": "NFS server"
+                  },
+                  "export_path": {
+                    "type": "string",
+                    "description": "Export path on server"
+                  }
+                },
+                "required": ["mount_point", "remote_host", "export_path"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "NFS mount created successfully"
+          },
+          "400": {
+            "description": "Invalid request parameters"
+          }
+        }
+      }
+    },
+    "/storage/iscsi": {
+      "get": {
+        "summary": "List iSCSI Targets",
+        "description": "Retrieve all configured iSCSI targets",
+        "responses": {
+          "200": {
+            "description": "List of iSCSI targets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "target_name": {
+                        "type": "string",
+                        "description": "iSCSI target name"
+                      },
+                      "lun": {
+                        "type": "integer",
+                        "description": "Logical Unit Number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": ["active", "inactive"],
+                        "description": "Connection status"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monitoring/performance": {
+      "get": {
+        "summary": "Get Performance Metrics",
+        "description": "Retrieve system performance metrics",
+        "responses": {
+          "200": {
+            "description": "Performance metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "object",
+                      "properties": {
+                        "usage_percent": {
+                          "type": "number"
+                        },
+                        "load_average": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    "memory": {
+                      "type": "object",
+                      "properties": {
+                        "total_gb": {
+                          "type": "number"
+                        },
+                        "used_gb": {
+                          "type": "number"
+                        },
+                        "available_gb": {
+                          "type": "number"
+                        },
+                        "usage_percent": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "disk": {
+                      "type": "object",
+                      "properties": {
+                        "read_speed_mbps": {
+                          "type": "number"
+                        },
+                        "write_speed_mbps": {
+                          "type": "number"
+                        },
+                        "iops": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "network": {
+                      "type": "object",
+                      "properties": {
+                        "incoming_mbps": {
+                          "type": "number"
+                        },
+                        "outgoing_mbps": {
+                          "type": "number"
+                        },
+                        "latency_ms": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/status": {
+      "get": {
+        "summary": "Get Backup Status",
+        "description": "Retrieve current backup job status",
+        "responses": {
+          "200": {
+            "description": "Backup status information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "last_backup": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "next_backup": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "backup_size_gb": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "failed", "running", "scheduled"]
+                    },
+                    "retention_days": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://auth.aglhostman.local/oauth/authorize",
+            "scopes": {
+              "read:storage": "Read storage information",
+              "write:storage": "Modify storage configurations",
+              "read:monitoring": "Read monitoring data",
+              "admin:all": "Administrative access"
+            }
+          }
+        }
+      }
+    }
+  }
+}

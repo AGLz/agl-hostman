@@ -11,10 +11,39 @@
 # PARSE INPUT (native bash, no jq)
 # =========================
 INPUT=$(cat)
-MODEL="Claude"
 CWD=$(echo "$INPUT" | grep -oP '"current_dir":\s*"[^"]*"' | cut -d'"' -f4)
 [ -z "$CWD" ] && CWD=$(echo "$INPUT" | grep -oP '"cwd":\s*"[^"]*"' | cut -d'"' -f4)
 [ -z "$CWD" ] && CWD="$(pwd)"
+
+# =========================
+# DETECT MODEL from ~/.claude.json
+# =========================
+MODEL="Claude"
+CLAUDE_CONFIG="$HOME/.claude.json"
+if [ -f "$CLAUDE_CONFIG" ] && command -v jq >/dev/null 2>&1; then
+  MODEL_ID=$(jq -r '.projects["'"$CWD"'"].lastModelUsage | keys[0] // empty' "$CLAUDE_CONFIG" 2>/dev/null)
+
+  if [ -n "$MODEL_ID" ]; then
+    case "$MODEL_ID" in
+      *opus*) MODEL="Opus" ;;
+      *sonnet*) MODEL="Sonnet" ;;
+      *haiku*) MODEL="Haiku" ;;
+      *glm-4.5-air*) MODEL="GLM-4.5-Air" ;;
+      *glm-4.5-flash*) MODEL="GLM-4.5-Flash" ;;
+      *glm*)
+        # Extract version from other glm- models
+        MODEL=$(echo "$MODEL_ID" | sed 's/glm-/GLM-/g' | tr '[:lower:]' '[:upper:]')
+        ;;
+      *gpt*)
+        MODEL=$(echo "$MODEL_ID" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
+        ;;
+      *)
+        # Fallback: use model ID as-is, capitalized
+        MODEL=$(echo "$MODEL_ID" | tr '[:lower:]' '[:upper:]' | sed 's/-/ /g')
+        ;;
+    esac
+  fi
+fi
 
 # =========================
 # CACHED VALUES

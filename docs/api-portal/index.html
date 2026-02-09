@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGL Infrastructure API - Developer Portal</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #6b7280;
+            --text-dark: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light);
+        }
+
+        /* Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1rem;
+            position: fixed;
+            height: 100vh;
+            width: 280px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            border-radius: 0.375rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--light);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem 3rem;
+            max-width: 1400px;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            opacity: 0.9;
+            font-size: 1.125rem;
+        }
+
+        .hero-buttons {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--dark);
+            color: #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Endpoint Cards */
+        .endpoint-card {
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .method {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .method.get { background: #dbeafe; color: #1e40af; }
+        .method.post { background: #dcfce7; color: #166534; }
+        .method.put { background: #fef3c7; color: #92400e; }
+        .method.delete { background: #fee2e2; color: #991b1b; }
+
+        .endpoint-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-required { background: #fee2e2; color: #991b1b; }
+        .badge-optional { background: #dbeafe; color: #1e40af; }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-server"></i>
+                AGL API
+            </div>
+
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-title">Getting Started</div>
+                    <a href="#overview" class="nav-link active">Overview</a>
+                    <a href="#authentication" class="nav-link">Authentication</a>
+                    <a href="#rate-limits" class="nav-link">Rate Limits</a>
+                    <a href="#errors" class="nav-link">Error Handling</a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">API Reference</div>
+                    <a href="#infrastructure" class="nav-link">Infrastructure</a>
+                    <a href="#ai-models" class="nav-link">AI Models</a>
+                    <a href="#n8n" class="nav-link">N8N Workflows</a>
+                    <a href="#containers" class="nav-link">Containers</a>
+                    <a href="#backups" class="nav-link">Backups</a>
+                    <a href="#monitoring" class="nav-link">Monitoring</a>
+                    <a href="#alerts" class="nav-link">Alerts</a>
+                    <a href="#rbac" class="nav-link">RBAC</a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">SDKs & Tools</div>
+                    <a href="#sdks" class="nav-link">Official SDKs</a>
+                    <a href="#webhooks" class="nav-link">Webhooks</a>
+                    <a href="#testing" class="nav-link">API Testing</a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Resources</div>
+                    <a href="#changelog" class="nav-link">Changelog</a>
+                    <a href="#support" class="nav-link">Support</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hero -->
+            <div class="hero">
+                <h1>AGL Infrastructure API</h1>
+                <p>Comprehensive REST API for managing infrastructure, AI orchestration, and automation workflows</p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-book"></i>
+                        View Full Documentation
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <i class="fas fa-terminal"></i>
+                        API Console
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div class="feature-title">150+ Endpoints</div>
+                    <div class="feature-description">Comprehensive REST API covering all infrastructure operations</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="feature-title">Real-time</div>
+                    <div class="feature-description">Live metrics and streaming capabilities</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="feature-title">SDKs Available</div>
+                    <div class="feature-description">Official SDKs for JavaScript, Python, PHP, and Go</div>
+                </div>
+            </div>
+
+            <!-- Authentication -->
+            <section id="authentication" class="section">
+                <h2 class="section-title">Authentication</h2>
+                <p style="margin-bottom: 1.5rem;">The AGL API uses multiple authentication methods to support different use cases.</p>
+
+                <div class="tabs">
+                    <button class="tab active" data-tab="bearer">Bearer Token</button>
+                    <button class="tab" data-tab="apikey">API Key</button>
+                    <button class="tab" data-tab="oauth">OAuth 2.0</button>
+                </div>
+
+                <div class="tab-content" id="bearer-content">
+                    <p style="margin-bottom: 1rem;">JWT tokens are the recommended authentication method for user accounts.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>curl</span>
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        </div>
+                        <pre><code>curl -X GET https://api.agl.com/api/infrastructure/status \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json"</code></pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>JavaScript</span>
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        </div>
+                        <pre><code>const response = await fetch('https://api.agl.com/api/infrastructure/status', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+});</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Start -->
+            <section id="quick-start" class="section">
+                <h2 class="section-title">Quick Start</h2>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/auth/login</span>
+                    </div>
+                    <p style="margin-bottom: 1rem;">Authenticate and receive a JWT token.</p>
+
+                    <div class="code-block">
+                        <pre><code>{
+  "email": "admin@agl.com",
+  "password": "your-password",
+  "remember": true
+}</code></pre>
+                    </div>
+
+                    <p style="margin-bottom: 0.5rem;">Response:</p>
+                    <div class="code-block">
+                        <pre><code>{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer",
+  "expires_in": 3600,
+  "user": {
+    "id": 1,
+    "name": "Admin User",
+    "email": "admin@agl.com",
+    "roles": ["admin"]
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Common Endpoints -->
+            <section id="endpoints" class="section">
+                <h2 class="section-title">Common Endpoints</h2>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/infrastructure/status</span>
+                        <span class="badge badge-required">Auth</span>
+                    </div>
+                    <p>Get current infrastructure status including servers, containers, and VMs.</p>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/monitoring/metrics?period=24h</span>
+                        <span class="badge badge-required">Auth</span>
+                    </div>
+                    <p>Retrieve monitoring metrics for specified time period.</p>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/ai-service/predict</span>
+                        <span class="badge badge-required">Auth</span>
+                    </div>
+                    <p>Make AI-powered predictions using available models.</p>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/alerts/active</span>
+                        <span class="badge badge-required">Auth</span>
+                    </div>
+                    <p>Get all active alerts with severity levels.</p>
+                </div>
+            </section>
+
+            <!-- SDKs -->
+            <section id="sdks" class="section">
+                <h2 class="section-title">Official SDKs</h2>
+                <p style="margin-bottom: 1.5rem;">Use our official SDKs for seamless integration with the AGL API.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-title">
+                            <i class="fab fa-js" style="color: #f7df1e;"></i>
+                            JavaScript/TypeScript
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">npm install @agl/api-sdk</p>
+                        <a href="#" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">View Documentation &rarr;</a>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-title">
+                            <i class="fab fa-python" style="color: #3776ab;"></i>
+                            Python
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">pip install agl-api</p>
+                        <a href="#" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">View Documentation &rarr;</a>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-title">
+                            <i class="fab fa-php" style="color: #777bb4;"></i>
+                            PHP
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">composer require agl/api-sdk</p>
+                        <a href="#" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">View Documentation &rarr;</a>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-title">
+                            <i class="fab fa-golang" style="color: #00add8;"></i>
+                            Go
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">go get github.com/agl/api-sdk-go</p>
+                        <a href="#" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">View Documentation &rarr;</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Active nav link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

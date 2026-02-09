@@ -1,0 +1,123 @@
+site_name: AGL Hostman Documentation
+site_description: Multi-Host Storage Management System Documentation
+site_author: AGL Hostman Team
+site_url: https://docs.aglhostman.local
+
+repo_url: https://github.com/aglhostman/agl-hostman
+edit_uri: edit/main/docs/
+
+docs_dir: docs-clean
+
+theme:
+  name: material
+  language: en
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - content.tabs.link
+    - toc.follow
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+
+extra:
+  version:
+    provider: mike
+    default: main
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aglhostman/agl-hostman
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+  consent:
+    title: Cookie consent
+    description: We use cookies to improve your experience.
+    cookies:
+      analytics:
+        name: analytics_cookies
+        description: Analytics cookies help us understand how visitors interact with our website.
+        type: optional
+
+plugins:
+  - search
+  - git-revision-date-localized
+  - mermaid2:
+      version: "10"
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+      - Initial Setup: getting-started/initial-setup.md
+  - Architecture:
+      - Architecture Overview: architecture/overview.md
+      - Storage Protocols: architecture/storage-protocols.md
+  - API Reference:
+      - API Overview: api/overview.md
+  - Development:
+      - Contributing: development/contributing.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+      use_pygments: true
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra_css:
+  - stylesheets/extra.css
+  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css
+
+extra_javascript:
+  - javascripts/extra.js

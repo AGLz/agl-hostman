@@ -1,0 +1,217 @@
+/* Custom styles for AGL Hostman Documentation */
+
+:root {
+  --md-primary-fg-color: #0066cc;
+  --md-primary-fg-color--light: #4d94ff;
+  --md-primary-fg-color--dark: #004499;
+  --md-accent-fg-color: #0099ff;
+  --md-accent-fg-color--light: #66b3ff;
+  --md-accent-fg-color--dark: #0066cc;
+}
+
+/* Custom header styling */
+.md-header {
+  background-color: #0066cc !important;
+}
+
+/* Navigation styling */
+.md-nav__item--nested > .md-nav {
+  color: #0066cc;
+}
+
+.md-tabs {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #0066cc;
+}
+
+.md-tabs__item {
+  color: #0066cc;
+}
+
+.md-tabs__item--active {
+  color: #0066cc;
+  border-bottom: 3px solid #0066cc;
+}
+
+/* Code block styling */
+.md-fence {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+.md-fence .md-code {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Admonition styling */
+.md-typeset .admonition {
+  border-radius: 8px;
+  margin: 1em 0;
+}
+
+.md-typeset .admonition.note,
+.md-typeset .admonition.info {
+  border-left: 4px solid #0099ff;
+}
+
+.md-typeset .admonition.warning {
+  border-left: 4px solid #ff9900;
+}
+
+.md-typeset .admonition.danger,
+.md-typeset .admonition.error {
+  border-left: 4px solid #ff0000;
+}
+
+.md-typeset .admonition.success {
+  border-left: 4px solid #00cc66;
+}
+
+/* API Documentation styling */
+.md-typeset .api-endpoint {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+.md-typeset .api-endpoint .method {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.875em;
+}
+
+.md-typeset .api-endpoint .method.get {
+  background-color: #28a745;
+  color: white;
+}
+
+.md-typeset .api-endpoint .method.post {
+  background-color: #007bff;
+  color: white;
+}
+
+.md-typeset .api-endpoint .method.put {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.md-typeset .api-endpoint .method.delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.md-typeset .api-endpoint .method.patch {
+  background-color: #6f42c1;
+  color: white;
+}
+
+/* Performance metrics styling */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1em;
+  margin: 1em 0;
+}
+
+.metric-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1em;
+  text-align: center;
+}
+
+.metric-card .metric-value {
+  font-size: 2em;
+  font-weight: bold;
+  color: #0066cc;
+}
+
+.metric-card .metric-label {
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+/* Schema visualization */
+.schema-diagram {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+.schema-diagram .schema-title {
+  font-weight: bold;
+  color: #0066cc;
+  margin-bottom: 0.5em;
+}
+
+/* Response example styling */
+.response-example {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 1em;
+  margin: 1em 0;
+  position: relative;
+}
+
+.response-example .response-label {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  background-color: #0066cc;
+  color: white;
+  padding: 0.25em 0.75em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-weight: bold;
+}
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  height: 400px;
+  margin: 1em 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0066cc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0052a3;
+}
+
+/* Print styles */
+@media print {
+  .md-sidebar,
+  .md-header,
+  .md-tabs,
+  .md-footer {
+    display: none;
+  }
+
+  .md-content {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}

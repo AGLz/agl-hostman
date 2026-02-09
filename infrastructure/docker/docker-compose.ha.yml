@@ -1,0 +1,600 @@
+# =============================================================================
+# Docker Compose - High Availability Configuration
+# AGL Hostman with HAProxy, MySQL Replication, and Redis Sentinel
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # HAProxy Load Balancer
+  # =============================================================================
+  haproxy:
+    image: haproxy:2.8-alpine
+    container_name: agl-hostman-haproxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8404:8404"  # Stats
+      - "5555:5555"  # Health check
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/errors:/etc/haproxy/errors:ro
+      - ./haproxy/ssl:/etc/haproxy/ssl:ro
+      - haproxy-logs:/var/log/haproxy
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5555/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    environment:
+      - HAPROXY_STATS_PASSWORD=${HAPROXY_STATS_PASSWORD:-changeme}
+
+  # =============================================================================
+  # Application - Blue Environment
+  # =============================================================================
+  app-blue-1:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile
+      target: production
+    image: agl-hostman:${VERSION:-latest}
+    container_name: agl-hostman-app-blue-1
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ../../src:/var/www/html:cached
+      - app-storage:/var/www/html/storage/app
+      - framework-cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_NAME=${APP_NAME:-AGL-Hostman}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-https://agl.example.com}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql-master
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-agl_hostman}
+      - DB_USERNAME=${DB_USERNAME:-agl_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-master
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - LOG_CHANNEL=daily
+      - LOG_LEVEL=error
+      - LARAVEL_HORIZON_ENABLED=true
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      replicas: 1
+
+  app-blue-2:
+    extends: app-blue-1
+    container_name: agl-hostman-app-blue-2
+    depends_on:
+      app-blue-1:
+        condition: service_started
+
+  # =============================================================================
+  # Application - Green Environment (for deployments)
+  # =============================================================================
+  app-green-1:
+    extends: app-blue-1
+    container_name: agl-hostman-app-green-1
+    profiles:
+      - green
+
+  app-green-2:
+    extends: app-blue-1
+    container_name: agl-hostman-app-green-2
+    profiles:
+      - green
+
+  # =============================================================================
+  # MySQL Master
+  # =============================================================================
+  mysql-master:
+    image: mysql:8.0
+    container_name: agl-hostman-mysql-master
+    restart: always
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --server-id=1
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+    volumes:
+      - mysql-master-data:/var/lib/mysql
+      - ./mysql-replication/my-master.cnf:/etc/mysql/conf.d/replication.cnf:ro
+      - mysql-logs:/var/log/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE:-agl_hostman}
+      - MYSQL_USER=${DB_USERNAME:-agl_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # =============================================================================
+  # MySQL Slave 1
+  # =============================================================================
+  mysql-slave-1:
+    image: mysql:8.0
+    container_name: agl-hostman-mysql-slave-1
+    restart: always
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --server-id=2
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+      - --read-only=ON
+      - --super-read-only=ON
+    volumes:
+      - mysql-slave-1-data:/var/lib/mysql
+      - ./mysql-replication/my-slave.cnf:/etc/mysql/conf.d/replication.cnf:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE:-agl_hostman}
+      - MYSQL_USER=${DB_USERNAME:-agl_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_REPL_HOST=mysql-master
+      - MYSQL_REPL_USER=repl_user
+      - MYSQL_REPL_PASSWORD=${MYSQL_REPL_PASSWORD}
+    networks:
+      - backend
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # =============================================================================
+  # MySQL Slave 2
+  # =============================================================================
+  mysql-slave-2:
+    extends: mysql-slave-1
+    container_name: agl-hostman-mysql-slave-2
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --server-id=3
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+      - --read-only=ON
+      - --super-read-only=ON
+    volumes:
+      - mysql-slave-2-data:/var/lib/mysql
+    deploy:
+      replicas: 1
+
+  # =============================================================================
+  # Redis Master
+  # =============================================================================
+  redis-master:
+    image: redis:7-alpine
+    container_name: agl-hostman-redis-master
+    restart: always
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis-master-data:/data
+      - ./redis-sentinel/redis-master.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+  # =============================================================================
+  # Redis Slaves
+  # =============================================================================
+  redis-slave-1:
+    image: redis:7-alpine
+    container_name: agl-hostman-redis-slave-1
+    restart: always
+    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379 --masterauth ${REDIS_PASSWORD}
+    volumes:
+      - redis-slave-1-data:/data
+      - ./redis-sentinel/redis-slave.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - backend
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  redis-slave-2:
+    extends: redis-slave-1
+    container_name: agl-hostman-redis-slave-2
+    volumes:
+      - redis-slave-2-data:/data
+
+  redis-slave-3:
+    extends: redis-slave-1
+    container_name: agl-hostman-redis-slave-3
+    volumes:
+      - redis-slave-3-data:/data
+
+  # =============================================================================
+  # Redis Sentinel x3
+  # =============================================================================
+  redis-sentinel-1:
+    image: redis:7-alpine
+    container_name: agl-hostman-redis-sentinel-1
+    restart: always
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./redis-sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+      - sentinel-1-data:/data
+    networks:
+      - backend
+    depends_on:
+      - redis-master
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  redis-sentinel-2:
+    extends: redis-sentinel-1
+    container_name: agl-hostman-redis-sentinel-2
+    volumes:
+      - ./redis-sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+      - sentinel-2-data:/data
+
+  redis-sentinel-3:
+    extends: redis-sentinel-1
+    container_name: agl-hostman-redis-sentinel-3
+    volumes:
+      - ./redis-sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+      - sentinel-3-data:/data
+
+  # =============================================================================
+  # Laravel Horizon (Queue Workers)
+  # =============================================================================
+  horizon:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile
+      target: production
+    image: agl-hostman:${VERSION:-latest}
+    container_name: agl-hostman-horizon
+    restart: always
+    command: php artisan horizon
+    working_dir: /var/www/html
+    volumes:
+      - ../../src:/var/www/html:cached
+      - horizon-storage:/var/www/html/storage
+    environment:
+      - APP_ENV=production
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql-master
+      - DB_DATABASE=${DB_DATABASE:-agl_hostman}
+      - DB_USERNAME=${DB_USERNAME:-agl_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-master
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - LOG_LEVEL=error
+    depends_on:
+      - redis-master
+      - mysql-master
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f horizon || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # =============================================================================
+  # Scheduler (Cron Jobs)
+  # =============================================================================
+  scheduler:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile
+      target: production
+    image: agl-hostman:${VERSION:-latest}
+    container_name: agl-hostman-scheduler
+    restart: always
+    command: php artisan schedule:work
+    working_dir: /var/www/html
+    volumes:
+      - ../../src:/var/www/html:cached
+    environment:
+      - APP_ENV=production
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql-master
+      - DB_DATABASE=${DB_DATABASE:-agl_hostman}
+      - DB_USERNAME=${DB_USERNAME:-agl_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis-master
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - mysql-master
+      - redis-master
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # =============================================================================
+  # Health Check Service
+  # =============================================================================
+  health-check:
+    image: alpine:3.18
+    container_name: agl-hostman-health-check
+    restart: always
+    command: sh -c "while true; do wget -q -O /dev/null http://haproxy:5555/health || true; sleep 30; done"
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - haproxy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+
+  # =============================================================================
+  # Monitoring - Prometheus
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: agl-hostman-prometheus
+    restart: always
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # =============================================================================
+  # Monitoring - Grafana
+  # =============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: agl-hostman-grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  frontend:
+    name: agl-frontend
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+  backend:
+    name: agl-backend
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    internal: true
+
+  monitoring:
+    name: agl-monitoring
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  # HAProxy
+  haproxy-logs:
+    driver: local
+    name: agl-haproxy-logs
+
+  # Application
+  app-storage:
+    driver: local
+    name: agl-app-storage
+  framework-cache:
+    driver: local
+    name: agl-framework-cache
+  horizon-storage:
+    driver: local
+    name: agl-horizon-storage
+
+  # MySQL
+  mysql-master-data:
+    driver: local
+    name: agl-mysql-master-data
+  mysql-slave-1-data:
+    driver: local
+    name: agl-mysql-slave-1-data
+  mysql-slave-2-data:
+    driver: local
+    name: agl-mysql-slave-2-data
+  mysql-logs:
+    driver: local
+    name: agl-mysql-logs
+
+  # Redis
+  redis-master-data:
+    driver: local
+    name: agl-redis-master-data
+  redis-slave-1-data:
+    driver: local
+    name: agl-redis-slave-1-data
+  redis-slave-2-data:
+    driver: local
+    name: agl-redis-slave-2-data
+  redis-slave-3-data:
+    driver: local
+    name: agl-redis-slave-3-data
+  sentinel-1-data:
+    driver: local
+    name: agl-sentinel-1-data
+  sentinel-2-data:
+    driver: local
+    name: agl-sentinel-2-data
+  sentinel-3-data:
+    driver: local
+    name: agl-sentinel-3-data
+
+  # Monitoring
+  prometheus-data:
+    driver: local
+    name: agl-prometheus-data
+  grafana-data:
+    driver: local
+    name: agl-grafana-data
