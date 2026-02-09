@@ -1,0 +1,130 @@
+{
+  "task_id": "f7746ca9-c817-410f-a1c8-b954de3bf4f0",
+  "project": "AGL Hostman",
+  "project_id": "550e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2025-02-08T00:00:00Z",
+  "baseline_analysis": {
+    "nodejs": {
+      "test_files": 21,
+      "test_lines": 2301,
+      "source_files": {
+        "greeting": 1,
+        "dashboard": 5,
+        "other": 0
+      },
+      "test_types": {
+        "unit": ["greeting-system.test.js"],
+        "integration": ["api.test.js", "health.test.js", "network.test.js", "docker.test.js"],
+        "e2e": [],
+        "performance": ["greeting-performance-benchmark.js"]
+      },
+      "issues": [
+        "Jest coverage failing with 'onExit is not a function' error",
+        "write-file-atomic compatibility issue with Jest cache",
+        "Missing test files for dashboard modules",
+        "No coverage for network.js and logger.js"
+      ],
+      "coverage_status": "BROKEN",
+      "estimated_coverage": "0% (unable to measure)"
+    },
+    "php": {
+      "test_files": 74,
+      "source_files": 316,
+      "test_to_source_ratio": 0.23,
+      "test_suites": {
+        "Unit": "tests/Unit",
+        "Feature": "tests/Feature",
+        "Integration": "tests/Integration",
+        "Architecture": "tests/Architecture",
+        "Performance": "tests/Performance"
+      },
+      "test_categories": {
+        "DTOs": "Tests/Unit/DTOs",
+        "Jobs": "Tests/Unit/Jobs",
+        "Models": "Tests/Unit/Models",
+        "Repositories": "Tests/Unit/Repositories",
+        "Services": "Tests/Unit/Services",
+        "Controllers": "Tests/Feature/Controllers",
+        "Livewire": "Tests/Feature/Livewire",
+        "Rbac": "Tests/Feature/Rbac",
+        "Integration": "Tests/Feature/Integration",
+        "Performance": "Tests/Feature/Performance"
+      },
+      "issues": [
+        "No code coverage driver installed (Xdebug/PCOV missing)",
+        "Pest tests run but coverage unavailable",
+        "PHPUnit metadata deprecation warnings",
+        "Missing tests for many Livewire components",
+        "Missing tests for Jobs and Services"
+      ],
+      "coverage_status": "NO_DRIVER",
+      "estimated_coverage": "UNKNOWN"
+    },
+    "coverage_gaps": {
+      "critical": [
+        "Proxmox API integration",
+        "Container lifecycle management",
+        "Network monitoring (WireGuard/Tailscale)",
+        "Storage operations",
+        "Authentication and authorization",
+        "Queue job processing",
+        "WebSocket functionality"
+      ],
+      "important": [
+        "Dashboard controllers",
+        "Livewire components",
+        "Data transfer objects",
+        "Middleware validation",
+        "Error handling"
+      ],
+      "nice_to_have": [
+        "Performance benchmarks",
+        "Load testing",
+        "Security scanning tests",
+        "Accessibility tests"
+      ]
+    },
+    "improvement_plan": {
+      "phase_1": {
+        "priority": "CRITICAL",
+        "tasks": [
+          "Fix Jest configuration and enable coverage",
+          "Install PHP coverage driver (Xdebug/PCOV)",
+          "Generate accurate baseline metrics",
+          "Fix failing tests"
+        ],
+        "estimated_hours": 10
+      },
+      "phase_2": {
+        "priority": "HIGH",
+        "tasks": [
+          "Increase unit test coverage to 80%+",
+          "Add integration tests for critical paths",
+          "Automate tests in CI/CD pipeline"
+        ],
+        "estimated_hours": 85
+      },
+      "phase_3": {
+        "priority": "MEDIUM",
+        "tasks": [
+          "Implement E2E testing with Playwright",
+          "Set up API contract testing",
+          "Generate coverage reports and dashboards"
+        ],
+        "estimated_hours": 55
+      },
+      "phase_4": {
+        "priority": "LOW",
+        "tasks": [
+          "Document testing best practices",
+          "Training and onboarding",
+          "Continuous improvement"
+        ],
+        "estimated_hours": 10
+      }
+    },
+    "total_estimated_hours": 160,
+    "target_coverage": "80%+",
+    "current_status": "BASELINE_ESTABLISHED"
+  }
+}

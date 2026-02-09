@@ -1,0 +1,43 @@
+module.exports = {
+  testEnvironment: 'node',
+  coverageDirectory: 'coverage',
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  collectCoverage: true,
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 50,
+      lines: 50,
+      statements: 50,
+    },
+  },
+  collectCoverageFrom: [
+    'src/greeting/**/*.js',
+    'src/dashboard/**/*.js',
+    '!**/node_modules/**',
+    '!**/vendor/**',
+  ],
+  testMatch: ['**/tests/**/*.test.js', '**/tests/**/*.spec.js'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/src/vendor/',
+    '/src/node_modules/',
+    '/src/html/',
+    '/src/app/',
+  ],
+  modulePathIgnorePatterns: [
+    '/src/vendor/',
+    '/src/node_modules/',
+    '/src/html/',
+    '/src/app/',
+    '/src/bootstrap/',
+    '/src/config/',
+    '/src/database/',
+    '/src/public/',
+  ],
+  transformIgnorePatterns: ['/node_modules/', '/src/vendor/'],
+  cache: false,
+  maxWorkers: 1,
+  verbose: true,
+  testTimeout: 30000,
+};

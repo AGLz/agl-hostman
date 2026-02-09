@@ -1,0 +1,60 @@
+# =============================================================================
+# AGL Hostman - Backup Crontab Configuration
+# =============================================================================
+# Purpose: Schedule automated backups
+# Install: crontab -l | { cat; cat /path/to/crontab.setup; } | crontab -
+# =============================================================================
+
+# Environment variables
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# =============================================================================
+# Daily Backup (2:00 AM UTC)
+# Retention: 7 days
+# =============================================================================
+0 2 * * * /mnt/overpower/apps/dev/agl/agl-hostman/ops/backup/backup-agl-hostman.sh >> /mnt/shares/agl-hostman-backups/logs/cron-daily.log 2>&1
+
+# =============================================================================
+# Weekly Backup Promotion (Automatic - handled by backup script on Sunday)
+# Additional full backup at 3:00 AM UTC on Sundays
+# Retention: 4 weeks
+# =============================================================================
+0 3 * * 0 /mnt/overpower/apps/dev/agl/agl-hostman/ops/backup/backup-agl-hostman.sh >> /mnt/shares/agl-hostman-backups/logs/cron-weekly.log 2>&1
+
+# =============================================================================
+# Monthly Backup Promotion (Automatic - handled by backup script on 1st)
+# Additional full backup at 4:00 AM UTC on 1st of month
+# Retention: 12 months
+# =============================================================================
+0 4 1 * * /mnt/overpower/apps/dev/agl/agl-hostman/ops/backup/backup-agl-hostman.sh >> /mnt/shares/agl-hostman-backups/logs/cron-monthly.log 2>&1
+
+# =============================================================================
+# Backup Health Monitoring (Every 6 hours)
+# Checks: Last backup age, file integrity, disk space
+# =============================================================================
+0 */6 * * * /mnt/overpower/apps/dev/agl/agl-hostman/ops/backup/monitor-backup-health.sh >> /mnt/shares/agl-hostman-backups/logs/monitor-cron.log 2>&1
+
+# =============================================================================
+# Backup Restore Testing (Every Sunday at 5:00 AM UTC)
+# Tests: Database restore, Redis restore, file integrity
+# =============================================================================
+0 5 * * 0 /mnt/overpower/apps/dev/agl/agl-hostman/ops/backup/test-backup-restore.sh >> /mnt/shares/agl-hostman-backups/logs/test-cron.log 2>&1
+
+# =============================================================================
+# Offsite Replication (Every 4 hours)
+# Syncs backups to secondary location
+# =============================================================================
+0 */4 * * * rsync -avz --delete /mnt/shares/agl-hostman-backups/ /mnt/storage/offsite/agl-hostman/ >> /mnt/shares/agl-hostman-backups/logs/rsync-cron.log 2>&1
+
+# =============================================================================
+# Backup Cleanup (Daily at 1:00 AM UTC - before backup)
+# Removes temporary files and old logs
+# =============================================================================
+0 1 * * * find /mnt/shares/agl-hostman-backups/logs -name "*.log" -mtime +30 -delete
+
+# =============================================================================
+# Database Transaction Log Backup (Every 15 minutes for PostgreSQL)
+# Enables point-in-time recovery (RPO < 15 minutes)
+# =============================================================================
+*/15 * * * * docker exec crowbar-postgres pg_archivebackup /var/lib/postgresql/data/pg_wal /mnt/shares/agl-hostman-backups/wal/ 2>/dev/null || true
