@@ -1,0 +1,183 @@
+name: Infrastructure Apply
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/terraform/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to apply'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      auto_apply:
+        description: 'Auto-approve apply'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  TERRAFORM_VERSION: '1.5.7'
+  ANSIBLE_VERSION: '2.15.0'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply (${{ environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || github.ref_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform/environments/${{ inputs.environment || 'production' }}
+          terraform init \
+            -backend-config="bucket=agl-terraform-state" \
+            -backend-config="key=proxmox-${{ inputs.environment || 'production' }}/terraform.tfstate" \
+            -backend-config="region=us-east-1"
+
+      - name: Terraform Apply
+        run: |
+          cd infrastructure/terraform/environments/${{ inputs.environment || 'production' }}
+          terraform apply -auto-approve \
+            -var="proxmox_api_token_id=${{ secrets.PROXMOX_TOKEN_ID }}" \
+            -var="proxmox_api_token_secret=${{ secrets.PROXMOX_TOKEN_SECRET }}"
+
+      - name: Extract Terraform outputs
+        id: outputs
+        run: |
+          cd infrastructure/terraform/environments/${{ inputs.environment || 'production' }}
+          terraform output -json > outputs.json
+          cat outputs.json
+
+      - name: Update Ansible inventory
+        run: |
+          cd infrastructure/ansible
+          ./scripts/update-inventory.sh ../terraform/environments/${{ inputs.environment || 'production' }}/outputs.json
+
+      - name: Run Ansible playbooks
+        run: |
+          cd infrastructure/ansible
+          ansible-playbook -i inventory/hosts.ini playbooks/common.yml
+          ansible-playbook -i inventory/hosts.ini playbooks/docker-setup.yml
+          ansible-playbook -i inventory/hosts.ini playbooks/monitoring-setup.yml
+
+      - name: Extract Terraform outputs for GitHub
+        id: terraform-outputs
+        run: |
+          cd infrastructure/terraform/environments/${{ inputs.environment || 'production' }}
+          echo "vm_ids=$(terraform output -json | jq -r '.[].vm_id' | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+
+      - name: Create deployment summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `## Infrastructure Deployment Summary
+
+            **Environment:** ${{ inputs.environment || 'production' }}
+            **Status:** ${{ job.status }}
+            **Actor:** ${{ github.actor }}
+            **Commit:** ${{ github.sha }}
+
+            ### VMs Created/Updated
+            ${{ steps.terraform-outputs.outputs.vm_ids }}
+
+            [View Full Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            core.summary
+              .addRaw(summary)
+              .write();
+
+  drift-detection:
+    name: Infrastructure Drift Detection
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Check for drift (all environments)
+        run: |
+          for env in dev staging production; do
+            echo "Checking environment: $env"
+            cd infrastructure/terraform/environments/$env
+
+            terraform init \
+              -backend-config="bucket=agl-terraform-state" \
+              -backend-config="key=proxmox-$env/terraform.tfstate" \
+              -backend-config="region=us-east-1"
+
+            terraform plan -detailed-exitcode -out=tfplan || true
+
+            if [ -f tfplan ]; then
+              echo "Drift detected in $env!"
+              terraform show -no-color tfplan > drift-$env.txt
+            fi
+
+            cd -
+          done
+
+      - name: Create issue for drift
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issueTitle = 'Infrastructure Drift Detected';
+            const issueBody = `Automated drift detection has identified changes in the infrastructure.
+
+            Please review the following environments:
+            ${fs.readdirSync('infrastructure/terraform/environments')
+              .filter(e => fs.existsSync(`infrastructure/terraform/environments/${e}/drift-${e}.txt`))
+              .map(e => `- **${e}**: Drift detected`)
+              .join('\n            ')}
+
+            This issue was created by the [drift detection workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+            `;
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: issueBody,
+              labels: ['infrastructure', 'drift', 'automated']
+            });

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-02-09T00:43:09Z",
+  "overall_status": "healthy",
+  "total_servers": 8,
+  "healthy_count": 8,
+  "unhealthy_count": 0,
+  "servers": [
+  {"name":"zai-mcp-server","status":"healthy","response_time":"1225ms","details":"Package available"},
+  {"name":"flow-nexus","status":"healthy","response_time":"1453ms","details":"Package available"},
+  {"name":"archon-tailscale","status":"healthy","response_time":"16ms","details":"HTTP connection successful"},
+  {"name":"ruv-swarm","status":"healthy","response_time":"1430ms","details":"Package available"},
+  {"name":"exa","status":"healthy","response_time":"1814ms","details":"Package available"},
+  {"name":"archon","status":"healthy","response_time":"17ms","details":"HTTP connection successful"},
+  {"name":"agentic-payments","status":"healthy","response_time":"1353ms","details":"Package available"},
+  {"name":"claude-flow","status":"healthy","response_time":"1438ms","details":"Package available"}
+]
+}

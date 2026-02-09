@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Phase 5: RBAC Middleware Aliases
+        // Phase 5: RBAC & Performance Middleware Aliases
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'role' => \App\Http\Middleware\CheckRole::class,
@@ -28,13 +28,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'location' => \App\Http\Middleware\CheckLocationAccess::class,
             'cache.api' => \App\Http\Middleware\CacheApiResponse::class,
             'throttle' => \App\Http\Middleware\RateLimiting::class,
+            'performance' => \App\Http\Middleware\PerformanceMiddleware::class,
+            'cache.response' => \App\Http\Middleware\CacheMiddleware::class,
         ]);
 
-        // Apply security middleware to API routes (Laravel 11)
+        // Apply security and performance middleware to API routes (Laravel 11)
         $middleware->api(prepend: [
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\RateLimiting::class,
             \App\Http\Middleware\CacheApiResponse::class,
+            \App\Http\Middleware\PerformanceMiddleware::class,
         ]);
 
         // Apply security middleware to web routes

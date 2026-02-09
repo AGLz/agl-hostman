@@ -1,0 +1,62 @@
+# Prometheus MCP Server Monitoring Targets
+# Part of AGL-25: MCP Server Optimization
+
+scrape_configs:
+  # MCP Prometheus Exporter
+  - job_name: 'mcp-servers'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:9099']
+        labels:
+          service: 'mcp-monitoring'
+          environment: 'production'
+          project: 'agl-hostman'
+
+# Alert rules for MCP servers
+groups:
+  - name: mcp_alerts
+    interval: 30s
+    rules:
+      # Alert if any MCP server is down
+      - alert: MCPServerDown
+        expr: mcp_server_up == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: mcp
+        annotations:
+          summary: "MCP server {{ $labels.server }} is down"
+          description: "MCP server {{ $labels.server }} has been down for more than 5 minutes."
+
+      # Alert if response time is high
+      - alert: MCPServerHighResponseTime
+        expr: mcp_server_response_time_ms > 5000
+        for: 10m
+        labels:
+          severity: warning
+          service: mcp
+        annotations:
+          summary: "MCP server {{ $labels.server }} has high response time"
+          description: "MCP server {{ $labels.server }} response time is {{ $value }}ms (threshold: 5000ms)"
+
+      # Alert if multiple servers are down
+      - alert: MCPServersDegraded
+        expr: count(mcp_server_up == 0) > 2
+        for: 2m
+        labels:
+          severity: critical
+          service: mcp
+        annotations:
+          summary: "Multiple MCP servers are down"
+          description: "{{ $value }} MCP servers are down. Immediate attention required."
+
+      # Alert if health scrape fails
+      - alert: MCPHealthScrapeFailed
+        expr: mcp_scrape_success == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: mcp
+        annotations:
+          summary: "MCP health scrape is failing"
+          description: "Unable to scrape MCP health data for more than 5 minutes."

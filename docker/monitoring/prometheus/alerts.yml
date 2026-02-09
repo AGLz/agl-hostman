@@ -1,0 +1,708 @@
+# Prometheus Alerting Rules
+# AGL Hostman - Production-Ready Alert Rules
+groups:
+  # ============================================================================
+  # Application Health Alerts
+  # ============================================================================
+  - name: application_health
+    interval: 30s
+    rules:
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job=~"laravel-app|vue-frontend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: application
+        annotations:
+          summary: "Service instance down (instance {{ $labels.instance }})"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
+          runbook: "https://docs.agl-hostman.com/runbooks/service-down"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          tier: application
+        annotations:
+          summary: "High error rate detected for service {{ $labels.service }}"
+          description: "Error rate for {{ $labels.service }} is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-error-rate"
+
+      # Critical Error Rate
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.15
+        for: 2m
+        labels:
+          severity: critical
+          tier: application
+        annotations:
+          summary: "Critical error rate for service {{ $labels.service }}"
+          description: "Error rate for {{ $labels.service }} is {{ $value | humanizePercentage }} (threshold: 15%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-error-rate"
+
+      # High Latency
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          tier: application
+        annotations:
+          summary: "High latency detected for {{ $labels.service }}"
+          description: "P95 latency for {{ $labels.service }} is {{ $value }}s (threshold: 1s)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-latency"
+
+      # Critical Latency
+      - alert: CriticalLatency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          ) > 5
+        for: 5m
+        labels:
+          severity: critical
+          tier: application
+        annotations:
+          summary: "Critical latency for {{ $labels.service }}"
+          description: "P99 latency for {{ $labels.service }} is {{ $value }}s (threshold: 5s)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-latency"
+
+  # ============================================================================
+  # Database Alerts
+  # ============================================================================
+  - name: database_health
+    interval: 30s
+    rules:
+      # Database Down
+      - alert: DatabaseDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: database
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database {{ $labels.datname }} has been down for more than 1 minute."
+          runbook: "https://docs.agl-hostman.com/runbooks/database-down"
+
+      # High Database Connection Usage
+      - alert: HighDatabaseConnections
+        expr: |
+          (
+            sum(pg_stat_database_numbackends{datname="agl_hostman"})
+            /
+            sum(pg_settings_max_connections)
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          tier: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-db-connections"
+
+      # Critical Database Connections
+      - alert: CriticalDatabaseConnections
+        expr: |
+          (
+            sum(pg_stat_database_numbackends{datname="agl_hostman"})
+            /
+            sum(pg_settings_max_connections)
+          ) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          tier: database
+        annotations:
+          summary: "Critical database connection usage"
+          description: "Database connection usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-db-connections"
+
+      # Slow Queries
+      - alert: SlowQueries
+        expr: |
+          sum(rate(pg_stat_statements_calls_total{calls_gt="1000"}[5m])) by (datname) > 10
+        for: 10m
+        labels:
+          severity: warning
+          tier: database
+        annotations:
+          summary: "High number of slow queries detected"
+          description: "Database {{ $labels.datname }} has {{ $value }} slow queries per second"
+          runbook: "https://docs.agl-hostman.com/runbooks/slow-queries"
+
+      # Database Replication Lag
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          tier: database
+        annotations:
+          summary: "High database replication lag"
+          description: "Replication lag is {{ $value }}s (threshold: 30s)"
+          runbook: "https://docs.agl-hostman.com/runbooks/replication-lag"
+
+      # Database Size Growing
+      - alert: DatabaseSizeGrowing
+        expr: |
+          (
+            pg_database_size_bytes{datname="agl_hostman"}
+            -
+            pg_database_size_bytes{datname="agl_hostman"} offset 1h
+          ) / 1024 / 1024 / 1024 > 1
+        for: 1h
+        labels:
+          severity: info
+          tier: database
+        annotations:
+          summary: "Database growing rapidly"
+          description: "Database {{ $labels.datname }} grew by {{ $value }}GB in the last hour"
+          runbook: "https://docs.agl-hostman.com/runbooks/database-growth"
+
+  # ============================================================================
+  # Cache Alerts
+  # ============================================================================
+  - name: cache_health
+    interval: 30s
+    rules:
+      # Redis Down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: cache
+        annotations:
+          summary: "Redis instance is down"
+          description: "Redis instance {{ $labels.instance }} has been down for more than 1 minute."
+          runbook: "https://docs.agl-hostman.com/runbooks/redis-down"
+
+      # High Redis Memory Usage
+      - alert: HighRedisMemory
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          tier: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-redis-memory"
+
+      # Critical Redis Memory
+      - alert: CriticalRedisMemory
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          tier: cache
+        annotations:
+          summary: "Critical Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-redis-memory"
+
+      # Low Redis Hit Rate
+      - alert: LowRedisHitRate
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m])
+            /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          tier: cache
+        annotations:
+          summary: "Low Redis cache hit rate"
+          description: "Redis hit rate is {{ $value | humanizePercentage }} (threshold: 70%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/low-hit-rate"
+
+      # Redis Connection Rejected
+      - alert: RedisConnectionRejected
+        expr: rate(redis_rejected_connections_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          tier: cache
+        annotations:
+          summary: "Redis rejecting connections"
+          description: "Redis is rejecting {{ $value }} connections per second"
+          runbook: "https://docs.agl-hostman.com/runbooks/redis-connections"
+
+  # ============================================================================
+  # Queue Alerts
+  # ============================================================================
+  - name: queue_health
+    interval: 30s
+    rules:
+      # Queue Backlog
+      - alert: QueueBacklog
+        expr: horizon_jobs_pending > 1000
+        for: 10m
+        labels:
+          severity: warning
+          tier: queue
+        annotations:
+          summary: "Queue backlog detected"
+          description: "Queue {{ $labels.queue }} has {{ $value }} pending jobs"
+          runbook: "https://docs.agl-hostman.com/runbooks/queue-backlog"
+
+      # Critical Queue Backlog
+      - alert: CriticalQueueBacklog
+        expr: horizon_jobs_pending > 5000
+        for: 5m
+        labels:
+          severity: critical
+          tier: queue
+        annotations:
+          summary: "Critical queue backlog"
+          description: "Queue {{ $labels.queue }} has {{ $value }} pending jobs"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-queue-backlog"
+
+      # Failed Jobs
+      - alert: HighFailedJobs
+        expr: |
+          rate(horizon_jobs_failed_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          tier: queue
+        annotations:
+          summary: "High job failure rate"
+          description: "Queue {{ $labels.queue }} has {{ $value }} failed jobs per second"
+          runbook: "https://docs.agl-hostman.com/runbooks/failed-jobs"
+
+      # Queue Workers Down
+      - alert: QueueWorkersDown
+        expr: horizon_workers_process_count < 1
+        for: 2m
+        labels:
+          severity: critical
+          tier: queue
+        annotations:
+          summary: "No queue workers running"
+          description: "Queue {{ $labels.queue }} has no active workers"
+          runbook: "https://docs.agl-hostman.com/runbooks/workers-down"
+
+  # ============================================================================
+  # Infrastructure Alerts
+  # ============================================================================
+  - name: infrastructure_health
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage on {{ $labels.instance }} is {{ $value }}% (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-cpu"
+
+      # Critical CPU Usage
+      - alert: CriticalCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 95
+        for: 5m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage on {{ $labels.instance }} is {{ $value }}% (threshold: 95%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-cpu"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            (
+              node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+            )
+            /
+            node_memory_MemTotal_bytes
+          ) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage on {{ $labels.instance }} is {{ $value }}% (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-memory"
+
+      # Critical Memory Usage
+      - alert: CriticalMemoryUsage
+        expr: |
+          (
+            (
+              node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+            )
+            /
+            node_memory_MemTotal_bytes
+          ) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage on {{ $labels.instance }} is {{ $value }}% (threshold: 95%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-memory"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            (
+              node_filesystem_size_bytes - node_filesystem_avail_bytes
+            )
+            /
+            node_filesystem_size_bytes
+          ) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "Low disk space detected"
+          description: "Disk {{ $labels.device }} on {{ $labels.instance }} is {{ $value }}% full (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/disk-space"
+
+      # Critical Disk Space
+      - alert: CriticalDiskSpace
+        expr: |
+          (
+            (
+              node_filesystem_size_bytes - node_filesystem_avail_bytes
+            )
+            /
+            node_filesystem_size_bytes
+          ) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Critical disk space detected"
+          description: "Disk {{ $labels.device }} on {{ $labels.instance }} is {{ $value }}% full (threshold: 95%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/critical-disk-space"
+
+      # Disk I/O High
+      - alert: HighDiskIO
+        expr: |
+          (
+            rate(node_disk_io_time_seconds_total[5m]) * 100
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "High disk I/O detected"
+          description: "Disk {{ $labels.device }} on {{ $labels.instance }} has {{ $value }}% I/O time (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-disk-io"
+
+  # ============================================================================
+  # Container Alerts
+  # ============================================================================
+  - name: container_health
+    interval: 30s
+    rules:
+      # Container Down
+      - alert: ContainerDown
+        expr: up{job=~".*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          tier: container
+        annotations:
+          summary: "Container is down"
+          description: "Container {{ $labels.instance }} has been down for more than 2 minutes."
+          runbook: "https://docs.agl-hostman.com/runbooks/container-down"
+
+      # Container CPU High
+      - alert: ContainerCPUHigh
+        expr: |
+          rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          tier: container
+        annotations:
+          summary: "High container CPU usage"
+          description: "Container {{ $labels.name }} CPU usage is {{ $value }}% (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/container-cpu"
+
+      # Container Memory High
+      - alert: ContainerMemoryHigh
+        expr: |
+          (
+            container_memory_usage_bytes{name!=""}
+            /
+            container_spec_memory_limit_bytes{name!=""}
+          ) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          tier: container
+        annotations:
+          summary: "High container memory usage"
+          description: "Container {{ $labels.name }} memory usage is {{ $value }}% (threshold: 80%)"
+          runbook: "https://docs.agl-hostman.com/runbooks/container-memory"
+
+  # ============================================================================
+  # Monitoring Stack Alerts
+  # ============================================================================
+  - name: monitoring_stack
+    interval: 60s
+    rules:
+      # Prometheus Down
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          tier: monitoring
+        annotations:
+          summary: "Prometheus is down"
+          description: "Prometheus has been down for more than 2 minutes."
+
+      # Alertmanager Down
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          tier: monitoring
+        annotations:
+          summary: "Alertmanager is down"
+          description: "Alertmanager has been down for more than 2 minutes."
+
+      # Grafana Down
+      - alert: GrafanaDown
+        expr: up{job="grafana"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          tier: monitoring
+        annotations:
+          summary: "Grafana is down"
+          description: "Grafana has been down for more than 2 minutes."
+
+      # Prometheus Configuration Reload Failed
+      - alert: PrometheusConfigReloadFailed
+        expr: prometheus_config_last_reload_successful == 0
+        for: 5m
+        labels:
+          severity: warning
+          tier: monitoring
+        annotations:
+          summary: "Prometheus config reload failed"
+          description: "Prometheus configuration reload has failed."
+
+      # Prometheus Target Down
+      - alert: PrometheusTargetDown
+        expr: |
+          (
+            sum(up) by (job)
+            -
+            sum(up{job="prometheus"}) by (job)
+          ) < sum(up) by (job) * 0.9
+        for: 10m
+        labels:
+          severity: warning
+          tier: monitoring
+        annotations:
+          summary: "Prometheus targets are down"
+          description: "Job {{ $labels.job }} has less than 90% of targets up."
+
+  # ============================================================================
+  # Security Alerts
+  # ============================================================================
+  - name: security_alerts
+    interval: 30s
+    rules:
+      # High Rate of 4xx Errors (Potential Attack)
+      - alert: High4xxRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"4.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          tier: security
+        annotations:
+          summary: "High 4xx error rate detected"
+          description: "Service {{ $labels.service }} has {{ $value | humanizePercentage }} 4xx errors (potential attack)"
+          runbook: "https://docs.agl-hostman.com/runbooks/high-4xx"
+
+      # Authentication Failures
+      - alert: HighAuthFailures
+        expr: |
+          sum(rate(http_requests_total{handler="/api/login",status="401"}[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          tier: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} failed login attempts per second (potential brute force)"
+          runbook: "https://docs.agl-hostman.com/runbooks/auth-failures"
+
+  # ============================================================================
+  # SLI/SLO Alerts
+  # ============================================================================
+  - name: sli_alerts
+    interval: 60s
+    rules:
+      # SLI: Availability Breach
+      - alert: SLIAvailabilityBreach
+        expr: |
+          (
+            sum(rate(http_requests_total{status!~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) < 0.99
+        for: 10m
+        labels:
+          severity: critical
+          tier: slo
+        annotations:
+          summary: "SLI availability breach"
+          description: "Service {{ $labels.service }} availability is {{ $value | humanizePercentage }} (target: 99%)"
+
+      # SLI: Latency Breach
+      - alert: SLILatencyBreach
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          tier: slo
+        annotations:
+          summary: "SLI latency breach"
+          description: "Service {{ $labels.service }} P95 latency is {{ $value }}s (target: 500ms)"
+
+      # SLI: Error Budget Burn Rate
+      - alert: SLOErrorBudgetBurn
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          tier: slo
+        annotations:
+          summary: "SLO error budget burning"
+          description: "Service {{ $labels.service }} is burning error budget at {{ $value | humanizePercentage }} per hour"
+
+  # ============================================================================
+  # Business Metrics Alerts
+  # ============================================================================
+  - name: business_metrics
+    interval: 60s
+    rules:
+      # Low Request Rate
+      - alert: LowRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) < 10
+        for: 15m
+        labels:
+          severity: info
+          tier: business
+        annotations:
+          summary: "Unusually low request rate"
+          description: "Request rate is {{ $value }} req/s (normal: >100 req/s)"
+
+      # High Request Rate (Potential DDoS)
+      - alert: HighRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) > 10000
+        for: 2m
+        labels:
+          severity: critical
+          tier: business
+        annotations:
+          summary: "Unusually high request rate"
+          description: "Request rate is {{ $value }} req/s (potential DDoS attack)"
+          runbook: "https://docs.agl-hostman.com/runbooks/ddos"
+
+  # ============================================================================
+  # Network Alerts
+  # ============================================================================
+  - name: network_health
+    interval: 30s
+    rules:
+      # High Network Traffic
+      - alert: HighNetworkTraffic
+        expr: |
+          (
+            sum(rate(node_network_receive_bytes_total[5m])) by (device)
+            +
+            sum(rate(node_network_transmit_bytes_total[5m])) by (device)
+          ) / 1024 / 1024 > 100
+        for: 10m
+        labels:
+          severity: warning
+          tier: network
+        annotations:
+          summary: "High network traffic detected"
+          description: "Network device {{ $labels.device }} has {{ $value }}MB/s traffic"
+
+      # Network Errors
+      - alert: NetworkErrors
+        expr: |
+          sum(rate(node_network_receive_errs_total[5m])) by (device) > 100
+        for: 5m
+        labels:
+          severity: warning
+          tier: network
+        annotations:
+          summary: "High network error rate"
+          description: "Network device {{ $labels.device }} has {{ $value }} errors per second"

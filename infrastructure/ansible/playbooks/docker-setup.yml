@@ -1,0 +1,195 @@
+---
+# Docker installation and configuration for AGL infrastructure
+# Supports both VM and LXC container environments
+
+- name: Install and configure Docker
+  hosts: docker_hosts
+  become: true
+
+  vars:
+    docker_edition: "ce"
+    docker_channel: "stable"
+    docker_version: "24.0.7"
+    docker_compose_version: "2.23.0"
+    docker_users:
+      - "{{ ansible_user }}"
+      - "ubuntu"
+
+    # Docker daemon configuration
+    docker_log_driver: "json-file"
+    docker_log_max_size: "10m"
+    docker_log_max_files: "3"
+
+    # Docker network
+    docker_default_address_pool: "172.20.0.0/16"
+
+    # Registry mirrors (optional)
+    docker_registry_mirrors: []
+
+    # Storage driver
+    docker_storage_driver: "overlay2"
+
+  tasks:
+    - name: Check if Docker is already installed
+      ansible.builtin.command: docker --version
+      register: docker_check
+      failed_when: false
+      changed_when: false
+
+    - name: Display Docker version if installed
+      ansible.builtin.debug:
+        var: docker_check.stdout
+      when: docker_check.rc == 0
+
+    - name: Install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} {{ docker_channel }}"
+        state: present
+        filename: docker
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - "docker-{{ docker_edition }}"
+          - "docker-{{ docker_edition }}-cli"
+          - "containerd.io"
+          - "docker-buildx-plugin"
+          - "docker-compose-plugin"
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Configure Docker daemon
+      ansible.builtin.copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "log-driver": "{{ docker_log_driver }}",
+            "log-opts": {
+              "max-size": "{{ docker_log_max_size }}",
+              "max-file": "{{ docker_log_max_files }}"
+            },
+            "storage-driver": "{{ docker_storage_driver }}",
+            {% if docker_registry_mirrors | length > 0 %}
+            "registry-mirrors": {{ docker_registry_mirrors | to_json }},
+            {% endif %}
+            "default-address-pools": [
+              {
+                "base": "{{ docker_default_address_pool }}",
+                "size": 24
+              }
+            ],
+            "features": {
+              "containerd-snapshotter": true
+            },
+            "cgroupfs-mount": true
+          }
+      notify: Restart Docker
+
+    - name: Create Docker users
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: docker
+        append: true
+      loop: "{{ docker_users }}"
+
+    - name: Install Docker Compose standalone
+      ansible.builtin.get_url:
+        url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+      when: docker_check.rc != 0
+
+    - name: Create Docker networks
+      community.docker.docker_network:
+        name: "{{ item.name }}"
+        driver: bridge
+        ipam_config:
+          - subnet: "{{ item.subnet }}"
+        state: present
+      loop:
+        - { name: "agl-network", subnet: "172.20.0.0/24" }
+        - { name: "agl-monitoring", subnet: "172.20.1.0/24" }
+
+    - name: Create Docker data directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /var/lib/docker/volumes
+        - /var/lib/docker/overlay2
+        - /etc/docker/certs.d
+
+    - name: Enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker info
+      register: docker_info
+      changed_when: false
+
+    - name: Display Docker info
+      ansible.builtin.debug:
+        var: docker_info.stdout_lines
+
+    - name: Run hello-world container
+      community.docker.docker_container:
+        name: hello-world
+        image: hello-world:latest
+        state: started
+        auto_remove: true
+      register: hello_world
+
+    - name: Remove hello-world container
+      community.docker.docker_container:
+        name: hello-world
+        state: absent
+
+    - name: Install Docker SDK for Python
+      ansible.builtin.apt:
+        name:
+          - python3-pip
+          - python3-docker
+          - python3-setuptools
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker Python packages
+      ansible.builtin.pip:
+        name:
+          - docker
+          - docker-compose
+          - PyYAML
+        state: present
+
+  handlers:
+    - name: Restart Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+        daemon_reload: true

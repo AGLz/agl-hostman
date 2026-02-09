@@ -1,0 +1,172 @@
+# Loki Configuration
+# AGL Hostman - Log Aggregation and Storage
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+# Common configuration for all Loki components
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+# Query configuration
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+# Schema configuration
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+# Ruler configuration
+ruler:
+  alertmanager_url: http://localhost:9093
+  evaluation:
+    interval: 30s
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+
+# Limits configuration
+limits_config:
+  enforce_metric_name: false
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  max_entries_limit_per_query: 10000
+  max_streams_per_user: 0
+  max_global_streams_per_user: 5000
+  max_query_series: 10000
+  max_query_parallelism: 32
+
+  # Ingestion limits
+  ingestion_rate_mb: 16
+  ingestion_burst_size_mb: 32
+  per_stream_rate_limit: 16MB
+  per_stream_rate_limit_burst: 32MB
+  max_streams_per_user: 0
+
+  # Cardinality limits
+  max_streams_matchers_per_query: 1000
+  max_label_names_per_series: 30
+  max_label_name_length: 1024
+  max_label_value_length: 2048
+
+  # Multi-tenant limits
+  max_query_length: 1000h
+  max_query_lookback: 0s
+  max_cache_freshness_per_query: 10m
+
+  # Split queries
+  split_queries_by_interval: 30m
+  split_queries_by_day: false
+
+  # Retention
+  retention_period: 720h  # 30 days
+  streams_not_yet_sampled_retention_period: 0s
+
+# Table manager configuration
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 720h
+  creation_enabled: true
+
+# Compactor configuration
+compactor:
+  working_directory: /loki/boltdb-shipper-compactor
+  shared_store: filesystem
+  compaction_interval: 10m
+  retention_enabled: true
+  delete_request_cancel_period: 24h
+  delete_request_cancel_timeout: 1m
+
+# Ingester configuration
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+  chunk_idle_period: 30m
+  chunk_block_size: 262144
+  chunk_target_size: 1536000
+  chunk_encoding: snappy
+  max_transfer_retries: 0
+  max_chunk_age: 2h
+
+# Limits per tenant
+limits_config:
+  per_tenant_config:
+    override:
+      - tenant_id: agl-hostman
+        ingestion_rate_mb: 32
+        per_stream_rate_limit: 32MB
+        max_streams_per_user: 10000
+        retention_period: 2160h  # 90 days for production
+
+# Index client configuration
+index_queries_cache_config:
+  enabled: true
+  ttl: 24h
+
+# Storage configuration
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /loki/boltdb-shipper-active
+    cache_location: /loki/boltdb-shipper-cache
+    shared_store: filesystem
+
+  filesystem:
+    directory: /loki/chunks
+
+# Chunk store configuration
+chunk_store_config:
+  max_look_back_period: 168h
+  chunk_cache_config:
+    embedded_cache:
+      enabled: true
+      max_size_mb: 500
+
+# Analytics configuration
+analytics:
+  reporting_enabled: false
+
+# Frontend configuration
+frontend:
+  log_queries_longer_than: 5s
+  compress_responses: true
+  max_outstanding_per_tenant: 2048
+
+# Memberlist configuration
+memberlist:
+  join_members:
+    - loki:7946
+
+# Tracing configuration
+tracing:
+  enabled: true
+  endpoint: jaeger-all-in-one:4318
+  client_type: grpc
+  headers:
+    trace-context: "true"

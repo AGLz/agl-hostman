@@ -1,0 +1,358 @@
+# Prometheus Configuration
+# AGL Hostman - Complete Metrics Collection
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'agl-hostman'
+    environment: '${ENVIRONMENT:-development}'
+    replica: '${REPLICA:-1}'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+      timeout: 10s
+      api_version: v2
+
+# Rule files
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+  - '/etc/prometheus/recording_rules.yml'
+
+# Service discovery configurations
+scrape_configs:
+  # ============================================================================
+  # Prometheus Self-Monitoring
+  # ============================================================================
+  - job_name: 'prometheus'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'localhost:9090'
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+  # ============================================================================
+  # Application Services
+  # ============================================================================
+  # Laravel Application
+  - job_name: 'laravel-app'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'app:8080'
+        labels:
+          service: 'laravel-api'
+          tier: 'application'
+          framework: 'laravel'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'laravel-app'
+
+  # Vue Frontend
+  - job_name: 'vue-frontend'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'frontend:3000'
+        labels:
+          service: 'vue-ui'
+          tier: 'frontend'
+          framework: 'vue'
+
+  # ============================================================================
+  # Database Services
+  # ============================================================================
+  # PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'postgres-exporter:9187'
+        labels:
+          service: 'postgresql'
+          tier: 'database'
+          engine: 'postgres'
+
+  # PostgreSQL Direct (for slow queries)
+  - job_name: 'postgres-direct'
+    scrape_interval: 60s
+    scrape_timeout: 30s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'db:5432'
+        labels:
+          service: 'postgresql'
+          tier: 'database'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):5432'
+        target_label: __param_target
+        replacement: '${1}'
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: []
+        regex: '.*'
+        target_label: __address__
+        replacement: 'postgres-exporter:9187'
+
+  # ============================================================================
+  # Cache Services
+  # ============================================================================
+  # Redis Exporter
+  - job_name: 'redis-exporter'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'redis-exporter:9121'
+        labels:
+          service: 'redis'
+          tier: 'cache'
+          engine: 'redis'
+
+  # Redis Sentinel
+  - job_name: 'redis-sentinel'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'redis-sentinel:26379'
+        labels:
+          service: 'redis-sentinel'
+          tier: 'cache'
+
+  # ============================================================================
+  # Web Server Services
+  # ============================================================================
+  # Nginx Exporter
+  - job_name: 'nginx-exporter'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'nginx-exporter:9113'
+        labels:
+          service: 'nginx'
+          tier: 'webserver'
+
+  # ============================================================================
+  # Queue Services
+  # ============================================================================
+  # Laravel Horizon
+  - job_name: 'laravel-horizon'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/api/horizon/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'app:8080'
+        labels:
+          service: 'laravel-horizon'
+          tier: 'queue'
+          framework: 'laravel'
+
+  # ============================================================================
+  # Infrastructure Services
+  # ============================================================================
+  # Node Exporter - Host Metrics
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'node-exporter:9100'
+        labels:
+          service: 'node-exporter'
+          tier: 'infrastructure'
+          component: 'host'
+
+  # cAdvisor - Container Metrics
+  - job_name: 'cadvisor'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'cadvisor:8080'
+        labels:
+          service: 'cadvisor'
+          tier: 'infrastructure'
+          component: 'containers'
+
+  # Docker Daemon Metrics
+  - job_name: 'docker-daemon'
+    scrape_interval: 60s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'dockerhost:9323'
+        labels:
+          service: 'docker'
+          tier: 'infrastructure'
+          component: 'daemon'
+
+  # ============================================================================
+  # Monitoring Stack Services
+  # ============================================================================
+  # Alertmanager
+  - job_name: 'alertmanager'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'alertmanager:9093'
+        labels:
+          service: 'alertmanager'
+          tier: 'monitoring'
+
+  # Grafana
+  - job_name: 'grafana'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'grafana:3000'
+        labels:
+          service: 'grafana'
+          tier: 'monitoring'
+
+  # Loki
+  - job_name: 'loki'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'loki:3100'
+        labels:
+          service: 'loki'
+          tier: 'monitoring'
+          component: 'logging'
+
+  # Promtail
+  - job_name: 'promtail'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'promtail:9080'
+        labels:
+          service: 'promtail'
+          tier: 'monitoring'
+          component: 'log-collection'
+
+  # Jaeger
+  - job_name: 'jaeger'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'jaeger-all-in-one:14269'
+        labels:
+          service: 'jaeger'
+          tier: 'monitoring'
+          component: 'tracing'
+
+  # ============================================================================
+  # External Services
+  # ============================================================================
+  # GitHub (if needed)
+  - job_name: 'github-exporter'
+    scrape_interval: 300s
+    scrape_timeout: 30s
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets:
+          - 'github-exporter:9504'
+        labels:
+          service: 'github'
+          tier: 'external'
+
+  # Cloud Provider Exporters (AWS/Azure/GCP)
+  # Uncomment as needed
+  # - job_name: 'aws-cloudwatch'
+  #   scrape_interval: 300s
+  #   scrape_timeout: 60s
+  #   metrics_path: '/metrics'
+  #   scheme: http
+  #   static_configs:
+  #     - targets:
+  #         - 'cloudwatch-exporter:9106'
+  #       labels:
+  #         service: 'cloudwatch'
+  #         tier: 'infrastructure'
+  #         provider: 'aws'
+
+# Remote write configuration (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write.example.com/api/v1/write"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 200
+#       min_shards: 1
+#       max_samples_per_send: 5000
+#       batch_send_deadline: 5s
+#       min_backoff: 30ms
+#       max_backoff: 100ms
+#     write_relabel_configs:
+#       - source_labels: [__name__]
+#         regex: 'expensive_.*'
+#         action: drop
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention:
+      time: 30d
+      size: 50GB
+
+# Tracing configuration
+tracing:
+  endpoint: "jaeger-all-in-one:4318"
+  client_type: "grpc"
+  headers:
+    X-Trace-Enabled: "true"

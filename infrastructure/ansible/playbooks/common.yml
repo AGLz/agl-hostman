@@ -1,0 +1,281 @@
+---
+# Common system configuration for all AGL infrastructure hosts
+# This playbook applies baseline security and system hardening
+
+- name: Apply common system configuration
+  hosts: all
+  become: true
+
+  vars:
+    # System timezone
+    system_timezone: "UTC"
+
+    # DNS configuration
+    dns_servers:
+      - "192.168.0.1"
+      - "8.8.8.8"
+    dns_search:
+      - "agl.local"
+      - "aglz.io"
+
+    # NTP servers
+    ntp_servers:
+      - "0.pool.ntp.org"
+      - "1.pool.ntp.org"
+      - "2.pool.ntp.org"
+
+    # Security settings
+    ssh_port: 22
+    ssh_password_auth: false
+    ssh_root_login: false
+
+    # Firewall settings
+    firewall_enabled: true
+    firewall_allowed_ports:
+      - 22    # SSH
+      - 80    # HTTP
+      - 443   # HTTPS
+
+    # System limits
+    max_open_files: 65536
+    max_user_processes: 4096
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Install common packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - wget
+          - git
+          - vim
+          - htop
+          - tmux
+          - net-tools
+          - dnsutils
+          - tcpdump
+          - jq
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - software-properties-common
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Set timezone
+      community.general.timezone:
+        name: "{{ system_timezone }}"
+
+    - name: Configure DNS
+      ansible.builtin.copy:
+        dest: /etc/systemd/resolved.conf
+        content: |
+          [Resolve]
+          DNS={{ dns_servers | join(' ') }}
+          Domains={{ dns_search | join(' ') }}
+      notify: Restart systemd-resolved
+
+    - name: Configure NTP
+      ansible.builtin.copy:
+        dest: /etc/systemd/timesyncd.conf
+        content: |
+          [Time]
+          NTP={{ ntp_servers | join(' ') }}
+      notify: Restart systemd-timesyncd
+
+    - name: Configure system limits
+      ansible.builtin.copy:
+        dest: /etc/security/limits.d/99-agl.conf
+        content: |
+          * soft nofile {{ max_open_files }}
+          * hard nofile {{ max_open_files }}
+          * soft nproc {{ max_user_processes }}
+          * hard nproc {{ max_user_processes }}
+
+    - name: Configure kernel parameters
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/99-agl.conf
+        content: |
+          # Network optimization
+          net.core.rmem_max = 134217728
+          net.core.wmem_max = 134217728
+          net.ipv4.tcp_rmem = 4096 87380 67108864
+          net.ipv4.tcp_wmem = 4096 65536 67108864
+          net.core.netdev_max_backlog = 5000
+          net.ipv4.tcp_congestion_control = bbr
+
+          # Security hardening
+          net.ipv4.ip_forward = 0
+          net.ipv4.conf.all.accept_source_route = 0
+          net.ipv4.conf.default.accept_source_route = 0
+          net.ipv4.conf.all.send_redirects = 0
+          net.ipv4.conf.default.send_redirects = 0
+          net.ipv4.conf.all.accept_redirects = 0
+          net.ipv4.conf.default.accept_redirects = 0
+          net.ipv4.icmp_echo_ignore_broadcasts = 1
+          net.ipv4.icmp_ignore_bogus_error_responses = 1
+          net.ipv4.conf.all.rp_filter = 1
+          net.ipv4.conf.default.rp_filter = 1
+
+          # System limits
+          fs.file-max = 2097152
+          vm.swappiness = 10
+          vm.dirty_ratio = 15
+          vm.dirty_background_ratio = 3
+      notify: Apply sysctl
+
+    - name: Configure SSH
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^#?Port', line: 'Port {{ ssh_port }}' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication {{ ssh_password_auth | ternary("yes", "no") }}' }
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin {{ ssh_root_login | ternary("yes", "no") }}' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+        - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+        - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 300' }
+        - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 2' }
+      notify: Restart SSH
+
+    - name: Configure UFW firewall
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+      when: firewall_enabled
+
+    - name: Allow SSH through firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ ssh_port }}"
+        proto: tcp
+      when: firewall_enabled
+
+    - name: Allow HTTP/HTTPS through firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ firewall_allowed_ports }}"
+      when: firewall_enabled
+
+    - name: Install fail2ban
+      ansible.builtin.apt:
+        name: fail2ban
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Configure fail2ban
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        content: |
+          [DEFAULT]
+          bantime = 3600
+          findtime = 600
+          maxretry = 5
+          destemail = security@agl.local
+          sendername = Fail2Ban
+
+          [sshd]
+          enabled = true
+          port = {{ ssh_port }}
+          logpath = /var/log/auth.log
+          maxretry = 3
+      notify: Restart fail2ban
+
+    - name: Enable automatic security updates
+      ansible.builtin.apt:
+        name: unattended-upgrades
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Configure unattended-upgrades
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        content: |
+          Unattended-Upgrade::Allowed-Origins {
+            "${distro_id}:${distro_codename}";
+            "${distro_id}:${distro_codename}-security";
+          };
+          Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+          Unattended-Upgrade::MinimalSteps "true";
+          Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+          Unattended-Upgrade::Remove-Unused-Dependencies "true";
+          Unattended-Upgrade::Automatic-Reboot "false";
+          Unattended-Upgrade::Automatic-Reboot-Time "02:00";
+      when: ansible_os_family == "Debian"
+
+    - name: Create AGL directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /opt/agl
+        - /var/log/agl
+        - /etc/agl
+
+    - name: Add AGL banner
+      ansible.builtin.copy:
+        dest: /etc/update-motd.d/99-agl-banner
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          echo ""
+          echo "  ___     _____  _____ _____ _____ _    _ _____  "
+          echo " |_ _|   /  _  \\/  ___/  __ \\_   _| |  | |  __ \\ "
+          echo "  | |    | | | |\\ \`--.| |  \\/ | | | | |  | | |__) |"
+          echo "  | |    | | | | \`--. \\ | __ | | | | | |  | |  _ < "
+          echo "  | |    \\ \\_/ |/\\__/ / | \\_\\ | |_| | |__| | |_) |"
+          echo "  \\_/     \\___/ \\____/ \\____/ \\___/ \\____/|____/ "
+          echo ""
+          echo "  Managed by Terraform - Ansible Configured"
+          echo "  Environment: {{ inventory_hostname }}"
+          echo "  Last updated: {{ ansible_date_time.iso8601 }}"
+          echo ""
+
+    - name: Ensure motd is enabled
+      ansible.builtin.file:
+        path: /etc/update-motd.d/99-agl-banner
+        mode: '0755'
+
+  handlers:
+    - name: Restart systemd-resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+
+    - name: Restart systemd-timesyncd
+      ansible.builtin.systemd:
+        name: systemd-timesyncd
+        state: restarted
+
+    - name: Apply sysctl
+      ansible.builtin.command: sysctl -p /etc/sysctl.d/99-agl.conf
+
+    - name: Restart SSH
+      ansible.builtin.systemd:
+        name: ssh
+        state: restarted
+
+    - name: Restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted

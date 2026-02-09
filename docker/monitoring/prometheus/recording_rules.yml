@@ -1,0 +1,417 @@
+# Prometheus Recording Rules for SLI/SLO
+# AGL Hostman - Pre-computed metrics for efficient querying
+groups:
+  # ============================================================================
+  # HTTP Recording Rules
+  # ============================================================================
+  - name: http_metrics
+    interval: 30s
+    rules:
+      # Request rate by service
+      - record: job:http_requests:rate5m
+        expr: sum(rate(http_requests_total[5m])) by (job, service)
+
+      # Request rate by status
+      - record: job:http_requests:rate5m:by_status
+        expr: sum(rate(http_requests_total[5m])) by (job, service, status)
+
+      # Error rate (5xx errors)
+      - record: job:http_errors:rate5m
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, service)
+
+      # Error rate percentage
+      - record: job:http_error_percentage:rate5m
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, service)
+            /
+            sum(rate(http_requests_total[5m])) by (job, service)
+          ) * 100
+
+      # P50 latency
+      - record: job:http_latency:p50:5m
+        expr: |
+          histogram_quantile(0.50,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, service, le)
+          )
+
+      # P95 latency
+      - record: job:http_latency:p95:5m
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, service, le)
+          )
+
+      # P99 latency
+      - record: job:http_latency:p99:5m
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, service, le)
+          )
+
+      # Average latency
+      - record: job:http_latency:avg:5m
+        expr: |
+          sum(rate(http_request_duration_seconds_sum[5m])) by (job, service)
+          /
+          sum(rate(http_request_duration_seconds_count[5m])) by (job, service)
+
+  # ============================================================================
+  # SLI: Availability Recording Rules
+  # ============================================================================
+  - name: sli_availability
+    interval: 60s
+    rules:
+      # Raw availability (successful requests / total requests)
+      - record: service:availability:ratio_5m
+        expr: |
+          (
+            sum(rate(http_requests_total{status!~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          )
+
+      # 1-hour availability
+      - record: service:availability:ratio_1h
+        expr: |
+          (
+            sum(rate(http_requests_total{status!~"5.."}[1h])) by (service)
+            /
+            sum(rate(http_requests_total[1h])) by (service)
+          )
+
+      # 24-hour availability
+      - record: service:availability:ratio_24h
+        expr: |
+          (
+            sum(rate(http_requests_total{status!~"5.."}[24h])) by (service)
+            /
+            sum(rate(http_requests_total[24h])) by (service)
+          )
+
+  # ============================================================================
+  # SLI: Latency Recording Rules
+  # ============================================================================
+  - name: sli_latency
+    interval: 60s
+    rules:
+      # Latency SLI: P95 < 500ms
+      - record: service:latency:p95_5m
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          )
+
+      # Latency SLI: P99 < 1s
+      - record: service:latency:p99_5m
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le)
+          )
+
+      # Latency success ratio (requests under threshold / total)
+      - record: service:latency_success:ratio_5m
+        expr: |
+          (
+            sum(rate(http_request_duration_seconds_bucket{le="0.5"}[5m])) by (service)
+            /
+            sum(rate(http_request_duration_seconds_count[5m])) by (service)
+          )
+
+  # ============================================================================
+  # SLI: Error Rate Recording Rules
+  # ============================================================================
+  - name: sli_error_rate
+    interval: 60s
+    rules:
+      # Error rate (5xx)
+      - record: service:error_rate:ratio_5m
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          )
+
+      # 4xx error rate
+      - record: service:client_error_rate:ratio_5m
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"4.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          )
+
+  # ============================================================================
+  # SLI: Saturation Recording Rules
+  # ============================================================================
+  - name: sli_saturation
+    interval: 60s
+    rules:
+      # CPU saturation
+      - record: service:cpu:utilization
+        expr: |
+          100 - (avg by (service) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      # Memory saturation
+      - record: service:memory:utilization
+        expr: |
+          (
+            (
+              node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+            )
+            /
+            node_memory_MemTotal_bytes
+          ) * 100
+
+      # Disk saturation
+      - record: service:disk:utilization
+        expr: |
+          (
+            rate(node_disk_io_time_seconds_total[5m]) * 100
+          )
+
+  # ============================================================================
+  # Error Budget Recording Rules
+  # ============================================================================
+  - name: error_budget
+    interval: 60s
+    rules:
+      # Error budget remaining (99% SLO)
+      - record: service:error_budget:remaining_99pct
+        expr: |
+          (
+            0.99
+            -
+            (
+              sum(rate(http_requests_total{status=~"5.."}[30d])) by (service)
+              /
+              sum(rate(http_requests_total[30d])) by (service)
+            )
+          ) * 100
+
+      # Error budget burn rate
+      - record: service:error_budget:burn_rate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[1h])) by (service)
+            /
+            sum(rate(http_requests_total[1h])) by (service)
+          ) / 0.01
+
+      # Time to error budget exhaustion
+      - record: service:error_budget:time_to_exhaustion
+        expr: |
+          (
+            (
+              1 - sum(rate(http_requests_total{status=~"5.."}[30d])) by (service) / sum(rate(http_requests_total[30d])) by (service)
+            )
+            /
+            (
+              sum(rate(http_requests_total{status=~"5.."}[1h])) by (service)
+              /
+              sum(rate(http_requests_total[1h])) by (service) / 87600
+            )
+          )
+
+  # ============================================================================
+  # Database Recording Rules
+  # ============================================================================
+  - name: database_metrics
+    interval: 60s
+    rules:
+      # Connection pool usage
+      - record: database:connection_pool:usage
+        expr: |
+          (
+            sum(pg_stat_database_numbackends{datname="agl_hostman"})
+            /
+            sum(pg_settings_max_connections)
+          ) * 100
+
+      # Query performance
+      - record: database:queries:slow_rate
+        expr: |
+          sum(rate(pg_stat_statements_calls_total{mean_exec_time_gt="1000"}[5m])) by (datname)
+
+      # Transaction rate
+      - record: database:transactions:rate5m
+        expr: |
+          sum(rate(pg_stat_database_xact_commit[5m])) by (datname)
+          +
+          sum(rate(pg_stat_database_xact_rollback[5m])) by (datname)
+
+      # Cache hit ratio
+      - record: database:cache_hit_ratio
+        expr: |
+          (
+            sum(rate(pg_stat_database_blks_hit[5m])) by (datname)
+            /
+            (
+              sum(rate(pg_stat_database_blks_hit[5m])) by (datname)
+              +
+              sum(rate(pg_stat_database_blks_read[5m])) by (datname)
+            )
+          ) * 100
+
+  # ============================================================================
+  # Cache Recording Rules
+  # ============================================================================
+  - name: cache_metrics
+    interval: 60s
+    rules:
+      # Redis memory usage
+      - record: redis:memory:usage_percentage
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) * 100
+
+      # Redis hit rate
+      - record: redis:cache_hit_ratio
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m])
+            /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) * 100
+
+      # Redis key eviction rate
+      - record: redis:key_evictions:rate5m
+        expr: |
+          sum(rate(redis_evicted_keys_total[5m])) by (instance)
+
+      # Redis operations rate
+      - record: redis:operations:rate5m
+        expr: |
+          sum(rate(redis_commands_processed_total[5m])) by (instance)
+
+  # ============================================================================
+  # Queue Recording Rules
+  # ============================================================================
+  - name: queue_metrics
+    interval: 60s
+    rules:
+      # Queue throughput
+      - record: queue:jobs:processed_rate5m
+        expr: |
+          sum(rate(horizon_jobs_processed_total[5m])) by (queue)
+
+      # Queue failure rate
+      - record: queue:jobs:failure_rate5m
+        expr: |
+          (
+            sum(rate(horizon_jobs_failed_total[5m])) by (queue)
+            /
+            sum(rate(horizon_jobs_processed_total[5m])) by (queue)
+          ) * 100
+
+      # Queue wait time
+      - record: queue:jobs:wait_time_p95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(horizon_jobs_wait_time_bucket[5m])) by (queue, le)
+          )
+
+      # Queue processing time
+      - record: queue:jobs:process_time_p95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(horizon_jobs_process_time_bucket[5m])) by (queue, le)
+          )
+
+  # ============================================================================
+  # Container Recording Rules
+  # ============================================================================
+  - name: container_metrics
+    interval: 60s
+    rules:
+      # Container CPU usage
+      - record: container:cpu:usage_percentage
+        expr: |
+          rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100
+
+      # Container memory usage
+      - record: container:memory:usage_percentage
+        expr: |
+          (
+            container_memory_usage_bytes{name!=""}
+            /
+            container_spec_memory_limit_bytes{name!=""}
+          ) * 100
+
+      # Container network I/O
+      - record: container:network:receive_rate
+        expr: |
+          sum(rate(container_network_receive_bytes_total{name!=""}[5m])) by (name)
+
+      # Container network I/O
+      - record: container:network:transmit_rate
+        expr: |
+          sum(rate(container_network_transmit_bytes_total{name!=""}[5m])) by (name)
+
+  # ============================================================================
+  # Business Metrics Recording Rules
+  # ============================================================================
+  - name: business_metrics
+    interval: 60s
+    rules:
+      # Request throughput
+      - record: business:requests:throughput5m
+        expr: |
+          sum(rate(http_requests_total[5m]))
+
+      # User activity rate
+      - record: business:users:active_rate5m
+        expr: |
+          count(rate(http_requests_total[5m])) by (user_id)
+
+      # Revenue rate (example)
+      - record: business:revenue:rate5m
+        expr: |
+          sum(rate(order_total_amount[5m]))
+
+  # ============================================================================
+  # Aggregation Rules for Dashboard Performance
+  # ============================================================================
+  - name: dashboard_aggregations
+    interval: 30s
+    rules:
+      # Total requests across all services
+      - record: global:requests:rate5m
+        expr: |
+          sum(rate(http_requests_total[5m]))
+
+      # Total errors across all services
+      - record: global:errors:rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+
+      # Average latency across all services
+      - record: global:latency:avg5m
+        expr: |
+          sum(rate(http_request_duration_seconds_sum[5m]))
+          /
+          sum(rate(http_request_duration_seconds_count[5m]))
+
+      # Active hosts count
+      - record: infrastructure:hosts:up
+        expr: |
+          count(up{job="node-exporter"} == 1)
+
+      # Active containers count
+      - record: infrastructure:containers:running
+        expr: |
+          count(container_state_running{} > 0)
+
+      # Total database connections
+      - record: infrastructure:database:connections
+        expr: |
+          sum(pg_stat_database_numbackends)
+
+      # Total Redis keys
+      - record: infrastructure:redis:total_keys
+        expr: |
+          sum(redis_db_keys)

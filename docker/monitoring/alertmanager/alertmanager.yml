@@ -1,0 +1,275 @@
+# Alertmanager Configuration
+# AGL Hostman - Alert Routing and Management
+
+global:
+  # Global SMTP configuration
+  smtp_smarthost: '${SMTP_HOST:-localhost:587}'
+  smtp_from: '${SMTP_FROM:-alertmanager@agl-hostman.com}'
+  smtp_auth_username: '${SMTP_USER:-}'
+  smtp_auth_password: '${SMTP_PASSWORD:-}'
+  smtp_require_tls: ${SMTP_TLS:-true}
+
+  # Slack configuration
+  slack_api_url: '${SLACK_WEBHOOK_URL:-}'
+
+  # Resolve timeout
+  resolve_timeout: 5m
+
+  # Global labels
+  labels:
+    cluster: 'agl-hostman'
+    environment: '${ENVIRONMENT:-development}'
+
+# Template files for custom notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route configuration - Alert routing tree
+route:
+  # Default receiver for all alerts
+  receiver: 'default'
+
+  # Group alerts
+  group_by: ['alertname', 'cluster', 'service']
+
+  # Wait time before sending notification for a new group
+  group_wait: 10s
+
+  # Wait time before sending notification about new alerts for an existing group
+  group_interval: 5m
+
+  # Wait time before sending notification after an alert is resolved
+  repeat_interval: 12h
+
+  # Child routes
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+      continue: true
+
+    # Database alerts
+    - match:
+        tier: database
+      receiver: 'database-team'
+      group_by: ['alertname', 'tier', 'database']
+      group_interval: 3m
+      continue: true
+
+    # Queue alerts
+    - match:
+        tier: queue
+      receiver: 'ops-team'
+      group_by: ['alertname', 'tier', 'queue']
+      group_interval: 2m
+
+    # Security alerts
+    - match:
+        tier: security
+      receiver: 'security-team'
+      group_wait: 0s
+      repeat_interval: 15m
+      continue: true
+
+    # SLO alerts
+    - match:
+        tier: slo
+      receiver: 'sre-team'
+      group_by: ['alertname', 'service']
+      group_interval: 10m
+      continue: true
+
+    # Infrastructure alerts
+    - match:
+        tier: infrastructure
+      receiver: 'ops-team'
+      group_by: ['alertname', 'instance']
+      group_interval: 5m
+
+    # Container alerts
+    - match:
+        tier: container
+      receiver: 'platform-team'
+      group_by: ['alertname', 'container']
+
+    # Monitoring stack alerts
+    - match:
+        tier: monitoring
+      receiver: 'oncall-team'
+      group_wait: 0s
+      repeat_interval: 15m
+
+    # Business alerts
+    - match:
+        tier: business
+      receiver: 'business-team'
+      group_interval: 30m
+      repeat_interval: 24h
+
+# Inhibition rules - Suppress dependent alerts
+inhibit_rules:
+  # Inhibit warning if critical is firing for same alert
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service', 'cluster']
+
+  # Inhibit high memory if critical memory is firing
+  - source_match:
+      severity: 'critical'
+    target_match_re:
+      alertname: 'HighMemoryUsage'
+    equal: ['instance', 'cluster']
+
+  # Inhibit CPU warning if critical CPU is firing
+  - source_match:
+      severity: 'critical'
+    target_match_re:
+      alertname: 'HighCPUUsage'
+    equal: ['instance', 'cluster']
+
+  # Inhibit database connection alerts if database is down
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match_re:
+      alertname: '.*Database.*'
+    equal: ['cluster', 'database']
+
+  # Inhibit cache alerts if Redis is down
+  - source_match:
+      alertname: 'RedisDown'
+    target_match_re:
+      alertname: '.*Redis.*'
+    equal: ['cluster']
+
+  # Inhibit service down alerts if host is down
+  - source_match:
+      alertname: 'HostDown'
+    target_match_re:
+      alertname: '.*Down'
+    equal: ['instance', 'cluster']
+
+# Receivers - Notification endpoints
+receivers:
+  # Default receiver
+  - name: 'default'
+    email_configs:
+      - to: '${DEFAULT_EMAIL:-ops@agl-hostman.com}'
+        send_resolved: true
+
+  # Critical alerts - multiple channels
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${CRITICAL_EMAIL:-oncall@agl-hostman.com}'
+        send_resolved: true
+        headers:
+          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+    slack_configs:
+      - channel: '${CRITICAL_SLACK_CHANNEL:-#alerts-critical}'
+        send_resolved: true
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: >-
+          Summary: {{ .CommonAnnotations.summary }}
+          Description: {{ .CommonAnnotations.description }}
+          Runbook: {{ .CommonAnnotations.runbook }}
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        actions:
+          - type: button
+            text: 'View in Grafana'
+            url: '{{ .ExternalURL }}'
+    webhook_configs:
+      - url: '${WEBHOOK_URL:-http://localhost:8000/hooks/alerts}'
+        send_resolved: true
+
+  # Database team
+  - name: 'database-team'
+    email_configs:
+      - to: '${DBA_EMAIL:-dba@agl-hostman.com}'
+        send_resolved: true
+    slack_configs:
+      - channel: '${DBA_SLACK_CHANNEL:-#alerts-database}'
+        send_resolved: true
+        title: '🗄️ Database Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  # Operations team
+  - name: 'ops-team'
+    email_configs:
+      - to: '${OPS_EMAIL:-ops@agl-hostman.com}'
+        send_resolved: true
+    slack_configs:
+      - channel: '${OPS_SLACK_CHANNEL:-#alerts-ops}'
+        send_resolved: true
+        title: '⚙️ Ops Alert: {{ .GroupLabels.alertname }}'
+
+  # Security team
+  - name: 'security-team'
+    email_configs:
+      - to: '${SECURITY_EMAIL:-security@agl-hostman.com}'
+        send_resolved: true
+    slack_configs:
+      - channel: '${SECURITY_SLACK_CHANNEL:-#alerts-security}'
+        send_resolved: true
+        title: '🔒 Security Alert: {{ .GroupLabels.alertname }}'
+        color: 'warning'
+
+  # SRE team
+  - name: 'sre-team'
+    email_configs:
+      - to: '${SRE_EMAIL:-sre@agl-hostman.com}'
+        send_resolved: true
+    slack_configs:
+      - channel: '${SRE_SLACK_CHANNEL:-#alerts-sre}'
+        send_resolved: true
+        title: '📊 SLO Alert: {{ .GroupLabels.alertname }}'
+
+  # Platform team
+  - name: 'platform-team'
+    email_configs:
+      - to: '${PLATFORM_EMAIL:-platform@agl-hostman.com}'
+        send_resolved: true
+    slack_configs:
+      - channel: '${PLATFORM_SLACK_CHANNEL:-#alerts-platform}'
+        send_resolved: true
+        title: '🐳 Platform Alert: {{ .GroupLabels.alertname }}'
+
+  # On-call team
+  - name: 'oncall-team'
+    email_configs:
+      - to: '${ONCALL_EMAIL:-oncall@agl-hostman.com}'
+        send_resolved: true
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY:-}'
+        description: '{{ .GroupLabels.alertname }}'
+        severity: '{{ .GroupLabels.severity }}'
+    slack_configs:
+      - channel: '${ONCALL_SLACK_CHANNEL:-#alerts-oncall}'
+        send_resolved: true
+        title: '📟 On-Call Alert: {{ .GroupLabels.alertname }}'
+
+  # Business team
+  - name: 'business-team'
+    email_configs:
+      - to: '${BUSINESS_EMAIL:-business@agl-hostman.com}'
+        send_resolved: true
+    slack_configs:
+      - channel: '${BUSINESS_SLACK_CHANNEL:-#alerts-business}'
+        send_resolved: true
+        title: '💼 Business Alert: {{ .GroupLabels.alertname }}'
+        color: 'info'
+
+# Silence configuration - Commented as example
+# silences:
+#   - matchers:
+#       - name: alertname
+#         value: HighCPUUsage
+#       - name: instance
+#         value: backup-server:9100
+#     startsAt: 2024-01-01T00:00:00Z
+#     endsAt: 2024-01-01T06:00:00Z
+#     createdBy: admin@agl-hostman.com
+#     comment: Scheduled maintenance window

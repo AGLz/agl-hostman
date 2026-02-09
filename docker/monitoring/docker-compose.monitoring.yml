@@ -1,0 +1,360 @@
+# Docker Compose for Monitoring and Observability Stack
+# AGL Hostman - Complete Monitoring Infrastructure
+#
+# Services:
+#   - Prometheus: Metrics collection and storage
+#   - Grafana: Visualization and dashboards
+#   - Alertmanager: Alert routing and management
+#   - Loki: Log aggregation
+#   - Promtail: Log collection agent
+#   - Jaeger: Distributed tracing
+#   - Node Exporter: Host metrics
+#   - cAdvisor: Container metrics
+#
+# Usage:
+#   docker compose -f docker-compose.monitoring.yml up -d
+#   docker compose -f docker-compose.monitoring.yml down
+
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+  app-network:
+    external: true
+
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  loki-data:
+    driver: local
+  jaeger-data:
+    driver: local
+
+services:
+  # ============================================================================
+  # Prometheus - Metrics Collection
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: agl-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--web.external-url=http://localhost:9090'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./prometheus/recording_rules.yml:/etc/prometheus/recording_rules.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # ============================================================================
+  # Grafana - Visualization
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: agl-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SESSION_PROVIDER=memory
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=grafana-db:5432
+      - GF_DATABASE_NAME=grafana
+      - GF_DATABASE_USER=grafana
+      - GF_DATABASE_PASSWORD=${GRAFANA_DB_PASSWORD:-grafana_password}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - grafana-db
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Grafana Database (PostgreSQL)
+  grafana-db:
+    image: postgres:15-alpine
+    container_name: agl-grafana-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=grafana
+      - POSTGRES_USER=grafana
+      - POSTGRES_PASSWORD=${GRAFANA_DB_PASSWORD:-grafana_password}
+    volumes:
+      - grafana-db-data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grafana"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Alertmanager - Alert Routing
+  # ============================================================================
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: agl-alertmanager
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--cluster.listen-address=0.0.0.0:9094'
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+      - "9094:9094"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Loki - Log Aggregation
+  # ============================================================================
+  loki:
+    image: grafana/loki:2.9.5
+    container_name: agl-loki
+    restart: unless-stopped
+    command:
+      - '-config.file=/etc/loki/local-config.yaml'
+      - '-config.expand-env=true'
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Promtail - Log Collection Agent
+  # ============================================================================
+  promtail:
+    image: grafana/promtail:2.9.5
+    container_name: agl-promtail
+    restart: unless-stopped
+    command:
+      - '-config.file=/etc/promtail/config.yml'
+      - '-config.expand-env=true'
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/lib/docker/containers/*/*-json.log:/var/log/docker/*.log:ro
+    ports:
+      - "9080:9080" # Promtail metrics
+    networks:
+      - monitoring
+      - app-network
+    depends_on:
+      - loki
+
+  # ============================================================================
+  # Jaeger - Distributed Tracing
+  # ============================================================================
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:1.51
+    container_name: agl-jaeger
+    restart: unless-stopped
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger-data:/badger
+    ports:
+      - "5775:5775/udp" # accept zipkin.thrift over compact thrift protocol
+      - "6831:6831/udp" # accept jaeger.thrift over compact thrift protocol
+      - "6832:6832/udp" # accept jaeger.thrift over binary thrift protocol
+      - "5778:5778"     # serve configs
+      - "16686:16686"   # serve frontend
+      - "14268:14268"   # accept jaeger.thrift directly from clients
+      - "14250:14250"   # accept model.proto
+      - "9411:9411"     # Zipkin compatible endpoint
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+    networks:
+      - monitoring
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:16686"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Node Exporter - Host Metrics
+  # ============================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: agl-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--path.filesystem.mounts=/host/proc/mounts'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.textfile.directory=/etc/node-exporter/textfile'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - ./node-exporter/textfile:/etc/node-exporter/textfile:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9100/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # cAdvisor - Container Metrics
+  # ============================================================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: agl-cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # PostgreSQL Exporter - Database Metrics
+  # ============================================================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.12.0
+    container_name: agl-postgres-exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${DB_USERNAME:-agl_user}:${DB_PASSWORD:-secret}@db:5432/${DB_DATABASE:-agl_hostman}?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - monitoring
+      - app-network
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9187/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Redis Exporter - Redis Metrics
+  # ============================================================================
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: agl-redis-exporter
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring
+      - app-network
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # Nginx Exporter - Web Server Metrics
+  # ============================================================================
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.11.0
+    container_name: agl-nginx-exporter
+    restart: unless-stopped
+    command:
+      - '-nginx.scrape-uri=http://app:80/nginx_status'
+    ports:
+      - "9113:9113"
+    networks:
+      - monitoring
+      - app-network
+    depends_on:
+      - app
+
+volumes:
+  grafana-db-data:
+    driver: local

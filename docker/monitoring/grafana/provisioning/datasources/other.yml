@@ -1,0 +1,89 @@
+# Grafana Datasource Provisioning - Additional Sources
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: db:5432
+    database: ${DB_DATABASE:-agl_hostman}
+    user: ${DB_USERNAME:-agl_user}
+    secureJsonData:
+      password: ${DB_PASSWORD:-secret}
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      timescaledb: false
+    version: 1
+
+  - name: Redis
+    type: redis
+    access: proxy
+    url: redis:6379
+    password: ${REDIS_PASSWORD:-}
+    editable: true
+    jsonData:
+      pool: 2
+      pipeline: 0
+    version: 1
+
+  - name: Alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    editable: true
+    jsonData:
+      implementation: prometheus
+    version: 1
+
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: ${ES_URL:-http://elasticsearch:9200}
+    database: ${ES_INDEX:-agl-hostman-*}
+    editable: true
+    jsonData:
+      esVersion: "8.0.0"
+      logMessageField: message
+      logLevelField: level
+      maxConcurrentShardRequests: 5
+      timeField: "@timestamp"
+    version: 1
+    enabled: false
+
+  - name: CloudWatch
+    type: cloudwatch
+    access: proxy
+    editable: true
+    jsonData:
+      authType: keys
+      defaultRegion: ${AWS_REGION:-us-east-1}
+    secureJsonData:
+      accessKey: ${AWS_ACCESS_KEY_ID:-}
+      secretKey: ${AWS_SECRET_ACCESS_KEY:-}
+    enabled: false
+
+  - name: Graphite
+    type: graphite
+    access: proxy
+    url: ${GRAPHITE_URL:-http://graphite:8080}
+    editable: true
+    enabled: false
+
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: ${INFLUX_URL:-http://influxdb:8086}
+    database: ${INFLUX_DATABASE:-telegraf}
+    user: ${INFLUX_USER:-admin}
+    secureJsonData:
+      password: ${INFLUX_PASSWORD:-admin}
+    editable: true
+    enabled: false
+
+  - name: OpenTSDB
+    type: opentsdb
+    access: proxy
+    url: ${OPENTSDB_URL:-http://opentsdb:4242}
+    editable: true
+    enabled: false

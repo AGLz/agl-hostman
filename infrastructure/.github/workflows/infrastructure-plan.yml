@@ -1,0 +1,157 @@
+name: Infrastructure Plan
+
+on:
+  pull_request:
+    paths:
+      - 'infrastructure/terraform/**'
+      - 'infrastructure/ansible/**'
+  workflow_dispatch:
+
+env:
+  TERRAFORM_VERSION: '1.5.7'
+  ANSIBLE_VERSION: '2.15.0'
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, production]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Configure AWS credentials (for state backend)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform/environments/${{ matrix.environment }}
+          terraform init \
+            -backend-config="bucket=agl-terraform-state" \
+            -backend-config="key=proxmox-${{ matrix.environment }}/terraform.tfstate" \
+            -backend-config="region=us-east-1"
+
+      - name: Terraform Format Check
+        run: |
+          cd infrastructure/terraform
+          terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: |
+          cd infrastructure/terraform/environments/${{ matrix.environment }}
+          terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          cd infrastructure/terraform/environments/${{ matrix.environment }}
+          terraform plan -out=tfplan \
+            -var="proxmox_api_token_id=${{ secrets.PROXMOX_TOKEN_ID }}" \
+            -var="proxmox_api_token_secret=${{ secrets.PROXMOX_TOKEN_SECRET }}"
+        continue-on-error: true
+
+      - name: Save plan output
+        if: always()
+        run: |
+          cd infrastructure/terraform/environments/${{ matrix.environment }}
+          terraform show -no-color tfplan > plan.txt
+          cat plan.txt
+
+      - name: Comment PR with plan
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('infrastructure/terraform/environments/${{ matrix.environment }}/plan.txt', 'utf8');
+            const output = `#### Terraform Plan (${{ matrix.environment }}) 📖
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform
+            ${plan}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  ansible-check:
+    name: Ansible Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible
+        run: |
+          pip install ansible==${{ env.ANSIBLE_VERSION }}
+          pip install ansible-lint
+
+      - name: Ansible Syntax Check
+        run: |
+          cd infrastructure/ansible
+          for playbook in playbooks/*.yml; do
+            echo "Checking $playbook"
+            ansible-playbook --syntax-check "$playbook"
+          done
+
+      - name: Ansible Lint
+        run: |
+          cd infrastructure/ansible
+          ansible-lint playbooks/*.yml
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'infrastructure/terraform'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Checkov security scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infrastructure/terraform
+          framework: terraform
+          output_format: cli
+          soft_fail: false
