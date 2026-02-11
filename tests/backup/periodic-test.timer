@@ -1,0 +1,19 @@
+[Unit]
+Description=Periodic Backup Restoration Test Timer
+Documentation=file:///mnt/overpower/apps/dev/agl/agl-hostman/docs/backup-restoration-guide.md
+Requires=periodic-test.service
+
+[Timer]
+# Run weekly on Sunday at 03:00 (after backups complete)
+OnCalendar=Sun *-*-* 03:00:00
+# Run also 6 hours after boot for initial validation
+OnBootSec=6h
+# If system was off during scheduled time, run immediately on boot
+Persistent=true
+# Randomize start time by up to 1 hour to reduce load
+RandomizedDelaySec=1h
+# Unit to activate
+Unit=periodic-test.service
+
+[Install]
+WantedBy=timers.target

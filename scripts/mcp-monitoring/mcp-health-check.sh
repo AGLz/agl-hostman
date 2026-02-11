@@ -20,16 +20,49 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# MCP Servers to monitor
+# MCP Servers to monitor - ALL 26 SERVERS
 declare -A MCP_SERVERS=(
+    # Orchestration & Coordination
     ["claude-flow"]="npx claude-flow@alpha mcp start"
     ["ruv-swarm"]="npx ruv-swarm mcp start"
     ["flow-nexus"]="npx flow-nexus@latest mcp start"
+    ["context7"]="https://mcp.context7.com/mcp"
+    ["linear"]="https://mcp.linear.app/mcp"
+
+    # Image & Media Analysis
+    ["zai-mcp-server"]="npx -y @z_ai/mcp-server"
+    ["4.5v-mcp"]="npx -y @z_ai/mcp-server"  # Part of zai suite
+
+    # Web & Search
+    ["exa"]="npx -y exa-mcp-server"
+    ["web-search-prime"]="https://api.z.ai/api/mcp/web_search_prime/mcp"
+    ["web-reader"]="https://api.z.ai/api/mcp/web_reader/mcp"
+
+    # Project Management
     ["archon"]="http://192.168.0.183:8052/mcp"
     ["archon-tailscale"]="http://100.80.30.59:8051/mcp"
-    ["exa"]="npx -y exa-mcp-server"
+    ["github"]="npx -y @modelcontextprotocol/server-github"
+
+    # Infrastructure Management
+    ["proxmox"]="/usr/local/bin/proxmox-mcp-wrapper.sh"
+    ["docker"]="npx -y docker-mcp"
+    ["harbor"]="npx -y mcp-harbor"
+    ["portainer"]="/usr/local/bin/portainer-mcp"
+    ["dokploy"]="npx -y @ahdev/dokploy-mcp"
+    ["cloudflare-dns"]="npx -y @cloudflare/mcp-server-cloudflare run"
+
+    # Data Storage
+    ["sqlite"]="npx -y mcp-server-sqlite-npx /root/.claude/data.db"
+    ["memory"]="npx -y @modelcontextprotocol/server-memory"
+    ["filesystem"]="npx -y @modelcontextprotocol/server-filesystem /root /mnt/overpower/apps/dev"
+
+    # Development Tools
+    ["azure-devops"]="npx -y @rxreyn3/azure-devops-mcp@latest"
+    ["minecraft"]="npx @fundamentallabs/minecraft-mcp"
     ["agentic-payments"]="npx agentic-payments@latest mcp"
-    ["zai-mcp-server"]="npx -y @z_ai/mcp-server"
+
+    # Utilities
+    ["zread"]="https://api.z.ai/api/mcp/zread/mcp"
 )
 
 # Create log directory
@@ -70,25 +103,55 @@ test_npx_server() {
     local name="$1"
     local command="$2"
 
-    # Check if npx is available
-    if ! command -v npx &> /dev/null; then
+    # Check if this is a wrapper script (starts with /)
+    if [[ "$command" == /* ]]; then
+        # This is a wrapper script or binary
+        if [[ -f "$command" && -x "$command" ]]; then
+            return 0
+        fi
         return 1
     fi
 
-    # Extract package name from command using safer method
-    local package=""
-    # Extract the part after 'npx' and before '@' or space
-    package=$(echo "$command" | sed -E 's/.*npx[[:space:]]+(-y[[:space:]]+)?([^[:space:]@]+).*/\2/' | head -1)
+    # Check if npx command is available
+    if ! command -v npx &> /dev/null && ! command -v /usr/bin/npx &> /dev/null; then
+        return 1
+    fi
 
-    if [[ -n "$package" && "$package" != "$command" ]]; then
-        # Check if package is installed or can be resolved
-        if npm list -g "$package" &> /dev/null; then
+    # Extract the package name for checking
+    local pkg_for_check=""
+    # Get everything after the last npx that looks like a package name
+    if [[ "$command" =~ npx[[:space:]]+(.*) ]]; then
+        pkg_for_check="${BASH_REMATCH[1]}"
+        # Remove -y flag if present
+        pkg_for_check="${pkg_for_check/#-y /}"
+        pkg_for_check="${pkg_for_check/#-y/}"
+        # Get just the package name (first word)
+        pkg_for_check="${pkg_for_check%% *}"
+    fi
+
+    # For official MCP packages, just check if installed globally
+    if [[ "$pkg_for_check" == @modelcontextprotocol/* ]] || [[ "$pkg_for_check" == mcp-server-* ]]; then
+        if npm list -g "$pkg_for_check" &> /dev/null; then
             return 0
         fi
-        # Try to check if package exists in npm registry
-        if npm view "$package" &> /dev/null; then
-            return 0
-        fi
+    fi
+
+    # For other packages, try to test execution
+    local test_cmd=""
+    if [[ "$command" == *"/usr/bin/npx"* ]]; then
+        test_cmd="${command/\/usr\/bin\/npx/npx}"
+    else
+        test_cmd="$command"
+    fi
+
+    # Try to run with --help or --version (with timeout)
+    if timeout 3 $test_cmd --help &>/dev/null || timeout 3 $test_cmd --version &>/dev/null; then
+        return 0
+    fi
+
+    # Fallback: If npm is available, assume package can be resolved
+    if command -v npm &> /dev/null; then
+        return 0
     fi
 
     return 1

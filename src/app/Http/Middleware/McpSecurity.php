@@ -42,7 +42,7 @@ class McpSecurity
         $response = $next($request);
 
         // Add security headers
-        $this->addSecurityHeaders($response);
+        $this->addSecurityHeaders($response, $request);
 
         // Log audit event
         $this->logAuditEvent($request, $response, microtime(true) - $startTime);
@@ -132,7 +132,7 @@ class McpSecurity
     }
 
     /**
-     * Authenticate API key.
+     * Authenticate API key and determine role.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return void
@@ -144,6 +144,12 @@ class McpSecurity
         $apiKey = $this->extractApiKey($request);
 
         if (!$apiKey) {
+            // Allow authenticated users to proceed without API key
+            if (auth()->check()) {
+                $request->attributes->set('mcp_service', 'user');
+                $request->attributes->set('mcp_role', auth()->user()->getPrimaryRoleAttribute()?->name ?? 'viewer');
+                return;
+            }
             abort(401, 'API key required');
         }
 
@@ -154,6 +160,9 @@ class McpSecurity
             if (hash_equals($key, $apiKey)) {
                 $isValid = true;
                 $request->attributes->set('mcp_service', $service);
+                // Map service to role based on RBAC configuration
+                $role = $this->getRoleForService($service);
+                $request->attributes->set('mcp_role', $role);
                 break;
             }
         }
@@ -169,7 +178,24 @@ class McpSecurity
     }
 
     /**
-     * Apply rate limiting.
+     * Get role for MCP service.
+     *
+     * @param  string  $service
+     * @return string
+     */
+    protected function getRoleForService(string $service): string
+    {
+        $roleMapping = [
+            'laravel_boost' => 'operator',
+            'shadcn' => 'viewer',
+            'ruv_swarm' => 'admin',
+        ];
+
+        return $roleMapping[$service] ?? 'viewer';
+    }
+
+    /**
+     * Apply rate limiting based on role.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return void
@@ -182,9 +208,18 @@ class McpSecurity
             return;
         }
 
-        $key = 'mcp:' . $request->ip();
-        $maxAttempts = config('mcp.rate_limiting.max_attempts', 60);
+        // Get rate limit based on role
+        $role = $request->attributes->get('mcp_role', 'viewer');
+        $roleLimits = [
+            'admin' => 1000,
+            'operator' => 500,
+            'auditor' => 200,
+            'viewer' => 100,
+        ];
+
+        $maxAttempts = $roleLimits[$role] ?? config('mcp.rate_limiting.max_attempts', 60);
         $decayMinutes = config('mcp.rate_limiting.decay_minutes', 1);
+        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($key);
@@ -195,6 +230,7 @@ class McpSecurity
                 'MCP rate limit exceeded',
                 [
                     'ip' => $request->ip(),
+                    'role' => $role,
                     'attempts' => RateLimiter::attempts($key),
                 ]
             );
@@ -209,9 +245,10 @@ class McpSecurity
      * Add security headers to response.
      *
      * @param  \Symfony\Component\HttpFoundation\Response  $response
+     * @param  \Illuminate\Http\Request  $request
      * @return void
      */
-    protected function addSecurityHeaders(Response $response): void
+    protected function addSecurityHeaders(Response $response, Request $request): void
     {
         $headers = config('mcp.headers', []);
 
@@ -219,9 +256,20 @@ class McpSecurity
             $response->headers->set($key, $value);
         }
 
-        // Add rate limit headers
-        $response->headers->set('X-RateLimit-Limit', config('mcp.rate_limiting.max_attempts', 60));
-        $response->headers->set('X-RateLimit-Remaining', (string) max(0, config('mcp.rate_limiting.max_attempts', 60) - RateLimiter::attempts('mcp:' . request()->ip())));
+        // Add rate limit headers based on role
+        $role = $request->attributes->get('mcp_role', 'viewer');
+        $roleLimits = [
+            'admin' => 1000,
+            'operator' => 500,
+            'auditor' => 200,
+            'viewer' => 100,
+        ];
+        $maxAttempts = $roleLimits[$role] ?? 60;
+        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
+
+        $response->headers->set('X-RateLimit-Limit', (string) $maxAttempts);
+        $response->headers->set('X-RateLimit-Remaining', (string) max(0, $maxAttempts - RateLimiter::attempts($key)));
+        $response->headers->set('X-MCP-Role', $role);
     }
 
     /**

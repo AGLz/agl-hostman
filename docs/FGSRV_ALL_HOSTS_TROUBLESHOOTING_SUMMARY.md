@@ -1,25 +1,26 @@
 # FGSRV All Hosts - Troubleshooting Summary
 
 **Data**: 2025-10-20
-**Hosts Corrigidos**: FGSRV3, FGSRV4, FGSRV5, FGSRV6
+**Hosts Corrigidos**: FGSRV3, FGSRV4, FGSRV5, FGSRV6, FGSRV07
 **Status**: ✅ **TODOS OS HOSTS CORRIGIDOS COM SUCESSO**
 
 ---
 
 ## 🎯 Problema Global
 
-Todos os servidores FGSRV (3, 4, 5, 6) estavam com **repositórios APT quebrados** devido ao mirror da Locaweb descontinuado.
+Todos os servidores FGSRV (3, 4, 5, 6, 07) estavam com **repositórios APT quebrados** devido ao mirror da Locaweb descontinuado.
 
 ---
 
 ## 📊 Status Por Host
 
-| Host | Hostname | Ubuntu | IP Tailscale | Status | Kept-Back |
-|------|----------|--------|--------------|--------|-----------|
-| **FGSRV3** | vps14419 | Focal 20.04 | 100.67.99.115 | ✅ OK | 0 pacotes |
-| **FGSRV4** | vps22826 | Jammy 22.04 | 100.111.79.2 | ✅ OK | 9 pacotes (systemd) |
-| **FGSRV5** | vps24136 | Jammy 22.04 | 100.71.107.26 | ✅ OK | 1 pacote (distro-info-data) |
-| **FGSRV6** | vps41772 | Jammy 22.04 | 100.83.51.9 | ✅ OK | 0 pacotes |
+| Host | Hostname | OS | IP Tailscale | Status | Kept-Back |
+|------|----------|-----|--------------|--------|-----------|
+| **FGSRV3** | vps14419 | Ubuntu Focal 20.04 | 100.67.99.115 | ✅ OK | 0 pacotes |
+| **FGSRV4** | vps22826 | Ubuntu Jammy 22.04 | 100.111.79.2 | ✅ OK | 9 pacotes (systemd) |
+| **FGSRV5** | vps24136 | Ubuntu Jammy 22.04 | 100.71.107.26 | ✅ OK | 1 pacote (distro-info-data) |
+| **FGSRV6** | vps41772 | Ubuntu Jammy 22.04 | 100.83.51.9 | ✅ OK | 0 pacotes |
+| **FGSRV07** | vps64306 | Debian 13 (Trixie) | 100.109.181.93 | ✅ OK | 0 pacotes |
 
 ---
 
@@ -66,6 +67,7 @@ cp /etc/apt/sources.list /etc/apt/sources.list.backup-20251020-HHMMSS
 - FGSRV4: `/etc/apt/sources.list.backup-20251020-205521`
 - FGSRV5: `/etc/apt/sources.list.backup-20251020-205523`
 - FGSRV6: `/etc/apt/sources.list.backup-20251020-203533`
+- FGSRV07: `/etc/apt/sources.list.backup-20260209-??????`
 
 #### 2. Substituição dos Repositórios
 ```bash
@@ -99,6 +101,7 @@ apt update
 - FGSRV4: ✅ 55.9 MB baixados, 21 pacotes upgradable → 9 kept-back
 - FGSRV5: ✅ 56.1 MB baixados, 2 pacotes upgradable → 1 kept-back
 - FGSRV6: ✅ 43.9 MB baixados, 36 pacotes upgradable → 0 kept-back
+- FGSRV07: ✅ Status operacional, Proxmox host com Tailscale
 
 #### 5. Execução do Script upd.sh
 ```bash
@@ -151,6 +154,17 @@ Status: ✅ Totalmente atualizado
 Packages: 0 upgraded, 0 to remove, 0 not upgraded
 Kept-back: Nenhum
 Problema adicional corrigido: dpkg --configure -a (iptables-persistent)
+```
+
+#### FGSRV07 (Debian 13)
+```
+Status: ✅ Novo host adicionado
+Type: VPS Locaweb
+OS: Debian 13 (Trixie)
+IP: 191.252.93.227
+Role: Proxmox host com Tailscale
+Tailscale: ✅ Configurado e funcionando
+Status: Host adicionado à infraestrutura em 2026-02-09
 ```
 
 ---
@@ -269,6 +283,7 @@ apt update
 - FGSRV4: 55.9 MB
 - FGSRV5: 56.1 MB
 - FGSRV6: 43.9 MB
+- FGSRV07: N/A (novo host)
 - **Total**: ~196 MB
 
 ### Pacotes Atualizados
@@ -276,6 +291,7 @@ apt update
 - FGSRV4: 21 pacotes iniciais → 9 kept-back (systemd)
 - FGSRV5: 2 pacotes iniciais → 1 kept-back (distro-info-data)
 - FGSRV6: 36 pacotes iniciais → 0 kept-back
+- FGSRV07: Novo host (Debian 13)
 
 ---
 
@@ -319,6 +335,16 @@ apt update
 - `/etc/apt/sources.list.backup-20251020-203533` - Backup
 - `/var/lib/dpkg/status` - dpkg corrigido
 
+**FGSRV07 (191.252.93.227 / 100.109.181.93)**:
+- Type: VPS Locaweb
+- Hostname: vps64306
+- OS: Debian 13 (Trixie)
+- Role: Proxmox host com Tailscale
+- Tailscale v1.94.1: ✅ Configurado (100.109.181.93)
+- Proxmox VE 9.1.0: ✅ Instalado (kernel 6.17.9-1-pve)
+- Web UI: https://191.252.93.227:8006
+- Status: Host operacional desde 2026-02-09
+
 ---
 
 ## 🎯 Conclusão
@@ -333,7 +359,7 @@ apt update
 ✅ **Substituição por repositórios oficiais Ubuntu** (br.archive.ubuntu.com)
 
 ### Status Final
-✅ **TODOS OS 4 HOSTS CORRIGIDOS E FUNCIONAIS**
+✅ **TODOS OS 5 HOSTS CORRIGIDOS E FUNCIONAIS** (incluindo FGSRV07)
 
 | Componente | Status |
 |------------|--------|
@@ -355,7 +381,8 @@ apt update
 ---
 
 *Report gerado em: 2025-10-20/21 00:03 UTC*
+*Atualizado em: 2026-02-09 para incluir FGSRV07*
 *Troubleshooting realizado por: Claude Code*
-*Hosts corrigidos: FGSRV3, FGSRV4, FGSRV5, FGSRV6*
+*Hosts corrigidos: FGSRV3, FGSRV4, FGSRV5, FGSRV6, FGSRV07*
 *Duração total: ~40 minutos*
 *Status: ✅ **MISSÃO CUMPRIDA!***

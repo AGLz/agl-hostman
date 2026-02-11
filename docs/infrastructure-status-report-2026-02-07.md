@@ -1,11 +1,14 @@
 # Infrastructure Service Status Report
 **Date**: 2026-02-07
+**Updated**: 2026-02-09
 **Host**: AGLSRV1 (192.168.0.245)
 **Verified by**: Hive Mind Swarm
 
 ## Executive Summary
 
 All 5 target containers are **RUNNING** on AGLSR1, but several services require attention:
+
+**NEW HOST ADDED**: FGSRV07 - VPS Locaweb with Debian 13 and Proxmox
 
 | Service | Container | Status | Health | Action Required |
 |---------|-----------|--------|--------|-----------------|
@@ -180,6 +183,50 @@ PORT     SERVICE
 
 ---
 
+## 6. FGSRV07 - NEW HOST (2026-02-09)
+
+**Host Type**: VPS Locaweb
+**OS**: Debian 13 (Trixie)
+**IP Public**: 191.252.93.227
+**IP Tailscale**: 100.109.181.93
+**MagicDNS**: fgsrv07.degu-chromatic.ts.net
+**Role**: Proxmox host with Tailscale
+
+**Status**: ✅ **OPERATIONAL**
+
+**Configuration**:
+- Proxmox VE 9.1.0: Installed and operational
+- Kernel: 6.17.9-1-pve
+- Tailscale v1.94.1: Installed and connected
+- Exit Node: Enabled
+- Accept Routes: Enabled
+- IP Forwarding: Enabled
+- Role: Virtualization host for VM/LXC deployments
+
+**Access Methods**:
+- Public IP: 191.252.93.227
+- Tailscale: 100.109.181.93 ✅
+- MagicDNS: fgsrv07.degu-chromatic.ts.net ✅
+- SSH: Standard port 22 (key authorized)
+
+**Services**:
+- Tailscale: 100.109.181.93 ✅
+- Proxmox VE 9.1.0: ✅ Running
+- Proxmox Web UI: https://191.252.93.227:8006 ✅
+  - Alternative: https://100.109.181.93:8006 (Tailscale)
+  - Alternative: https://fgsrv07.degu-chromatic.ts.net:8006
+- Login: root (SSH password)
+
+**Notes**:
+- Added to infrastructure on 2026-02-09
+- Running Debian 13 (Trixie) - Kernel 6.12.63
+- Hostname: vps64306
+- Part of Locaweb VPS fleet
+- Designated as Proxmox virtualization host
+- Tailscale connected to 39 peers in the network
+
+---
+
 ## Network Access
 
 **Primary Access Methods**:
@@ -192,8 +239,19 @@ PORT     SERVICE
 - Dokploy: https://dok.aglz.io
 - Supabase Studio: http://192.168.0.184:8000
 - Harbor: http://192.168.0.182 (NOT accessible - services down)
+- FGSRV07 (Public): 191.252.93.227
+- FGSRV07 (Tailscale): 100.109.181.93
+- FGSRV07 (MagicDNS): fgsrv07.degu-chromatic.ts.net
 
 ---
+
+## Hosts Summary
+
+| Host | Type | OS | IP | Role | Status |
+|------|------|-----|----|----|--------|
+| **AGLSRV1** | Bare Metal | Proxmox | 192.168.0.245 | Host for CTs | ✅ Operational |
+| **FGSRV07** | VPS Locaweb | Debian 13 (Trixie) | 191.252.93.227 (Public) | Proxmox + Tailscale | ✅ Operational (NEW) |
+| | | | 100.109.181.93 (Tailscale) | | |
 
 ## Notes
 
@@ -201,6 +259,7 @@ PORT     SERVICE
 - All containers are LXC-based with Docker running inside
 - Status verified via direct SSH to AGLSRV1 (192.168.0.245)
 - Last verified: 2026-02-07
+- FGSRV07 added: 2026-02-09
 
 ---
 

@@ -1,0 +1,200 @@
+# Prometheus Alert Rules for Backup Monitoring
+# Location: /etc/prometheus/alerts/backup_alerts.yml
+
+groups:
+  - name: backup_alerts
+    interval: 1m
+    rules:
+      # Alert when backup hasn't succeeded in 24 hours
+      - alert: BackupNotCompleted
+        expr: time() - backup_last_success_timestamp{host="aglsrv1"} > 86400
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+        annotations:
+          summary: "Backup has not completed in 24 hours"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago on {{ $labels.host }}"
+
+      # Alert when backup duration exceeds threshold
+      - alert: BackupDurationTooLong
+        expr: backup_duration_seconds{host="aglsrv1"} > 14400
+        for: 5m
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "Backup duration exceeded 4 hours"
+          description: "Last backup took {{ $value | humanizeDuration }} on {{ $labels.host }}"
+
+      # Alert when backup size is growing abnormally fast
+      - alert: BackupSizeGrowingFast
+        expr: rate(backup_size_bytes{host="aglsrv1"}[7d]) > 10737418240
+        for: 1h
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "Backup size growing rapidly"
+          description: "Backup size growing at {{ $value | humanize }}B/s on {{ $labels.datastore }}"
+
+      # Alert when PBS storage is almost full
+      - alert: PBSStorageAlmostFull
+        expr: (pbs_storage_used_bytes{datastore="aglsrv6-pbs"} / pbs_storage_total_bytes{datastore="aglsrv6-pbs"}) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "PBS datastore is 85% full"
+          description: "Datastore {{ $labels.datastore }} is {{ $value | humanizePercentage }} full"
+
+      # Alert when PBS storage is critically full
+      - alert: PBSStorageCriticallyFull
+        expr: (pbs_storage_used_bytes{datastore="aglsrv6-pbs"} / pbs_storage_total_bytes{datastore="aglsrv6-pbs"}) > 0.95
+        for: 1m
+        labels:
+          severity: critical
+          service: backup
+        annotations:
+          summary: "PBS datastore is 95% full"
+          description: "Datastore {{ $labels.datastore }} is {{ $value | humanizePercentage }} full - immediate action required"
+
+      # Alert when backup verification failed
+      - alert: BackupVerificationFailed
+        expr: backup_verification_last_result{host="aglsrv1"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+        annotations:
+          summary: "Backup verification failed"
+          description: "Last verification returned exit code {{ $value }} on {{ $labels.host }}"
+
+      # Alert when sync job from AGLSRV6 to FGSRV07 fails
+      - alert: BackupSyncJobFailed
+        expr: backup_sync_last_status{target="fgsrv07"} > 0
+        for: 10m
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "Backup sync to FGSRV07 failed"
+          description: "Last sync job failed with status {{ $value }}"
+
+      # Alert when retention policy compliance drops below threshold
+      - alert: BackupRetentionComplianceLow
+        expr: backup_retention_compliance_ratio{host="aglsrv1"} < 0.9
+        for: 1h
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "Backup retention compliance below 90%"
+          description: "Only {{ $value | humanizePercentage }} of backups meet retention policy on {{ $labels.host }}"
+
+      # Alert when garbage collection hasn't run in 3 days
+      - alert: PBSGarbageCollectionStale
+        expr: time() - pbs_gc_last_success_timestamp{datastore="aglsrv6-pbs"} > 259200
+        for: 1h
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "PBS garbage collection hasn't run in 3 days"
+          description: "Last successful GC was {{ $value | humanizeDuration }} ago on {{ $labels.datastore }}"
+
+  - name: backup_recording_rules
+    interval: 30s
+    rules:
+      # Calculate backup age in seconds
+      - record: backup_age_seconds
+        expr: time() - backup_last_success_timestamp
+
+      # Calculate backup success rate over 24h
+      - record: backup_success_rate_24h
+        expr: rate(backup_success_total[24h])
+
+      # Calculate average backup duration over 7d
+      - record: backup_avg_duration_7d
+        expr: avg(backup_duration_seconds over time)
+
+      # Calculate backup size growth rate
+      - record: backup_size_growth_rate
+        expr: rate(backup_size_bytes[7d])
+
+      # Calculate PBS storage usage percentage
+      - record: pbs_storage_usage_percentage
+        expr: (pbs_storage_used_bytes / pbs_storage_total_bytes) * 100
+
+      # Count failed backups in last 24h
+      - record: backup_failures_24h
+        expr: increase(backup_failures_total[24h])
+
+# Grafana Dashboard JSON
+# Import this into Grafana for backup monitoring dashboard
+grafana_dashboard: |
+  {
+    "dashboard": {
+      "title": "AGL Backup Monitoring",
+      "tags": ["backup", "proxmox", "pbs"],
+      "timezone": "browser",
+      "panels": [
+        {
+          "title": "Backup Status",
+          "type": "stat",
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+          "targets": [
+            {
+              "expr": "backup_last_success_timestamp{host=\"aglsrv1\"}",
+              "legendFormat": "Last Successful Backup"
+            }
+          ]
+        },
+        {
+          "title": "Backup Duration",
+          "type": "graph",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+          "targets": [
+            {
+              "expr": "backup_duration_seconds{host=\"aglsrv1\"}",
+              "legendFormat": "Duration (seconds)"
+            }
+          ]
+        },
+        {
+          "title": "PBS Storage Usage",
+          "type": "gauge",
+          "gridPos": {"h": 8, "w": 6, "x": 12, "y": 4},
+          "targets": [
+            {
+              "expr": "pbs_storage_usage_percentage{datastore=\"aglsrv6-pbs\"}",
+              "legendFormat": "Storage Used %"
+            }
+          ]
+        },
+        {
+          "title": "Backup Size Growth",
+          "type": "graph",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+          "targets": [
+            {
+              "expr": "rate(backup_size_bytes{host=\"aglsrv1\"}[7d])",
+              "legendFormat": "Growth Rate"
+            }
+          ]
+        },
+        {
+          "title": "Backup Success Rate",
+          "type": "graph",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+          "targets": [
+            {
+              "expr": "backup_success_rate_24h{host=\"aglsrv1\"}",
+              "legendFormat": "Success Rate"
+            }
+          ]
+        }
+      ]
+    }
+  }

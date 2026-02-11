@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Restoration Test Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #f8fafc;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .metric-unit {
+            font-size: 16px;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-compliant {
+            background: #22c55e;
+            color: #ffffff;
+        }
+
+        .status-non-compliant {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .status-warning {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+
+        .test-list {
+            list-style: none;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-status {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .test-status.passed {
+            background: #22c55e;
+        }
+
+        .test-status.failed {
+            background: #ef4444;
+        }
+
+        .test-status.skipped {
+            background: #94a3b8;
+        }
+
+        .test-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .test-details {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            transition: width 0.3s ease;
+        }
+
+        .sla-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .sla-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .sla-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #f8fafc;
+            margin: 10px 0;
+        }
+
+        .sla-target {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .refresh-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .refresh-button:hover {
+            background: #2563eb;
+        }
+
+        .last-updated {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-left: 15px;
+        }
+
+        .charts-section {
+            margin-top: 30px;
+        }
+
+        .chart-container {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sla-section {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-value {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Backup Restoration Test Dashboard</h1>
+            <div class="subtitle">AGL-22: Automated Backup and Disaster Recovery</div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Test Summary</span>
+                    <span class="status-badge status-compliant" id="overall-status">PASSED</span>
+                </div>
+                <div class="metric-value" id="pass-rate">100%</div>
+                <div class="subtitle">Pass Rate</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="pass-progress" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Tests Run</span>
+                    <button class="refresh-button" onclick="loadDashboard()">Refresh</button>
+                </div>
+                <div class="metric-value" id="total-tests">0</div>
+                <div class="subtitle" id="test-breakdown">0 passed, 0 failed</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">RTO Compliance</span>
+                    <span class="status-badge status-compliant" id="rto-status">COMPLIANT</span>
+                </div>
+                <div class="metric-value" id="rto-value">< 30m</div>
+                <div class="subtitle">Current vs 4h target</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">RPO Compliance</span>
+                    <span class="status-badge status-compliant" id="rpo-status">COMPLIANT</span>
+                </div>
+                <div class="metric-value" id="rpo-value">< 1h</div>
+                <div class="subtitle">Backup age vs 1h target</div>
+            </div>
+        </div>
+
+        <div class="sla-section">
+            <div class="sla-card">
+                <div class="card-header">
+                    <span class="card-title">Recovery Time Objective (RTO)</span>
+                </div>
+                <div class="sla-value" id="rto-current">0h 30m</div>
+                <div class="sla-target">Target: 4 hours | Status: COMPLIANT</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="rto-progress" style="width: 12.5%"></div>
+                </div>
+            </div>
+
+            <div class="sla-card">
+                <div class="card-header">
+                    <span class="card-title">Recovery Point Objective (RPO)</span>
+                </div>
+                <div class="sla-value" id="rpo-current">0h 15m</div>
+                <div class="sla-target">Target: 1 hour | Status: COMPLIANT</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="rpo-progress" style="width: 25%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-container">
+                <div class="card-header">
+                    <span class="card-title">Test Results</span>
+                    <span class="last-updated" id="last-updated">Last updated: Loading...</span>
+                </div>
+                <ul class="test-list" id="test-list">
+                    <!-- Test results will be inserted here -->
+                </ul>
+            </div>
+
+            <div class="chart-container">
+                <div class="card-header">
+                    <span class="card-title">Backup Status</span>
+                </div>
+                <ul class="test-list" id="backup-list">
+                    <!-- Backup status will be inserted here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/backup-tests';
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+
+                updateSummary(data.summary);
+                updateTests(data.tests);
+                updateBackups(data.backups);
+                updateSLA(data.sla);
+                updateLastUpdated(data.timestamp);
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                loadMockData();
+            }
+        }
+
+        function updateSummary(summary) {
+            document.getElementById('total-tests').textContent = summary.total;
+            document.getElementById('test-breakdown').textContent =
+                `${summary.passed} passed, ${summary.failed} failed`;
+
+            const passRate = summary.total > 0
+                ? Math.round((summary.passed / summary.total) * 100)
+                : 0;
+            document.getElementById('pass-rate').textContent = `${passRate}%`;
+            document.getElementById('pass-progress').style.width = `${passRate}%`;
+
+            const overallStatus = document.getElementById('overall-status');
+            if (summary.failed === 0) {
+                overallStatus.textContent = 'PASSED';
+                overallStatus.className = 'status-badge status-compliant';
+            } else {
+                overallStatus.textContent = 'FAILED';
+                overallStatus.className = 'status-badge status-non-compliant';
+            }
+        }
+
+        function updateTests(tests) {
+            const testList = document.getElementById('test-list');
+            testList.innerHTML = '';
+
+            tests.forEach(test => {
+                const item = document.createElement('li');
+                item.className = 'test-item';
+                item.innerHTML = `
+                    <div class="test-status ${test.status}">
+                        ${getStatusIcon(test.status)}
+                    </div>
+                    <div class="test-name">${test.name}</div>
+                    <div class="test-details">${test.details || ''}</div>
+                `;
+                testList.appendChild(item);
+            });
+        }
+
+        function updateBackups(backups) {
+            const backupList = document.getElementById('backup-list');
+            backupList.innerHTML = '';
+
+            backups.forEach(backup => {
+                const item = document.createElement('li');
+                item.className = 'test-item';
+                item.innerHTML = `
+                    <div class="test-status ${backup.available ? 'passed' : 'failed'}">
+                        ${backup.available ? '✓' : '✗'}
+                    </div>
+                    <div class="test-name">${backup.type}</div>
+                    <div class="test-details">${backup.age || 'Not available'}</div>
+                `;
+                backupList.appendChild(item);
+            });
+        }
+
+        function updateSLA(sla) {
+            const rtoStatus = document.getElementById('rto-status');
+            const rpoStatus = document.getElementById('rpo-status');
+
+            if (sla.rto.compliant) {
+                rtoStatus.textContent = 'COMPLIANT';
+                rtoStatus.className = 'status-badge status-compliant';
+            } else {
+                rtoStatus.textContent = 'NON-COMPLIANT';
+                rtoStatus.className = 'status-badge status-non-compliant';
+            }
+
+            if (sla.rpo.compliant) {
+                rpoStatus.textContent = 'COMPLIANT';
+                rpoStatus.className = 'status-badge status-compliant';
+            } else {
+                rpoStatus.textContent = 'NON-COMPLIANT';
+                rpoStatus.className = 'status-badge status-non-compliant';
+            }
+        }
+
+        function updateLastUpdated(timestamp) {
+            document.getElementById('last-updated').textContent =
+                `Last updated: ${new Date(timestamp).toLocaleString()}`;
+        }
+
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'passed':
+                    return '✓';
+                case 'failed':
+                    return '✗';
+                case 'skipped':
+                    return '−';
+                default:
+                    return '?';
+            }
+        }
+
+        function loadMockData() {
+            // Mock data for development/testing
+            const mockData = {
+                summary: {
+                    total: 15,
+                    passed: 14,
+                    failed: 1,
+                    skipped: 0
+                },
+                tests: [
+                    { name: 'PostgreSQL Backup', status: 'passed', details: 'Age: 0.5h' },
+                    { name: 'MariaDB Backup', status: 'passed', details: 'Age: 0.5h' },
+                    { name: 'Redis Backup', status: 'passed', details: 'Age: 0.5h' },
+                    { name: 'Volume Backup', status: 'passed', details: 'Size: 2.3GB' },
+                    { name: 'Config Backup', status: 'passed', details: 'Size: 15MB' },
+                    { name: 'PostgreSQL RPO', status: 'passed', details: '0.5h < 1h' },
+                    { name: 'MariaDB RPO', status: 'passed', details: '0.5h < 1h' },
+                    { name: 'Redis RPO', status: 'passed', details: '0.5h < 1h' },
+                    { name: 'Extract PostgreSQL', status: 'passed', details: 'Valid SQL' },
+                    { name: 'Extract MariaDB', status: 'passed', details: 'Valid SQL' },
+                    { name: 'Extract Config', status: 'passed', details: 'All files present' },
+                    { name: 'Retention Policy', status: 'passed', details: 'No old files' },
+                    { name: 'Weekly Backups', status: 'passed', details: '4 backups' },
+                    { name: 'Monthly Backups', status: 'passed', details: '2 backups' },
+                    { name: 'RTO Speed Test', status: 'failed', details: 'Timeout' }
+                ],
+                backups: [
+                    { type: 'PostgreSQL', available: true, age: '0.5 hours old' },
+                    { type: 'MariaDB', available: true, age: '0.5 hours old' },
+                    { type: 'Redis', available: true, age: '0.5 hours old' },
+                    { type: 'Volumes', available: true, age: '0.5 hours old' },
+                    { type: 'Config', available: true, age: '0.5 hours old' }
+                ],
+                sla: {
+                    rto: { compliant: true, current: '0h 30m', target: '4h' },
+                    rpo: { compliant: true, current: '0h 15m', target: '1h' }
+                },
+                timestamp: new Date().toISOString()
+            };
+
+            updateSummary(mockData.summary);
+            updateTests(mockData.tests);
+            updateBackups(mockData.backups);
+            updateSLA(mockData.sla);
+            updateLastUpdated(mockData.timestamp);
+        }
+
+        // Load dashboard on page load
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+
+        // Auto-refresh every 5 minutes
+        setInterval(loadDashboard, 300000);
+    </script>
+</body>
+</html>

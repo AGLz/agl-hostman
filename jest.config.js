@@ -5,10 +5,10 @@ module.exports = {
   collectCoverage: true,
   coverageThreshold: {
     global: {
-      branches: 50,
-      functions: 50,
-      lines: 50,
-      statements: 50,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
     },
   },
   collectCoverageFrom: [
@@ -36,7 +36,7 @@ module.exports = {
     '/src/public/',
   ],
   transformIgnorePatterns: ['/node_modules/', '/src/vendor/'],
-  cache: false,
+  cacheDirectory: '/tmp/jest-cache-agl-hostman',
   maxWorkers: 1,
   verbose: true,
   testTimeout: 30000,

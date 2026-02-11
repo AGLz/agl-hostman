@@ -1,0 +1,28 @@
+[Unit]
+Description=Periodic Backup Restoration Test
+Documentation=file:///mnt/overpower/apps/dev/agl/agl-hostman/docs/backup-restoration-guide.md
+After=network.target backup.service
+Requires=network.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/overpower/apps/dev/agl/agl-hostman/tests/backup
+Environment="BACKUP_ROOT=/mnt/shares/agl-hostman-backups"
+Environment="ALERT_EMAIL=admin@agl.local"
+Environment="SLACK_WEBHOOK="
+ExecStart=/mnt/overpower/apps/dev/agl/agl-hostman/tests/backup/run-periodic-tests.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=backup-restoration-test
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/mnt/shares/agl-hostman-backups /tmp
+
+[Install]
+WantedBy=multi-user.target

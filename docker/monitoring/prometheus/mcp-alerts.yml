@@ -1,0 +1,177 @@
+# Prometheus Alert Rules for MCP Server Monitoring
+# Part of AGL-25: MCP Server Optimization
+
+groups:
+  - name: mcp_servers
+    interval: 30s
+    rules:
+      # Critical: Core orchestration servers down
+      - alert: MCPCoreServerDown
+        expr: mcp_server_up{server=~"claude-flow|archon|archon-tailscale"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: mcp
+        annotations:
+          summary: "Critical MCP server down: {{ $labels.server }}"
+          description: "{{ $labels.server }} has been down for more than 2 minutes"
+          runbook: "docs/mcp-troubleshooting.md"
+
+      # Warning: Any MCP server down
+      - alert: MCPServerDown
+        expr: mcp_server_up == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "MCP server down: {{ $labels.server }}"
+          description: "{{ $labels.server }} has been down for more than 5 minutes"
+
+      # Critical: High response time (p95 threshold)
+      - alert: MCPServerHighResponseTime
+        expr: mcp_server_response_time_seconds > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "High MCP server response time: {{ $labels.server }}"
+          description: "{{ $labels.server }} response time is {{ $value }}s (target: <100ms)"
+          runbook: "docs/mcp-usage-guide.md#performance-optimization"
+
+      # Critical: Multiple servers down
+      - alert: MCPServersDegraded
+        expr: count(mcp_server_up == 0) >= 3
+        for: 1m
+        labels:
+          severity: critical
+          component: mcp
+        annotations:
+          summary: "Multiple MCP servers down"
+          description: "{{ $value }} MCP servers are currently down"
+
+      # Warning: Health check failures
+      - alert: MCPHealthCheckScrapeFailed
+        expr: rate(mcp_health_check_success[5m]) < 0.8
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "MCP health check experiencing failures"
+          description: "Health check success rate below 80%"
+
+      # Info: Server restarts
+      - alert: MCPServerRestarted
+        expr: increase(mcp_restart_total[5m]) > 0
+        labels:
+          severity: info
+          component: mcp
+        annotations:
+          summary: "MCP server restarted: {{ $labels.server }}"
+          description: "{{ $labels.server }} has restarted {{ $value }} times in the last 5 minutes"
+
+      # Warning: Package resolution failures (for npx servers)
+      - alert: MCPNPXPackageFailure
+        expr: increase(mcp_npx_package_failures[10m]) > 5
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "High npx package resolution failures"
+          description: "{{ $value }} package resolution failures in the last 10 minutes"
+
+  - name: mcp_performance
+    interval: 1m
+    rules:
+      # Performance degradation detection
+      - alert: MCPPerformanceDegraded
+        expr: |
+          avg_over_time(mcp_server_response_time_seconds{server!~"archon.*"}[10m])
+          > 2 * avg_over_time(mcp_server_response_time_seconds{server!~"archon.*"}[1h])
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "MCP server performance degraded: {{ $labels.server }}"
+          description: "Response time is 2x higher than the 1-hour average"
+
+      # HTTP vs npx performance comparison
+      - alert: MCPNPXPerformanceCritical
+        expr: |
+          mcp_server_response_time_seconds{type="npx"} > 1.0
+        for: 15m
+        labels:
+          severity: critical
+          component: mcp
+        annotations:
+          summary: "npx MCP server critically slow: {{ $labels.server }}"
+          description: "{{ $labels.server }} response time is {{ $value }}s (should be <100ms)"
+          runbook: "docs/mcp-usage-guide.md#optimization-tips"
+
+  - name: mcp_network
+    interval: 30s
+    rules:
+      # Network connectivity issues for HTTP servers
+      - alert: MCPHTTPServerUnreachable
+        expr: |
+          mcp_server_up{type=~"http|sse"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          component: mcp
+        annotations:
+          summary: "HTTP MCP server unreachable: {{ $labels.server }}"
+          description: "Cannot connect to {{ $labels.server }} at {{ $labels.url }}"
+          runbook: "docs/mcp-troubleshooting.md#http-server-issues"
+
+      # Tailscale IP change detection
+      - alert: MCPTailscaleIPChanged
+        expr: |
+          mcp_server_up{server="archon-tailscale"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "archon-tailscale may have IP change"
+          description: "Tailscale IP may have changed. Check: tailscale status"
+          runbook: "docs/mcp-troubleshooting.md#archon-tailscale-connection-failed"
+
+  - name: mcp_capacity
+    interval: 5m
+    rules:
+      # Too many servers restarting
+      - alert: MCPRestartStorm
+        expr: |
+          sum(rate(mcp_restart_total[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          component: mcp
+        annotations:
+          summary: "MCP server restart storm detected"
+          description: "More than 6 restarts per minute detected across all servers"
+
+      # Server count monitoring
+      - alert: MCPServerCountChanged
+        expr: |
+          count(mcp_server_up) != 26
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "MCP server count changed"
+          description: "Expected 26 servers, currently {{ $value }} servers monitored"
+
+# Additional configuration for Prometheus
+# Add to prometheus.yml scrape_configs:
+#   - job_name: 'mcp-servers'
+#     scrape_interval: 30s
+#     static_configs:
+#       - targets: ['localhost:9099']
+#         labels:
+#           environment: 'production'
+#           service: 'mcp-monitoring'

@@ -1,0 +1,34 @@
+{
+  "name": "agl-backup-restoration-tests",
+  "version": "1.0.0",
+  "description": "Automated backup restoration testing suite for AGL-22",
+  "main": "restoration.test.js",
+  "scripts": {
+    "test": "jest restoration.test.js",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "test:python": "python3 verify_restoration.py",
+    "test:bash": "bash test_restoration.sh",
+    "test:all": "npm run test && npm run test:python && npm run test:bash",
+    "report": "python3 verify_restoration.py --report",
+    "dashboard": "python3 -m http.server 8080 --directory ."
+  },
+  "keywords": [
+    "backup",
+    "restoration",
+    "testing",
+    "disaster-recovery",
+    "sla"
+  ],
+  "author": "AGL Infrastructure Team",
+  "license": "MIT",
+  "jest": {
+    "testEnvironment": "node",
+    "verbose": true,
+    "testTimeout": 120000,
+    "collectCoverageFrom": [
+      "*.js"
+    ]
+  }
+}

@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle' => \App\Http\Middleware\RateLimiting::class,
             'performance' => \App\Http\Middleware\PerformanceMiddleware::class,
             'cache.response' => \App\Http\Middleware\CacheMiddleware::class,
+            // MCP Server Security
+            'mcp.security' => \App\Http\Middleware\McpSecurity::class,
+            'mcp.rbac' => \App\Http\Middleware\McpRbac::class,
         ]);
 
         // Apply security and performance middleware to API routes (Laravel 11)

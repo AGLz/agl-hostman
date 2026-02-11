@@ -1,0 +1,227 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/MCPServersConfig.json",
+  "mcpServers": {
+    "claude-flow": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["claude-flow@alpha", "mcp", "start"],
+      "description": "Core orchestration and swarm coordination - CRITICAL",
+      "priority": "P0",
+      "category": "orchestration"
+    },
+    "ruv-swarm": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["ruv-swarm@latest", "mcp", "start"],
+      "description": "Enhanced coordination and swarm management - HIGH",
+      "priority": "P1",
+      "category": "orchestration"
+    },
+    "flow-nexus": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["flow-nexus@latest", "mcp", "start"],
+      "description": "Cloud features and neural AI - MEDIUM",
+      "priority": "P2",
+      "category": "orchestration"
+    },
+    "archon": {
+      "type": "sse",
+      "url": "http://192.168.0.183:8052/mcp",
+      "description": "Local project management and PRP workflows - CRITICAL",
+      "priority": "P0",
+      "category": "project-management"
+    },
+    "archon-tailscale": {
+      "type": "sse",
+      "url": "http://100.80.30.59:8051/mcp",
+      "description": "Remote project management via Tailscale VPN - CRITICAL",
+      "priority": "P0",
+      "category": "project-management",
+      "notes": "IP may change if Tailscale reconnects"
+    },
+    "linear": {
+      "type": "sse",
+      "url": "https://mcp.linear.app/mcp",
+      "description": "Linear project management - REQUIRES AUTH",
+      "priority": "P1",
+      "category": "project-management",
+      "auth_required": true,
+      "auth_instructions": "Set LINEAR_API_TOKEN environment variable"
+    },
+    "github": {
+      "type": "stdio",
+      "command": "/usr/bin/npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "description": "GitHub integration for repos, PRs, issues - HIGH",
+      "priority": "P1",
+      "category": "development"
+    },
+    "zai-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@z_ai/mcp-server"],
+      "description": "Image and video analysis capabilities - HIGH",
+      "priority": "P1",
+      "category": "media"
+    },
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"],
+      "description": "AI-powered search - HIGH",
+      "priority": "P1",
+      "category": "search"
+    },
+    "web-search-prime": {
+      "type": "sse",
+      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+      "description": "Web search with recent data - HIGH",
+      "priority": "P1",
+      "category": "search"
+    },
+    "web-reader": {
+      "type": "sse",
+      "url": "https://api.z.ai/api/mcp/web_reader/mcp",
+      "description": "Web page scraping and content extraction - MEDIUM",
+      "priority": "P2",
+      "category": "search"
+    },
+    "zread": {
+      "type": "sse",
+      "url": "https://api.z.ai/api/mcp/zread/mcp",
+      "description": "GitHub repository reader - MEDIUM",
+      "priority": "P2",
+      "category": "development"
+    },
+    "docker": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "docker-mcp"],
+      "description": "Docker container management - HIGH",
+      "priority": "P1",
+      "category": "infrastructure"
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/root", "/mnt/overpower/apps/dev"],
+      "description": "File system operations - HIGH",
+      "priority": "P1",
+      "category": "data"
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "/usr/bin/npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "In-memory key-value storage - MEDIUM",
+      "priority": "P2",
+      "category": "data"
+    },
+    "sqlite": {
+      "type": "stdio",
+      "command": "/usr/bin/npx",
+      "args": ["-y", "mcp-server-sqlite-npx", "/root/.claude/data.db"],
+      "description": "SQLite database access - MEDIUM",
+      "priority": "P2",
+      "category": "data"
+    },
+    "agentic-payments": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["agentic-payments@latest", "mcp"],
+      "description": "Payment processing - MEDIUM",
+      "priority": "P2",
+      "category": "utilities"
+    },
+    "proxmox": {
+      "type": "stdio",
+      "command": "/usr/local/bin/proxmox-mcp-wrapper.sh",
+      "description": "Proxmox VM management - MEDIUM",
+      "priority": "P2",
+      "category": "infrastructure"
+    },
+    "portainer": {
+      "type": "stdio",
+      "command": "/usr/local/bin/portainer-mcp",
+      "description": "Portainer container UI - MEDIUM",
+      "priority": "P2",
+      "category": "infrastructure"
+    },
+    "harbor": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-harbor"],
+      "description": "Harbor container registry - MEDIUM",
+      "priority": "P2",
+      "category": "infrastructure"
+    },
+    "dokploy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@ahdev/dokploy-mcp"],
+      "description": "Deployment automation - MEDIUM",
+      "priority": "P2",
+      "category": "infrastructure"
+    },
+    "cloudflare-dns": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@cloudflare/mcp-server-cloudflare", "run", "08e7b6e3a5084b4a3a2e0b3de153b02e"],
+      "description": "Cloudflare DNS management - LOW",
+      "priority": "P3",
+      "category": "infrastructure"
+    },
+    "azure-devops": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@rxreyn3/azure-devops-mcp@latest"],
+      "description": "Azure DevOps integration - LOW",
+      "priority": "P3",
+      "category": "development"
+    },
+    "minecraft": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@fundamentallabs/minecraft-mcp"],
+      "description": "Minecraft game development - LOW",
+      "priority": "P3",
+      "category": "development"
+    },
+    "context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/mcp",
+      "description": "Context management service - MEDIUM",
+      "priority": "P2",
+      "category": "orchestration"
+    }
+  },
+  "performance": {
+    "target_p95_ms": 100,
+    "cache_enabled": true,
+    "cache_dir": "/tmp/.npm-cache",
+    "pre_installed_packages": [
+      "claude-flow@alpha",
+      "ruv-swarm@latest",
+      "flow-nexus@latest",
+      "exa-mcp-server",
+      "agentic-payments@latest"
+    ]
+  },
+  "monitoring": {
+    "health_check_interval_seconds": 300,
+    "health_check_script": "/mnt/overpower/apps/dev/agl/agl-hostman/scripts/mcp-monitoring/mcp-health-check.sh",
+    "auto_restart_enabled": true,
+    "prometheus_port": 9099
+  },
+  "categories": {
+    "orchestration": "Coordination, workflow, and swarm management",
+    "project-management": "Project tracking, issue management, and documentation",
+    "development": "Code tools, GitHub, and development utilities",
+    "media": "Image, video, and content analysis",
+    "search": "Web search and AI-powered search",
+    "infrastructure": "Server, container, and cloud management",
+    "data": "Storage, database, and memory operations",
+    "utilities": "Payment, DNS, and miscellaneous services"
+  }
+}

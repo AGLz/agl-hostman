@@ -1,0 +1,417 @@
+# RBAC Configuration for AGL Infrastructure
+# Role-Based Access Control definition
+#
+# Roles: admin, operator, viewer, auditor
+# Each role has specific permissions for different modules
+
+version: "1.0"
+system: "agl-infrastructure"
+
+# ============================================
+# ROLE DEFINITIONS
+# ============================================
+roles:
+  # Administrator - Full system access
+  admin:
+    name: "Administrator"
+    description: "Full administrative access to all system resources"
+    is_system: true
+    level: 100
+    permissions:
+      # Dashboard
+      - "view-dashboard"
+      - "access-admin-panel"
+
+      # User Management
+      - "view-users"
+      - "create-users"
+      - "edit-users"
+      - "delete-users"
+      - "manage-user-roles"
+      - "manage-user-permissions"
+
+      # Infrastructure
+      - "view-infrastructure"
+      - "manage-proxmox"
+      - "manage-containers"
+      - "manage-networks"
+      - "manage-storage"
+
+      # Deployments
+      - "view-deployments"
+      - "create-deployments"
+      - "edit-deployments"
+      - "delete-deployments"
+      - "approve-deployments"
+      - "rollback-deployments"
+
+      # Backups
+      - "view-backups"
+      - "create-backups"
+      - "restore-backups"
+      - "delete-backups"
+      - "configure-backup-schedule"
+
+      # Security & Audit
+      - "view-audit-logs"
+      - "view-security-events"
+      - "manage-security-settings"
+      - "manage-api-keys"
+      - "manage-secrets"
+
+      # Monitoring
+      - "view-metrics"
+      - "view-alerts"
+      - "configure-alerts"
+      - "manage-alert-rules"
+
+      # MCP Server
+      - "access-mcp-server"
+      - "manage-mcp-tools"
+      - "configure-mcp-server"
+
+      # System
+      - "manage-settings"
+      - "view-system-logs"
+      - "manage-integrations"
+
+  # Operator - Day-to-day operations
+  operator:
+    name: "Operator"
+    description: "Operational access for managing deployments and infrastructure"
+    is_system: true
+    level: 75
+    permissions:
+      # Dashboard
+      - "view-dashboard"
+
+      # User Management (read-only)
+      - "view-users"
+
+      # Infrastructure (manage, not delete)
+      - "view-infrastructure"
+      - "manage-proxmox"
+      - "manage-containers"
+      - "view-networks"
+      - "view-storage"
+
+      # Deployments
+      - "view-deployments"
+      - "create-deployments"
+      - "edit-deployments"
+
+      # Backups
+      - "view-backups"
+      - "create-backups"
+      - "restore-backups"
+
+      # Security & Audit (read-only)
+      - "view-audit-logs"
+      - "view-security-events"
+
+      # Monitoring
+      - "view-metrics"
+      - "view-alerts"
+
+      # MCP Server
+      - "access-mcp-server"
+
+  # Viewer - Read-only access
+  viewer:
+    name: "Viewer"
+    description: "Read-only access for monitoring and auditing"
+    is_system: true
+    level: 25
+    permissions:
+      # Dashboard
+      - "view-dashboard"
+
+      # User Management (read-only)
+      - "view-users"
+
+      # Infrastructure (read-only)
+      - "view-infrastructure"
+      - "view-proxmox"
+      - "view-containers"
+      - "view-networks"
+      - "view-storage"
+
+      # Deployments (read-only)
+      - "view-deployments"
+
+      # Backups (read-only)
+      - "view-backups"
+
+      # Security & Audit (read-only)
+      - "view-audit-logs"
+      - "view-security-events"
+
+      # Monitoring (read-only)
+      - "view-metrics"
+      - "view-alerts"
+
+      # MCP Server (read-only)
+      - "access-mcp-server"
+
+  # Auditor - Audit and compliance access
+  auditor:
+    name: "Auditor"
+    description: "Audit and compliance access with read-only permissions"
+    is_system: true
+    level: 50
+    permissions:
+      # Dashboard (limited)
+      - "view-dashboard"
+
+      # User Management (read-only)
+      - "view-users"
+
+      # Infrastructure (read-only)
+      - "view-infrastructure"
+      - "view-proxmox"
+      - "view-containers"
+      - "view-networks"
+
+      # Deployments (read-only)
+      - "view-deployments"
+
+      # Security & Audit (full read access)
+      - "view-audit-logs"
+      - "view-security-events"
+      - "view-compliance-reports"
+      - "export-audit-logs"
+
+      # Monitoring (read-only)
+      - "view-metrics"
+      - "view-alerts"
+
+      # System (read-only)
+      - "view-system-logs"
+
+# ============================================
+# PERMISSION GROUPINGS BY MODULE
+# ============================================
+modules:
+  dashboard:
+    permissions:
+      - name: "view-dashboard"
+        description: "Access main dashboard"
+      - name: "access-admin-panel"
+        description: "Access administrative control panel"
+
+  users:
+    permissions:
+      - name: "view-users"
+        description: "View user list and details"
+      - name: "create-users"
+        description: "Create new user accounts"
+      - name: "edit-users"
+        description: "Edit user account information"
+      - name: "delete-users"
+        description: "Delete user accounts"
+      - name: "manage-user-roles"
+        description: "Assign and remove user roles"
+      - name: "manage-user-permissions"
+        description: "Grant and revoke specific permissions"
+
+  infrastructure:
+    permissions:
+      - name: "view-infrastructure"
+        description: "View infrastructure overview"
+      - name: "manage-proxmox"
+        description: "Manage Proxmox servers"
+      - name: "view-proxmox"
+        description: "View Proxmox server information"
+      - name: "manage-containers"
+        description: "Create, edit, delete containers"
+      - name: "view-containers"
+        description: "View container information"
+      - name: "manage-networks"
+        description: "Configure network settings"
+      - name: "view-networks"
+        description: "View network configuration"
+      - name: "manage-storage"
+        description: "Manage storage volumes"
+      - name: "view-storage"
+        description: "View storage information"
+
+  deployments:
+    permissions:
+      - name: "view-deployments"
+        description: "View deployment history"
+      - name: "create-deployments"
+        description: "Create new deployments"
+      - name: "edit-deployments"
+        description: "Modify existing deployments"
+      - name: "delete-deployments"
+        description: "Delete deployments"
+      - name: "approve-deployments"
+        description: "Approve production deployments"
+      - name: "rollback-deployments"
+        description: "Rollback failed deployments"
+
+  backups:
+    permissions:
+      - name: "view-backups"
+        description: "View backup inventory"
+      - name: "create-backups"
+        description: "Create manual backups"
+      - name: "restore-backups"
+        description: "Restore from backups"
+      - name: "delete-backups"
+        description: "Delete backup files"
+      - name: "configure-backup-schedule"
+        description: "Configure automated backup schedules"
+
+  security:
+    permissions:
+      - name: "view-audit-logs"
+        description: "View security audit logs"
+      - name: "view-security-events"
+        description: "View security events and alerts"
+      - name: "view-compliance-reports"
+        description: "View compliance and audit reports"
+      - name: "export-audit-logs"
+        description: "Export audit log data"
+      - name: "manage-security-settings"
+        description: "Configure security policies"
+      - name: "manage-api-keys"
+        description: "Create and revoke API keys"
+      - name: "manage-secrets"
+        description: "Manage secrets and credentials"
+
+  monitoring:
+    permissions:
+      - name: "view-metrics"
+        description: "View system metrics"
+      - name: "view-alerts"
+        description: "View alert history"
+      - name: "configure-alerts"
+        description: "Configure alert rules"
+      - name: "manage-alert-rules"
+        description: "Create and manage alert rules"
+
+  mcp:
+    permissions:
+      - name: "access-mcp-server"
+        description: "Access MCP server endpoints"
+      - name: "manage-mcp-tools"
+        description: "Manage MCP tool registrations"
+      - name: "configure-mcp-server"
+        description: "Configure MCP server settings"
+
+  system:
+    permissions:
+      - name: "manage-settings"
+        description: "Modify system settings"
+      - name: "view-system-logs"
+        description: "View system logs"
+      - name: "manage-integrations"
+        description: "Configure third-party integrations"
+
+# ============================================
+# ROLE HIERARCHY
+# ============================================
+hierarchy:
+  admin:
+    inherits: []
+  operator:
+    inherits: ["viewer"]
+  auditor:
+    inherits: []
+  viewer:
+    inherits: []
+
+# ============================================
+# MCP SERVER ROLE MAPPING
+# ============================================
+mcp_role_mapping:
+  # Maps RBAC roles to MCP server access levels
+  admin:
+    access_level: "full"
+    allowed_tools: ["*"]
+    rate_limit: 1000
+  operator:
+    access_level: "operational"
+    allowed_tools:
+      - "container.*"
+      - "deployment.*"
+      - "backup.*"
+      - "proxmox.*"
+    rate_limit: 500
+  viewer:
+    access_level: "read-only"
+    allowed_tools:
+      - "container.get"
+      - "deployment.list"
+      - "backup.list"
+      - "proxmox.get"
+      - "metrics.*"
+    rate_limit: 100
+  auditor:
+    access_level: "audit"
+    allowed_tools:
+      - "audit.*"
+      - "log.*"
+      - "metrics.*"
+      - "compliance.*"
+    rate_limit: 200
+
+# ============================================
+# SECRET ACCESS PERMISSIONS
+# ============================================
+secret_access:
+  admin:
+    can_create: true
+    can_read: true
+    can_update: true
+    can_delete: true
+    can_rotate: true
+    allowed_secrets: ["*"]
+  operator:
+    can_create: false
+    can_read: true
+    can_update: false
+    can_delete: false
+    can_rotate: false
+    allowed_secrets:
+      - "deployment.*"
+      - "container.*"
+  viewer:
+    can_create: false
+    can_read: false
+    can_update: false
+    can_delete: false
+    can_rotate: false
+    allowed_secrets: []
+  auditor:
+    can_create: false
+    can_read: true  # For audit purposes only
+    can_update: false
+    can_delete: false
+    can_rotate: false
+    allowed_secrets: []  # Requires explicit approval
+
+# ============================================
+# API KEY PERMISSIONS
+# ============================================
+api_key_permissions:
+  # API keys can be scoped to specific roles
+  admin_key:
+    roles: ["admin"]
+    permissions: ["*"]
+    rate_limit: 1000
+  operator_key:
+    roles: ["operator"]
+    permissions:
+      - "deployment.*"
+      - "container.*"
+      - "backup.*"
+    rate_limit: 500
+  readonly_key:
+    roles: ["viewer", "auditor"]
+    permissions:
+      - "*.view"
+      - "*.list"
+      - "*.get"
+    rate_limit: 100

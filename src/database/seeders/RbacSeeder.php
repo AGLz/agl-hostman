@@ -26,6 +26,22 @@ class RbacSeeder extends Seeder
                 'is_system' => true,
             ],
             [
+                'name' => 'operator',
+                'description' => 'Operational access for managing deployments and infrastructure',
+                'is_system' => true,
+            ],
+            [
+                'name' => 'viewer',
+                'description' => 'Read-only access for monitoring and status checks',
+                'is_system' => true,
+            ],
+            [
+                'name' => 'auditor',
+                'description' => 'Audit and compliance access with enhanced logging capabilities',
+                'is_system' => true,
+            ],
+            // Legacy roles for backward compatibility
+            [
                 'name' => 'advanced',
                 'description' => 'Can manage containers, deployments, and view monitoring',
                 'is_system' => true,
@@ -129,6 +145,22 @@ class RbacSeeder extends Seeder
             'permissions.manage',
         ];
 
+        // Security module
+        $security = [
+            'security.view_audit_logs',
+            'security.view_security_events',
+            'security.manage_settings',
+            'security.manage_api_keys',
+            'security.manage_secrets',
+        ];
+
+        // MCP Server module
+        $mcp = [
+            'mcp.access_server',
+            'mcp.manage_tools',
+            'mcp.configure_server',
+        ];
+
         $allPermissions = array_merge(
             $containers,
             $servers,
@@ -136,7 +168,9 @@ class RbacSeeder extends Seeder
             $monitoring,
             $deployments,
             $infrastructure,
-            $admin
+            $admin,
+            $security,
+            $mcp
         );
 
         $createdPermissions = [];
@@ -157,7 +191,7 @@ class RbacSeeder extends Seeder
         // Assign Permissions to Roles
         // ========================================
 
-        // Admin: ALL permissions
+        // Admin: ALL permissions including security and MCP
         $createdRoles['admin']->syncPermissions($createdPermissions);
 
         // Advanced: Containers, Deployments, Monitoring (all actions)
@@ -171,6 +205,45 @@ class RbacSeeder extends Seeder
             ARRAY_FILTER_USE_KEY
         );
         $createdRoles['advanced']->syncPermissions($advancedPermissions);
+
+        // Operator: Infrastructure management and deployments
+        $operatorPermissions = array_filter(
+            $createdPermissions,
+            fn($key) => str_starts_with($key, 'containers.') ||
+                          str_starts_with($key, 'deployments.') ||
+                          str_starts_with($key, 'infrastructure.backup') ||
+                          str_starts_with($key, 'servers.') ||
+                          str_starts_with($key, 'monitoring.') ||
+                          str_starts_with($key, 'security.view_audit_logs') ||
+                          str_starts_with($key, 'security.view_security_events') ||
+                          $key === 'mcp.access_server' ||
+                          $key === 'users.view',
+            ARRAY_FILTER_USE_KEY
+        );
+        $createdRoles['operator']->syncPermissions($operatorPermissions);
+
+        // Viewer: Read-only access
+        $viewerPermissions = array_filter(
+            $createdPermissions,
+            fn($key) => str_ends_with($key, '.view') ||
+                          str_ends_with($key, '.monitor') ||
+                          str_ends_with($key, '.logs'),
+            ARRAY_FILTER_USE_KEY
+        );
+        $createdRoles['viewer']->syncPermissions($viewerPermissions);
+
+        // Auditor: Full read access to logs and audit trails
+        $auditorPermissions = array_filter(
+            $createdPermissions,
+            fn($key) => str_ends_with($key, '.view') ||
+                          str_ends_with($key, '.logs') ||
+                          str_ends_with($key, '.reports') ||
+                          str_ends_with($key, '.audit_logs') ||
+                          str_ends_with($key, '.security_events') ||
+                          $key === 'monitoring.logs',
+            ARRAY_FILTER_USE_KEY
+        );
+        $createdRoles['auditor']->syncPermissions($auditorPermissions);
 
         // Common: Read-only (.view) permissions only
         $commonPermissions = array_filter(

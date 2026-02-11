@@ -10,6 +10,10 @@
     "test:greeting": "./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js tests/validation/greeting-system.test.js --no-cache",
     "test:performance": "node tests/validation/greeting-performance-benchmark.js",
     "test:coverage": "NODE_ENV=test ./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --no-cache --coverage --coverageReporters=json-summary --coverageReporters=json --coverageReporters=lcov --coverageReporters=text",
+    "test:backup": "NODE_ENV=test ./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js tests/backup/restoration.test.js --no-cache",
+    "test:backup:python": "python3 tests/backup/verify_restoration.py",
+    "test:backup:bash": "bash tests/backup/test_restoration.sh",
+    "test:backup:all": "npm run test:backup && npm run test:backup:python && npm run test:backup:bash",
     "lint": "./node_modules/.pnpm/eslint@8.57.1/node_modules/eslint/bin/eslint.js 'src/greeting/**/*.js' 'tests/**/*.js' 'examples/**/*.js'",
     "lint:fix": "./node_modules/.pnpm/eslint@8.57.1/node_modules/eslint/bin/eslint.js src/**/*.js tests/**/*.js examples/**/*.js --fix",
     "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"examples/**/*.js\"",
@@ -57,6 +61,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^18.19.50",
+    "ajv": "^8.17.1",
     "dockerode": "^4.0.9",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
@@ -71,57 +76,6 @@
     "shadcn": "3.6.1",
     "supertest": "^6.3.4",
     "write-file-atomic": "^4.0.2"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "coverageDirectory": "coverage",
-    "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup.js"
-    ],
-    "collectCoverage": true,
-    "coverageThreshold": {
-      "global": {
-        "branches": 50,
-        "functions": 50,
-        "lines": 50,
-        "statements": 50
-      }
-    },
-    "collectCoverageFrom": [
-      "src/greeting/**/*.js",
-      "src/dashboard/**/*.js",
-      "!**/node_modules/**",
-      "!**/vendor/**"
-    ],
-    "testMatch": [
-      "**/tests/**/*.test.js",
-      "**/tests/**/*.spec.js"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/src/vendor/",
-      "/src/node_modules/",
-      "/src/html/",
-      "/src/app/"
-    ],
-    "modulePathIgnorePatterns": [
-      "/src/vendor/",
-      "/src/node_modules/",
-      "/src/html/",
-      "/src/app/",
-      "/src/bootstrap/",
-      "/src/config/",
-      "/src/database/",
-      "/src/public/"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/",
-      "/src/vendor/"
-    ],
-    "cache": false,
-    "maxWorkers": 1,
-    "verbose": true,
-    "testTimeout": 30000
   },
   "lint-staged": {
     "*.js": [
