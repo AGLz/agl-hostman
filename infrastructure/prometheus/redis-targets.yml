@@ -1,0 +1,97 @@
+# =============================================================================
+# Prometheus Scrape Configuration for Redis HA
+# AGL Hostman Infrastructure
+# =============================================================================
+
+scrape_configs:
+  # Redis Master
+  - job_name: 'redis-master'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'master'
+          instance: 'redis-master:6379'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Redis Slaves
+  - job_name: 'redis-slave-1'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'slave'
+          instance: 'redis-slave-1:6379'
+          slave_id: '1'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: 'redis-slave-2'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'slave'
+          instance: 'redis-slave-2:6379'
+          slave_id: '2'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: 'redis-slave-3'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'slave'
+          instance: 'redis-slave-3:6379'
+          slave_id: '3'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Redis Sentinels (via Redis Exporter)
+  - job_name: 'redis-sentinel-1'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'sentinel'
+          instance: 'redis-sentinel-1:26379'
+          sentinel_id: '1'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+
+  - job_name: 'redis-sentinel-2'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'sentinel'
+          instance: 'redis-sentinel-2:26379'
+          sentinel_id: '2'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+
+  - job_name: 'redis-sentinel-3'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          cluster: 'agl-hostman'
+          role: 'sentinel'
+          instance: 'redis-sentinel-3:26379'
+          sentinel_id: '3'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+
+  # Health Monitor (custom metrics)
+  - job_name: 'redis-health-monitor'
+    static_configs:
+      - targets: ['localhost:9500']
+        labels:
+          cluster: 'agl-hostman'
+          monitor_type: 'health'
+    scrape_interval: 30s
+    scrape_timeout: 5s

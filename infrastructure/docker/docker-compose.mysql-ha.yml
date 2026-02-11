@@ -1,0 +1,529 @@
+# =============================================================================
+# Docker Compose - MySQL High Availability with ProxySQL
+# AGL Hostman - Production-ready MySQL HA setup
+# =============================================================================
+#
+# Architecture:
+#   Application Layer
+#        ↓
+#   ProxySQL (Read/Write Splitting, Connection Pooling)
+#        ↓
+#   MySQL Master (Write) + MySQL Slaves (Read)
+#
+# Usage:
+#   docker compose -f docker-compose.mysql-ha.yml up -d
+#   docker compose -f docker-compose.mysql-ha.yml -f docker-compose.mysql-ha.yml.scale up -d --scale mysql-slave=3
+#
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # MySQL Master (Primary)
+  # =============================================================================
+  mysql-master:
+    image: percona:8.0
+    container_name: agl-mysql-master
+    restart: always
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --binlog-rows-query-log-events=ON
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+      - --sync-binlog=1
+      - --semi-sync-master-enabled=1
+      - --semi-sync-master-timeout=1000
+      - --rpl-semi-sync-master-wait-no-slave=ON
+      - --max-connections=1000
+      - --innodb-buffer-pool-size=4G
+      - --innodb-log-file-size=512M
+      - --innodb-flush-log-at-trx-commit=1
+      - --innodb-flush-method=O_DIRECT
+      - --slow-query-log=ON
+      - --long-query-time=2
+    volumes:
+      - mysql-master-data:/var/lib/mysql
+      - ./mysql/ha/my-master.cnf:/etc/mysql/conf.d/ha.cnf:ro
+      - ./mysql/scripts:/docker-entrypoint-initdb.d:ro
+      - mysql-logs:/var/log/mysql
+      - mysql-backups:/backups
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-agl_hostman}
+      - MYSQL_USER=${MYSQL_USER:-agl_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-replicator}
+      - MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD}
+    networks:
+      - mysql-ha
+      - monitoring
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+    labels:
+      - "com.agl.service=mysql"
+      - "com.agl.tier=database"
+      - "com.agl.role=master"
+
+  # =============================================================================
+  # MySQL Slave 1
+  # =============================================================================
+  mysql-slave-1:
+    image: percona:8.0
+    container_name: agl-mysql-slave-1
+    restart: always
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --server-id=2
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --binlog-rows-query-log-events=ON
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+      - --relay-log=relay-bin
+      - --relay-log-recovery=ON
+      - --slave-parallel-type=LOGICAL_CLOCK
+      - --slave-parallel-workers=4
+      - --slave-preserve-commit-order=ON
+      - --read-only=ON
+      - --super-read-only=ON
+      - --semi-sync-slave-enabled=1
+      - --max-connections=1000
+      - --innodb-buffer-pool-size=4G
+      - --innodb-flush-log-at-trx-commit=2
+    volumes:
+      - mysql-slave-1-data:/var/lib/mysql
+      - ./mysql/ha/my-slave.cnf:/etc/mysql/conf.d/ha.cnf:ro
+      - mysql-logs-slave1:/var/log/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_REPLICATION_HOST=mysql-master
+      - MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-replicator}
+      - MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD}
+    networks:
+      - mysql-ha
+      - monitoring
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -h localhost -u root -p${MYSQL_ROOT_PASSWORD} -e 'SHOW SLAVE STATUS\\G' | grep -q 'Slave_IO_Running: Yes' || mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    labels:
+      - "com.agl.service=mysql"
+      - "com.agl.tier=database"
+      - "com.agl.role=slave"
+
+  # =============================================================================
+  # MySQL Slave 2
+  # =============================================================================
+  mysql-slave-2:
+    image: percona:8.0
+    container_name: agl-mysql-slave-2
+    restart: always
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --server-id=3
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --binlog-rows-query-log-events=ON
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+      - --relay-log=relay-bin
+      - --relay-log-recovery=ON
+      - --slave-parallel-type=LOGICAL_CLOCK
+      - --slave-parallel-workers=4
+      - --slave-preserve-commit-order=ON
+      - --read-only=ON
+      - --super-read-only=ON
+      - --semi-sync-slave-enabled=1
+      - --max-connections=1000
+      - --innodb-buffer-pool-size=4G
+      - --innodb-flush-log-at-trx-commit=2
+    volumes:
+      - mysql-slave-2-data:/var/lib/mysql
+      - ./mysql/ha/my-slave.cnf:/etc/mysql/conf.d/ha.cnf:ro
+      - mysql-logs-slave2:/var/log/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_REPLICATION_HOST=mysql-master
+      - MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-replicator}
+      - MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD}
+    networks:
+      - mysql-ha
+      - monitoring
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -h localhost -u root -p${MYSQL_ROOT_PASSWORD} -e 'SHOW SLAVE STATUS\\G' | grep -q 'Slave_IO_Running: Yes' || mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    labels:
+      - "com.agl.service=mysql"
+      - "com.agl.tier=database"
+      - "com.agl.role=slave"
+
+  # =============================================================================
+  # ProxySQL - MySQL Proxy for Read/Write Splitting
+  # =============================================================================
+  proxysql:
+    image: proxysql/proxysql:2.5
+    container_name: agl-proxysql
+    restart: always
+    ports:
+      - "6032:6032"   # MySQL protocol
+      - "6033:6033"   # MySQL protocol (read-only)
+      - "6080:6080"   # Admin interface
+    volumes:
+      - ./mysql/proxysql/proxysql.cnf:/etc/proxysql.cnf:ro
+      - proxysql-data:/var/lib/proxysql
+      - ./mysql/proxysql/scripts:/scripts:ro
+    networks:
+      - mysql-ha
+      - monitoring
+    depends_on:
+      - mysql-master
+      - mysql-slave-1
+      - mysql-slave-2
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-P", "6032", "-u", "admin", "-padmin", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "com.agl.service=proxysql"
+      - "com.agl.tier=proxy"
+
+  # =============================================================================
+  # MySQL Exporter - Prometheus Metrics
+  # =============================================================================
+  mysql-exporter-master:
+    image: prom/mysqld-exporter:latest
+    container_name: agl-mysql-exporter-master
+    restart: always
+    command:
+      - --config.my-cnf=/etc/.my.cnf
+      - --auto-discover-replication-slave=true
+      - --collect.slave_status=true
+      - --collect.slave_hosts=true
+      - --collect.heartbeat=true
+      - --heartbeat.interval=30
+      - --collect.info_schema.processlist=true
+      - --collect.info_schema.innodb_metrics=true
+    environment:
+      - DATA_SOURCE_NAME=root:${MYSQL_ROOT_PASSWORD}@(mysql-master:3306)/
+    networks:
+      - monitoring
+    depends_on:
+      - mysql-master
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  mysql-exporter-slave1:
+    extends: mysql-exporter-master
+    container_name: agl-mysql-exporter-slave-1
+    environment:
+      - DATA_SOURCE_NAME=root:${MYSQL_ROOT_PASSWORD}@(mysql-slave-1:3306)/
+    depends_on:
+      - mysql-slave-1
+
+  mysql-exporter-slave2:
+    extends: mysql-exporter-master
+    container_name: agl-mysql-exporter-slave-2
+    environment:
+      - DATA_SOURCE_NAME=root:${MYSQL_ROOT_PASSWORD}@(mysql-slave-2:3306)/
+    depends_on:
+      - mysql-slave-2
+
+  # =============================================================================
+  # ProxySQL Exporter - Prometheus Metrics
+  # =============================================================================
+  proxysql-exporter:
+    image: pytool/proxysql-exporter:latest
+    container_name: agl-proxysql-exporter
+    restart: always
+    ports:
+      - "42004:42004"
+    environment:
+      - PROXYSQL_HOST=proxysql
+      - PROXYSQL_PORT=6032
+      - PROXYSQL_ADMIN_HOST=proxysql
+      - PROXYSQL_ADMIN_PORT=6032
+      - PROXYSQL_ADMIN_USER=admin
+      - PROXYSQL_ADMIN_PASSWORD=admin
+    networks:
+      - monitoring
+    depends_on:
+      - proxysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # =============================================================================
+  # Percona XtraBackup - Backup Automation
+  # =============================================================================
+  mysql-backup:
+    image: percona/percona-xtrabackup:8.0
+    container_name: agl-mysql-backup
+    restart: always
+    volumes:
+      - mysql-master-data:/data:ro
+      - mysql-backups:/backups
+      - ./mysql/scripts/backup:/scripts:ro
+      - ./mysql/scripts/restore:/restore:ro
+      - backup-logs:/var/log/backup
+    environment:
+      - BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-0 2 * * *}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
+      - BACKUP_TYPE=full
+      - COMPRESS_BACKUPS=true
+      - S3_UPLOAD=${S3_UPLOAD:-false}
+      - S3_BUCKET=${S3_BUCKET:-}
+      - S3_PREFIX=mysql-backups
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+    networks:
+      - mysql-ha
+      - monitoring
+    depends_on:
+      - mysql-master
+    command: /scripts/backup-scheduler.sh
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # =============================================================================
+  # PhpMyAdmin - Database Management UI
+  # =============================================================================
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: agl-phpmyadmin
+    restart: always
+    ports:
+      - "${PHPMYADMIN_PORT:-8084}:80"
+    environment:
+      - PMA_HOST=proxysql
+      - PMA_PORT=6032
+      - PMA_USER=${MYSQL_USER:-agl_user}
+      - PMA_PASSWORD=${MYSQL_PASSWORD}
+      - PMA_ARBITRARY=1
+      - UPLOAD_LIMIT=1G
+      - MAX_EXECUTION_TIME=600
+      - MEMORY_LIMIT=512M
+      - PMA_QUERYHISTORYDB=false
+    networks:
+      - mysql-ha
+    depends_on:
+      - proxysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # =============================================================================
+  # Failover Monitor
+  # =============================================================================
+  mysql-failover:
+    image: alpine:3.18
+    container_name: agl-mysql-failover
+    restart: always
+    volumes:
+      - ./mysql/scripts/failover:/scripts:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - MYSQL_MASTER_HOST=mysql-master
+      - MYSQL_SLAVE_HOSTS=mysql-slave-1,mysql-slave-2
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - FAILOVER_CHECK_INTERVAL=10
+      - MAX_REPLICATION_LAG=30
+      - ALERT_WEBHOOK=${ALERT_WEBHOOK:-}
+      - SLACK_WEBHOOK=${SLACK_WEBHOOK:-}
+    networks:
+      - mysql-ha
+    command: /scripts/failover-monitor.sh
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  mysql-ha:
+    name: agl-mysql-ha
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+          ip_range: 172.25.0.0/24
+          gateway: 172.25.0.1
+
+  monitoring:
+    name: agl-monitoring
+    external: true
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  # MySQL Data
+  mysql-master-data:
+    driver: local
+    name: agl-mysql-master-data
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/mysql/master
+
+  mysql-slave-1-data:
+    driver: local
+    name: agl-mysql-slave-1-data
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/mysql/slave1
+
+  mysql-slave-2-data:
+    driver: local
+    name: agl-mysql-slave-2-data
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/mysql/slave2
+
+  # ProxySQL
+  proxysql-data:
+    driver: local
+    name: agl-proxysql-data
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/proxysql
+
+  # Logs
+  mysql-logs:
+    driver: local
+    name: agl-mysql-logs
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/mysql/master
+
+  mysql-logs-slave1:
+    driver: local
+    name: agl-mysql-logs-slave1
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/mysql/slave1
+
+  mysql-logs-slave2:
+    driver: local
+    name: agl-mysql-logs-slave2
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/mysql/slave2
+
+  backup-logs:
+    driver: local
+    name: agl-mysql-backup-logs
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/mysql/backup
+
+  # Backups
+  mysql-backups:
+    driver: local
+    name: agl-mysql-backups
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/backups/mysql

@@ -1,0 +1,384 @@
+# =============================================================================
+# Prometheus Alert Rules - AGL Hostman HA Monitoring
+# =============================================================================
+# High Availability Infrastructure Alerting
+#
+# Alert severity levels:
+# - critical: Immediate action required, service impact
+# - warning: Attention needed, potential service impact
+# - info: Informational, no action needed
+#
+# SLA Targets:
+# - 99.9% uptime (max 43.2 minutes downtime/month)
+# - < 2 second response time for API calls
+# - < 1 minute replication lag
+# =============================================================================
+
+groups:
+  # =============================================================================
+  # Load Balancer Alerts
+  # =============================================================================
+  - name: haproxy_alerts
+    rules:
+      - alert: HaproxyDown
+        expr: up{job="haproxy"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: loadbalancer
+        annotations:
+          summary: "HAProxy is down"
+          description: "HAProxy instance {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: HaproxyHighBackendDown
+        expr: |
+          (
+            haproxy_backend_status{backend=~"app_backend|api_backend"} == 0
+          )
+          / count(haproxy_backend_status{backend=~"app_backend|api_backend"})
+        > 0.5
+        for: 1m
+        labels:
+          severity: critical
+          component: loadbalancer
+        annotations:
+          summary: "More than 50% of HAProxy backends are down"
+          description: "{{ $value | humanizePercentage }} of {{ $labels.backend }} backends are down."
+
+      - alert: HaproxyHighResponseTime
+        expr: |
+          haproxy_backend_http_avg_time_ms{backend=~"app_backend|api_backend"}
+          > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: loadbalancer
+        annotations:
+          summary: "HAProxy backend response time is high"
+          description: "{{ $labels.backend }} average response time is {{ $value }}ms (threshold: 1000ms)."
+
+      - alert: HaproxyHighConnectionRate
+        expr: |
+          rate(haproxy_backend_current_sessions[5m])
+          > 8000
+        for: 5m
+        labels:
+          severity: warning
+          component: loadbalancer
+        annotations:
+          summary: "HAProxy connection rate approaching limit"
+          description: "Connection rate is {{ $value }}/sec, approaching maxconn limit."
+
+      - alert: HaproxyHttpErrors
+        expr: |
+          (
+            rate(haproxy_backend_http_responses_total{status=~"5.."}[5m])
+            / rate(haproxy_backend_http_responses_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: loadbalancer
+        annotations:
+          summary: "High HTTP 5xx error rate on HAProxy"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.backend }}."
+
+  # =============================================================================
+  # MySQL Alerts
+  # =============================================================================
+  - name: mysql_alerts
+    rules:
+      - alert: MySQLDown
+        expr: mysql_up == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "MySQL is down"
+          description: "MySQL instance {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: MySQLReplicationLag
+        expr: |
+          mysql_slave_status_slave_lag_seconds > 60
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "MySQL replication lag is high"
+          description: "Replication lag is {{ $value }}s on {{ $labels.instance }} (threshold: 60s)."
+
+      - alert: MySQLReplicationStopped
+        expr: |
+          mysql_slave_status_slave_running == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "MySQL replication has stopped"
+          description: "Replication is not running on slave {{ $labels.instance }}."
+
+      - alert: MySQLSlowQueries
+        expr: |
+          rate(mysql_global_status_slow_queries[5m])
+          > 10
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "MySQL slow query rate is high"
+          description: "{{ $value }} slow queries/sec on {{ $labels.instance }}."
+
+      - alert: MySQLConnectionsHigh
+        expr: |
+          (
+            mysql_global_status_threads_connected / mysql_global_variables_max_connections
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "MySQL connection usage is high"
+          description: "{{ $value | humanizePercentage }} of max connections used on {{ $labels.instance }}."
+
+      - alert: MySQLReplicationNotGTID
+        expr: |
+          mysql_global_status_gtid_mode == 0
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "MySQL GTID mode is not enabled"
+          description: "GTID mode is disabled on {{ $labels.instance }}. Required for safe failover."
+
+  # =============================================================================
+  # Redis Alerts
+  # =============================================================================
+  - name: redis_alerts
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: RedisMemoryHigh
+        expr: |
+          (
+            redis_memory_used_bytes / redis_memory_max_bytes
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "{{ $value | humanizePercentage }} of max memory used on {{ $labels.instance }}."
+
+      - alert: RedisKeyEviction
+        expr: |
+          rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis is evicting keys"
+          description: "{{ $value }} keys/sec being evicted on {{ $labels.instance }}."
+
+      - alert: RedisRejectedConnections
+        expr: |
+          rate(redis_rejected_connections_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis is rejecting connections"
+          description: "{{ $value }} connections/sec rejected on {{ $labels.instance }}."
+
+      - alert: SentinelNoMaster
+        expr: |
+          redis_sentinel_masters == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: sentinel
+        annotations:
+          summary: "Redis Sentinel has no master"
+          description: "Sentinel {{ $labels.instance }} cannot detect a master."
+
+      - alert: SentinelFailoverDetected
+        expr: |
+          increase(redis_sentinel_failover_events_total[1m]) > 0
+        labels:
+          severity: info
+          component: sentinel
+        annotations:
+          summary: "Redis Sentinel failover detected"
+          description: "Failover occurred on {{ $labels.instance }}."
+
+  # =============================================================================
+  # Application Health Alerts
+  # =============================================================================
+  - name: application_alerts
+    rules:
+      - alert: ApplicationHealthCheckFailing
+        expr: |
+          (
+            rate(http_requests_total{job="agl-hostman",status!~"5.."}[5m])
+            / rate(http_requests_total{job="agl-hostman"}[5m])
+          ) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Application error rate is high"
+          description: "{{ $value | humanizePercentage }} of requests are returning 5xx."
+
+      - alert: ApplicationResponseTimeSlow
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="agl-hostman"}[5m])
+          ) > 2
+        for: 5m
+        label:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Application p95 response time is slow"
+          description: "p95 response time is {{ $value }}s (threshold: 2s)."
+
+      - alert: QueueJobsBackingUp
+        expr: |
+          horizon_jobs_total{state="pending"} > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: queue
+        annotations:
+          summary: "Laravel Horizon queue is backing up"
+          description: "{{ $value }} pending jobs in queue."
+
+      - alert: QueueWorkerDown
+        expr: |
+          count(up{job="horizon-worker"} == 0) > 0
+        for: 2m
+        labels:
+          severity: critical
+          component: queue
+        annotations:
+          summary: "Laravel Horizon workers are down"
+          description: "{{ $value }} worker(s) are not responding."
+
+      - alert: ScheduleHeartbeatOld
+        expr: |
+          (time() - laravel_scheduler_last_run_timestamp) > 300
+        for: 1m
+        labels:
+          severity: warning
+          component: scheduler
+        annotations:
+          summary: "Laravel scheduler heartbeat is old"
+          description: "Last run was {{ $value }}s ago (> 5 minutes)."
+
+  # =============================================================================
+  # Infrastructure Alerts
+  # =============================================================================
+  - name: infrastructure_alerts
+    rules:
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})
+            < 0.1
+        )
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "Disk space is low"
+          description: "{{ $labels.device }} has {{ $value | humanizePercentage }} free space on {{ $labels.instance }}."
+
+      - alert: DiskSpaceCritical
+        expr: |
+          (
+            (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})
+            < 0.05
+        )
+        for: 2m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "Disk space is critical"
+          description: "{{ $labels.device }} has {{ $value | humanizePercentage }} free space on {{ $labels.instance }}."
+
+      - alert: MemoryUsageHigh
+        expr: |
+          (
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "System memory usage is high"
+          description: "{{ $value | humanizePercentage }} memory used on {{ $labels.instance }}."
+
+      - alert: CPUUsageHigh
+        expr: |
+          (
+            100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "CPU usage is high"
+          description: "{{ $value }}% CPU used on {{ $labels.instance }}."
+
+  # =============================================================================
+  # SLA Compliance Alerts
+  # =============================================================================
+  - name: sla_compliance
+    rules:
+      - alert: SLAViolation
+        expr: |
+          (
+            sum_over_time(avg_over_time(up{job="agl-hostman"} != 1, 30d)
+            / sum_over_time(count_over_time(up{job="agl-hostman"}, 30d))
+          ) > 0.001
+        for: 1h
+        labels:
+          severity: critical
+          component: sla
+        annotations:
+          summary: "SLA violation detected"
+          description: "Uptime below 99.9% in the last 30 days."
+
+      - alert: SLAWarning
+        expr: |
+          (
+            sum_over_time(avg_over_time(up{job="agl-hostman"} != 1, 7d))
+            / sum_over_time(count_over_time(up{job="agl-hostman"}, 7d))
+          ) > 0.005
+        for: 1h
+        labels:
+          severity: warning
+          component: sla
+        annotations:
+          summary: "SLA approaching violation threshold"
+          description: "Uptime below 99.5% in the last 7 days. Risk of SLA violation."

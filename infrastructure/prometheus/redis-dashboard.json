@@ -1,0 +1,197 @@
+{
+  "dashboard": {
+    "title": "Redis High Availability",
+    "tags": ["redis", "ha", "cache"],
+    "timezone": "UTC",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Cluster Overview",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "count(up{job=~\"redis.*\"} == 1)",
+            "legendFormat": "Nodes Online"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": {"calcs": ["lastNotNull"]}
+        }
+      },
+      {
+        "id": 2,
+        "title": "Master Status",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "up{job=\"redis-master\"}",
+            "legendFormat": "{{role}}"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "thresholds": {"mode": "absolute", "steps": [{"value": 0, "color": "red"}, {"value": 1, "color": "green"}]}
+        }
+      },
+      {
+        "id": 3,
+        "title": "Sentinel Quorum",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "count(up{job=\"redis-sentinel\"} == 1)",
+            "legendFormat": "Sentinels"
+          }
+        ],
+        "options": {
+          "colorMode": "thresholds",
+          "thresholds": {"mode": "absolute", "steps": [{"value": 0, "color": "red"}, {"value": 2, "color": "green"}]}
+        }
+      },
+      {
+        "id": 4,
+        "title": "Replication Lag",
+        "type": "gauge",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "redis_replication_lag_seconds",
+            "legendFormat": "Lag (s)"
+          }
+        ],
+        "options": {
+          "min": 0,
+          "max": 30,
+          "thresholds": {"mode": "absolute", "steps": [{"value": 5, "color": "yellow"}, {"value": 30, "color": "red"}]}
+        }
+      },
+      {
+        "id": 5,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "(redis_memory_used_bytes{job=~\"redis.*\"} / redis_memory_max_bytes) * 100",
+            "legendFormat": "{{instance}}"
+          }
+        ],
+        "yAxes": [{"label": "Memory %", "min": 0, "max": 100}],
+        "alert": {"conditions": [{"evaluator": {"params": [80], "type": "gt"}, "query": {"params": ["A", "5m", "now"]}}]}
+      },
+      {
+        "id": 6,
+        "title": "Connections",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "redis_connected_clients{job=~\"redis.*\"}",
+            "legendFormat": "{{instance}}"
+          }
+        ],
+        "yAxes": [{"label": "Connections"}]
+      },
+      {
+        "id": 7,
+        "title": "Commands/sec",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(redis_commands_processed_total{job=\"redis-master\"}[5m])",
+            "legendFormat": "Master"
+          },
+          {
+            "expr": "rate(redis_commands_processed_total{job=~\"redis-slave.*\"}[5m])",
+            "legendFormat": "{{instance}}"
+          }
+        ],
+        "yAxes": [{"label": "Commands/sec"}]
+      },
+      {
+        "id": 8,
+        "title": "Cache Hit Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))",
+            "legendFormat": "Hit Rate"
+          }
+        ],
+        "yAxes": [{"label": "Hit Rate", "min": 0, "max": 1, "format": "percentunit"}]
+      },
+      {
+        "id": 9,
+        "title": "Connected Slaves",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 12, "w": 8, "h": 4},
+        "targets": [
+          {
+            "expr": "redis_connected_slaves{job=\"redis-master\"}",
+            "legendFormat": "Slaves"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Keys Count",
+        "type": "stat",
+        "gridPos": {"x": 8, "y": 12, "w": 8, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(redis_db_keys{job=\"redis-master\"})",
+            "legendFormat": "Total Keys"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Expired Keys Rate",
+        "type": "graph",
+        "gridPos": {"x": 16, "y": 12, "w": 8, "h": 4},
+        "targets": [
+          {
+            "expr": "rate(redis_expired_keys_total[5m])",
+            "legendFormat": "Keys/sec"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Evicted Keys",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "rate(redis_evicted_keys_total{job=~\"redis.*\"}[5m])",
+            "legendFormat": "{{instance}}"
+          }
+        ],
+        "yAxes": [{"label": "Keys/sec"}]
+      },
+      {
+        "id": 13,
+        "title": "Slow Queries",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "redis_slowlog_length{job=~\"redis.*\"}",
+            "legendFormat": "{{instance}}"
+          }
+        ],
+        "yAxes": [{"label": "Slow Queries"}]
+      }
+    ]
+  }
+}

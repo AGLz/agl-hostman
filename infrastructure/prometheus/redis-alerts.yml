@@ -1,0 +1,291 @@
+# =============================================================================
+# Prometheus Alert Rules for Redis HA Monitoring
+# AGL Hostman Infrastructure
+# =============================================================================
+
+groups:
+  - name: redis_ha
+    interval: 30s
+    rules:
+      # Master availability alerts
+      - alert: RedisMasterDown
+        expr: up{job="redis",role="master"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis master is down"
+          description: "Redis master {{ $labels.instance }} has been down for more than 1 minute"
+          runbook: "https://docs.agl.com/runbooks/redis#master-down"
+
+      - alert: RedisMasterUnreachable
+        expr: redis_up{role="master"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Cannot connect to Redis master"
+          description: "Cannot reach Redis master {{ $labels.instance }}"
+
+      # Sentinel alerts
+      - alert: RedisSentinelDown
+        expr: up{job="redis-sentinel"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: sentinel
+        annotations:
+          summary: "Redis Sentinel is down"
+          description: "{{ $value }} Redis Sentinel instances are down"
+
+      - alert: RedisSentinelQuorumLost
+        expr: redis_sentinel_sentinels < 2
+        for: 1m
+        labels:
+          severity: critical
+          component: sentinel
+        annotations:
+          summary: "Redis Sentinel quorum lost"
+          description: "Only {{ $value }} sentinels available (quorum: 2). Automatic failover may not be possible"
+
+      # Replication alerts
+      - alert: RedisReplicationLagHigh
+        expr: redis_replication_lag_seconds > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: replication
+        annotations:
+          summary: "Redis replication lag is high"
+          description: "Replication lag is {{ $value }}s on {{ $labels.instance }}"
+
+      - alert: RedisReplicationLagCritical
+        expr: redis_replication_lag_seconds > 30
+        for: 1m
+        labels:
+          severity: critical
+          component: replication
+        annotations:
+          summary: "Redis replication lag is critical"
+          description: "Replication lag is {{ $value }}s on {{ $labels.instance }}"
+
+      - alert: RedisSlaveDown
+        expr: up{job="redis",role="slave"} == 0
+        for: 3m
+        labels:
+          severity: warning
+          component: replication
+        annotations:
+          summary: "Redis slave is down"
+          description: "Redis slave {{ $labels.instance }} has been down for more than 3 minutes"
+
+      - alert: RedisNoSlaves
+        expr: redis_connected_slaves < 2
+        for: 5m
+        labels:
+          severity: warning
+          component: replication
+        annotations:
+          summary: "Insufficient Redis slaves"
+          description: "Only {{ $value }} slaves connected to master (expected: 3)"
+
+      # Memory alerts
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis {{ $labels.instance }} is using {{ $value }}% of max memory"
+
+      - alert: RedisMemoryCritical
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis memory usage is critical"
+          description: "Redis {{ $labels.instance }} is using {{ $value }}% of max memory. Eviction may occur"
+
+      # Connection alerts
+      - alert: RedisConnectionsHigh
+        expr: redis_connected_clients > 8000
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis connection count is high"
+          description: "{{ $value }} connected clients on {{ $labels.instance }}"
+
+      - alert: RedisConnectionsCritical
+        expr: redis_connected_clients > 9500
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis connection count is critical"
+          description: "{{ $value }} connected clients on {{ $labels.instance }} (max: 10000)"
+
+      # Performance alerts
+      - alert: RedisSlowLogGrowing
+        expr: increase(redis_slowlog_length[5m]) > 50
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Redis slow log is growing rapidly"
+          description: "{{ $value }} slow queries logged in the last 5 minutes on {{ $labels.instance }}"
+
+      - alert: RedisRejectedConnections
+        expr: increase(redis_rejected_connections[5m]) > 10
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis is rejecting connections"
+          description: "{{ $value }} connections rejected in the last 5 minutes"
+
+      - alert: RedisExpiredKeysHigh
+        expr: rate(redis_expired_keys_total[5m]) > 100
+        labels:
+          severity: info
+          component: redis
+        annotations:
+          summary: "High key expiration rate"
+          description: "{{ $value }} keys expiring per second on {{ $labels.instance }}"
+
+      - alert: RedisEvictedKeys
+        expr: increase(redis_evicted_keys_total[5m]) > 0
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis is evicting keys"
+          description: "{{ $value }} keys evicted due to memory limit"
+
+      # Failover alerts
+      - alert: RedisFailoverDetected
+        expr: changes(redis_master_link_status[1m]) > 0
+        labels:
+          severity: critical
+          component: sentinel
+        annotations:
+          summary: "Redis failover detected"
+          description: "Master status changed on {{ $labels.instance }}"
+
+      # Persistence alerts
+      - alert: RedisSaveFailed
+        expr: increase(redis_save_failed_total[5m]) > 0
+        labels:
+          severity: critical
+          component: persistence
+        annotations:
+          summary: "Redis background save failed"
+          description: "RDB save failed on {{ $labels.instance }}"
+
+      - alert: RedisAOFRewriteTooLong
+        expr: redis_aof_rewrite_in_progress > 0
+        for: 15m
+        labels:
+          severity: warning
+          component: persistence
+        annotations:
+          summary: "Redis AOF rewrite taking too long"
+          description: "AOF rewrite has been in progress for over 15 minutes"
+
+      # Cluster health
+      - alert: RedisClusterUnhealthy
+        expr: |
+          (
+            count(up{job="redis"} == 1) < 4 or
+            count(up{job="redis-sentinel"} == 1) < 3
+          )
+        for: 2m
+        labels:
+          severity: critical
+          component: cluster
+        annotations:
+          summary: "Redis cluster is degraded"
+          description: "Expected 4 Redis nodes and 3 Sentinels, found less"
+
+      - alert: RedisInsufficientReplicas
+        expr: count(redis_connected_slaves < 2) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: replication
+        annotations:
+          summary: "Master has insufficient replicas"
+          description: "Master {{ $labels.instance }} has less than 2 connected slaves"
+
+  - name: redis_performance
+    interval: 1m
+    rules:
+      # Command stats
+      - alert: RedisHighCommandRate
+        expr: rate(redis_commands_processed_total[5m]) > 10000
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Redis command rate is very high"
+          description: "{{ $value }} commands/second on {{ $labels.instance }}"
+
+      # Key stats
+      - alert: RedisKeyCountGrowingFast
+        expr: rate(redis_db_keys[5m]) > 1000
+        labels:
+          severity: info
+          component: redis
+        annotations:
+          summary: "Redis key count growing rapidly"
+          description: "Adding {{ $value }} keys/second on {{ $labels.instance }}"
+
+      # Cache hit rate
+      - alert: RedisLowCacheHitRate
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m]) /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Redis cache hit rate is low"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+  - name: redis_capacity
+    interval: 5m
+    rules:
+      # Trend analysis
+      - alert: RedisWillFillIn4Hours
+        expr: |
+          predict_linear(
+            redis_memory_used_bytes[1h],
+            4*3600
+          ) > redis_memory_max_bytes
+        labels:
+          severity: warning
+          component: capacity
+        annotations:
+          summary: "Redis will run out of memory in 4 hours"
+          description: "Based on current trend, {{ $labels.instance }} will reach max memory in 4 hours"
+
+      - alert: RedisFragmentationHigh
+        expr: (redis_mem_fragmentation_ratio - 1) * 100 > 50
+        for: 10m
+        labels:
+          severity: warning
+          component: memory
+        annotations:
+          summary: "Redis memory fragmentation is high"
+          description: "Fragmentation ratio is {{ $value }}% on {{ $labels.instance }}"

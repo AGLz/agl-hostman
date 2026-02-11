@@ -1,0 +1,402 @@
+# =============================================================================
+# Docker Compose - Redis High Availability with Sentinel
+# AGL Hostman - 1 Master, 3 Slaves, 3 Sentinels
+# =============================================================================
+# Architecture:
+#   1 Redis Master (read-write)
+#   3 Redis Slaves (read-only replicas)
+#   3 Redis Sentinels (automatic failover coordination)
+#
+# Quorum: 2 of 3 sentinels must agree for failover
+# Failover Time: < 30 seconds (5s detection + 10s timeout)
+#
+# Usage:
+#   docker compose -f docker-compose.redis-ha.yml up -d
+#   docker compose -f docker-compose.redis-ha.yml down
+#
+# Environment Variables (.env or CLI):
+#   REDIS_PASSWORD          - Redis authentication password (generate strong password)
+#   COMPOSE_PROJECT_NAME    - Project name (default: redis-ha)
+#   MASTER_PORT             - Master port (default: 6379)
+#   SLAVE_PORTS             - Slave ports (default: 6380,6381,6382)
+#   SENTINEL_PORTS          - Sentinel ports (default: 26379,26380,26381)
+#
+# Init Script:
+#   ./infrastructure/scripts/redis-sentinel-init.sh deploy
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # Redis Master
+  # =============================================================================
+  redis-master:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-master
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "${MASTER_PORT:-6379}:6379"
+    volumes:
+      - redis-master-data:/data
+      - ./infrastructure/redis-sentinel/redis-master-ha.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-agl_redis_password}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "com.agl.component=redis"
+      - "com.agl.role=master"
+
+  # =============================================================================
+  # Redis Slave 1 (Priority for promotion: 100)
+  # =============================================================================
+  redis-slave-1:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-slave-1
+    restart: unless-stopped
+    command: >
+      sh -c '
+        echo "replicaof redis-master 6379" >> /usr/local/etc/redis/redis.conf &&
+        echo "masterauth ${REDIS_PASSWORD}" >> /usr/local/etc/redis/redis.conf &&
+        echo "replica-priority 10" >> /usr/local/etc/redis/redis.conf &&
+        cat /usr/local/etc/redis/redis-template.conf >> /usr/local/etc/redis/redis.conf &&
+        redis-server /usr/local/etc/redis/redis.conf
+      '
+    ports:
+      - "${SLAVE_PORT_1:-6380}:6379"
+    volumes:
+      - redis-slave-1-data:/data
+      - ./infrastructure/redis-sentinel/redis-slave-ha.conf:/usr/local/etc/redis/redis-template.conf:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-agl_redis_password}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.agl.component=redis"
+      - "com.agl.role=slave"
+      - "com.agl.slave.id=1"
+
+  # =============================================================================
+  # Redis Slave 2 (Priority for promotion: 100)
+  # =============================================================================
+  redis-slave-2:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-slave-2
+    restart: unless-stopped
+    command: >
+      sh -c '
+        echo "replicaof redis-master 6379" >> /usr/local/etc/redis/redis.conf &&
+        echo "masterauth ${REDIS_PASSWORD}" >> /usr/local/etc/redis/redis.conf &&
+        echo "replica-priority 100" >> /usr/local/etc/redis/redis.conf &&
+        cat /usr/local/etc/redis/redis-template.conf >> /usr/local/etc/redis/redis.conf &&
+        redis-server /usr/local/etc/redis/redis.conf
+      '
+    ports:
+      - "${SLAVE_PORT_2:-6381}:6379"
+    volumes:
+      - redis-slave-2-data:/data
+      - ./infrastructure/redis-sentinel/redis-slave-ha.conf:/usr/local/etc/redis/redis-template.conf:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-agl_redis_password}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.agl.component=redis"
+      - "com.agl.role=slave"
+      - "com.agl.slave.id=2"
+
+  # =============================================================================
+  # Redis Slave 3 (Priority for promotion: 100)
+  # =============================================================================
+  redis-slave-3:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-slave-3
+    restart: unless-stopped
+    command: >
+      sh -c '
+        echo "replicaof redis-master 6379" >> /usr/local/etc/redis/redis.conf &&
+        echo "masterauth ${REDIS_PASSWORD}" >> /usr/local/etc/redis/redis.conf &&
+        echo "replica-priority 100" >> /usr/local/etc/redis/redis.conf &&
+        cat /usr/local/etc/redis/redis-template.conf >> /usr/local/etc/redis/redis.conf &&
+        redis-server /usr/local/etc/redis/redis.conf
+      '
+    ports:
+      - "${SLAVE_PORT_3:-6382}:6379"
+    volumes:
+      - redis-slave-3-data:/data
+      - ./infrastructure/redis-sentinel/redis-slave-ha.conf:/usr/local/etc/redis/redis-template.conf:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-agl_redis_password}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.agl.component=redis"
+      - "com.agl.role=slave"
+      - "com.agl.slave.id=3"
+
+  # =============================================================================
+  # Redis Sentinel 1
+  # =============================================================================
+  redis-sentinel-1:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-sentinel-1
+    restart: unless-stopped
+    command: >
+      sh -c '
+        envsubst < /etc/redis/sentinel-template.conf > /etc/redis/sentinel.conf &&
+        redis-sentinel /etc/redis/sentinel.conf
+      '
+    ports:
+      - "${SENTINEL_PORT_1:-26379}:26379"
+    volumes:
+      - sentinel-1-data:/data
+      - ./infrastructure/redis-sentinel/sentinel-1.conf:/etc/redis/sentinel-template.conf:ro
+      - ./infrastructure/scripts/redis-failover-notify.sh:/etc/redis/sentinel-failover-notify.sh:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+      - REDIS_MASTER_IP=redis-master
+      - SENTINEL_IP=redis-sentinel-1
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    labels:
+      - "com.agl.component=sentinel"
+      - "com.agl.sentinel.id=1"
+
+  # =============================================================================
+  # Redis Sentinel 2
+  # =============================================================================
+  redis-sentinel-2:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-sentinel-2
+    restart: unless-stopped
+    command: >
+      sh -c '
+        envsubst < /etc/redis/sentinel-template.conf > /etc/redis/sentinel.conf &&
+        redis-sentinel /etc/redis/sentinel.conf
+      '
+    ports:
+      - "${SENTINEL_PORT_2:-26380}:26379"
+    volumes:
+      - sentinel-2-data:/data
+      - ./infrastructure/redis-sentinel/sentinel-2.conf:/etc/redis/sentinel-template.conf:ro
+      - ./infrastructure/scripts/redis-failover-notify.sh:/etc/redis/sentinel-failover-notify.sh:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+      - REDIS_MASTER_IP=redis-master
+      - SENTINEL_IP=redis-sentinel-2
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    labels:
+      - "com.agl.component=sentinel"
+      - "com.agl.sentinel.id=2"
+
+  # =============================================================================
+  # Redis Sentinel 3
+  # =============================================================================
+  redis-sentinel-3:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-sentinel-3
+    restart: unless-stopped
+    command: >
+      sh -c '
+        envsubst < /etc/redis/sentinel-template.conf > /etc/redis/sentinel.conf &&
+        redis-sentinel /etc/redis/sentinel.conf
+      '
+    ports:
+      - "${SENTINEL_PORT_3:-26381}:26379"
+    volumes:
+      - sentinel-3-data:/data
+      - ./infrastructure/redis-sentinel/sentinel-3.conf:/etc/redis/sentinel-template.conf:ro
+      - ./infrastructure/scripts/redis-failover-notify.sh:/etc/redis/sentinel-failover-notify.sh:ro
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+      - REDIS_MASTER_IP=redis-master
+      - SENTINEL_IP=redis-sentinel-3
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    labels:
+      - "com.agl.component=sentinel"
+      - "com.agl.sentinel.id=3"
+
+  # =============================================================================
+  # Redis Exporter (Prometheus Metrics)
+  # =============================================================================
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-redis-ha}-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    networks:
+      - redis-ha
+    environment:
+      - REDIS_ADDR=redis-master:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-agl_redis_password}
+      - REDIS_EXPORTER_LOG_LEVEL=info
+    depends_on:
+      - redis-master
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    labels:
+      - "com.agl.component=monitoring"
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  redis-ha:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  redis-master-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-master-data
+    driver: local
+  redis-slave-1-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-slave-1-data
+    driver: local
+  redis-slave-2-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-slave-2-data
+    driver: local
+  redis-slave-3-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-slave-3-data
+    driver: local
+  sentinel-1-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-sentinel-1-data
+    driver: local
+  sentinel-2-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-sentinel-2-data
+    driver: local
+  sentinel-3-data:
+    name: ${COMPOSE_PROJECT_NAME:-redis-ha}-sentinel-3-data
+    driver: local

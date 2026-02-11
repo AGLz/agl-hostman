@@ -1,0 +1,269 @@
+# =============================================================================
+# ProxySQL Configuration for MySQL High Availability
+# AGL Hostman - Read/Write Splitting and Connection Pooling
+# =============================================================================
+#
+# This configuration provides:
+#   - Automatic read/write splitting
+#   - Connection pooling for performance
+#   - Query routing rules
+#   - Health monitoring
+#   - Automatic failover
+#
+# Admin interface: mysql -h 127.0.0.1 -P 6080 -u admin -padmin
+#
+# =============================================================================
+
+datadir="/var/lib/proxysql"
+
+# -----------------------------------------------------------------------------
+# Admin Interface
+# -----------------------------------------------------------------------------
+admin_variables =
+{
+    admin_credentials="admin:admin;radmin:radmin"
+    mysql_ifaces="0.0.0.0:6080;/tmp/proxysql_admin.sock"
+    refresh_interval=2000
+    debug=false
+
+    # Cluster configuration
+    proxysql_executions=1
+    cluster_username="proxysql"
+    cluster_password="proxysql_password"
+    cluster_check_interval_ms=1000
+    cluster_check_status_frequency=10
+    cluster_mysql_query_rules_save_to_disk=true
+    cluster_mysql_servers_save_to_disk=true
+    cluster_mysql_users_save_to_disk=true
+    cluster_proxysql_servers_save_to_disk=true
+    cluster_mysql_query_rules_filename="mysql_query_rules.csv"
+    cluster_mysql_servers_filename="mysql_servers.csv"
+    cluster_mysql_users_filename="mysql_users.csv"
+    cluster_proxysql_servers_filename="proxysql_servers.csv"
+    cluster_mysql_variables_filename="mysql_variables.csv"
+}
+
+# -----------------------------------------------------------------------------
+# MySQL Variables
+# -----------------------------------------------------------------------------
+mysql_variables =
+{
+    threads=4
+    max_connections=2048
+    default_query_delay=0
+    default_query_timeout=36000000
+    have_compress=true
+    poll_timeout=2000
+    interfaces="0.0.0.0:6032;/tmp/proxysql.sock;0.0.0.0:6033;/tmp/proxysql_ro.sock"
+    default_schema="information_schema"
+    stacksize=1048576
+    server_version="8.0.27"
+    connect_timeout_server=3000
+    monitor_username="root"
+    monitor_password="root_password"
+    monitor_galera_healthcheck_interval=5000
+    monitor_read_only_interval=1500
+    ping_interval_server_msec=10000
+    ping_timeout_server=500
+    commands_stats=true
+    sessions_sort=true
+    connect_retries_on_failure=10
+    auto_increment_delay_mul=2
+    user_stats=true
+    multiplexing=true
+    max_allowed_packet=4194304
+    default_max_latency_ms=1000
+    monitor_password="MYSQL_ROOT_PASSWORD"
+    monitor_username="root"
+    query_cache_size_MB=256
+    query_cache_method="LRU"
+
+    # Forwarding settings
+    monitor_read_only_max_wait_count=5
+
+    # TLS configuration (if using SSL)
+    # ssl_p2s_cert="/path/to/client-cert.pem"
+    # ssl_p2s_key="/path/to/client-key.pem"
+    # ssl_p2s_ca="/path/to/ca.pem"
+}
+
+# -----------------------------------------------------------------------------
+# MySQL Servers (configured at runtime)
+# -----------------------------------------------------------------------------
+mysql_servers =
+(
+    # Master (Write)
+    {
+        address="mysql-master"
+        port=3306
+        hostgroup=10
+        max_connections=1000
+        weight=1
+        compression=true
+        is_master=true
+    }
+    # Slave 1 (Read)
+    {
+        address="mysql-slave-1"
+        port=3306
+        hostgroup=20
+        max_connections=1000
+        weight=1
+        compression=true
+        is_master=false
+    }
+    # Slave 2 (Read)
+    {
+        address="mysql-slave-2"
+        port=3306
+        hostgroup=20
+        max_connections=1000
+        weight=1
+        compression=true
+        is_master=false
+    }
+)
+
+# -----------------------------------------------------------------------------
+# MySQL Users (configured at runtime)
+# -----------------------------------------------------------------------------
+mysql_users =
+(
+    {
+        username = "root"
+        password = "MYSQL_ROOT_PASSWORD"
+        default_hostgroup = 10
+        max_connections = 1000
+        default_schema = "information_schema"
+        active = 1
+    }
+    {
+        username = "MYSQL_USER"
+        password = "MYSQL_PASSWORD"
+        default_hostgroup = 20
+        max_connections = 1000
+        default_schema = "MYSQL_DATABASE"
+        active = 1
+    }
+)
+
+# -----------------------------------------------------------------------------
+# Query Rules (Read/Write Splitting)
+# -----------------------------------------------------------------------------
+mysql_query_rules =
+(
+    # Rule 1: SELECT ... FOR UPDATE -> Master (write)
+    {
+        rule_id=1
+        active=1
+        match_pattern="^SELECT.*FOR UPDATE"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 2: SELECT ... LOCK IN SHARE MODE -> Master (write)
+    {
+        rule_id=2
+        active=1
+        match_pattern="^SELECT.*LOCK IN SHARE MODE"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 3: INSERT/UPDATE/DELETE -> Master (write)
+    {
+        rule_id=3
+        active=1
+        match_pattern="^(INSERT|UPDATE|DELETE|REPLACE|CREATE|ALTER|DROP|TRUNCATE)"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 4: Explicit transactions -> Master (write)
+    {
+        rule_id=4
+        active=1
+        match_pattern="^(BEGIN|START TRANSACTION|COMMIT|ROLLBACK)"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 5: SET operations -> Master
+    {
+        rule_id=5
+        active=1
+        match_pattern="^SET"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 6: SHOW commands -> Master (for consistency)
+    {
+        rule_id=6
+        active=1
+        match_pattern="^SHOW"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 7: SELECT with functions -> Master (if they modify data)
+    {
+        rule_id=7
+        active=1
+        match_pattern="^SELECT.*LAST_INSERT_ID|SELECT.*ROW_COUNT"
+        destination_hostgroup=10
+        apply=1
+    }
+    # Rule 8: All other SELECTs -> Slaves (read)
+    {
+        rule_id=8
+        active=1
+        match_pattern="^SELECT"
+        destination_hostgroup=20
+        apply=1
+    }
+)
+
+# -----------------------------------------------------------------------------
+# Query Processor Options
+# -----------------------------------------------------------------------------
+# Cache configuration for SELECT queries
+mysql_query_processor_options =
+{
+    query_processor_cache=true
+    query_processor_cache_size_MB=256
+    query_processor_cache_entries=10000
+}
+
+# -----------------------------------------------------------------------------
+# ProxySQL Scheduler (for maintenance)
+# -----------------------------------------------------------------------------
+proxysql_schedulerr =
+{
+    # Time-based rule switching
+    # Example: Switch to read-only during maintenance window
+    # 0 3 * * * /usr/bin/proxysql-manage --maintenance-mode=on
+    # 0 6 * * * /usr/bin/proxysql-manage --maintenance-mode=off
+}
+
+# -----------------------------------------------------------------------------
+# Statistics Configuration
+# -----------------------------------------------------------------------------
+# Enable detailed statistics
+mysql_server_collations =
+(
+    [ "utf8mb4_unicode_ci" ]
+)
+
+# Connection pooling settings
+connection_pool =
+{
+    # Maximum number of connections per backend server
+    max_connections_per_backend=1000
+
+    # Minimum connections to maintain
+    min_spare_connections=5
+
+    # Maximum spare connections
+    max_spare_connections=10
+
+    # Connection timeout
+    connection_timeout=300
+
+    # Idle connection timeout
+    idle_timeout=600
+}

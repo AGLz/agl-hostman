@@ -1,0 +1,307 @@
+# =============================================================================
+# Prometheus Alert Rules for MySQL High Availability
+# AGL Hostman - Database Monitoring and Alerting
+# =============================================================================
+
+groups:
+  - name: mysql_ha
+    interval: 30s
+    rules:
+      # Master Health Alerts
+      - alert: MySQLMasterDown
+        expr: mysql_up{server_type="master"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL master is down"
+          description: "MySQL master {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://docs.agl.local/runbooks/mysql/master-failure"
+
+      - alert: MySQLMasterNotResponding
+        expr: mysql_global_status_Threads_connected{server_type="master"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL master not accepting connections"
+          description: "MySQL master {{ $labels.instance }} has no active connections for 2 minutes."
+
+      # Replication Alerts
+      - alert: MySQLReplicationStopped
+        expr: mysql_slave_status_slave_io_running == 0 or mysql_slave_status_slave_sql_running == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL replication stopped"
+          description: "Replication on {{ $labels.instance }} has stopped. IO: {{ $value }}, SQL: {{ $value }}"
+
+      - alert: MySQLReplicationLagHigh
+        expr: mysql_slave_status_seconds_behind_master > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL replication lag is high"
+          description: "Replication lag on {{ $labels.instance }} is {{ $value }} seconds (threshold: 30s)."
+
+      - alert: MySQLReplicationLagCritical
+        expr: mysql_slave_status_seconds_behind_master > 300
+        for: 1m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL replication lag is critical"
+          description: "Replication lag on {{ $labels.instance }} is {{ $value }} seconds (threshold: 300s)."
+
+      - alert: MySQLReplicationPositionStalled
+        expr: |
+          delta(mysql_slave_status_read_master_log_pos[5m]) < 100
+          and mysql_slave_status_slave_io_running == 1
+        for: 10m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL replication position stalled"
+          description: "Replication position on {{ $labels.instance }} has not progressed significantly in 10 minutes."
+
+      # Connection Alerts
+      - alert: MySQLConnectionsHigh
+        expr: |
+          (mysql_global_status_threads_connected / mysql_global_variables_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL connection usage high"
+          description: "{{ $labels.instance }} is using {{ $value | humanizePercentage }} of max connections."
+
+      - alert: MySQLConnectionsFull
+        expr: |
+          (mysql_global_status_threads_connected / mysql_global_variables_max_connections) >= 0.95
+        for: 1m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL connections at capacity"
+          description: "{{ $labels.instance }} has reached connection capacity."
+
+      - alert: MySQLConnectionErrors
+        expr: rate(mysql_global_status_connection_errors_internal[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL connection errors detected"
+          description: "{{ $labels.instance }} has internal connection errors at {{ $value | humanize }} errors/sec."
+
+      # Performance Alerts
+      - alert: MySQLSlowQueriesHigh
+        expr: rate(mysql_global_status_slow_queries[5m]) > 10
+        for: 10m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL slow query rate high"
+          description: "{{ $labels.instance }} has {{ $value | humanize }} slow queries/sec."
+
+      - alert: MySQLQueryLatencyHigh
+        expr: histogram_quantile(0.99, rate(mysql_global_status_queries_duration[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL query latency high"
+          description: "99th percentile query latency on {{ $labels.instance }} is {{ $value }}s."
+
+      # Disk Space Alerts
+      - alert: MySQLDiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/var/lib/mysql"}
+            / node_filesystem_size_bytes{mountpoint="/var/lib/mysql"}) < 0.2
+        for: 5m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL data disk space low"
+          description: "{{ $labels.instance }} has less than 20% disk space available."
+
+      - alert: MySQLDiskSpaceCritical
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/var/lib/mysql"}
+            / node_filesystem_size_bytes{mountpoint="/var/lib/mysql"}) < 0.1
+        for: 1m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL data disk space critical"
+          description: "{{ $labels.instance }} has less than 10% disk space available."
+
+      # InnoDB Alerts
+      - alert: MySQLInnoDBBufferPoolUtilizationHigh
+        expr: |
+          mysql_global_status_innodb_buffer_pool_pages_total
+          / on (instance)
+          mysql_global_variables_innodb_buffer_pool_size > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "InnoDB buffer pool utilization high"
+          description: "{{ $labels.instance }} buffer pool is {{ $value | humanizePercentage }} utilized."
+
+      - alert: MySQLInnoDBDeadlocks
+        expr: rate(mysql_global_status_innodb_deadlocks[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL InnoDB deadlocks detected"
+          description: "{{ $labels.instance }} has InnoDB deadlocks at {{ $value | humanize }} locks/sec."
+
+      # ProxySQL Alerts
+      - alert: ProxySQLBackendDown
+        expr: proxysql_backend_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: proxysql
+          tier: proxy
+        annotations:
+          summary: "ProxySQL backend is down"
+          description: "ProxySQL backend {{ $labels.hostname }}:{{ $labels.port }} is down."
+
+      - alert: ProxySQLConnectionPoolExhausted
+        expr: |
+          (proxysql_global_stats_connection_used / proxysql_global_stats_connection_total) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: proxysql
+          tier: proxy
+        annotations:
+          summary: "ProxySQL connection pool nearly exhausted"
+          description: "ProxySQL connection pool is {{ $value | humanizePercentage }} utilized."
+
+      # Backup Alerts
+      - alert: MySQLBackupFailed
+        expr: |
+          time() - mysql_backup_last_success_timestamp_seconds > 86400
+        for: 1m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL backup is old or failed"
+          description: "Last successful backup was more than 24 hours ago."
+
+      - alert: MySQLBackupNotRunning
+        expr: |
+          time() - mysql_backup_last_attempt_timestamp_seconds > 172800
+        for: 1m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL backup not attempted recently"
+          description: "No backup attempt in the last 48 hours."
+
+  - name: mysql_ha_aggregate
+    interval: 5m
+    rules:
+      # HA Status Alerts
+      - alert: MySQLHASlavesInsufficient
+        expr: |
+          count(mysql_slave_status_slave_io_running == 1) < 2
+        for: 5m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL HA: Insufficient healthy slaves"
+          description: "Less than 2 healthy MySQL replicas available. Current: {{ $value }}"
+
+      - alert: MySQLHAFailoverRequired
+        expr: |
+          (mysql_up{server_type="master"} == 0)
+          and (count(mysql_slave_status_slave_io_running == 1) >= 1)
+        for: 2m
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL HA: Failover required"
+          description: "Master is down but {{ $value }} slave(s) are healthy. Failover recommended."
+
+      - alert: MySQLHASplitBrainRisk
+        expr: |
+          count(mysql_global_status_read_only == 0) > 1
+        for: 30s
+        labels:
+          severity: critical
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL HA: Split-brain detected"
+          description: "Multiple MySQL servers are writable. Risk of data divergence!"
+
+      # Performance Aggregate
+      - alert: MySQLClusterReplicationLagHigh
+        expr: |
+          avg(mysql_slave_status_seconds_behind_master) > 60
+        for: 10m
+        labels:
+          severity: warning
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL cluster: Average replication lag high"
+          description: "Average replication lag across all replicas is {{ $value | humanizeDuration }}."
+
+      - alert: MySQLClusterConnectionUtilization
+        expr: |
+          sum(rate(mysql_global_status_commands_total{command="insert"}[5m]))
+          / sum(rate(mysql_global_status_commands_total[5m])) > 0.8
+        for: 10m
+        labels:
+          severity: info
+          service: mysql
+          tier: database
+        annotations:
+          summary: "MySQL cluster: High write ratio"
+          description: "Cluster is write-heavy ({{ $value | humanizePercentage }} writes). Consider scaling replicas."

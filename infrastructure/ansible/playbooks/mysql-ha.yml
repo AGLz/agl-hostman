@@ -1,0 +1,575 @@
+---
+# =============================================================================
+# Ansible Playbook - MySQL High Availability Deployment
+# AGL Hostman - Automated MySQL HA Setup
+# =============================================================================
+#
+# This playbook deploys and manages MySQL HA infrastructure:
+#   - Master-slave replication setup
+#   - ProxySQL configuration
+#   - Backup automation
+#   - Monitoring setup
+#   - Failover automation
+#
+# Usage:
+#   ansible-playbook -i inventory mysql-ha.yml
+#   ansible-playbook -i inventory mysql-ha.yml --tags replication
+#   ansible-playbook -i inventory mysql-ha.yml --limit mysql_slaves
+#
+# =============================================================================
+
+- name: Deploy MySQL High Availability Infrastructure
+  hosts: mysql_all
+  become: true
+  gather_facts: true
+
+  vars:
+    # MySQL Configuration
+    mysql_root_password: "{{ vault_mysql_root_password | default('changeme') }}"
+    mysql_replication_user: replicator
+    mysql_replication_password: "{{ vault_mysql_replication_password | default('changeme') }}"
+    mysql_version: "8.0"
+    mysql_port: 3306
+
+    # Network Configuration
+    mysql_bind_address: 0.0.0.0
+    mysql_max_connections: 1000
+    mysql_innodb_buffer_pool_size: 4G
+
+    # Backup Configuration
+    backup_enabled: true
+    backup_schedule: "0 2 * * *"
+    backup_retention_days: 7
+    backup_destination: "/srv/backups/mysql"
+    s3_upload_enabled: false
+    s3_bucket: ""
+    s3_region: "us-east-1"
+
+    # Monitoring Configuration
+    mysql_exporter_port: 9104
+    prometheus_targets:
+      - job: mysql-master
+        port: 9104
+      - job: mysql-slave-1
+        port: 9104
+      - job: mysql-slave-2
+        port: 9104
+
+    # ProxySQL Configuration
+    proxysql_enabled: true
+    proxysql_port: 6032
+    proxysql_admin_port: 6080
+    proxysql_admin_password: admin
+    proxysql_monitor_password: "{{ mysql_root_password }}"
+
+  pre_tasks:
+    - name: Check if MySQL is already installed
+      ansible.builtin.stat:
+        path: /usr/bin/mysql
+      register: mysql_installed
+
+    - name: Display installation status
+      ansible.builtin.debug:
+        msg: "MySQL {{ 'already installed' if mysql_installed.stat.exists else 'will be installed' }}"
+
+  # =============================================================================
+  # System Preparation
+  # =============================================================================
+  - name: Prepare system for MySQL HA
+    block:
+      - name: Create required directories
+        ansible.builtin.file:
+          path: "{{ item }}"
+          state: directory
+          owner: 999
+          group: 999
+          mode: '0755'
+        loop:
+          - /srv/mysql/master
+          - /srv/mysql/slave1
+          - /srv/mysql/slave2
+          - /var/log/mysql/master
+          - /var/log/mysql/slave1
+          - /var/log/mysql/slave2
+          - /srv/backups/mysql
+          - /var/log/mysql/backup
+
+      - name: Configure system limits for MySQL
+        ansible.builtin.copy:
+          dest: /etc/security/limits.d/99-mysql.conf
+          content: |
+            mysql soft nofile 65536
+            mysql hard nofile 65536
+            mysql soft nproc 4096
+            mysql hard nproc 4096
+          mode: '0644'
+        notify: Apply system limits
+
+      - name: Configure kernel parameters for MySQL
+        ansible.builtin.copy:
+          dest: /etc/sysctl.d/99-mysql.conf
+          content: |
+            # MySQL Performance Tuning
+            vm.swappiness = 1
+            vm.dirty_ratio = 15
+            vm.dirty_background_ratio = 3
+
+            # Networking
+            net.core.rmem_max = 134217728
+            net.core.wmem_max = 134217728
+            net.ipv4.tcp_rmem = 4096 87380 16777216
+            net.ipv4.tcp_wmem = 4096 65536 16777216
+            net.core.netdev_max_backlog = 5000
+
+            # File descriptors
+            fs.file-max = 2097152
+          mode: '0644'
+        notify: Apply kernel parameters
+
+      - name: Install required packages
+        ansible.builtin.apt:
+          name:
+            - percona-server-client
+            - percona-xtrabackup
+            - pigz
+            - jq
+            - python3-pymysql
+            - acl
+          state: present
+          update_cache: true
+
+    tags: ['prepare', 'system']
+
+  # =============================================================================
+  # MySQL Installation (Master)
+  # =============================================================================
+  - name: Install and configure MySQL Master
+    block:
+      - name: Create MySQL master configuration
+        ansible.builtin.copy:
+          dest: /etc/mysql/conf.d/ha.cnf
+          content: |
+            [mysqld]
+            # Server Identification
+            server-id = 1
+            bind-address = {{ mysql_bind_address }}
+            port = {{ mysql_port }}
+
+            # GTID Configuration
+            gtid_mode = ON
+            enforce_gtid_consistency = ON
+
+            # Binary Logging
+            log-bin = mysql-bin
+            binlog_format = ROW
+            binlog_rows_query_log_events = ON
+            log_slave_updates = ON
+            sync_binlog = 1
+            binlog_expire_logs_seconds = 604800
+
+            # Semi-sync Replication
+            plugin-load = rpl_semi_sync_master=semisync_master.so
+            rpl_semi_sync_master_enabled = 1
+            rpl_semi_sync_master_timeout = 1000
+
+            # InnoDB Configuration
+            innodb_buffer_pool_size = {{ mysql_innodb_buffer_pool_size }}
+            innodb_buffer_pool_instances = 4
+            innodb_file_per_table = ON
+            innodb_flush_log_at_trx_commit = 1
+            innodb_flush_method = O_DIRECT
+            innodb_log_file_size = 512M
+            innodb_log_files_in_group = 2
+
+            # Connection Settings
+            max_connections = {{ mysql_max_connections }}
+            max_connect_errors = 10000
+            connect_timeout = 10
+            wait_timeout = 600
+
+            # Character Set
+            character-set-server = utf8mb4
+            collation-server = utf8mb4_unicode_ci
+
+            # Slow Query Log
+            slow_query_log = ON
+            long_query_time = 2
+            log_queries_not_using_indexes = ON
+          mode: '0644'
+        notify: Restart MySQL master
+
+      - name: Create replication user
+        community.mysql.mysql_user:
+          name: "{{ mysql_replication_user }}"
+          password: "{{ mysql_replication_password }}"
+          priv: "*.*:REPLICATION SLAVE,REPLICATION CLIENT"
+          state: present
+          login_unix_socket: /var/run/mysqld/mysqld.sock
+
+      - name: Create monitoring user
+        community.mysql.mysql_user:
+          name: exporter
+          password: "{{ exporter_password | default('exporter') }}"
+          priv: "*.*:SELECT,PROCESS,REPLICATION CLIENT"
+          state: present
+          login_unix_socket: /var/run/mysqld/mysqld.sock
+
+      - name: Configure firewall for MySQL
+        community.general.ufw:
+          rule: allow
+          port: "{{ mysql_port }}"
+          proto: tcp
+        when: ansible_os_family == "Debian"
+
+    when: "'mysql_masters' in group_names"
+    tags: ['mysql', 'master']
+
+  # =============================================================================
+  # MySQL Installation (Slaves)
+  # =============================================================================
+  - name: Install and configure MySQL Slaves
+    block:
+      - name: Create MySQL slave configuration
+        ansible.builtin.copy:
+          dest: /etc/mysql/conf.d/ha.cnf
+          content: |
+            [mysqld]
+            # Server Identification
+            server-id = {{ inventory_hostname.split('-')[-1] | int }}
+            bind-address = {{ mysql_bind_address }}
+            port = {{ mysql_port }}
+            read_only = ON
+            super_read_only = ON
+
+            # GTID Configuration
+            gtid_mode = ON
+            enforce_gtid_consistency = ON
+
+            # Binary Logging
+            log-bin = mysql-bin
+            binlog_format = ROW
+            log_slave_updates = ON
+            binlog_expire_logs_seconds = 604800
+
+            # Relay Log Configuration
+            relay_log = relay-bin
+            relay_log_recovery = ON
+            max_relay_log_size = 1G
+            relay_log_info_repository = TABLE
+            master_info_repository = TABLE
+
+            # Slave Parallel Execution
+            slave_parallel_type = LOGICAL_CLOCK
+            slave_parallel_workers = 4
+            slave_preserve_commit_order = ON
+
+            # Semi-sync Replication Slave
+            plugin-load = rpl_semi_sync_slave=semisync_slave.so
+            rpl_semi_sync_slave_enabled = 1
+
+            # InnoDB Configuration
+            innodb_buffer_pool_size = {{ mysql_innodb_buffer_pool_size }}
+            innodb_buffer_pool_instances = 4
+            innodb_file_per_table = ON
+            innodb_flush_log_at_trx_commit = 2
+            innodb_flush_method = O_DIRECT
+
+            # Connection Settings
+            max_connections = {{ mysql_max_connections }}
+
+            # Character Set
+            character-set-server = utf8mb4
+            collation-server = utf8mb4_unicode_ci
+
+            # Skip slave errors
+            slave_skip_errors = 1062,1032
+          mode: '0644'
+        notify: Restart MySQL slave
+
+      - name: Configure replication from master
+        community.mysql.mysql_replication:
+          mode: changemaster
+          master_host: "{{ hostvars[groups['mysql_masters'][0]]['ansible_default_ipv4']['address'] }}"
+          master_user: "{{ mysql_replication_user }}"
+          master_password: "{{ mysql_replication_password }}"
+          master_auto_position: 1
+          login_unix_socket: /var/run/mysqld/mysqld.sock
+
+      - name: Start slave replication
+        community.mysql.mysql_replication:
+          mode: startslave
+          login_unix_socket: /var/run/mysqld/mysqld.sock
+
+      - name: Configure firewall for MySQL
+        community.general.ufw:
+          rule: allow
+          port: "{{ mysql_port }}"
+          proto: tcp
+        when: ansible_os_family == "Debian"
+
+    when: "'mysql_slaves' in group_names"
+    tags: ['mysql', 'slave', 'replication']
+
+  # =============================================================================
+  # ProxySQL Installation
+  # =============================================================================
+  - name: Install and configure ProxySQL
+    block:
+      - name: Add ProxySQL repository
+        ansible.builtin.apt_repository:
+          repo: "deb [arch=amd64] https://repo.proxysql.com/ProxySQL/proxysql-{{ proxysql_version }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main"
+          state: present
+          filename: proxysql
+          update_cache: true
+
+      - name: Install ProxySQL
+        ansible.builtin.apt:
+          name:
+            - proxysql
+            - proxysql-tools
+          state: present
+          update_cache: true
+
+      - name: Configure ProxySQL
+        ansible.builtin.template:
+          src: templates/proxysql.cnf.j2
+          dest: /etc/proxysql.cnf
+          mode: '0640'
+          owner: proxysql
+          group: proxysql
+        notify: Restart ProxySQL
+
+      - name: Configure ProxySQL admin credentials
+        ansible.builtin.expect:
+          command: proxysql-admin --config-file=/etc/proxysql.cnf --prompt-passwd --password={{ proxysql_admin_password }} --username=admin
+        responses:
+          Enter password: "{{ proxysql_admin_password }}"
+          Re-enter password: "{{ proxysql_admin_password }}"
+        no_log: true
+        when: false  # Only run on first setup
+
+      - name: Configure firewall for ProxySQL
+        community.general.ufw:
+          rule: allow
+          port: "{{ item }}"
+          proto: tcp
+        loop:
+          - "{{ proxysql_port }}"
+          - "{{ proxysql_admin_port }}"
+        when: ansible_os_family == "Debian"
+
+    when: proxysql_enabled
+    delegate_to: localhost
+    run_once: true
+    tags: ['proxysql', 'proxy']
+
+  # =============================================================================
+  # MySQL Exporter Installation
+  # =============================================================================
+  - name: Install MySQL Exporter for monitoring
+    block:
+      - name: Create mysql_exporter user
+        ansible.builtin.user:
+          name: mysql_exporter
+          system: true
+          shell: /bin/false
+          home: /var/lib/mysql_exporter
+          create_home: false
+
+      - name: Create mysql_exporter directories
+        ansible.builtin.file:
+          path: "{{ item }}"
+          state: directory
+          owner: mysql_exporter
+          group: mysql_exporter
+          mode: '0755'
+        loop:
+          - /var/lib/mysql_exporter
+          - /etc/mysql_exporter
+
+      - name: Download MySQL Exporter
+        ansible.builtin.get_url:
+          url: "https://github.com/prometheus/mysqld_exporter/releases/download/v{{ mysqld_exporter_version }}/mysqld_exporter-{{ mysqld_exporter_version }}.linux-amd64.tar.gz"
+          dest: /tmp/mysqld_exporter.tar.gz
+          mode: '0644'
+        register: download_exporter
+
+      - name: Extract MySQL Exporter
+        ansible.builtin.unarchive:
+          src: /tmp/mysqld_exporter.tar.gz
+          dest: /tmp/
+          remote_src: true
+          creates: /tmp/mysqld_exporter
+
+      - name: Install MySQL Exporter
+        ansible.builtin.copy:
+          src: /tmp/mysqld_exporter
+          dest: /usr/local/bin/mysqld_exporter
+          mode: '0755'
+          remote_src: true
+
+      - name: Create exporter .my.cnf
+        ansible.builtin.copy:
+          dest: /etc/mysql_exporter/.my.cnf
+          content: |
+            [client]
+            user=exporter
+            password={{ exporter_password | default('exporter') }}
+            host={{ mysql_bind_address }}
+          mode: '0400'
+          owner: mysql_exporter
+          group: mysql_exporter
+
+      - name: Create MySQL Exporter service
+        ansible.builtin.copy:
+          dest: /etc/systemd/system/mysql_exporter.service
+          content: |
+            [Unit]
+            Description=MySQL Exporter
+            After=network.target mysql.service
+
+            [Service]
+            Type=simple
+            User=mysql_exporter
+            Group=mysql_exporter
+            ExecStart=/usr/local/bin/mysqld_exporter \\
+              --config.my-cnf=/etc/mysql_exporter/.my.cnf \\
+              --web.listen-address=:{{ mysql_exporter_port }} \\
+              --collect.slave_status=true \\
+              --collect.info_schema.processlist=true \\
+              --collect.info_schema.innodb_metrics=true
+            Restart=always
+            RestartSec=10
+
+            [Install]
+            WantedBy=multi-user.target
+          mode: '0644'
+        notify: Reload systemd and start MySQL exporter
+
+      - name: Configure firewall for exporter
+        community.general.ufw:
+          rule: allow
+          port: "{{ mysql_exporter_port }}"
+          proto: tcp
+        when: ansible_os_family == "Debian"
+
+    tags: ['monitoring', 'exporter']
+
+  # =============================================================================
+  # Backup Automation
+  # =============================================================================
+  - name: Configure MySQL Backup Automation
+    block:
+      - name: Create backup directories
+        ansible.builtin.file:
+          path: "{{ item }}"
+          state: directory
+          mode: '0755'
+        loop:
+          - "{{ backup_destination }}"
+          - /var/log/mysql/backup
+
+      - name: Copy backup scripts
+        ansible.builtin.copy:
+          src: files/mysql/scripts/
+          dest: /usr/local/bin/mysql-backup/
+          mode: '0755'
+          directory_mode: '0755'
+
+      - name: Configure backup cron job
+        ansible.builtin.cron:
+          name: "MySQL Full Backup"
+          job: "/usr/local/bin/mysql-backup/backup-scheduler.sh full >> /var/log/mysql/backup/cron.log 2>&1"
+          cron_file: mysql-backup
+          user: root
+          minute: "0"
+          hour: "2"
+          weekday: "*"
+
+      - name: Configure incremental backup cron job
+        ansible.builtin.cron:
+          name: "MySQL Incremental Backup"
+          job: "/usr/local/bin/mysql-backup/backup-scheduler.sh inc >> /var/log/mysql/backup/cron.log 2>&1"
+          cron_file: mysql-backup
+          user: root
+          minute: "0"
+          hour: "6,12,18"
+          weekday: "*"
+
+      - name: Configure backup cleanup cron job
+        ansible.builtin.cron:
+          name: "MySQL Backup Cleanup"
+          job: "/usr/local/bin/mysql-backup/backup-scheduler.sh cleanup >> /var/log/mysql/backup/cron.log 2>&1"
+          cron_file: mysql-backup
+          user: root
+          minute: "0"
+          hour: "3"
+          weekday: "*"
+
+    when: backup_enabled
+    tags: ['backup']
+
+  # =============================================================================
+  # Handlers
+  # =============================================================================
+  handlers:
+    - name: Restart MySQL master
+      ansible.builtin.systemd:
+        name: mysql
+        state: restarted
+
+    - name: Restart MySQL slave
+      ansible.builtin.systemd:
+        name: mysql
+        state: restarted
+
+    - name: Restart ProxySQL
+      ansible.builtin.systemd:
+        name: proxysql
+        state: restarted
+        daemon_reload: true
+
+    - name: Apply system limits
+      ansible.builtin.command: sysctl -p /etc/security/limits.d/99-mysql.conf
+
+    - name: Apply kernel parameters
+      ansible.builtin.command: sysctl -p /etc/sysctl.d/99-mysql.conf
+
+    - name: Reload systemd and start MySQL exporter
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: mysql_exporter
+        state: restarted
+        enabled: true
+
+  # =============================================================================
+  # Post-Deployment Tasks
+  # =============================================================================
+  post_tasks:
+    - name: Verify MySQL master status
+      ansible.builtin.command: mysqladmin -u root -p{{ mysql_root_password }} ping
+      register: master_status
+      changed_when: false
+      when: "'mysql_masters' in group_names"
+
+    - name: Verify MySQL slave replication
+      ansible.builtin.command: mysql -u root -p{{ mysql_root_password }} -e "SHOW SLAVE STATUS\\G"
+      register: slave_status
+      changed_when: false
+      when: "'mysql_slaves' in group_names"
+
+    - name: Verify ProxySQL status
+      ansible.builtin.command: mysql -h 127.0.0.1 -P {{ proxysql_admin_port }} -u admin -p{{ proxysql_admin_password }} -e "SELECT * FROM stats_mysql_connection_pool"
+      register: proxysql_status
+      changed_when: false
+      when: proxysql_enabled
+      delegate_to: localhost
+      run_once: true
+
+    - name: Display deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "MySQL HA deployment completed!"
+          - "Master: {{ master_status.stdout | default('Not reachable') }}"
+          - "Slaves: {{ slave_status.stdout | default('Not reachable') }}"
+          - "ProxySQL: {{ proxysql_status.stdout | default('Not configured') }}"

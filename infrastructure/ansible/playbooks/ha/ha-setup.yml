@@ -1,0 +1,268 @@
+---
+# =============================================================================
+# Ansible Playbook: AGL Hostman HA Infrastructure Setup
+# =============================================================================
+# High Availability Infrastructure Deployment
+#
+# This playbook deploys and configures:
+# - HAProxy load balancer
+# - MySQL master-slave replication
+# - Redis Sentinel for automatic failover
+# - Health check endpoints
+# - Monitoring agents
+#
+# Usage:
+#   ansible-playbook ha-setup.yml -i inventory/hosts.ini
+#   ansible-playbook ha-setup.yml -i inventory/hosts.ini --tags haproxy
+#   ansible-playbook ha-setup.yml -i inventory/hosts.ini --tags mysql
+# =============================================================================
+
+- name: Deploy AGL Hostman High Availability Infrastructure
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # Database configuration
+    mysql_root_password: "{{ lookup('env', 'MYSQL_ROOT_PASSWORD') | default('changeme', true) }}"
+    mysql_repl_password: "{{ lookup('env', 'MYSQL_REPL_PASSWORD') | default('repl_changeme', true) }}"
+    mysql_master_host: "{{ groups['mysql_master'][0] }}"
+    mysql_slave_hosts: "{{ groups['mysql_slaves'] }}"
+
+    # Redis configuration
+    redis_password: "{{ lookup('env', 'REDIS_PASSWORD') | default('redis_changeme', true) }}"
+    redis_master_host: "{{ groups['redis_master'][0] }}"
+    redis_slave_hosts: "{{ groups['redis_slaves'] }}"
+    redis_sentinel_hosts: "{{ groups['redis_sentinels'] }}"
+
+    # Load balancer configuration
+    haproxy_stats_password: "{{ lookup('env', 'HAPROXY_STATS_PASSWORD') | default('haproxy_stats', true) }}"
+    haproxy_version: "2.8"
+    haproxy_maxconn: 50000
+
+    # Application configuration
+    app_user: "agl-hostman"
+    app_group: "agl-hostman"
+    app_path: "/var/www/agl-hostman"
+
+    # Notification configuration
+    webhook_url: "{{ lookup('env', 'WEBHOOK_URL') | default('', true) }}"
+    slack_webhook: "{{ lookup('env', 'SLACK_WEBHOOK_URL') | default('', true) }}"
+
+  pre_tasks:
+    - name: Check system requirements
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution_version is version('20.04', '>=')
+          - ansible_memtotal_mb >= 2048
+        fail_msg: "System requirements not met. Need Ubuntu 20.04+ and 2GB+ RAM"
+
+    - name: Create AGL user and group
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: /bin/bash
+        home: /var/lib/agl-hostman
+        create_home: true
+
+    - name: Ensure required directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /etc/haproxy/errors
+        - /etc/mysql/conf.d
+        - /etc/redis
+        - /var/log/mysql
+        - /var/log/redis
+        - /var/log/haproxy
+        - /usr/local/bin/health-checks
+
+  roles:
+    # =============================================================================
+    # HAProxy Load Balancer
+    # =============================================================================
+    - role: haproxy
+      tags:
+        - haproxy
+        - loadbalancer
+      when: "'load_balancers' in group_names"
+      vars:
+        haproxy_backends:
+          - name: app_backend
+            balance: roundrobin
+            servers:
+              - name: app-blue-1
+                address: "{{ groups['app_blue'][0] }}:8080"
+                check: true
+                maxconn: 1000
+              - name: app-blue-2
+                address: "{{ groups['app_blue'][1] | default(groups['app_blue'][0]) }}:8080"
+                check: true
+                maxconn: 1000
+                backup: true
+          - name: api_backend
+            balance: leastconn
+            servers:
+              - name: api-blue-1
+                address: "{{ groups['app_blue'][0] }}:8080"
+                check: true
+                maxconn: 500
+          - name: mysql_read_backend
+            mode: tcp
+            balance: roundrobin
+            servers:
+              - name: mysql-slave-1
+                address: "{{ mysql_slave_hosts[0] }}:3306"
+                check: true
+              - name: mysql-slave-2
+                address: "{{ mysql_slave_hosts[1] | default(mysql_slave_hosts[0]) }}:3306"
+                check: true
+
+    # =============================================================================
+    # MySQL Master
+    # =============================================================================
+    - role: mysql
+      tags:
+        - mysql
+        - database
+      when: "'mysql_master' in group_names"
+      vars:
+        mysql_server_id: 1
+        mysql_read_only: false
+        mysql_binlog_enabled: true
+        mysql_gtid_enabled: true
+        mysql_max_connections: 1000
+        mysql_innodb_buffer_pool_size: "{{ (ansible_memtotal_mb * 0.5) | int }}M"
+
+    # =============================================================================
+    # MySQL Slaves
+    # =============================================================================
+    - role: mysql
+      tags:
+        - mysql
+        - database
+      when: "'mysql_slaves' in group_names"
+      vars:
+        mysql_server_id: "{{ play_hosts.index(inventory_hostname) + 2 }}"
+        mysql_read_only: true
+        mysql_binlog_enabled: true
+        mysql_gtid_enabled: true
+        mysql_replication_enabled: true
+        mysql_master_host: "{{ mysql_master_host }}"
+        mysql_repl_user: repl_user
+        mysql_repl_password: "{{ mysql_repl_password }}"
+
+    # =============================================================================
+    # Redis Master
+    # =============================================================================
+    - role: redis
+      tags:
+        - redis
+        - cache
+      when: "'redis_master' in group_names"
+      vars:
+        redis_role: master
+        redis_maxmemory: "{{ (ansible_memtotal_mb * 0.25) | int }}mb"
+        redis_save_enabled: false
+        redis_appendonly: true
+
+    # =============================================================================
+    # Redis Slaves
+    # =============================================================================
+    - role: redis
+      tags:
+        - redis
+        - cache
+      when: "'redis_slaves' in group_names"
+      vars:
+        redis_role: slave
+        redis_master_host: "{{ redis_master_host }}"
+        redis_maxmemory: "{{ (ansible_memtotal_mb * 0.25) | int }}mb"
+
+    # =============================================================================
+    # Redis Sentinel
+    # =============================================================================
+    - role: redis-sentinel
+      tags:
+        - redis
+        - sentinel
+        - cache
+      when: "'redis_sentinels' in group_names"
+      vars:
+        sentinel_master_host: "{{ redis_master_host }}"
+        sentinel_quorum: 2
+        sentinel_down_after_milliseconds: 5000
+        sentinel_failover_timeout: 10000
+
+    # =============================================================================
+    # Health Check Scripts
+    # =============================================================================
+    - role: health-checks
+      tags:
+        - healthchecks
+        - monitoring
+
+    # =============================================================================
+    # Node Exporter (Prometheus)
+    # =============================================================================
+    - role: prometheus-node-exporter
+      tags:
+        - monitoring
+        - prometheus
+
+    - role: prometheus-mysqld-exporter
+      tags:
+        - monitoring
+        - prometheus
+      when: "'mysql' in group_names"
+
+    - role: prometheus-redis-exporter
+      tags:
+        - monitoring
+        - prometheus
+      when: "'redis' in group_names"
+
+  post_tasks:
+    - name: Verify services are running
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: started
+      loop:
+        - haproxy
+        - mysql
+        - redis
+        - redis-sentinel
+        - prometheus-node-exporter
+
+    - name: Display HA setup information
+      ansible.builtin.debug:
+        msg:
+          - "HAProxy Load Balancer: http://{{ hostvars[groups['load_balancers'][0]]['ansible_host'] }}:8404/stats"
+          - "MySQL Master: {{ mysql_master_host }}"
+          - "MySQL Slaves: {{ mysql_slave_hosts | join(', ') }}"
+          - "Redis Master: {{ redis_master_host }}"
+          - "Redis Sentinels: {{ redis_sentinel_hosts | join(', ') }}"
+
+    - name: Send deployment notification
+      uri:
+        url: "{{ webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          text: "AGL Hostman HA Infrastructure deployed successfully"
+          attachments:
+            - color: "good"
+              fields:
+                - title: "Environment"
+                  value: "{{ ansible_environment }}"
+                  short: true
+                - title: "Timestamp"
+                  value: "{{ ansible_date_time.iso8601 }}"
+                  short: true
+        status_code: [200, 204]
+      when: webhook_url != ""

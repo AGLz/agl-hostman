@@ -1,0 +1,206 @@
+# =============================================================================
+# Prometheus Configuration - AGL Hostman HA Monitoring
+# =============================================================================
+# Global settings
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'agl-hostman-ha'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+      timeout: 10s
+      api_version: v2
+
+# Rule files
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # =============================================================================
+  # HAProxy Load Balancer
+  # =============================================================================
+  - job_name: 'haproxy'
+    static_configs:
+      - targets:
+          - 'haproxy-exporter:9101'
+        labels:
+          cluster: 'agl-hostman'
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  # =============================================================================
+  # MySQL Master
+  # =============================================================================
+  - job_name: 'mysql-master'
+    static_configs:
+      - targets:
+          - 'mysql-master-exporter:9104'
+        labels:
+          role: 'master'
+          cluster: 'agl-hostman'
+    scrape_interval: 30s
+
+  # =============================================================================
+  # MySQL Slaves
+  # =============================================================================
+  - job_name: 'mysql-slaves'
+    static_configs:
+      - targets:
+          - 'mysql-slave-1-exporter:9104'
+          - 'mysql-slave-2-exporter:9104'
+        labels:
+          role: 'slave'
+          cluster: 'agl-hostman'
+    scrape_interval: 30s
+
+  # =============================================================================
+  # Redis Master
+  # =============================================================================
+  - job_name: 'redis-master'
+    static_configs:
+      - targets:
+          - 'redis-master-exporter:9121'
+        labels:
+          role: 'master'
+          cluster: 'agl-hostman'
+    scrape_interval: 15s
+
+  # =============================================================================
+  # Redis Slaves
+  # =============================================================================
+  - job_name: 'redis-slaves'
+    static_configs:
+      - targets:
+          - 'redis-slave-1-exporter:9121'
+          - 'redis-slave-2-exporter:9121'
+          - 'redis-slave-3-exporter:9121'
+        labels:
+          role: 'slave'
+          cluster: 'agl-hostman'
+    scrape_interval: 15s
+
+  # =============================================================================
+  # Redis Sentinel
+  # =============================================================================
+  - job_name: 'redis-sentinel'
+    static_configs:
+      - targets:
+          - 'redis-sentinel-1-exporter:9121'
+          - 'redis-sentinel-2-exporter:9121'
+          - 'redis-sentinel-3-exporter:9121'
+        labels:
+          role: 'sentinel'
+          cluster: 'agl-hostman'
+    scrape_interval: 15s
+
+  # =============================================================================
+  # Application Health Checks
+  # =============================================================================
+  - job_name: 'agl-hostman'
+    static_configs:
+      - targets:
+          - 'app-blue-1:8080'
+          - 'app-blue-2:8080'
+        labels:
+          environment: 'blue'
+          cluster: 'agl-hostman'
+      - targets:
+          - 'app-green-1:8080'
+          - 'app-green-2:8080'
+        labels:
+          environment: 'green'
+          cluster: 'agl-hostman'
+    metrics_path: /health/prometheus
+    scrape_interval: 10s
+    scheme: http
+    params:
+      format: ['prometheus']
+
+  # =============================================================================
+  # Laravel Horizon (Queue Workers)
+  # =============================================================================
+  - job_name: 'horizon'
+    static_configs:
+      - targets:
+          - 'horizon-exporter:8080'
+        labels:
+          cluster: 'agl-hostman'
+    scrape_interval: 15s
+    metrics_path: /horizon/api/metrics
+
+  # =============================================================================
+  # Node Exporters (Infrastructure)
+  # =============================================================================
+  - job_name: 'node'
+    static_configs:
+      - targets:
+          - 'node-exporter-haproxy:9100'
+          - 'node-exporter-mysql-master:9100'
+          - 'node-exporter-mysql-slave-1:9100'
+          - 'node-exporter-mysql-slave-2:9100'
+          - 'node-exporter-redis-master:9100'
+          - 'node-exporter-redis-slave-1:9100'
+          - 'node-exporter-redis-slave-2:9100'
+          - 'node-exporter-app-blue-1:9100'
+          - 'node-exporter-app-blue-2:9100'
+        labels:
+          cluster: 'agl-hostman'
+    scrape_interval: 15s
+
+  # =============================================================================
+  # cAdvisor (Container Metrics)
+  # =============================================================================
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets:
+          - 'cadvisor:8080'
+        labels:
+          cluster: 'agl-hostman'
+    scrape_interval: 15s
+
+# =============================================================================
+# Storage Configuration
+# =============================================================================
+storage:
+  tsdb:
+    # Data retention
+    retention:
+      time: 30d
+      size: 50GB
+
+    # Path to WAL files
+    wal_path: /prometheus/wal
+
+# =============================================================================
+# Tracing Configuration
+# =============================================================================
+tracing:
+  endpoint: "tempo:4318"
+  client_type: "http"
+  headers:
+    X-Trace-Source: "prometheus"
+
+# =============================================================================
+# Remote Write (Optional - for long-term storage)
+# =============================================================================
+# remote_write:
+#   - url: "http://thanos-receiver:19291/api/v1/receive"
+#     headers:
+#       X-Prometheus-Remote-Write-Version: "0.1.0"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 200
+#       min_shards: 1
+#       max_samples_per_send: 5000
+#       batch_send_deadline: 5s
+#       min_backoff: 30ms
+#       max_backoff: 100ms

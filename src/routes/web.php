@@ -166,3 +166,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
 // Dokploy Dashboard Routes
 require __DIR__.'/dokploy.php';
+
+// =============================================================================
+// Health Check Endpoints (Load Balancer & Monitoring)
+// =============================================================================
+Route::prefix('health')->name('health.')->group(function () {
+    Route::get('/', [App\Http\Controllers\HealthCheckController::class, 'index'])->name('index');
+    Route::get('/detailed', [App\Http\Controllers\HealthCheckController::class, 'detailed'])->name('detailed');
+    Route::get('/database', [App\Http\Controllers\HealthCheckController::class, 'database'])->name('database');
+    Route::get('/cache', [App\Http\Controllers\HealthCheckController::class, 'cache'])->name('cache');
+    Route::get('/queue', [App\Http\Controllers\HealthCheckController::class, 'queue'])->name('queue');
+    Route::get('/readiness', [App\Http\Controllers\HealthCheckController::class, 'readiness'])->name('readiness');
+    Route::get('/liveness', [App\Http\Controllers\HealthCheckController::class, 'liveness'])->name('liveness');
+});

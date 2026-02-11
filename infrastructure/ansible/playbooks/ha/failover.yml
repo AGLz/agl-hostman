@@ -1,0 +1,200 @@
+---
+# =============================================================================
+# Ansible Playbook: AGL Hostman Automated Failover
+# =============================================================================
+# Graceful failover procedures for MySQL and Redis
+#
+# This playbook executes failover when:
+# - Manual failover is initiated
+# - Health check fails exceed threshold
+# - Scheduled maintenance window
+#
+# Usage:
+#   ansible-playbook failover.yml -i inventory/hosts.ini --tags mysql
+#   ansible-playbook failover.yml -i inventory/hosts.ini --tags redis
+#   ansible-playbook failover.yml -i inventory/hosts.ini -e "force=yes"
+# =============================================================================
+
+- name: Execute MySQL Failover
+  hosts: mysql_slaves
+  become: true
+  gather_facts: true
+  serial: 1
+
+  vars:
+    mysql_root_password: "{{ lookup('env', 'MYSQL_ROOT_PASSWORD') }}"
+    mysql_repl_password: "{{ lookup('env', 'MYSQL_REPL_PASSWORD') }}"
+    force_failover: "{{ force | default(false) }}"
+
+  pre_tasks:
+    - name: Check if failover is needed
+      block:
+        - name: Verify master is down
+          ansible.builtin.command:
+            cmd: mysqladmin -h {{ hostvars[groups['mysql_master'][0]]['ansible_host'] }} ping
+          register: master_ping
+          ignore_errors: true
+          changed_when: false
+
+        - name: Confirm failover should proceed
+          ansible.builtin.assert:
+            that:
+              - force_failover or master_ping.rc != 0
+            fail_msg: "Master is healthy. Use --extra-vars 'force=yes' to force failover."
+      rescue:
+        - name: Log failover aborted
+          ansible.builtin.debug:
+            msg: "Failover aborted - master is healthy"
+
+  tasks:
+    - name: Check replication lag on all slaves
+      ansible.builtin.shell:
+        cmd: |
+          mysql -u root -p{{ mysql_root_password }} -e "SHOW SLAVE STATUS\G" |
+          grep "Seconds_Behind_Master" |
+          awk '{print $2}'
+      register: slave_lag
+      changed_when: false
+      failed_when: slave_lag.rc != 0
+
+    - name: Select slave with lowest lag for promotion
+      set_fact:
+        promotion_candidate: "{{ groups['mysql_slaves'] | min(attribute='slave_lag.stdout') }}"
+
+    - name: Stop replication on selected slave
+      ansible.builtin.shell:
+        cmd: |
+          mysql -u root -p{{ mysql_root_password }} -e "
+            STOP SLAVE;
+            RESET SLAVE ALL;
+            SET GLOBAL read_only = OFF;
+            SET GLOBAL super_read_only = OFF;
+          "
+
+    - name: Update other slaves to point to new master
+      ansible.builtin.shell:
+        cmd: |
+          mysql -u root -p{{ mysql_root_password }} -e "
+            STOP SLAVE;
+            CHANGE MASTER TO
+              MASTER_HOST='{{ promotion_candidate }}',
+              MASTER_USER='repl_user',
+              MASTER_PASSWORD='{{ mysql_repl_password }}',
+              MASTER_AUTO_POSITION=1;
+            START SLAVE;
+          "
+      when: inventory_hostname != promotion_candidate
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['mysql_slaves'] }}"
+
+    - name: Update application configuration
+      ansible.builtin.lineinfile:
+        path: /var/www/agl-hostman/.env
+        regexp: '^DB_HOST='
+        line: "DB_HOST={{ promotion_candidate }}"
+        backup: true
+      delegate_to: "{{ groups['app_servers'][0] }}"
+
+    - name: Reload application
+      ansible.builtin.systemd:
+        name: agl-hostman
+        state: reloaded
+      delegate_to: "{{ groups['app_servers'][0] }}"
+
+    - name: Send failover notification
+      uri:
+        url: "{{ webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          text: "MySQL failover completed"
+          attachments:
+            - color: "warning"
+              fields:
+                - title: "New Master"
+                  value: "{{ promotion_candidate }}"
+                  short: true
+                - title: "Timestamp"
+                  value: "{{ ansible_date_time.iso8601 }}"
+                  short: true
+      when: webhook_url is defined
+      run_once: true
+
+- name: Execute Redis Failover (Sentinel-Managed)
+  hosts: redis_sentinels
+  become: true
+  gather_facts: true
+
+  vars:
+    redis_password: "{{ lookup('env', 'REDIS_PASSWORD') }}"
+
+  tasks:
+    - name: Check current master
+      ansible.builtin.shell:
+        cmd: redis-cli -a {{ redis_password }} --no-auth-warning SENTINEL get-master-addr-by-name mymaster
+      register: current_master
+      changed_when: false
+
+    - name: Display current master
+      ansible.builtin.debug:
+        msg: "Current Redis master: {{ current_master.stdout }}"
+
+    - name: Force failover if requested
+      ansible.builtin.shell:
+        cmd: redis-cli -a {{ redis_password }} --no-auth-warning SENTINEL failover mymaster
+      when: force | default(false)
+      register: failover_result
+
+    - name: Wait for failover to complete
+      ansible.builtin.wait_for:
+        timeout: 30
+      when: force | default(false)
+
+    - name: Verify new master
+      ansible.builtin.shell:
+        cmd: redis-cli -a {{ redis_password }} --no-auth-warning SENTINEL get-master-addr-by-name mymaster
+      register: new_master
+      changed_when: false
+
+    - name: Display failover result
+      ansible.builtin.debug:
+        msg:
+          - "Previous master: {{ current_master.stdout }}"
+          - "New master: {{ new_master.stdout }}"
+
+    - name: Update application Redis configuration
+      ansible.builtin.lineinfile:
+        path: /var/www/agl-hostman/.env
+        regexp: '^REDIS_HOST='
+        line: "REDIS_HOST={{ new_master.stdout.split(':')[0] }}"
+        backup: true
+      delegate_to: "{{ groups['app_servers'][0] }}"
+      when: force | default(false)
+
+- name: Verify Failover Health
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Check service status
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+      register: service_status
+      loop:
+        - mysql
+        - redis
+        - redis-sentinel
+
+    - name: Verify connectivity
+      ansible.builtin.wait_for:
+        host: "{{ item }}"
+        port: "{{ item.port }}"
+        timeout: 10
+      loop:
+        - { host: "{{ groups['mysql_master'][0] }}", port: 3306 }
+        - { host: "{{ groups['redis_master'][0] }}", port: 6379 }
+
+    - name: Display health summary
+      ansible.builtin.debug:
+        msg: "All services verified after failover"
