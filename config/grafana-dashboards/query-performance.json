@@ -1,0 +1,350 @@
+{
+  "dashboard": {
+    "title": "Database Query Performance - AGL-23",
+    "tags": ["database", "postgresql", "performance", "agl-23"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Query Response Time (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(pg_stat_statements_total_exec_time_ms_bucket[5m])) by (query_type))",
+            "legendFormat": "{{query_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Response Time (ms)",
+            "min": 0
+          }
+        ],
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          }
+        },
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [50],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"],
+                "refId": "A"
+              },
+              "reducer": {
+                "params": [],
+                "type": "avg"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "Query p95 > 50ms",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 2,
+        "title": "Queries Per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(pg_stat_statements_calls[5m])) by (query_type)",
+            "legendFormat": "{{query_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "QPS",
+            "min": 0
+          }
+        ],
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "qps"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Slow Query Log Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(slow_queries_log_total[5m])",
+            "legendFormat": "Slow Queries"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Queries/sec",
+            "min": 0
+          }
+        ],
+        "gridPos": { "x": 0, "y": 8, "w": 8, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ops"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "N+1 Query Problems",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(n1_query_detected_total) or vector(0)",
+            "legendFormat": "N+1 Problems"
+          }
+        ],
+        "gridPos": { "x": 8, "y": 8, "w": 4, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "problems",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "yellow" },
+                { "value": 5, "color": "red" }
+              ]
+            }
+          }
+        },
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"],
+                "refId": "A"
+              },
+              "reducer": {
+                "params": [],
+                "type": "sum"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "N+1 Query Detected",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 5,
+        "title": "Buffer Cache Hit Ratio",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "avg(pg_stat_database_blks_hit / (pg_stat_database_blks_hit + pg_stat_database_blks_read)) * 100",
+            "legendFormat": "Cache Hit %"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 90, "color": "red" },
+                { "value": 95, "color": "yellow" },
+                { "value": 99, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Connection Pool Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "pgbouncer_pool_stats{pool=\"agl_hostman\"}",
+            "legendFormat": "{{pool}} - {{cl_active}}/{{cl_max}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Connections",
+            "min": 0
+          }
+        ],
+        "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "connections"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Active Slow Queries",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum(mean_exec_time_ms) by (query_id))",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "Value": "Avg Time (ms)"
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Table Sizes (Top 10)",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, pg_stat_user_tables{datname=\"agl_hostman\"})",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "Value #A": "Size (MB)"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Missing Indexes",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(missing_indexes_log{is_created=\"false\"}) or vector(0)",
+            "legendFormat": "Missing Indexes"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 24, "w": 4, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "indexes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "yellow" },
+                { "value": 10, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Sequential Scan Ratio",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "avg(100 * (seq_scan / (seq_scan + idx_scan))) or vector(0)",
+            "legendFormat": "Seq Scan %"
+          }
+        ],
+        "gridPos": { "x": 16, "y": 24, "w": 8, "h": 8 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 1, "color": "green" },
+                { "value": 5, "color": "yellow" },
+                { "value": 10, "color": "red" }
+              ]
+            }
+          }
+        },
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [10],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"],
+                "refId": "A"
+              },
+              "reducer": {
+                "params": [],
+                "type": "avg"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "High Sequential Scan Ratio",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

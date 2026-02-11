@@ -1,0 +1,205 @@
+# =============================================================================
+# GitHub Actions: Terraform Apply
+# AGL Hostman - Infrastructure as Code
+# =============================================================================
+
+name: "Terraform Apply"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infrastructure/terraform/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      auto_approve:
+        description: "Auto-approve (bypass manual approval)"
+        type: boolean
+        default: false
+
+env:
+  TF_VERSION: "1.6.0"
+  TF_IN_AUTOMATION: "true"
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  apply:
+    name: "Apply - ${{ inputs.environment || 'production' }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.TERRAFORM_AWS_ROLE }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          terraform init \
+            -backend-config="bucket=agl-terraform-state" \
+            -backend-config="key=${{ inputs.environment || 'production' }}/infrastructure.tfstate" \
+            -backend-config="region=us-east-1"
+
+      - name: Terraform Workspace
+        working-directory: infrastructure/terraform
+        run: |
+          terraform workspace select ${{ inputs.environment || 'production' }} || \
+          terraform workspace new ${{ inputs.environment || 'production' }}
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          terraform plan \
+            -var-file="environments/${{ inputs.environment || 'production' }}/terraform.tfvars" \
+            -out=tfplan \
+            -no-color
+
+      - name: Plan Summary
+        id: plan-summary
+        working-directory: infrastructure/terraform
+        run: |
+          terraform show -json tfplan > plan.json
+
+          # Parse plan summary
+          ADD=$(cat plan.json | jq '.resource_changes[] | select(.change.actions[] | contains("create")) | length')
+          CHANGE=$(cat plan.json | jq '.resource_changes[] | select(.change.actions[] | contains("update")) | length')
+          DESTROY=$(cat plan.json | jq '.resource_changes[] | select(.change.actions[] | contains("delete")) | length')
+
+          echo "add=$ADD" >> $GITHUB_OUTPUT
+          echo "change=$CHANGE" >> $GITHUB_OUTPUT
+          echo "destroy=$DESTROY" >> $GITHUB_OUTPUT
+
+      - name: Show Plan Summary
+        run: |
+          echo "### Terraform Plan Summary"
+          echo "- Resources to add: ${{ steps.plan-summary.outputs.add }}"
+          echo "- Resources to change: ${{ steps.plan-summary.outputs.change }}"
+          echo "- Resources to destroy: ${{ steps.plan-summary.outputs.destroy }}"
+
+      - name: Terraform Apply
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          if [ "${{ inputs.auto_approve }}" = "true" ]; then
+            terraform apply -auto-approve tfplan
+          else
+            terraform apply tfplan
+          fi
+
+      - name: Save Outputs
+        id: outputs
+        working-directory: infrastructure/terraform
+        run: |
+          terraform output -json > outputs.json
+          terraform output > outputs.txt
+
+          # Save key outputs
+          VM_IPS=$(cat outputs.json | jq -r '.vm_ips.value[]? | @tsv')
+          SERVICE_URLS=$(cat outputs.json | jq -r '.service_urls.value[]? | @tsv')
+
+          echo "vms=$VM_IPS" >> $GITHUB_OUTPUT
+          echo "services=$SERVICE_URLS" >> $GITHUB_OUTPUT
+
+      - name: Upload Outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: outputs-${{ inputs.environment || 'production' }}
+          path: |
+            infrastructure/terraform/outputs.json
+            infrastructure/terraform/outputs.txt
+          retention-days: 90
+
+      - name: Comment Deployment Summary
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = `## Deployment Complete - ${{ inputs.environment || 'production' }}
+
+            ### Infrastructure Changes
+            - Resources added: ${{ steps.plan-summary.outputs.add }}
+            - Resources changed: ${{ steps.plan-summary.outputs.change }}
+            - Resources destroyed: ${{ steps.plan-summary.outputs.destroy }}
+
+            ### Access Information
+            ${{ steps.outputs.outputs.vms != '' && format('**VM IPs:**\n{0}', steps.outputs.outputs.vms) || '' }}
+            ${{ steps.outputs.outputs.services != '' && format('**Services:**\n{0}', steps.outputs.outputs.services) || '' }}
+
+            *Deployed by Terraform v${{ env.TF_VERSION }}*`;
+
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: comment
+            });
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "Terraform Apply - ${{ inputs.environment || 'production' }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Status:* ${{ job.status }}\n*Environment:* ${{ inputs.environment || 'production' }}\n*Actor:* ${{ github.actor }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Added:*\n${{ steps.plan-summary.outputs.add }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Changed:*\n${{ steps.plan-summary.outputs.change }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Destroyed:*\n${{ steps.plan-summary.outputs.destroy }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

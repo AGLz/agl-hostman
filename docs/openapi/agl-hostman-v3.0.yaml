@@ -1,0 +1,2825 @@
+openapi: 3.0.3
+info:
+  title: AGL Hostman API
+  description: |
+    Comprehensive API for AGL-29 Hostman - an advanced infrastructure management platform.
+
+    ## Features
+    - Infrastructure Management (Physical Locations, Servers)
+    - N8N Workflow Automation
+    - AI Integration (Multiple AI Services)
+    - Scrum Board Management
+    - Container Lifecycle Management
+    - Harbor Container Registry Integration
+    - Dokploy Application Deployment
+    - Alert Management System
+    - Network Topology Visualization
+    - Deployment Pipeline Management
+    - Build Metrics Tracking
+    - Smart Notifications System
+    - Role-Based Access Control (RBAC)
+
+  version: v3.0.0
+  contact:
+    name: AGL Hostman Team
+    email: support@agl.hostman
+    url: https://github.com/agl/hostman
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.agl.hostman/api
+    description: Production server
+  - url: https://staging-api.agl.hostman/api
+    description: Staging server
+  - url: http://localhost:8000/api
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # =================================
+  # Authentication Endpoints
+  # =================================
+  /user:
+    get:
+      tags:
+        - Authentication
+      summary: Get current authenticated user
+      description: Returns the current authenticated user's profile and permissions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "John Doe"
+                  email:
+                    type: string
+                    format: email
+                    example: "john@example.com"
+                  workos_id:
+                    type: string
+                    example: "usr_123456789"
+                  avatar_url:
+                    type: string
+                    format: uri
+                    example: "https://example.com/avatar.jpg"
+                  is_active:
+                    type: boolean
+                    example: true
+                  last_login_at:
+                    type: string
+                    format: date-time
+                    example: "2024-02-11T10:30:00Z"
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                    example: ["admin", "developer"]
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+                    example: ["users.view", "infrastructure.manage"]
+
+  /auth/workos/redirect:
+    get:
+      tags:
+        - Authentication
+      summary: WorkOS authentication redirect
+      description: Redirects to WorkOS for OAuth authentication
+      responses:
+        '302':
+          description: Redirect to WorkOS
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              example: "https://api.workos.com/sso/redirect?..."
+
+  /auth/workos/callback:
+    get:
+      tags:
+        - Authentication
+      summary: WorkOS authentication callback
+      description: Handles the callback from WorkOS after authentication
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from WorkOS
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      access_token:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+
+  /auth/workos/logout:
+    post:
+      tags:
+        - Authentication
+      summary: WorkOS logout
+      description: Logs out the current user from WorkOS
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  # =================================
+  # N8N Workflow Management
+  # =================================
+  /n8n/webhook/{workflow}:
+    post:
+      tags:
+        - N8N
+      summary: Handle N8N webhook
+      description: Webhook endpoint for N8N workflows (public, no authentication required)
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workflow slug identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id:
+                  type: string
+                node:
+                  type: object
+                properties:
+                  type: object
+                authentication:
+                  type: object
+                timestamp:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Webhook processed successfully
+        '400':
+          description: Invalid webhook payload
+
+  /n8n/workflows:
+    get:
+      tags:
+        - N8N
+      summary: List N8N workflows
+      description: Retrieves a list of all N8N workflows
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    n8n_id:
+                      type: string
+                    name:
+                      type: string
+                    slug:
+                      type: string
+                    description:
+                      type: string
+                    active:
+                      type: boolean
+                    category:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                    execution_count:
+                      type: integer
+                    last_executed_at:
+                      type: string
+                      format: date-time
+                    created_at:
+                      type: string
+                      format: date-time
+
+    post:
+      tags:
+        - N8N
+      summary: Create N8N workflow
+      description: Creates a new N8N workflow
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                settings:
+                  type: object
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Workflow created successfully
+        '400':
+          description: Invalid input data
+
+  /n8n/workflows/{workflow}:
+    get:
+      tags:
+        - N8N
+      summary: Get N8N workflow details
+      description: Retrieves details of a specific N8N workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workflow slug or ID
+      responses:
+        '200':
+          description: Workflow details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  n8n_id:
+                    type: string
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  active:
+                    type: boolean
+                  category:
+                    type: string
+                  settings:
+                    type: object
+                  metadata:
+                    type: object
+                  statistics:
+                    type: object
+                    properties:
+                      total_executions:
+                        type: integer
+                      successful_executions:
+                        type: integer
+                      failed_executions:
+                        type: integer
+                      last_execution:
+                        type: string
+                        format: date-time
+
+    put:
+      tags:
+        - N8N
+      summary: Update N8N workflow
+      description: Updates an existing N8N workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                settings:
+                  type: object
+      responses:
+        '200':
+          description: Workflow updated successfully
+
+    delete:
+      tags:
+        - N8N
+      summary: Delete N8N workflow
+      description: Deletes a N8N workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Workflow deleted successfully
+
+    post:
+      tags:
+        - N8N
+      summary: Activate N8N workflow
+      description: Activates a deactivated N8N workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow activated
+
+  /n8n/workflows/{workflow}/deactivate:
+    post:
+      tags:
+        - N8N
+      summary: Deactivate N8N workflow
+      description: Deactivates an active N8N workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow deactivated
+
+  /n8n/workflows/{workflow}/executions:
+    get:
+      tags:
+        - N8N
+      summary: Get N8N workflow executions
+      description: Retrieves execution history for a specific workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [success, failed, running]
+      responses:
+        '200':
+          description: Execution history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    workflow_id:
+                      type: integer
+                    status:
+                      type: string
+                      enum: [success, failed, running, pending]
+                    started_at:
+                      type: string
+                      format: date-time
+                    completed_at:
+                      type: string
+                      format: date-time
+                    duration_ms:
+                      type: integer
+                    error_message:
+                      type: string
+
+  /n8n/trigger/{workflow}:
+    post:
+      tags:
+        - N8N
+      summary: Trigger N8N workflow
+      description: Manually triggers a specific N8N workflow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payload:
+                  type: object
+                headers:
+                  type: object
+                retries:
+                  type: integer
+                  default: 3
+      responses:
+        '200':
+          description: Workflow triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  execution_id:
+                    type: string
+
+  /n8n/test-connection:
+    get:
+      tags:
+        - N8N
+      summary: Test N8N connection
+      description: Tests the connection to N8N API
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Connection status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected:
+                    type: boolean
+                  version:
+                    type: string
+                  latency:
+                    type: number
+
+  /n8n/sync:
+    post:
+      tags:
+        - N8N
+      summary: Sync N8N workflows
+      description: Synchronizes workflows from N8N to the local database
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Sync completed
+
+  # =================================
+  # Infrastructure Management
+  # =================================
+  /infrastructure/locations:
+    get:
+      tags:
+        - Infrastructure
+      summary: Get physical locations
+      description: Retrieves all physical locations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    code:
+                      type: string
+                      example: "HQ"
+                    name:
+                      type: string
+                      example: "Headquarters"
+                    type:
+                      type: string
+                      example: "headquarters"
+                    address:
+                      type: string
+                    city:
+                      type: string
+                    country:
+                      type: string
+                    latitude:
+                      type: number
+                    longitude:
+                      type: number
+                    is_active:
+                      type: boolean
+                    metadata:
+                      type: object
+
+  /infrastructure/servers/{code}:
+    get:
+      tags:
+        - Infrastructure
+      summary: Get server details
+      description: Retrieves details of a specific server/physical location
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Server details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  code:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  status:
+                    type: string
+                  ip_address:
+                    type: string
+                  capacity:
+                    type: object
+                  metrics:
+                    type: object
+        '404':
+          description: Server not found
+
+  /infrastructure/status:
+    get:
+      tags:
+        - Infrastructure
+      summary: Get infrastructure status
+      description: Retrieves overall infrastructure status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Infrastructure status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_servers:
+                    type: integer
+                  online_servers:
+                    type: integer
+                  total_capacity:
+                    type: object
+                  current_utilization:
+                    type: object
+                  alert_count:
+                    type: integer
+
+  /infrastructure/analytics:
+    get:
+      tags:
+        - Infrastructure
+      summary: Get infrastructure analytics
+      description: Retrieves analytics data for infrastructure
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trends:
+                    type: array
+                    items:
+                      type: object
+                  predictions:
+                    type: array
+                    items:
+                      type: object
+                  recommendations:
+                    type: array
+                    items:
+                      type: object
+
+  # =================================
+  # AI Integration
+  # =================================
+  /ai/query:
+    post:
+      tags:
+        - AI
+      summary: AI query
+      description: Send a query to the AI system
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  example: "What is the current server status?"
+                context:
+                  type: object
+                max_tokens:
+                  type: integer
+                  default: 1000
+      responses:
+        '200':
+          description: AI response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer:
+                    type: string
+                  sources:
+                    type: array
+                    items:
+                      type: string
+                  confidence:
+                    type: number
+                    format: float
+                  tokens_used:
+                    type: integer
+
+  /ai/multi-agent:
+    post:
+      tags:
+        - AI
+      summary: Multi-agent AI query
+      description: Use multiple AI agents to process complex queries
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                agents:
+                  type: array
+                  items:
+                    type: string
+                collaboration_mode:
+                  type: string
+                  enum: [sequential, parallel, hybrid]
+      responses:
+        '200':
+          description: Multi-agent response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                  consensus:
+                    type: string
+                  confidence:
+                    type: number
+
+  /ai/models:
+    get:
+      tags:
+        - AI
+      summary: Get available AI models
+      description: Lists all available AI models
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of AI models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    provider:
+                      type: string
+                      enum: [openai, claude, ollama]
+                    version:
+                      type: string
+                    capabilities:
+                      type: array
+                      items:
+                        type: string
+                    cost_per_1k_tokens:
+                      type: number
+                    max_tokens:
+                      type: integer
+
+  # =================================
+  # Scrum Board Management
+  # =================================
+  /scrum/sprints:
+    get:
+      tags:
+        - Scrum
+      summary: List sprints
+      description: Retrieves all sprints
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of sprints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    start_date:
+                      type: string
+                      format: date
+                    end_date:
+                      type: string
+                      format: date
+                    status:
+                      type: string
+                      enum: [planning, active, completed, cancelled]
+                    velocity:
+                      type: number
+                    capacity:
+                      type: integer
+
+    post:
+      tags:
+        - Scrum
+      summary: Create sprint
+      description: Creates a new sprint
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - start_date
+                - end_date
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                capacity:
+                  type: integer
+      responses:
+        '201':
+          description: Sprint created
+
+  /scrum/sprints/{id}/start:
+    post:
+      tags:
+        - Scrum
+      summary: Start sprint
+      description: Starts a sprint
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sprint started
+
+  /scrum/sprints/{id}/complete:
+    post:
+      tags:
+        - Scrum
+      summary: Complete sprint
+      description: Marks a sprint as completed
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sprint completed
+
+  /scrum/tasks:
+    get:
+      tags:
+        - Scrum
+      summary: List tasks
+      description: Retrieves all tasks
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    story_points:
+                      type: integer
+                    status:
+                      type: string
+                      enum: [todo, in_progress, review, done]
+                    priority:
+                      type: string
+                      enum: [low, medium, high, critical]
+                    assignee_id:
+                      type: integer
+                    story_id:
+                      type: integer
+                    sprint_id:
+                      type: integer
+
+    post:
+      tags:
+        - Scrum
+      summary: Create task
+      description: Creates a new task
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                story_points:
+                  type: integer
+                status:
+                  type: string
+                  enum: [todo, in_progress, review, done]
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+                assignee_id:
+                  type: integer
+                story_id:
+                  type: integer
+      responses:
+        '201':
+          description: Task created
+
+  /scrum/tasks/{id}:
+    put:
+      tags:
+        - Scrum
+      summary: Update task
+      description: Updates an existing task
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                story_points:
+                  type: integer
+                status:
+                  type: string
+                  enum: [todo, in_progress, review, done]
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+                assignee_id:
+                  type: integer
+      responses:
+        '200':
+          description: Task updated
+
+    delete:
+      tags:
+        - Scrum
+      summary: Delete task
+      description: Deletes a task
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Task deleted
+
+  # =================================
+  # Container Management
+  # =================================
+  /containers/create:
+    post:
+      tags:
+        - Containers
+      summary: Create container
+      description: Creates a new container
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - template
+              properties:
+                name:
+                  type: string
+                template:
+                  type: string
+                config:
+                  type: object
+                resources:
+                  type: object
+      responses:
+        '201':
+          description: Container created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vmid:
+                    type: integer
+                  status:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+
+  /containers/{vmid}/clone:
+    post:
+      tags:
+        - Containers
+      summary: Clone container
+      description: Clones an existing container
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vmid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                full_clone:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Container cloning initiated
+
+  /containers/{vmid}/backup:
+    post:
+      tags:
+        - Containers
+      summary: Backup container
+      description: Creates a backup of a container
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vmid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                retention_days:
+                  type: integer
+      responses:
+        '200':
+          description: Backup initiated
+
+  # =================================
+  # Backup Management
+  # =================================
+  /backup/list:
+    get:
+      tags:
+        - Backup
+      summary: List backups
+      description: Retrieves all backup records
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of backups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    size:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                    expires_at:
+                      type: string
+                      format: date-time
+                    type:
+                      type: string
+                      enum: [container, database, system]
+
+  /backup/create:
+    post:
+      tags:
+        - Backup
+      summary: Create backup
+      description: Creates a new backup
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [container, database, system]
+                description:
+                  type: string
+                retention_days:
+                  type: integer
+                  default: 30
+      responses:
+        '201':
+          description: Backup created
+
+  # =================================
+  # Harbor Integration
+  # =================================
+  /harbor/projects:
+    get:
+      tags:
+        - Harbor
+      summary: List Harbor projects
+      description: Retrieves all Harbor projects
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    public:
+                      type: boolean
+                    creation_time:
+                      type: string
+                      format: date-time
+
+    post:
+      tags:
+        - Harbor
+      summary: Create Harbor project
+      description: Creates a new Harbor project
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                public:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: Project created
+
+  /harbor/projects/{project}:
+    get:
+      tags:
+        - Harbor
+      summary: Get Harbor project
+      description: Retrieves details of a specific project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project details
+
+    put:
+      tags:
+        - Harbor
+      summary: Update Harbor project
+      description: Updates an existing project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                public:
+                  type: boolean
+      responses:
+        '200':
+          description: Project updated
+
+    delete:
+      tags:
+        - Harbor
+      summary: Delete Harbor project
+      description: Deletes a project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Project deleted
+
+  # =================================
+  # Dokploy Integration
+  # =================================
+  /dokploy/applications:
+    get:
+      tags:
+        - Dokploy
+      summary: List Dokploy applications
+      description: Retrieves all Dokploy applications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    status:
+                      type: string
+                      enum: [building, deployed, stopped, error]
+                    url:
+                      type: string
+                    port:
+                      type: integer
+                    build_command:
+                      type: string
+                    start_command:
+                      type: string
+
+    post:
+      tags:
+        - Dokploy
+      summary: Create Dokploy application
+      description: Creates a new Dokploy application
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - repository
+              properties:
+                name:
+                  type: string
+                repository:
+                  type: string
+                build_command:
+                  type: string
+                start_command:
+                  type: string
+                environment:
+                  type: object
+                port:
+                  type: integer
+                  default: 3000
+      responses:
+        '201':
+          description: Application created
+
+  /dokploy/applications/{applicationId}/start:
+    post:
+      tags:
+        - Dokploy
+      summary: Start application
+      description: Starts a Dokploy application
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application started
+
+  /dokploy/applications/{applicationId}/stop:
+    post:
+      tags:
+        - Dokploy
+      summary: Stop application
+      description: Stops a Dokploy application
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application stopped
+
+  /dokploy/deploy:
+    post:
+      tags:
+        - Dokploy
+      summary: Deploy application
+      description: Deploys a new version of an application
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - application_id
+              properties:
+                application_id:
+                  type: integer
+                environment:
+                  type: string
+                  enum: [development, staging, production]
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Deployment initiated
+
+  # =================================
+  # Alert Management
+  # =================================
+  /alerts/active:
+    get:
+      tags:
+        - Alerts
+      summary: Get active alerts
+      description: Retrieves all active alerts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of active alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    severity:
+                      type: string
+                      enum: [low, medium, high, critical]
+                    status:
+                      type: string
+                      enum: [active, acknowledged, resolved]
+                    created_at:
+                      type: string
+                      format: date-time
+                    acknowledged_at:
+                      type: string
+                      format: date-time
+                    resolved_at:
+                      type: string
+                      format: date-time
+
+  /alerts/{id}/acknowledge:
+    post:
+      tags:
+        - Alerts
+      summary: Acknowledge alert
+      description: Acknowledges an alert
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Alert acknowledged
+
+  /alerts/{id}/resolve:
+    post:
+      tags:
+        - Alerts
+      summary: Resolve alert
+      description: Resolves an alert
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resolution_notes:
+                  type: string
+      responses:
+        '200':
+          description: Alert resolved
+
+  # =================================
+  # Alert Rules
+  # =================================
+  /alert-rules:
+    get:
+      tags:
+        - Alert Rules
+      summary: List alert rules
+      description: Retrieves all alert rules
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of alert rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    enabled:
+                      type: boolean
+                    condition:
+                      type: object
+                    severity:
+                      type: string
+                      enum: [low, medium, high, critical]
+                    cooldown_minutes:
+                      type: integer
+
+    post:
+      tags:
+        - Alert Rules
+      summary: Create alert rule
+      description: Creates a new alert rule
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - condition
+                - severity
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                condition:
+                  type: object
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                cooldown_minutes:
+                  type: integer
+      responses:
+        '201':
+          description: Alert rule created
+
+  /alert-rules/{id}:
+    get:
+      tags:
+        - Alert Rules
+      summary: Get alert rule
+      description: Retrieves details of a specific alert rule
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Alert rule details
+
+    put:
+      tags:
+        - Alert Rules
+      summary: Update alert rule
+      description: Updates an existing alert rule
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                condition:
+                  type: object
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Alert rule updated
+
+    delete:
+      tags:
+        - Alert Rules
+      summary: Delete alert rule
+      description: Deletes an alert rule
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Alert rule deleted
+
+  # =================================
+  # Network Topology
+  # =================================
+  /network/graph:
+    get:
+      tags:
+        - Network
+      summary: Get network graph
+      description: Retrieves the complete network topology graph
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Network graph data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        label:
+                          type: string
+                        type:
+                          type: string
+                        status:
+                          type: string
+                        coordinates:
+                          type: object
+                  edges:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        source:
+                          type: string
+                        target:
+                          type: string
+                        type:
+                          type: string
+                        status:
+                          type: string
+
+  /network/health:
+    get:
+      tags:
+        - Network
+      summary: Get network health
+      description: Retrieves overall network health metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Network health metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  uptime:
+                    type: string
+                  latency:
+                    type: number
+                  packet_loss:
+                    type: number
+                  bandwidth:
+                    type: object
+
+  # =================================
+  # Deployment Management
+  # =================================
+  /deployment/qa/deploy:
+    post:
+      tags:
+        - Deployment
+      summary: Deploy to QA environment
+      description: Deploys application to QA environment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branch:
+                  type: string
+                environment:
+                  type: object
+                notification:
+                  type: object
+      responses:
+        '200':
+          description: Deployment initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  deployment_id:
+                    type: string
+                  status:
+                    type: string
+
+  /deployment/qa/status:
+    get:
+      tags:
+        - Deployment
+      summary: Get QA deployment status
+      description: Retrieves current QA deployment status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: QA deployment status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  environment:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      last_deployed_at:
+                        type: string
+                        format: date-time
+                      deployment_status:
+                        type: string
+                  domains:
+                    type: array
+                    items:
+                      type: string
+
+  /deployment/qa/logs:
+    get:
+      tags:
+        - Deployment
+      summary: Get QA deployment logs
+      description: Retrieves logs for the latest QA deployment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Deployment logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deployment_id:
+                    type: string
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                        level:
+                          type: string
+                        message:
+                          type: string
+
+  /deployment/uat/deploy:
+    post:
+      tags:
+        - Deployment
+      summary: Deploy to UAT environment
+      description: Deploys application to UAT environment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_deployment_id:
+                  type: string
+                approval_required:
+                  type: boolean
+      responses:
+        '200':
+          description: UAT deployment initiated
+
+  /deployment/uat/status:
+    get:
+      tags:
+        - Deployment
+      summary: Get UAT deployment status
+      description: Retrieves current UAT deployment status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: UAT deployment status
+
+  # =================================
+  # Promotion Management
+  # =================================
+  /promotion/qa-to-uat:
+    post:
+      tags:
+        - Promotion
+      summary: Promote QA to UAT
+      description: Promotes application from QA to UAT environment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                qa_deployment_id:
+                  type: string
+                release_notes:
+                  type: string
+                scheduled_at:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Promotion initiated
+
+  /promotion/pending:
+    get:
+      tags:
+        - Promotion
+      summary: List pending promotions
+      description: Lists all pending promotion requests
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of pending promotions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    source_environment:
+                      type: object
+                    target_environment:
+                      type: object
+                    requester:
+                      type: object
+                    requested_at:
+                      type: string
+                      format: date-time
+
+  # =================================
+  # Build Metrics
+  # =================================
+  /build/metrics/record:
+    post:
+      tags:
+        - Build
+      summary: Record build metrics
+      description: Records build metrics from CI/CD pipelines (public endpoint)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - build_id
+                - environment
+                - status
+              properties:
+                build_id:
+                  type: string
+                environment:
+                  type: string
+                  enum: [development, staging, production]
+                status:
+                  type: string
+                  enum: [success, failed, cancelled]
+                duration:
+                  type: integer
+                commit:
+                  type: string
+                branch:
+                  type: string
+                build_url:
+                  type: string
+      responses:
+        '201':
+          description: Metrics recorded
+
+  /build/metrics/latest:
+    get:
+      tags:
+        - Build
+      summary: Get latest build metrics
+      description: Retrieves the latest build metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Latest build metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  build_id:
+                    type: string
+                  environment:
+                    type: string
+                  status:
+                    type: string
+                  duration:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /build/metrics/trends:
+    get:
+      tags:
+        - Build
+      summary: Get build trends
+      description: Retrieves build trends analytics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Build trends data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trends:
+                    type: array
+                    items:
+                      type: object
+                  predictions:
+                    type: array
+                    items:
+                      type: object
+
+  # =================================
+  # Monitoring
+  # =================================
+  /monitoring/metrics:
+    get:
+      tags:
+        - Monitoring
+      summary: Get system metrics
+      description: Retrieves system performance metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: System metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cpu:
+                    type: object
+                  memory:
+                    type: object
+                  disk:
+                    type: object
+                  network:
+                    type: object
+
+  /monitoring/health:
+    get:
+      tags:
+        - Monitoring
+      summary: Get system health
+      description: Retrieves overall system health status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: System health
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, critical]
+                  components:
+                    type: object
+                  checks:
+                    type: array
+                    items:
+                      type: object
+
+  /monitoring/alerts:
+    get:
+      tags:
+        - Monitoring
+      summary: Get monitoring alerts
+      description: Retrieves all monitoring alerts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Monitoring alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    check:
+                      type: string
+                    status:
+                      type: string
+                    message:
+                      type: string
+                    last_checked:
+                      type: string
+                      format: date-time
+
+  /monitoring/collect:
+    post:
+      tags:
+        - Monitoring
+      summary: Collect metrics
+      description: Manually triggers metrics collection
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Metrics collection initiated
+
+  # =================================
+  # RBAC (Role-Based Access Control)
+  # =================================
+  /rbac/overview:
+    get:
+      tags:
+        - RBAC
+      summary: Get RBAC overview
+      description: Provides an overview of roles and permissions system
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: RBAC overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_roles:
+                    type: integer
+                  total_permissions:
+                    type: integer
+                  role_distribution:
+                    type: object
+                  system_permissions:
+                    type: array
+                    items:
+                      type: string
+
+  /rbac/me:
+    get:
+      tags:
+        - RBAC
+      summary: Get current user RBAC info
+      description: Returns current user's roles and permissions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User RBAC info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                  roles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+                  abilities:
+                    type: object
+                    properties:
+                      can_view_dashboard:
+                        type: boolean
+                      can_manage_users:
+                        type: boolean
+                      can_manage_infrastructure:
+                        type: boolean
+                      can_view_predictions:
+                        type: boolean
+
+  /roles:
+    get:
+      tags:
+        - RBAC
+      summary: List roles
+      description: Retrieves all available roles
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    permissions:
+                      type: array
+                      items:
+                        type: string
+                    user_count:
+                      type: integer
+
+    post:
+      tags:
+        - RBAC
+      summary: Create role
+      description: Creates a new role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                permissions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Role created
+
+  /permissions:
+    get:
+      tags:
+        - RBAC
+      summary: List permissions
+      description: Retrieves all available permissions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    module:
+                      type: string
+
+  # =================================
+  # Webhooks (Public Endpoints)
+  # =================================
+  /webhooks/github:
+    post:
+      tags:
+        - Webhooks
+      summary: Handle GitHub webhook
+      description: Handles GitHub webhooks for push events
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ref:
+                  type: string
+                before:
+                  type: string
+                after:
+                  type: string
+                repository:
+                  type: object
+                pusher:
+                  type: object
+              example:
+                ref: "refs/heads/main"
+                before: "abc123"
+                after: "def456"
+                repository:
+                  name: "my-repo"
+                pusher:
+                  name: "john-doe"
+      responses:
+        '200':
+          description: Webhook processed
+
+  /webhooks/harbor:
+    post:
+      tags:
+        - Webhooks
+      summary: Handle Harbor webhook
+      description: Handles Harbor container registry webhooks
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                event_data:
+                  type: object
+                repository:
+                  type: object
+                tag:
+                  type: string
+      responses:
+        '200':
+          description: Webhook processed
+
+  /webhooks/pagerduty:
+    post:
+      tags:
+        - Webhooks
+      summary: Handle PagerDuty webhook
+      description: Handles PagerDuty incident webhooks
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                incident:
+                  type: object
+      responses:
+        '200':
+          description: Webhook processed
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained via WorkOS authentication
+
+  schemas:
+    # Error Response Schema
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Resource not found"
+        message:
+          type: string
+          example: "The requested resource could not be found"
+        code:
+          type: string
+          example: "NOT_FOUND"
+        details:
+          type: object
+          description: Additional error details
+
+    # Success Response Schema
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Response data
+        message:
+          type: string
+          description: Success message
+
+    # Pagination Schema
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+        next_page_url:
+          type: string
+          format: uri
+        prev_page_url:
+          type: string
+          format: uri
+
+    # User Schema
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        workos_id:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        is_active:
+          type: boolean
+        last_login_at:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+
+    # N8N Workflow Schema
+    N8NWorkflow:
+      type: object
+      properties:
+        id:
+          type: integer
+        n8n_id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        category:
+          type: string
+        settings:
+          type: object
+        metadata:
+          type: object
+        last_synced_at:
+          type: string
+          format: date-time
+        last_executed_at:
+          type: string
+          format: date-time
+        execution_count:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Physical Location Schema
+    PhysicalLocation:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        type:
+          type: string
+        ip_range:
+          type: string
+        metadata:
+          type: object
+        is_active:
+          type: boolean
+
+    # Alert Schema
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [active, acknowledged, resolved]
+        created_at:
+          type: string
+          format: date-time
+        acknowledged_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+
+    # Deployment Schema
+    Deployment:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, success, failed, cancelled]
+        environment:
+          type: string
+          enum: [qa, uat, production]
+        branch:
+          type: string
+        commit:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        logs:
+          type: array
+          items:
+            type: object
+
+    # Harbor Project Schema
+    HarborProject:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        public:
+          type: boolean
+        creation_time:
+          type: string
+          format: date-time
+
+    # Dokploy Application Schema
+    DokployApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        status:
+          type: string
+          enum: [building, deployed, stopped, error]
+        url:
+          type: string
+        port:
+          type: integer
+        build_command:
+          type: string
+        start_command:
+          type: string
+
+    # Task Schema
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        story_points:
+          type: integer
+        status:
+          type: string
+          enum: [todo, in_progress, review, done]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        assignee_id:
+          type: integer
+        story_id:
+          type: integer
+        sprint_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Sprint Schema
+    Sprint:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [planning, active, completed, cancelled]
+        velocity:
+          type: number
+        capacity:
+          type: integer
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: N8N
+    description: N8N workflow automation endpoints
+  - name: Infrastructure
+    description: Infrastructure management endpoints
+  - name: AI
+    description: AI integration endpoints
+  - name: Scrum
+    description: Scrum board management endpoints
+  - name: Containers
+    description: Container lifecycle management
+  - name: Backup
+    description: Backup management endpoints
+  - name: Harbor
+    description: Harbor container registry integration
+  - name: Dokploy
+    description: Dokploy application deployment
+  - name: Alerts
+    description: Alert management endpoints
+  - name: Alert Rules
+    description: Alert rule management
+  - name: Network
+    description: Network topology management
+  - name: Deployment
+    description: Deployment management endpoints
+  - name: Promotion
+    description: Promotion management endpoints
+  - name: Build
+    description: Build metrics tracking
+  - name: Monitoring
+    description: System monitoring endpoints
+  - name: RBAC
+    description: Role-based access control
+  - name: Webhooks
+    description: Public webhook endpoints
+
+# External Documentation
+externalDocs:
+  description: Find more information about AGL Hostman API
+  url: https://docs.agl.hostman/api/v3.0/

@@ -1,0 +1,237 @@
+# AGL-23 Recording Rules
+# Pre-computed metrics for improved dashboard performance
+# Location: /etc/prometheus/recording_rules.yml
+
+groups:
+  # ============================================================================
+  # API Performance Recording Rules
+  # ============================================================================
+  - name: api_performance_recording
+    interval: 30s
+    rules:
+      # Request rates by status code
+      - record: job:http_requests_2xx:rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"2.."}[5m])) by (job, service)
+
+      - record: job:http_requests_4xx:rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"4.."}[5m])) by (job, service)
+
+      - record: job:http_requests_5xx:rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, service)
+
+      # Latency percentiles
+      - record: job:http_request_latency:p50:5m
+        expr: |
+          histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, service, le))
+
+      - record: job:http_request_latency:p95:5m
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, service, le))
+
+      - record: job:http_request_latency:p99:5m
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, service, le))
+
+      # Error rate
+      - record: job:http_errors:rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, service) /
+          sum(rate(http_requests_total[5m])) by (job, service)
+
+      # Success rate
+      - record: job:http_success:rate5m
+        expr: |
+          sum(rate(http_requests_total{status!~"5.."}[5m])) by (job, service) /
+          sum(rate(http_requests_total[5m])) by (job, service)
+
+  # ============================================================================
+  # Database Performance Recording Rules
+  # ============================================================================
+  - name: database_performance_recording
+    interval: 30s
+    rules:
+      # Query latency percentiles
+      - record: job:pg_query_latency:p50:5m
+        expr: |
+          histogram_quantile(0.50, sum(rate(pg_stat_statements_call_seconds_bucket[5m])) by (datname, le))
+
+      - record: job:pg_query_latency:p95:5m
+        expr: |
+          histogram_quantile(0.95, sum(rate(pg_stat_statements_call_seconds_bucket[5m])) by (datname, le))
+
+      - record: job:pg_query_latency:p99:5m
+        expr: |
+          histogram_quantile(0.99, sum(rate(pg_stat_statements_call_seconds_bucket[5m])) by (datname, le))
+
+      # Connection pool utilization
+      - record: job:pg_connections_utilization:ratio
+        expr: |
+          pg_stat_database_numbackends / pg_settings_max_connections
+
+      # Query throughput
+      - record: job:pg_query_throughput:rate5m
+        expr: |
+          sum(rate(pg_stat_statements_calls[5m])) by (datname)
+
+      # Failure rates
+      - record: job:pg_deadlock_rate:5m
+        expr: |
+          sum(rate(pg_stat_database_deadlocks[5m])) by (datname)
+
+      - record: job:pg_conflict_rate:5m
+        expr: |
+          sum(rate(pg_stat_database_conflicts[5m])) by (datname)
+
+      - record: job:pg_rollback_rate:5m
+        expr: |
+          sum(rate(pg_stat_database_deadrolls[5m])) by (datname)
+
+  # ============================================================================
+  # Cache Performance Recording Rules
+  # ============================================================================
+  - name: cache_performance_recording
+    interval: 30s
+    rules:
+      # Cache hit ratio
+      - record: job:redis_hit_ratio:5m
+        expr: |
+          rate(redis_keyspace_hits[5m]) /
+          (rate(redis_keyspace_hits[5m]) + rate(redis_keyspace_misses[5m]))
+
+      # Memory utilization
+      - record: job:redis_memory_utilization:ratio
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes
+
+      # Command processing rate
+      - record: job:redis_commands_rate:5m
+        expr: |
+          sum(rate(redis_commands_processed_total[5m])) by (instance)
+
+      # Eviction and expiration rates
+      - record: job:redis_eviction_rate:5m
+        expr: |
+          sum(rate(redis_evicted_keys_total[5m])) by (instance)
+
+      - record: job:redis_expiration_rate:5m
+        expr: |
+          sum(rate(redis_expired_keys_total[5m])) by (instance)
+
+      # Key statistics
+      - record: job:redis_keys_total
+        expr: |
+          sum(redis_db_keys) by (instance)
+
+      - record: job:redis_keys_expiring_total
+        expr: |
+          sum(redis_db_keys_expiring) by (instance)
+
+  # ============================================================================
+  # Queue Performance Recording Rules (Laravel Horizon)
+  # ============================================================================
+  - name: queue_performance_recording
+    interval: 30s
+    rules:
+      # Job throughput
+      - record: job:horizon_jobs_throughput:rate5m
+        expr: |
+          sum(rate(laravel_horizon_jobs_processed_total[5m])) by (queue)
+
+      - record: job:horizon_jobs_failed_rate:5m
+        expr: |
+          sum(rate(laravel_horizon_jobs_failed_total[5m])) by (queue)
+
+      # Job failure ratio
+      - record: job:horizon_failure_ratio:5m
+        expr: |
+          sum(rate(laravel_horizon_jobs_failed_total[5m])) by (queue) /
+          sum(rate(laravel_horizon_jobs_processed_total[5m])) by (queue)
+
+      # Worker utilization
+      - record: job:horizon_worker_utilization:ratio
+        expr: |
+          laravel_horizon_processes_busy / laravel_horizon_processes_total
+
+      # Queue backlog
+      - record: job:horizon_queue_backlog
+        expr: |
+          sum(laravel_horizon_queue_size) by (queue)
+
+  # ============================================================================
+  # System Resource Recording Rules
+  # ============================================================================
+  - name: system_resource_recording
+    interval: 1m
+    rules:
+      # CPU utilization
+      - record: job:cpu_utilization:ratio
+        expr: |
+          1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)
+
+      # Memory utilization
+      - record: job:memory_utilization:ratio
+        expr: |
+          1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+
+      # Disk utilization
+      - record: job:disk_utilization:ratio
+        expr: |
+          1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.*"} /
+                node_filesystem_size_bytes{fstype!~"tmpfs|fuse.*"})
+
+      # Disk I/O wait
+      - record: job:disk_iowait:ratio
+        expr: |
+          rate(node_cpu_seconds_total{mode="iowait"}[5m])
+
+      # Network I/O rates
+      - record: job:network_receive_rate:bytes
+        expr: |
+          rate(node_network_receive_bytes_total[5m])
+
+      - record: job:network_transmit_rate:bytes
+        expr: |
+          rate(node_network_transmit_bytes_total[5m])
+
+  # ============================================================================
+  # Performance Baseline Rules
+  # ============================================================================
+  - name: performance_baseline_recording
+    interval: 5m
+    rules:
+      # Moving averages for trend analysis (1 hour)
+      - record: job:api_latency_p95_trend_1h
+        expr: |
+          avg_over_time(job:http_request_latency:p95:5m[1h])
+
+      - record: job:api_error_rate_trend_1h
+        expr: |
+          avg_over_time(job:http_errors:rate5m[1h])
+
+      - record: job:cache_hit_ratio_trend_1h
+        expr: |
+          avg_over_time(job:redis_hit_ratio:5m[1h])
+
+      - record: job:db_query_latency_p95_trend_1h
+        expr: |
+          avg_over_time(job:pg_query_latency:p95:5m[1h])
+
+      # Moving averages for trend analysis (24 hours)
+      - record: job:api_latency_p95_trend_24h
+        expr: |
+          avg_over_time(job:http_request_latency:p95:5m[24h])
+
+      - record: job:api_error_rate_trend_24h
+        expr: |
+          avg_over_time(job:http_errors:rate5m[24h])
+
+      - record: job:cache_hit_ratio_trend_24h
+        expr: |
+          avg_over_time(job:redis_hit_ratio:5m[24h])
+
+      - record: job:db_query_latency_p95_trend_24h
+        expr: |
+          avg_over_time(job:pg_query_latency:p95:5m[24h])

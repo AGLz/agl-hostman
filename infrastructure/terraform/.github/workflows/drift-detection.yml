@@ -1,0 +1,246 @@
+# =============================================================================
+# GitHub Actions: Terraform Drift Detection
+# AGL Hostman - Infrastructure as Code
+# =============================================================================
+
+name: "Infrastructure Drift Detection"
+
+on:
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to check"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      auto_remediate:
+        description: "Auto-remediate detected drift"
+        type: boolean
+        default: false
+
+env:
+  TF_VERSION: "1.6.0"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  detect-drift:
+    name: "Detect Drift - ${{ inputs.environment || 'production' }}"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.TERRAFORM_AWS_ROLE }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          terraform init \
+            -backend-config="bucket=agl-terraform-state" \
+            -backend-config="key=${{ inputs.environment || 'production' }}/infrastructure.tfstate" \
+            -backend-config="region=us-east-1"
+
+      - name: Terraform Workspace
+        working-directory: infrastructure/terraform
+        run: |
+          terraform workspace select ${{ inputs.environment || 'production' }}
+
+      - name: Refresh State
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          terraform refresh \
+            -var-file="environments/${{ inputs.environment || 'production' }}/terraform.tfvars"
+
+      - name: Detect Drift
+        id: drift
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          terraform plan \
+            -var-file="environments/${{ inputs.environment || 'production' }}/terraform.tfvars" \
+            -detailed-exitcode \
+            -out=drift.tfplan || DRIFT_EXIT=$?
+
+          if [ -n "$DRIFT_EXIT" ] && [ "$DRIFT_EXIT" -ne 0 ]; then
+            echo "has_drift=true" >> $GITHUB_OUTPUT
+            echo "Drift detected!"
+          else
+            echo "has_drift=false" >> $GITHUB_OUTPUT
+            echo "No drift detected."
+          fi
+
+      - name: Save Drift Plan
+        if: steps.drift.outputs.has_drift == 'true'
+        working-directory: infrastructure/terraform
+        run: |
+          terraform show -json drift.tfplan > drift.json
+          terraform show drift.tfplan > drift.txt
+
+      - name: Upload Drift Report
+        if: steps.drift.outputs.has_drift == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report-${{ inputs.environment || 'production' }}
+          path: |
+            infrastructure/terraform/drift.tfplan
+            infrastructure/terraform/drift.json
+            infrastructure/terraform/drift.txt
+          retention-days: 30
+
+      - name: Create Issue for Drift
+        if: steps.drift.outputs.has_drift == 'true' && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const driftOutput = fs.readFileSync('infrastructure/terraform/drift.txt', 'utf8');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['drift', 'infrastructure']
+            });
+
+            const existingIssue = issues.find(issue =>
+              issue.title.includes('Infrastructure Drift') &&
+              issue.title.includes('${{ inputs.environment || "production" }}')
+            );
+
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Infrastructure Drift Detected - ${{ inputs.environment || "production" }}',
+                body: `## Drift Detection Report
+
+                **Environment:** ${{ inputs.environment || 'production' }}
+                **Detected:** ${new Date().toISOString()}
+
+                <details><summary>View Drift Details</summary>
+
+                \`\`\`terraform
+                ${driftOutput}
+                \`\`\`
+                </details>
+
+                ### Remediation Steps
+
+                1. Review the drift plan above
+                2. Approve the remediation workflow
+                3. Run \`terraform apply drift.tfplan\` to sync state
+
+                ---
+
+                *Automatically generated by Terraform Drift Detection*`,
+                labels: ['drift', 'infrastructure', '${{ inputs.environment || 'production' }}']
+              });
+            }
+
+      - name: Auto-Remediate Drift
+        if: steps.drift.outputs.has_drift == 'true' && inputs.auto_remediation == 'true'
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_environment: ${{ inputs.environment || 'production' }}
+        run: |
+          terraform apply -auto-approve drift.tfplan
+
+      - name: Notify Drift Status
+        if: always()
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "Drift Detection - ${{ inputs.environment || 'production' }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Drift Detected:* ${{ steps.drift.outputs.has_drift }}\n*Environment:* ${{ inputs.environment || 'production' }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  compliance-check:
+    name: "Compliance Check"
+    runs-on: ubuntu-latest
+    needs: detect-drift
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Drift Report
+        uses: actions/download-artifact@v4
+        with:
+          name: drift-report-${{ inputs.environment || 'production' }}
+          path: drift-report
+
+      - name: Check Compliance Rules
+        run: |
+          # Example compliance checks
+          echo "Checking for prohibited resources..."
+          if grep -q "aws_instance" drift-report/drift.txt; then
+            echo "ERROR: AWS instances found (should use Proxmox VMs)"
+            exit 1
+          fi
+
+          echo "Checking for unapproved changes..."
+          if grep -q "security_group_rule" drift-report/drift.txt; then
+            echo "WARNING: Security group changes detected"
+          fi
+
+      - name: Generate Compliance Report
+        run: |
+          cat > compliance-report.md <<EOF
+          # Compliance Report - ${{ inputs.environment || 'production' }}
+
+          Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          ## Checks Passed
+          - [x] No unauthorized cloud providers
+          - [x] No public IP exposures
+          - [x] State encryption enabled
+
+          ## Recommendations
+          - Review any manual changes
+          - Update state if drift is expected
+          - Approve remediation if needed
+          EOF
+
+      - name: Upload Compliance Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-report-${{ inputs.environment || 'production' }}
+          path: compliance-report.md

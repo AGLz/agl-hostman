@@ -1,0 +1,455 @@
+# AGL-23 Performance Alerting Rules
+# Prometheus Alert Rules for Performance Monitoring
+# Location: /etc/prometheus/alerts/agl-23-performance-alerts.yml
+
+groups:
+  # ============================================================================
+  # API Performance Alerts
+  # ============================================================================
+  - name: api_performance_alerts
+    interval: 30s
+    rules:
+      # High P95 Latency
+      - alert: HighAPIP95Latency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          tier: application
+        annotations:
+          summary: "API P95 latency exceeds 500ms"
+          description: "P95 latency is {{ $value }}s on {{ $labels.service }} - investigate slow endpoints"
+          runbook_url: "https://docs.agl-hostman.com/runbooks/api-latency"
+
+      # Critical P99 Latency
+      - alert: CriticalAPIP99Latency
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1.0
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+          tier: application
+        annotations:
+          summary: "API P99 latency exceeds 1 second"
+          description: "P99 latency is {{ $value }}s on {{ $labels.service }} - immediate investigation required"
+
+      # High Error Rate
+      - alert: HighAPIErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.01
+        for: 3m
+        labels:
+          severity: critical
+          service: api
+          tier: application
+        annotations:
+          summary: "API error rate exceeds 1%"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.service }}"
+
+      # Very High Error Rate
+      - alert: VeryHighAPIErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+          tier: application
+        annotations:
+          summary: "API error rate exceeds 5%"
+          description: "Critical error rate {{ $value | humanizePercentage }} - service may be down"
+
+      # Low Request Rate (Potential Issue)
+      - alert: LowAPIRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) < 10
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+          tier: application
+        annotations:
+          summary: "API request rate unusually low"
+          description: "Request rate is {{ $value }}/sec - verify service health"
+
+  # ============================================================================
+  # Database Performance Alerts
+  # ============================================================================
+  - name: database_performance_alerts
+    interval: 30s
+    rules:
+      # Slow Query P95
+      - alert: SlowDatabaseQueryP95
+        expr: |
+          histogram_quantile(0.95, sum(rate(pg_stat_statements_call_seconds_bucket[5m])) by (le)) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "Database P95 query latency exceeds 1 second"
+          description: "P95 query latency is {{ $value }}s - review slow query log"
+          runbook_url: "https://docs.agl-hostman.com/runbooks/slow-queries"
+
+      # Critical Slow Query P99
+      - alert: CriticalSlowDatabaseQueryP99
+        expr: |
+          histogram_quantile(0.99, sum(rate(pg_stat_statements_call_seconds_bucket[5m])) by (le)) > 5.0
+        for: 2m
+        labels:
+          severity: critical
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "Database P99 query latency exceeds 5 seconds"
+          description: "P99 query latency is {{ $value }}s - immediate optimization required"
+
+      # High Connection Count
+      - alert: HighDatabaseConnections
+        expr: |
+          (pg_stat_database_numbackends / pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "Database connection pool 80% full"
+          description: "{{ $value | humanizePercentage }} of connections in use - review connection limits"
+
+      # Critical Connection Count
+      - alert: CriticalDatabaseConnections
+        expr: |
+          (pg_stat_database_numbackends / pg_settings_max_connections) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "Database connection pool 95% full"
+          description: "{{ $value | humanizePercentage }} of connections in use - connection exhaustion imminent"
+
+      # High Deadlock Rate
+      - alert: HighDeadlockRate
+        expr: |
+          rate(pg_stat_database_deadlocks[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "High database deadlock rate"
+          description: "{{ $value | humanize }} deadlocks/sec - review transaction isolation levels"
+
+      # High Conflict Rate
+      - alert: HighConflictRate
+        expr: |
+          rate(pg_stat_database_conflicts[5m]) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "High database conflict rate"
+          description: "{{ $value | humanize }} conflicts/sec - review concurrent access patterns"
+
+      # Long Idle Transactions
+      - alert: LongIdleTransactions
+        expr: |
+          pg_stat_activity_count{state="idle in transaction"} > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+          tier: database
+        annotations:
+          summary: "Multiple long-running idle transactions"
+          description: "{{ $value }} transactions idle - potential resource leaks"
+
+  # ============================================================================
+  # Cache Performance Alerts
+  # ============================================================================
+  - name: cache_performance_alerts
+    interval: 30s
+    rules:
+      # Low Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: |
+          (rate(redis_keyspace_hits[5m]) / (rate(redis_keyspace_hits[5m]) + rate(redis_keyspace_misses[5m]))) < 0.70
+        for: 10m
+        labels:
+          severity: warning
+          service: redis
+          tier: cache
+        annotations:
+          summary: "Cache hit rate below 70%"
+          description: "Hit rate is {{ $value | humanizePercentage }} - review cache strategy and TTL settings"
+          runbook_url: "https://docs.agl-hostman.com/runbooks/cache-performance"
+
+      # Critical Low Cache Hit Rate
+      - alert: CriticalLowCacheHitRate
+        expr: |
+          (rate(redis_keyspace_hits[5m]) / (rate(redis_keyspace_hits[5m]) + rate(redis_keyspace_misses[5m]))) < 0.50
+        for: 5m
+        labels:
+          severity: critical
+          service: redis
+          tier: cache
+        annotations:
+          summary: "Cache hit rate below 50%"
+          description: "Hit rate is {{ $value | humanizePercentage }} - cache not effective, investigate immediately"
+
+      # High Eviction Rate
+      - alert: HighCacheEvictionRate
+        expr: |
+          rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          tier: cache
+        annotations:
+          summary: "High cache eviction rate"
+          description: "{{ $value | humanize }} evictions/sec - memory pressure, increase maxmemory or optimize cache size"
+
+      # Redis Memory High
+      - alert: RedisMemoryHigh
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          tier: cache
+        annotations:
+          summary: "Redis memory usage above 85%"
+          description: "Memory usage is {{ $value | humanizePercentage }} - near maxmemory limit"
+
+      # Redis Memory Critical
+      - alert: RedisMemoryCritical
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+          tier: cache
+        annotations:
+          summary: "Redis memory usage above 95%"
+          description: "Memory usage is {{ $value | humanizePercentage }} - eviction and performance degradation imminent"
+
+      # Redis Connection Rejected
+      - alert: RedisConnectionRejected
+        expr: |
+          rate(redis_rejected_connections_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+          tier: cache
+        annotations:
+          summary: "Redis rejecting connections"
+          description: "{{ $value | humanize }} rejections/sec - maxclients reached, increase connection limit"
+
+      # Cache Fragmentation High
+      - alert: CacheFragmentationHigh
+        expr: |
+          redis_memory_fragmentation_ratio > 1.5
+        for: 10m
+        labels:
+          severity: warning
+          service: redis
+          tier: cache
+        annotations:
+          summary: "Redis memory fragmentation above 1.5"
+          description: "Fragmentation ratio is {{ $value }} - consider running MEMORY PURGE"
+
+  # ============================================================================
+  # Response Time Alerts
+  # ============================================================================
+  - name: response_time_alerts
+    interval: 30s
+    rules:
+      # Slow Endpoint Detection
+      - alert: SlowEndpointDetected
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{endpoint=~"/api/.*"}[5m])) by (endpoint, le)) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          tier: application
+        annotations:
+          summary: "Slow API endpoint detected"
+          description: "Endpoint {{ $labels.endpoint }} P95 latency is {{ $value }}s - investigate"
+
+      # Degraded Performance
+      - alert: DegradedPerformanceDetected
+        expr: |
+          avg_over_time(histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))[30m:]) /
+          avg_over_time(histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))[1h:5m:]) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+          tier: application
+        annotations:
+          summary: "API performance degraded 2x compared to last hour"
+          description: "Current latency is 2x higher than 1-hour baseline - investigate regression"
+
+      # Performance Recovery
+      - alert: PerformanceRecovered
+        expr: |
+          avg_over_time(histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))[5m:]) <
+          avg_over_time(histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))[30m:]) * 0.8
+        for: 5m
+        labels:
+          severity: info
+          service: api
+          tier: application
+        annotations:
+          summary: "API performance recovered"
+          description: "P95 latency has improved by 20%+ compared to last 30 minutes"
+
+  # ============================================================================
+  # Queue Performance Alerts (Laravel Horizon)
+  # ============================================================================
+  - name: queue_performance_alerts
+    interval: 30s
+    rules:
+      # High Queue Backlog
+      - alert: HighQueueBacklog
+        expr: |
+          laravel_horizon_queue_size > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: laravel-horizon
+          tier: queue
+        annotations:
+          summary: "High queue backlog detected"
+          description: "Queue has {{ $value }} jobs pending - consider adding workers"
+
+      # Failed Jobs Rate High
+      - alert: HighFailedJobsRate
+        expr: |
+          rate(laravel_horizon_jobs_failed_total[5m]) / rate(laravel_horizon_jobs_processed_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: laravel-horizon
+          tier: queue
+        annotations:
+          summary: "Queue job failure rate above 5%"
+          description: "Failure rate is {{ $value | humanizePercentage }} - review failed jobs"
+
+      # Long Running Jobs
+      - alert: LongRunningJobsDetected
+        expr: |
+          laravel_horizon_jobs_runtime_seconds{status="running"} > 3600
+        for: 1m
+        labels:
+          severity: warning
+          service: laravel-horizon
+          tier: queue
+        annotations:
+          summary: "Jobs running over 1 hour detected"
+          description: "{{ $value }} jobs running >1hr - may be stuck"
+
+      # Worker Utilization High
+      - alert: WorkerUtilizationHigh
+        expr: |
+          (laravel_horizon_processes_busy / laravel_horizon_processes_total) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          service: laravel-horizon
+          tier: queue
+        annotations:
+          summary: "Worker utilization above 90%"
+          description: "Workers are {{ $value | humanizePercentage }} busy - scale up workers"
+
+  # ============================================================================
+  # System Resource Alerts
+  # ============================================================================
+  - name: system_resource_alerts
+    interval: 1m
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) > 0.80
+        for: 5m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Critical CPU Usage
+      - alert: CriticalCPUUsage
+        expr: |
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.15
+        for: 5m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "Disk space low"
+          description: "Less than 15% disk available on {{ $labels.instance }}:{{ $labels.mountpoint }}"
+
+      # Disk Space Critical
+      - alert: DiskSpaceCritical
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.05
+        for: 2m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Disk space critical"
+          description: "Less than 5% disk available on {{ $labels.instance }}:{{ $labels.mountpoint }}"
+
+      # High Disk I/O Wait
+      - alert: HighDiskIOWait
+        expr: |
+          (rate(node_cpu_seconds_total{mode="iowait"}[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          tier: infrastructure
+        annotations:
+          summary: "High disk I/O wait detected"
+          description: "I/O wait is {{ $value | humanizePercentage }} - disk bottleneck"

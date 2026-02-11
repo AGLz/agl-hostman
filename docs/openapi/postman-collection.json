@@ -1,0 +1,1049 @@
+{
+  "info": {
+    "name": "AGL Hostman API",
+    "description": "Postman collection for AGL Hostman API testing",
+    "version": "3.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.agl.hostman/api"
+    },
+    {
+      "key": "api_token",
+      "value": ""
+    },
+    {
+      "key": "workflow_id",
+      "value": "example-workflow"
+    },
+    {
+      "key": "container_id",
+      "value": "123"
+    },
+    {
+      "key": "project_id",
+      "value": "my-app"
+    },
+    {
+      "key": "application_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            },
+            "description": "Get the current authenticated user's profile and permissions"
+          },
+          "response": []
+        },
+        {
+          "name": "WorkOS Redirect",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/workos/redirect",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "workos",
+                "redirect"
+              ]
+            },
+            "description": "Redirect to WorkOS for OAuth authentication"
+          },
+          "response": []
+        },
+        {
+          "name": "WorkOS Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/workos/callback?code=YOUR_AUTH_CODE",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "workos",
+                "callback"
+              ],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "YOUR_AUTH_CODE",
+                  "description": "Authorization code from WorkOS"
+                }
+              ]
+            },
+            "description": "Handles the callback from WorkOS after authentication"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "N8N Workflow Management",
+      "item": [
+        {
+          "name": "List Workflows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/n8n/workflows",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "workflows"
+              ]
+            },
+            "description": "Retrieve all N8N workflows"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Database Backup\",\n  \"description\": \"Automated database backup workflow\",\n  \"category\": \"backup\",\n  \"tags\": [\"database\", \"backup\", \"daily\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/n8n/workflows",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "workflows"
+              ]
+            },
+            "description": "Create a new N8N workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workflow",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/n8n/workflows/{{workflow_id}}",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "workflows",
+                "{{workflow_id}}"
+              ]
+            },
+            "description": "Get details of a specific workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Workflow",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated backup workflow with retention policy\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/n8n/workflows/{{workflow_id}}",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "workflows",
+                "{{workflow_id}}"
+              ]
+            },
+            "description": "Update an existing workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Workflow",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/n8n/workflows/{{workflow_id}}",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "workflows",
+                "{{workflow_id}}"
+              ]
+            },
+            "description": "Delete a workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payload\": {\n    \"action\": \"deploy\",\n    \"environment\": \"production\",\n    \"branch\": \"main\"\n  },\n  \"retries\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/n8n/trigger/{{workflow_id}}",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "trigger",
+                "{{workflow_id}}"
+              ]
+            },
+            "description": "Manually trigger a workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Connection",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/n8n/test-connection",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "n8n",
+                "test-connection"
+              ]
+            },
+            "description": "Test N8N connection"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Infrastructure Management",
+      "item": [
+        {
+          "name": "List Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/infrastructure/locations",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "infrastructure",
+                "locations"
+              ]
+            },
+            "description": "Retrieve all physical locations"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Server Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/infrastructure/servers/HQ",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "infrastructure",
+                "servers",
+                "HQ"
+              ]
+            },
+            "description": "Get details of a specific server/physical location"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Infrastructure Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/infrastructure/status",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "infrastructure",
+                "status"
+              ]
+            },
+            "description": "Retrieve overall infrastructure status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Container Management",
+      "item": [
+        {
+          "name": "Create Container",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"web-server-01\",\n  \"template\": \"ubuntu-22.04\",\n  \"config\": {\n    \"cpu\": 4,\n    \"memory\": 8192,\n    \"disk\": 100\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/containers/create",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "containers",
+                "create"
+              ]
+            },
+            "description": "Create a new container"
+          },
+          "response": []
+        },
+        {
+          "name": "Clone Container",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"web-server-02\",\n  \"full_clone\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/containers/{{container_id}}/clone",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "containers",
+                "{{container_id}}",
+                "clone"
+              ]
+            },
+            "description": "Clone an existing container"
+          },
+          "response": []
+        },
+        {
+          "name": "Backup Container",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Weekly backup\",\n  \"retention_days\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/containers/{{container_id}}/backup",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "containers",
+                "{{container_id}}",
+                "backup"
+              ]
+            },
+            "description": "Create a backup of a container"
+          },
+          "response": []
+        },
+        {
+          "name": "List Snapshots",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/containers/{{container_id}}/snapshots",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "containers",
+                "{{container_id}}",
+                "snapshots"
+              ]
+            },
+            "description": "List snapshots for a container"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Harbor Registry",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harbor/projects",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harbor",
+                "projects"
+              ]
+            },
+            "description": "Retrieve all Harbor projects"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"my-app\",\n  \"description\": \"My application container images\",\n  \"public\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/harbor/projects",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harbor",
+                "projects"
+              ]
+            },
+            "description": "Create a new Harbor project"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harbor/projects/{{project_id}}",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harbor",
+                "projects",
+                "{{project_id}}"
+              ]
+            },
+            "description": "Get details of a specific project"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Scan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"project\": \"my-app\",\n  \"repository\": \"webapp\",\n  \"reference\": \"latest\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/harbor/scan",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harbor",
+                "scan"
+              ]
+            },
+            "description": "Trigger vulnerability scan"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dokploy Applications",
+      "item": [
+        {
+          "name": "List Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dokploy/applications",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dokploy",
+                "applications"
+              ]
+            },
+            "description": "Retrieve all Dokploy applications"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"my-web-app\",\n  \"repository\": \"https://github.com/user/my-app.git\",\n  \"build_command\": \"npm run build\",\n  \"start_command\": \"npm start\",\n  \"environment\": {\n    \"NODE_ENV\": \"production\",\n    \"PORT\": 3000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dokploy/applications",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dokploy",
+                "applications"
+              ]
+            },
+            "description": "Create a new Dokploy application"
+          },
+          "response": []
+        },
+        {
+          "name": "Start Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dokploy/applications/{{application_id}}/start",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dokploy",
+                "applications",
+                "{{application_id}}",
+                "start"
+              ]
+            },
+            "description": "Start a Dokploy application"
+          },
+          "response": []
+        },
+        {
+          "name": "Deploy Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": 1,\n  \"environment\": \"staging\",\n  \"message\": \"Deploying latest changes\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dokploy/deploy",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dokploy",
+                "deploy"
+              ]
+            },
+            "description": "Deploy a Dokploy application"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Deployment Pipeline",
+      "item": [
+        {
+          "name": "Deploy to QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branch\": \"main\",\n  \"environment\": {\n    \"variables\": {\n      \"NODE_ENV\": \"production\",\n      \"DEBUG\": \"false\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/deployment/qa/deploy",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "deployment",
+                "qa",
+                "deploy"
+              ]
+            },
+            "description": "Deploy to QA environment"
+          },
+          "response": []
+        },
+        {
+          "name": "Get QA Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/deployment/qa/status",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "deployment",
+                "qa",
+                "status"
+              ]
+            },
+            "description": "Get QA deployment status"
+          },
+          "response": []
+        },
+        {
+          "name": "Get QA Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/deployment/qa/logs",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "deployment",
+                "qa",
+                "logs"
+              ]
+            },
+            "description": "Get QA deployment logs"
+          },
+          "response": []
+        },
+        {
+          "name": "Promote QA to UAT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qa_deployment_id\": \"456\",\n  \"release_notes\": \"Bug fixes and performance improvements\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/promotion/qa-to-uat",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "promotion",
+                "qa-to-uat"
+              ]
+            },
+            "description": "Promote from QA to UAT"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Monitoring",
+      "item": [
+        {
+          "name": "System Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/monitoring/metrics",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "monitoring",
+                "metrics"
+              ]
+            },
+            "description": "Get system performance metrics"
+          },
+          "response": []
+        },
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/monitoring/health",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "monitoring",
+                "health"
+              ]
+            },
+            "description": "Get overall system health"
+          },
+          "response": []
+        },
+        {
+          "name": "Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/monitoring/alerts",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "monitoring",
+                "alerts"
+              ]
+            },
+            "description": "Get monitoring alerts"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhooks (Public)",
+      "item": [
+        {
+          "name": "GitHub Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-GitHub-Event",
+                "value": "push"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ref\": \"refs/heads/main\",\n  \"before\": \"abc123\",\n  \"after\": \"def456\",\n  \"repository\": {\n    \"name\": \"my-app\",\n    \"full_name\": \"user/my-app\"\n  },\n  \"pusher\": {\n    \"name\": \"john-doe\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhooks/github",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "github"
+              ]
+            },
+            "description": "Handle GitHub webhook push events"
+          },
+          "response": []
+        },
+        {
+          "name": "Harbor Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"push\",\n  \"event_data\": {\n    \"repository\": \"my-app/webapp\",\n    \"tag\": \"latest\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhooks/harbor",
+              "protocol": "https",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "harbor"
+              ]
+            },
+            "description": "Handle Harbor webhook push events"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set token if available in environment",
+          "if (pm.environment.get('api_token')) {",
+          "    pm.variables.set('api_token', pm.environment.get('api_token'));",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Basic test for all requests",
+          "pm.test(\"Status code is 2xx\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "// Test for successful response",
+          "pm.test(\"Response has success property\", function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('success');",
+          "});"
+        ]
+      }
+    }
+  ]
+}
