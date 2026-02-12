@@ -1,0 +1,187 @@
+# AGL Service Level Objectives (SLOs)
+# AGL-19: Monitoring and Observability Stack
+
+slo:
+  # === Application Performance ===
+
+  - name: agl_hostman_api_latency
+    description: "AGL Hostman API response time"
+    query: |
+      histogram_quantile(0.95,
+        sum(rate(http_request_duration_seconds_bucket{job="agl-hostman"}[5m])) by (le)
+      )
+    labels:
+      service: agl-hostman
+      severity: critical
+    target: 0.5
+    window: 5m
+
+  - name: agl_hostman_api_throughput
+    description: "AGL Hostman API requests per second"
+    query: |
+      sum(rate(http_requests_total{job="agl-hostman"}[5m])) by (instance)
+    labels:
+      service: agl-hostman
+      severity: critical
+    target: 100
+    window: 5m
+
+  - name: agl_hostman_error_rate
+    description: "AGL Hostman error rate"
+    query: |
+      sum(
+        rate(http_requests_total{job="agl-hostman",status=~"5.."}[5m])
+      ) by (instance)
+      /
+      sum(rate(http_requests_total{job="agl-hostman"}[5m])) by (instance)
+    labels:
+      service: agl-hostman
+      severity: critical
+    target: 0.01
+    window: 5m
+
+  - name: agl_hostman_availability
+    description: "AGL Hostman uptime"
+    query: |
+      avg(up{job="agl-hostman"})
+    labels:
+      service: agl-hostman
+      severity: critical
+    target: 0.999
+    window: 5m
+
+  # === Database Performance ===
+
+  - name: mysql_query_latency_p95
+    description: "MySQL query latency (95th percentile)"
+    query: |
+      histogram_quantile(0.95,
+        rate(mysql_global_status_slow_queries[5m])
+      )
+    labels:
+      service: mysql
+      severity: critical
+    target: 0.05
+    window: 10m
+
+  - name: mysql_connection_pool_utilization
+    description: "MySQL connection pool usage"
+    query: |
+      mysql_global_status_threads_connected /
+      mysql_global_variables_max_connections
+    labels:
+      service: mysql
+      severity: warning
+    target: 0.8
+    window: 5m
+
+  - name: mysql_availability
+    description: "MySQL uptime"
+    query: avg(up{job="mysql"})
+    labels:
+      service: mysql
+      severity: critical
+    target: 0.999
+    window: 5m
+
+  # === Cache Performance ===
+
+  - name: redis_memory_usage
+    description: "Redis memory utilization"
+    query: |
+      redis_memory_used_bytes / redis_memory_max_bytes
+    labels:
+      service: redis
+      severity: warning
+    target: 0.8
+    window: 5m
+
+  - name: redis_hit_rate
+    description: "Redis cache hit rate"
+    query: |
+      rate(redis_keyspace_hits[5m]) /
+      (rate(redis_keyspace_hits[5m]) + rate(redis_keyspace_misses[5m]))
+    labels:
+      service: redis
+      severity: warning
+    target: 0.9
+    window: 5m
+
+  - name: redis_availability
+    description: "Redis uptime"
+    query: avg(up{job="redis"})
+    labels:
+      service: redis
+      severity: critical
+    target: 0.999
+    window: 5m
+
+  # === Infrastructure Health ===
+
+  - name: prometheus_availability
+    description: "Prometheus monitoring system uptime"
+    query: avg(up{job="prometheus"})
+    labels:
+      service: prometheus
+      severity: critical
+    target: 0.999
+    window: 5m
+
+  - name: grafana_availability
+    description: "Grafana dashboard uptime"
+    query: avg(up{job="grafana"})
+    labels:
+      service: grafana
+      severity: critical
+    target: 0.999
+    window: 5m
+
+  - name: mcp_servers_health
+    description: "MCP servers collective health"
+    query: |
+      count(up{job=~".*mcp.*|mcp-servers"}) == 1 /
+      count(up{job=~".*mcp.*|mcp-servers"})
+    labels:
+      service: mcp
+      severity: critical
+    target: 0.95
+    window: 5m
+
+  # === Backup SLA ===
+
+  - name: backup_rpo_compliance
+    description: "Backup Recovery Point Objective"
+    query: |
+      backup_sla_last_backup_time_hours <= 24
+    labels:
+      service: backup
+      severity: critical
+      target: 0.99
+    window: 10m
+
+  - name: backup_rto_compliance
+    description: "Backup Recovery Time Objective"
+    query: |
+      backup_sla_restoration_time_hours <= 4
+    labels:
+      service: backup
+      severity: critical
+      target: 0.95
+    window: 5m
+
+  - name: backup_success_rate
+    description: "Backup operation success rate"
+    query: avg(backup_sla_backup_success)
+    labels:
+      service: backup
+      severity: critical
+    target: 0.99
+    window: 1h
+
+# Error budget per SLO
+error_budget:
+  - name: agl_hostman_error_budget
+    description: "Allowable error rate for AGL Hostman"
+    slo: agl_hostman_error_rate
+    target: 0.01
+    window: 30d

@@ -1,0 +1,455 @@
+# =============================================================================
+# AGL-22: Backup and Disaster Recovery Alerting Rules
+# =============================================================================
+# Purpose: Prometheus alerting rules for backup SLA compliance monitoring
+# SLA: RTO < 4 hours, RPO < 1 hour
+# =============================================================================
+# Document Version: 1.0
+# Last Updated: 2026-02-11
+# =============================================================================
+
+groups:
+  # ============================================================================
+  # Backup RPO Compliance Alerts
+  # ============================================================================
+  - name: backup_rpo_compliance
+    interval: 5m
+    rules:
+      # Critical: RPO violation for critical systems
+      - alert: BackupRPOCriticalViolation
+        expr: |
+          agl_sla_rpo_compliance{vmid=~"183|184",priority="critical"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          tier: backup
+          sla: rpo
+        annotations:
+          summary: "RPO violation for critical system {{ $labels.vmid }}"
+          description: "Critical system CT{{ $labels.vmid }} has not been backed up within the 1-hour RPO threshold."
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-rpo-violation"
+          impact: "Data loss risk up to the age of the last backup"
+          action: "Investigate backup job status and trigger manual backup if needed"
+
+      # Warning: RPO approaching limit
+      - alert: BackupRPOWarning
+        expr: |
+          agl_sla_backup_age_seconds{vmid=~"183|184",priority="critical"} > 1800
+        for: 10m
+        labels:
+          severity: warning
+          tier: backup
+          sla: rpo
+        annotations:
+          summary: "RPO warning for critical system {{ $labels.vmid }}"
+          description: "Critical system CT{{ $labels.vmid }} backup is {{ $value | humanizeDuration }} old (threshold: 1 hour)"
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-rpo-warning"
+          impact: "Approaching RPO threshold"
+          action: "Monitor backup job, prepare for manual intervention"
+
+      # Info: RPO status check
+      - alert: BackupRPOStatus
+        expr: |
+          agl_sla_backup_age_seconds{vmid=~"183|184"} < 3600
+        for: 1m
+        labels:
+          severity: info
+          tier: backup
+          sla: rpo
+        annotations:
+          summary: "RPO compliant for system {{ $labels.vmid }}"
+          description: "System CT{{ $labels.vmid }} backup age is {{ $value | humanizeDuration }} (within 1-hour RPO)"
+
+  # ============================================================================
+  # Backup RTO Compliance Alerts
+  # ============================================================================
+  - name: backup_rto_compliance
+    interval: 5m
+    rules:
+      # Critical: RTO violation (restore took too long)
+      - alert: BackupRTOViolation
+        expr: |
+          agl_sla_rto_compliance == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: backup
+          sla: rto
+        annotations:
+          summary: "RTO violation detected"
+          description: "Last restore operation exceeded the 4-hour RTO threshold. Duration: {{ $value | humanizeDuration }}"
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-rto-violation"
+          impact: "Service restoration SLA not met"
+          action: "Review restore logs and identify performance bottlenecks"
+
+      # Warning: RTO capability check
+      - alert: BackupRTONotReady
+        expr: |
+          agl_sla_rto_compliance{reason="restore_script_missing"} == 0
+        for: 1h
+        labels:
+          severity: warning
+          tier: backup
+          sla: rto
+        annotations:
+          summary: "Restore capability not available"
+          description: "Restore script is missing or not executable. RTO capability at risk."
+          runbook: "https://docs.agl-hostman.com/runbooks/restore-script-missing"
+          impact: "Cannot guarantee RTO compliance"
+          action: "Verify restore script exists and is executable"
+
+  # ============================================================================
+  # Storage Health Alerts
+  # ============================================================================
+  - name: backup_storage_health
+    interval: 5m
+    rules:
+      # Critical: Storage critically full
+      - alert: BackupStorageCritical
+        expr: |
+          agl_sla_storage_health == 0
+        for: 5m
+        labels:
+          severity: critical
+          tier: backup
+          resource: storage
+        annotations:
+          summary: "Backup storage critically full"
+          description: "Backup storage at {{ $value }}% capacity. Immediate action required to prevent backup failures."
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-storage-critical"
+          impact: "Backup jobs may fail, RPO violation risk"
+          action: "Clean up old backups or expand storage immediately"
+
+      # Warning: Storage running low
+      - alert: BackupStorageWarning
+        expr: |
+          agl_sla_storage_health == 1
+        for: 15m
+        labels:
+          severity: warning
+          tier: backup
+          resource: storage
+        annotations:
+          summary: "Backup storage running low"
+          description: "Backup storage usage above 80%. Plan expansion or cleanup soon."
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-storage-warning"
+          impact: "Approaching storage exhaustion"
+          action: "Review retention policy, plan expansion"
+
+      # Info: Storage healthy
+      - alert: BackupStorageHealthy
+        expr: |
+          agl_sla_storage_health == 2
+        for: 1m
+        labels:
+          severity: info
+          tier: backup
+          resource: storage
+        annotations:
+          summary: "Backup storage healthy"
+          description: "Backup storage usage is within normal limits"
+
+  # ============================================================================
+  # Offsite Replication Alerts
+  # ============================================================================
+  - name: backup_offsite_replication
+    interval: 5m
+    rules:
+      # Critical: Offsite storage unavailable
+      - alert: BackupOffsiteUnavailable
+        expr: |
+          agl_sla_offsite_available{target="usb4tb"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          tier: backup
+          resource: offsite
+        annotations:
+          summary: "Offsite backup storage unavailable"
+          description: "USB4TB offsite storage is not mounted or accessible."
+          runbook: "https://docs.agl-hostman.com/runbooks/offsite-unavailable"
+          impact: "No offsite backup replication"
+          action: "Check mount status and network connectivity"
+
+      # Warning: Replication lag high
+      - alert: BackupReplicationLag
+        expr: |
+          agl_sla_offsite_replication_lag_seconds{target="usb4tb",vmid!="max"} > 3600
+        for: 15m
+        labels:
+          severity: warning
+          tier: backup
+          resource: replication
+        annotations:
+          summary: "Offsite replication lag detected"
+          description: "Offsite replication for {{ $labels.vmid }} is lagging by {{ $value | humanizeDuration }}."
+          runbook: "https://docs.agl-hostman.com/runbooks/replication-lag"
+          impact: "Offsite backups may be stale"
+          action: "Check replication job logs and network status"
+
+      # Critical: Replication failed
+      - alert: BackupReplicationFailed
+        expr: |
+          agl_sla_offsite_replication_lag_seconds == -1
+        for: 5m
+        labels:
+          severity: critical
+          tier: backup
+          resource: replication
+        annotations:
+          summary: "Offsite replication failed"
+          description: "Unable to determine replication lag. Replication job may have failed."
+          runbook: "https://docs.agl-hostman.com/runbooks/replication-failed"
+          impact: "No offsite backup protection"
+          action: "Investigate replication logs immediately"
+
+  # ============================================================================
+  # Backup Job Alerts
+  # ============================================================================
+  - name: backup_job_status
+    interval: 1m
+    rules:
+      # Critical: Backup job failure rate high
+      - alert: BackupFailureRateHigh
+        expr: |
+          (100 - agl_sla_backup_success_rate{period="24h"}) > 10
+        for: 15m
+        labels:
+          severity: critical
+          tier: backup
+          resource: job
+        annotations:
+          summary: "High backup failure rate"
+          description: "Backup success rate is {{ $value }}% over the last 24 hours (threshold: 90%)."
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-failures"
+          impact: "Multiple backup systems failing"
+          action: "Review backup logs and fix underlying issues"
+
+      # Warning: Recent backup failures
+      - alert: BackupRecentFailures
+        expr: |
+          increase(agl_backup_failures_total[1h]) > 2
+        for: 1m
+        labels:
+          severity: warning
+          tier: backup
+          resource: job
+        annotations:
+          summary: "Recent backup failures detected"
+          description: "{{ $value }} backup failures in the last hour."
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-failures"
+          impact: "Some systems not being backed up"
+          action: "Check which backup jobs are failing and why"
+
+      # Info: No recent backups
+      - alert: BackupNoRecentBackups
+        expr: |
+          (time() - agl_sla_last_backup_timestamp) > 86400
+        for: 1m
+        labels:
+          severity: warning
+          tier: backup
+          resource: job
+        annotations:
+          summary: "No backups in 24 hours"
+          description: "System {{ $labels.vmid }} has no successful backup in the last 24 hours."
+          runbook: "https://docs.agl-hostman.com/runbooks/no-recent-backups"
+          impact: "RPO violation risk"
+          action: "Verify backup schedule and trigger manual backup"
+
+  # ============================================================================
+  # Proxmox Backup Server Alerts
+  # ============================================================================
+  - name: backup_pbs_health
+    interval: 2m
+    rules:
+      # Critical: PBS server down
+      - alert: BackupPBSDown
+        expr: |
+          agl_backup_pbs_up == 0
+        for: 5m
+        labels:
+          severity: critical
+          tier: backup
+          resource: pbs
+        annotations:
+          summary: "Proxmox Backup Server unreachable"
+          description: "Cannot connect to PBS server at {{ $labels.server }}."
+          runbook: "https://docs.agl-hostman.com/runbooks/pbs-down"
+          impact: "No backups being sent to PBS"
+          action: "Check PBS server status and network connectivity"
+
+      # Warning: PBS backup failures
+      - alert: BackupPBSFailures
+        expr: |
+          increase(agl_backup_pbs_failures_total[1h]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          tier: backup
+          resource: pbs
+        annotations:
+          summary: "PBS backup failures detected"
+          description: "{{ $value }} backup(s) failed to send to Proxmox Backup Server."
+          runbook: "https://docs.agl-hostman.com/runbooks/pbs-failures"
+          impact: "PBS backups not current"
+          action: "Review PBS logs and connectivity"
+
+  # ============================================================================
+  # System Availability Alerts
+  # ============================================================================
+  - name: backup_system_availability
+    interval: 2m
+    rules:
+      # Critical: Critical system unavailable
+      - alert: BackupSystemUnavailable
+        expr: |
+          up{job=~"agl-crowbar|agl-api"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          tier: backup
+          category: availability
+        annotations:
+          summary: "Critical backup system unavailable"
+          description: "System {{ $labels.job }} is down and cannot be backed up."
+          runbook: "https://docs.agl-hostman.com/runbooks/system-unavailable"
+          impact: "Cannot backup critical system"
+          action: "Restore system availability immediately"
+
+      # Warning: System availability degraded
+      - alert: BackupAvailabilityDegraded
+        expr: |
+          agl_sla_pct_available{category="critical"} < 90
+        for: 10m
+        labels:
+          severity: warning
+          tier: backup
+          category: availability
+        annotations:
+          summary: "System availability degraded"
+          description: "Critical systems availability is {{ $value }}% (threshold: 95%)."
+          runbook: "https://docs.agl-hostman.com/runbooks/availability-degraded"
+          impact: "Backup coverage reduced"
+          action: "Restore down systems to improve availability"
+
+  # ============================================================================
+  # SLA Summary Alerts
+  # ============================================================================
+  - name: backup_sla_summary
+    interval: 1h
+    rules:
+      # Critical: Multiple SLA violations
+      - alert: BackupSLAMultipleViolations
+        expr: |
+          (
+            (agl_sla_rpo_compliance{vmid="overall"} == 0) +
+            (agl_sla_rto_compliance == 0) +
+            (agl_sla_storage_health <= 1)
+          ) >= 2
+        for: 5m
+        labels:
+          severity: critical
+          tier: backup
+          category: sla
+        annotations:
+          summary: "Multiple backup SLA violations"
+          description: "Two or more backup SLAs are being violated. Review backup status immediately."
+          runbook: "https://docs.agl-hostman.com/runbooks/sla-violations"
+          impact: "Comprehensive backup system failure"
+          action: "Escalate to infrastructure team immediately"
+
+      # Info: SLA compliance report
+      - alert: BackupSLAComplianceReport
+        expr: |
+          (
+            (agl_sla_rpo_compliance{vmid="overall"} == 1) *
+            (agl_sla_storage_health == 2)
+          ) == 1
+        for: 1m
+        labels:
+          severity: info
+          tier: backup
+          category: sla
+        annotations:
+          summary: "Backup SLA compliant"
+          description: "All critical backup SLAs are currently being met."
+
+  # ============================================================================
+  # Backup Maintenance Alerts
+  # ============================================================================
+  - name: backup_maintenance
+    interval: 10m
+    rules:
+      # Warning: Backup job overdue
+      - alert: BackupJobOverdue
+        expr: |
+          (time() - agl_backup_last_run) > 90000
+        for: 1m
+        labels:
+          severity: warning
+          tier: backup
+          category: maintenance
+        annotations:
+          summary: "Backup job overdue"
+          description: "Last successful backup was more than 25 hours ago."
+          runbook: "https://docs.agl-hostman.com/runbooks/backup-overdue"
+          impact: "RPO may be violated"
+          action: "Investigate cron job and backup script status"
+
+      # Info: Weekly backup maintenance
+      - alert: BackupWeeklyMaintenance
+        expr: |
+          (day_of_week() == 0) and (hour() >= 1) and (hour() < 6)
+        for: 1m
+        labels:
+          severity: info
+          tier: backup
+          category: maintenance
+        annotations:
+          summary: "Weekly backup maintenance window"
+          description: "Weekly backup maintenance and validation in progress."
+          runbook: "https://docs.agl-hostman.com/docs/backup-operations-guide"
+          action: "Monitor maintenance activities"
+
+  # ============================================================================
+  # Disaster Recovery Alerts
+  # ============================================================================
+  - name: backup_disaster_recovery
+    interval: 5m
+    rules:
+      # Critical: Complete backup failure
+      - alert: BackupCompleteFailure
+        expr: |
+          (agl_sla_offsite_available == 0) and (agl_sla_storage_health <= 1)
+        for: 15m
+        labels:
+          severity: critical
+          tier: backup
+          category: disaster
+        annotations:
+          summary: "Complete backup system failure"
+          description: "Both local storage is critical and offsite replication is down."
+          runbook: "https://docs.agl-hostman.com/docs/disaster-recovery-runbook"
+          impact: "No valid backups available"
+          action: "DECLARE DISASTER. Execute DR procedures immediately."
+
+      # Critical: Last backup very old
+      - alert: BackupStaleCritical
+        expr: |
+          (time() - agl_sla_last_backup_timestamp{vmid=~"183|184"}) > 172800
+        for: 1m
+        labels:
+          severity: critical
+          tier: backup
+          category: disaster
+        annotations:
+          summary: "Critical backup stale"
+          description: "Critical system has no backup in 48 hours. DR required."
+          runbook: "https://docs.agl-hostman.com/docs/disaster-recovery-runbook"
+          impact: "High data loss risk"
+          action: "Trigger emergency backup immediately"
+
+# =============================================================================
+# END OF ALERT RULES
+# =============================================================================

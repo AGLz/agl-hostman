@@ -1,0 +1,225 @@
+# Infrastructure Alert Rules for AGL Monitoring
+# AGL-19: Monitoring and Observability Stack
+
+groups:
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+
+      # === System Health Alerts ===
+
+      - alert: SystemDown
+        expr: up{job=~"node|cadvisor|redis|mysql"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "System exporter is down ({{ $labels.instance }}"
+          description: "The {{ $labels.job }} exporter for {{ $labels.instance }} has been down for more than 5 minutes."
+          runbook_url: "https://docs.agl.net/runbooks/system-down"
+
+      - alert: HighCPUUsage
+        expr: |
+          (
+            100 - (avg(rate(node_cpu_seconds_total{mode!="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% on {{ $labels.instance }} for more than 10 minutes. Current: {{ $value }}%"
+
+      - alert: CriticalDiskSpace
+        expr: |
+          (
+            (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100
+          ) < 10
+        for: 5m
+        labels:
+          severity: critical
+          category: storage
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Root disk space is below 10% on {{ $labels.instance }}. Current: {{ $value }}% free"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))
+          ) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 90% on {{ $labels.instance }}. Current: {{ $value }}%"
+
+      # === Database Alerts ===
+
+      - alert: MySQLDown
+        expr: up{job="mysql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "MySQL exporter is down"
+          description: "MySQL exporter has been down for more than 2 minutes."
+          runbook_url: "https://docs.agl.net/runbooks/mysql-down"
+
+      - alert: MySQLSlowQueries
+        expr: |
+          rate(mysql_global_status_slow_queries[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High rate of slow MySQL queries"
+          description: "More than 1 slow query per second detected. Current rate: {{ $value }} queries/sec"
+
+      - alert: MySQLConnectionsHigh
+        expr: |
+          mysql_global_status_threads_connected / mysql_global_variables_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High MySQL connection usage"
+          description: "MySQL connection usage is above 80% of max. Current: {{ $value }}%"
+
+      # === Redis Alerts ===
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis exporter is down"
+          description: "Redis exporter has been down for more than 2 minutes."
+
+      - alert: RedisMemoryHigh
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is above 90%. Current: {{ $value }}%"
+
+      # === Backup Alerts ===
+
+      - alert: BackupSLAMissed
+        expr: |
+          backup_sla_last_backup_time_hours > 24
+        for: 1m
+        labels:
+          severity: critical
+          category: backup
+        annotations:
+          summary: "Backup SLA missed - RPO exceeded"
+          description: "Last backup was {{ $value }} hours ago (RPO target: 24h)."
+
+      - alert: BackupFailed
+        expr: |
+          backup_sla_backup_success == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: backup
+        annotations:
+          summary: "Backup failed"
+          description: "The last backup run failed. Check backup logs."
+
+      - alert: BackupStorageFull
+        expr: |
+          backup_sla_storage_available_percent < 10
+        for: 5m
+        labels:
+          severity: warning
+          category: storage
+        annotations:
+          summary: "Backup storage running low"
+          description: "Backup storage is below 10% available. Current: {{ $value }}%"
+
+      # === MCP Server Alerts ===
+
+      - alert: MCPServerDown
+        expr: |
+          up{job=~"mcp-servers|.*mcp.*"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: mcp
+        annotations:
+          summary: "MCP server is down ({{ $labels.instance }}"
+          description: "The MCP server {{ $labels.instance }} has been down for more than 5 minutes."
+
+      - alert: MCPServerSlowResponse
+        expr: |
+          http_request_duration_seconds{job=~"mcp-servers|.*mcp.*"} > 5
+        for: 10m
+        labels:
+          severity: warning
+          category: mcp
+        annotations:
+          summary: "Slow MCP server response ({{ $labels.instance }}"
+          description: "MCP server response time is above 5 seconds. Current: {{ $value }}s"
+
+      - alert: MCPServersDegraded
+        expr: |
+          count(up{job=~"mcp-servers|.*mcp.*"} == 0) > 3
+        for: 5m
+        labels:
+          severity: critical
+          category: mcp
+        annotations:
+          summary: "Multiple MCP servers down"
+          description: "{{ $value }} MCP servers are currently down."
+
+      # === Application Alerts ===
+
+      - alert: AGLHostmanDown
+        expr: up{job="agl-hostman"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "AGL Hostman application is down"
+          description: "The AGL Hostman application is not responding."
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{job="agl-hostman",status=~"5.."}[5m])
+            /
+            rate(http_requests_total{job="agl-hostman"}[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "High error rate on AGL Hostman"
+          description: "Error rate is above 5%. Current: {{ $value }}%"
+
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_sum{job="agl-hostman"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "High response time on AGL Hostman"
+          description: "P95 response time is above 1 second. Current: {{ $value }}s"

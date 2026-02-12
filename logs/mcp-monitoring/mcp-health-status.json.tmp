@@ -1,0 +1,8 @@
+[
+  {"name":"filesystem","status":"healthy","response_time":"8302ms","details":"Package available"},
+  {"name":"context7","status":"healthy","response_time":"503ms","details":"HTTP connection successful"},
+  {"name":"linear","status":"healthy","response_time":"103ms","details":"HTTP connection successful"},
+  {"name":"sqlite","status":"healthy","response_time":"2785ms","details":"Package available"},
+  {"name":"github","status":"healthy","response_time":"5486ms","details":"Package available"},
+  {"name":"4.5v-mcp","status":"healthy","response_time":"4934ms","details":"Package available"},
+  {"name":"zai-mcp-server","status":"healthy","response_time":"5042ms","details":"Package available"}

@@ -1,0 +1,25 @@
+# Backup SLA Metrics Exporter for Prometheus
+# HTTP server that reads backup metrics and exposes them for Prometheus scraping
+
+FROM python:3.12-slim-bullseye
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir /root/.cache/pip \
+    prometheus-client \
+    flask \
+    gunicorn
+
+# Copy exporter script
+COPY backup-sla-monitor.py /app/backup-monitor.py
+
+# Expose metrics port
+EXPOSE 9099
+
+# Set environment variables
+ENV METRICS_FILE=/var/lib/agl-backup/metrics/backup-sla.prom
+ENV EXPORT_PORT=9099
+
+# Run with gunicorn for production
+CMD gunicorn -w 4 -b 0.0.0.0 --access-logfile - --error-logfile - --log-level info backup-monitor:app

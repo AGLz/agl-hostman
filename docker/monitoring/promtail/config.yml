@@ -1,0 +1,91 @@
+# Promtail Configuration for AGL Log Collection
+# AGL-19: Monitoring and Observability Stack
+
+server:
+  log_level: info
+  http_listen_port: 9080
+
+# Positions configuration
+positions:
+  filename: /tmp/positions.yaml
+
+# Client configuration for sending logs to Loki
+client:
+  url: http://loki:3100/loki/api/v1/push
+  batch_wait: 1s
+  timeout: 10s
+
+# Scrape configuration
+scrape_configs:
+  # Docker container logs
+  - job_name: docker
+    docker_configs:
+      - host: unix:///var/run/docker.sock
+        filters:
+          - name: container
+            values:
+              - agl-*
+              - prometheus
+              - grafana
+              - alertmanager
+              - loki
+              - promtail
+              - cadvisor
+              - node-exporter
+              - redis-exporter
+              - mysql-exporter
+              - backup-exporter
+        labels:
+          job: docker-logs
+          env: production
+    relabel_configs:
+      # Clean up container names
+      - source_labels: true
+        regex: /var/lib/docker/containers/(.*)/.*-json\.log
+        replacement: '/${1}/'
+      # Extract container name
+      - source_labels: true
+        regex: '/([^/]+)$'
+        replacement: '$1'
+      # Add log level for applications
+      - source_labels: true
+        regex: '"level":"(INFO|WARN|ERROR|DEBUG)"'
+        replacement: 'severity="$1"'
+      # Add environment
+      - target_label: env
+        replacement: 'production'
+
+# Processors to clean and enrich logs
+pipeline_stages:
+  # Parse JSON logs
+  - json:
+      expressions:
+        - output: log
+          source: output
+          # Extract timestamp
+        - output: time
+          source: time
+          # Extract severity
+        - output: severity
+          source: severity
+          # Extract container name
+        - output: container
+          source: container_name
+
+  # Add static labels
+  - labels:
+      stream:
+        env: production
+        cluster: agl-prod
+
+# Output configuration
+output:
+  # Send to Loki
+  loki:
+      url: http://loki:3100/loki/api/v1/push
+      batch_size: 1048576 # 1MB
+      timeout: 10s
+
+# Write to local file for debugging (optional)
+# - file:
+#     filename: /var/log/promtail/debug.log

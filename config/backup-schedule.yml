@@ -1,0 +1,396 @@
+# =============================================================================
+# AGL-22: Backup Schedule Configuration
+# =============================================================================
+# Purpose: Define backup schedules, retention policies, and VM priorities
+# SLA: RTO < 4 hours, RPO < 1 hour
+# =============================================================================
+# Document Version: 1.0
+# Last Updated: 2026-02-11
+# =============================================================================
+
+# =============================================================================
+# PROXMOX BACKUP SERVER CONFIGURATION
+# =============================================================================
+
+proxmox_backup_server:
+  host: "10.6.0.14"
+  port: 8007
+  datastore: "aglsrv6-pbs"
+  fingerprint: ""  # Add fingerprint for first-time connection
+  encryption: true
+  compression: "zstd"
+
+# =============================================================================
+# LOCAL STORAGE CONFIGURATION
+# =============================================================================
+
+local_storage:
+  primary:
+    path: "/mnt/pve/bb/dump"
+    name: "spark"
+    type: "zfs"
+    retention:
+      daily: 7
+      weekly: 4
+      monthly: 12
+      yearly: 1
+
+  secondary:
+    path: "/spark/base/dump"
+    name: "bb"
+    type: "directory"
+    retention:
+      daily: 3
+
+# =============================================================================
+# OFFSITE STORAGE CONFIGURATION
+# =============================================================================
+
+offsite_storage:
+  usb4tb:
+    enabled: true
+    mount_point: "/mnt/pve/usb4tb"
+    backup_path: "/mnt/pve/usb4tb/dump"
+    type: "cifs"
+    options:
+      username: "admin"
+      password_env: "USB4TB_PASSWORD"
+      domain: ""
+      mount_options: "rw,soft,noauto"
+
+  backblaze:
+    enabled: false
+    bucket: "agl-hostman-backups"
+    rclone_config: "/root/.config/rclone/rclone.conf"
+    sync_schedule: "daily"
+    retention:
+      daily: 30
+
+  hetzner:
+    enabled: false
+    host: "uXXXXXX.your-storagebox.de"
+    port: 23
+    username: "uXXXXXX"
+    password_env: "HETZNER_PASSWORD"
+    sync_schedule: "daily"
+
+# =============================================================================
+# CRITICAL SYSTEMS (Priority P0)
+# RPO: 1 hour | RTO: 2 hours
+# =============================================================================
+
+critical_vms:
+  # AGL Crowbar Database
+  - vmid: 183
+    type: "lxc"
+    name: "agl-crowbar"
+    priority: "p0"
+    backup_schedule:
+      - "03:15"
+      - "15:15"
+      - "23:15"
+    retention:
+      daily: 7
+      weekly: 4
+      monthly: 12
+      yearly: 1
+    storage:
+      - "local"
+      - "pbs"
+      - "usb4tb"
+
+  # AGL API Database
+  - vmid: 184
+    type: "lxc"
+    name: "agl-api"
+    priority: "p0"
+    backup_schedule:
+      - "03:15"
+      - "15:15"
+      - "23:15"
+    retention:
+      daily: 7
+      weekly: 4
+      monthly: 12
+      yearly: 1
+    storage:
+      - "local"
+      - "pbs"
+      - "usb4tb"
+
+# =============================================================================
+# HIGH PRIORITY SYSTEMS (Priority P1)
+# RPO: 6 hours | RTO: 3 hours
+# =============================================================================
+
+high_priority_vms:
+  - vmid: 180
+    type: "lxc"
+    name: "agl-app"
+    priority: "p1"
+    backup_schedule:
+      - "03:30"
+    retention:
+      daily: 7
+      weekly: 4
+      monthly: 6
+    storage:
+      - "local"
+      - "pbs"
+
+  - vmid: 182
+    type: "lxc"
+    name: "agl-worker"
+    priority: "p1"
+    backup_schedule:
+      - "03:30"
+    retention:
+      daily: 7
+      weekly: 4
+      monthly: 6
+    storage:
+      - "local"
+      - "pbs"
+
+# =============================================================================
+# STANDARD SYSTEMS (Priority P2)
+# RPO: 24 hours | RTO: 4 hours
+# =============================================================================
+
+standard_vms:
+  - vmid: 173
+    type: "lxc"
+    name: "harbor"
+    priority: "p2"
+    backup_schedule:
+      - "04:00"
+    retention:
+      daily: 7
+      weekly: 2
+      monthly: 3
+    storage:
+      - "local"
+
+# =============================================================================
+# BACKUP SCHEDULES
+# =============================================================================
+
+schedules:
+  # Daily backup of critical systems (3 times daily for 1h RPO)
+  critical_daily:
+    enabled: true
+    schedule: "15 */6 * * *"  # Every 6 hours at minute 15
+    vmids: [183, 184]
+    compression: "zstd"
+    mode: "snapshot"
+    mailnotification: "always"
+    performance: "high"
+
+  # Daily backup of high priority systems
+  high_priority_daily:
+    enabled: true
+    schedule: "30 3 * * *"  # 03:30 daily
+    vmids: [180, 182]
+    compression: "zstd"
+    mode: "snapshot"
+    mailnotification: "always"
+    performance: "standard"
+
+  # Daily backup of standard systems
+  standard_daily:
+    enabled: true
+    schedule: "0 4 * * *"  # 04:00 daily
+    vmids: [173]
+    compression: "zstd"
+    mode: "snapshot"
+    mailnotification: "always"
+    performance: "standard"
+
+  # Weekly backup (Sunday)
+  weekly:
+    enabled: true
+    schedule: "0 1 * * 0"  # Sunday 01:00
+    all_vms: true
+    compression: "zstd"
+    mode: "stop"
+    mailnotification: "always"
+    performance: "standard"
+
+  # Monthly backup (1st of month)
+  monthly:
+    enabled: true
+    schedule: "0 2 1 * *"  # 1st of month 02:00
+    all_vms: true
+    compression: "zstd"
+    mode: "snapshot"
+    mailnotification: "always"
+    performance: "standard"
+
+# =============================================================================
+# RETENTION POLICIES
+# =============================================================================
+
+retention_policies:
+  critical:
+    keep_last: 7          # Last 7 daily backups
+    keep_weekly: 4         # Last 4 weekly backups
+    keep_monthly: 12       # Last 12 monthly backups
+    keep_yearly: 1         # Last 1 yearly backup
+
+  high_priority:
+    keep_last: 7
+    keep_weekly: 4
+    keep_monthly: 6
+    keep_yearly: 0
+
+  standard:
+    keep_last: 2
+    keep_weekly: 2
+    keep_monthly: 3
+    keep_yearly: 0
+
+# =============================================================================
+# VALIDATION SCHEDULES
+# =============================================================================
+
+validation:
+  # Daily backup health check
+  daily_health:
+    enabled: true
+    schedule: "0 6 * * *"  # 06:00 daily
+    checks:
+      - backup_age
+      - storage_space
+      - pbs_connectivity
+
+  # Weekly full validation
+  weekly_validation:
+    enabled: true
+    schedule: "0 7 * * 0"  # Sunday 07:00
+    checks:
+      - backup_age
+      - backup_integrity
+      - offsite_replication
+      - storage_space
+      - pbs_connectivity
+
+  # Monthly restore test
+  monthly_restore_test:
+    enabled: true
+    schedule: "0 3 1 * *"  # 1st of month 03:00
+    test_vms:
+      - vmid: 183
+        target_vmid: 990
+      - vmid: 184
+        target_vmid: 991
+    auto_cleanup: true
+    validation_timeout: 600  # 10 minutes
+
+# =============================================================================
+# ALERTING CONFIGURATION
+# =============================================================================
+
+alerting:
+  email:
+    enabled: true
+    from: "backup@agl.local"
+    to: "admin@agl.local"
+    on_success: true
+    on_failure: true
+
+  slack:
+    enabled: false
+    webhook_url_env: "SLACK_WEBHOOK"
+    channel: "#backups"
+
+  webhook:
+    enabled: false
+    url_env: "WEBHOOK_URL"
+
+  thresholds:
+    storage_warning: 80      # Alert at 80% storage usage
+    storage_critical: 90     # Critical alert at 90%
+    backup_age_critical: 3600  # 1 hour for critical VMs
+    backup_age_warning: 21600   # 6 hours for critical VMs
+    offsite_lag_warning: 3600   # 1 hour replication lag
+    restore_timeout: 14400   # 4 hours
+
+# =============================================================================
+# MONITORING CONFIGURATION
+# =============================================================================
+
+monitoring:
+  prometheus:
+    enabled: true
+    metrics_dir: "/var/lib/agl-backup/metrics"
+    metrics_file: "backup-sla.prom"
+    scrape_interval: 60  # seconds
+
+  grafana:
+    enabled: true
+    dashboard_id: "backup-sla"
+    refresh_interval: "1m"
+
+# =============================================================================
+# DISASTER RECOVERY CONFIGURATION
+# =============================================================================
+
+disaster_recovery:
+  rto_targets:
+    critical: 7200    # 2 hours for P0
+    high_priority: 10800  # 3 hours for P1
+    standard: 14400    # 4 hours for P2
+
+  rpo_targets:
+    critical: 3600    # 1 hour for P0
+    high_priority: 21600  # 6 hours for P1
+    standard: 86400    # 24 hours for P2
+
+  emergency_restore_order:
+    - vmid: 183
+      priority: 1
+      reason: "Primary database"
+    - vmid: 184
+      priority: 2
+      reason: "API database"
+
+# =============================================================================
+# COMPLIANCE REQUIREMENTS
+# =============================================================================
+
+compliance:
+  standard: "AGL-22"
+  requirements:
+    rto_critical_hours: 4
+    rpo_critical_hours: 1
+    backup_success_rate_percent: 100
+    offsite_replication: true
+    quarterly_restore_test: true
+    retention_minimum_days: 30
+
+# =============================================================================
+# MAINTENANCE WINDOWS
+# =============================================================================
+
+maintenance_windows:
+  weekly:
+    - day: "Sunday"
+      start: "01:00"
+      end: "06:00"
+      activities:
+        - "full_backup"
+        - "storage_cleanup"
+        - "backup_validation"
+
+  monthly:
+    - day: 1
+      start: "02:00"
+      end: "06:00"
+      activities:
+        - "restore_testing"
+        - "retention_review"
+        - "sla_report"
+
+# =============================================================================
+# END OF CONFIGURATION
+# =============================================================================

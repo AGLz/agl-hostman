@@ -1,6 +1,6 @@
 # AGL MCP Server Security Audit Report
 
-**Generated**: 2026-02-10T15:16:43Z
+**Generated**: 2026-02-12T00:03:13Z
 **Project**: AGL Hostman Infrastructure
 **Audit Scope**: MCP Servers and Infrastructure Security
 
@@ -12,10 +12,10 @@
 |----------|-------|--------|
 | CRITICAL | 1 | ❌ FAIL |
 | HIGH | 2 | ⚠️  WARN |
-| MEDIUM | 8 | ⚠️  WARN |
+| MEDIUM | 5 | ⚠️  WARN |
 | LOW | 1 | ℹ️  INFO |
 | INFO | 0 | ℹ️  INFO |
-| **TOTAL** | **12** | |
+| **TOTAL** | **9** | |
 
 ---
 
@@ -25,10 +25,7 @@
 - [MEDIUM] Credential Exposure: Found 1 potential credential entries in .env.example.security
 - [HIGH] Insecure Protocol: MCP server using HTTP: "url": "http://192.168.0.183:8051/mcp"
 - [HIGH] Missing Authentication: SSE MCP server without visible authentication
-- [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 777
-- [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 777
 - [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 644
-- [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 777
 - [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 777
 - [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 777
 - [MEDIUM] Insecure File Permissions: .env file has permissive permissions: 777
