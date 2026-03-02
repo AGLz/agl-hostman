@@ -1,6 +1,6 @@
 # Development Rules & Standards
 
-> **Last Updated**: 2025-10-28 | **Version**: 1.0.0
+> **Last Updated**: 2026-02-18 | **Version**: 2.0.0
 
 **Purpose**: Coding standards, execution patterns, and best practices for AGL infrastructure development.
 
@@ -15,8 +15,12 @@
 3. [Subagent Delegation](#-mandatory-subagent-usage)
 4. [Claude Code vs MCP](#-claude-code-vs-mcp-tools)
 5. [Concurrent Execution](#-concurrent-execution-examples)
-6. [Performance Metrics](#-performance-benefits)
-7. [Integration Tips](#-integration-tips)
+6. [Context Rot Mitigation](#-context-rot-mitigation---new)
+7. [Session Management](#-session-management---new)
+8. [MCP Conscious Usage](#-mcp-conscious-usage---new)
+9. [PRD Requirements](#-prd-requirements---new)
+10. [Performance Metrics](#-performance-benefits)
+11. [Integration Tips](#-integration-tips)
 
 ---
 
@@ -162,6 +166,224 @@ Message 4: Write "file.js"
 
 ---
 
+## 🧠 CONTEXT ROT MITIGATION - NEW
+
+**CRITICAL**: Context Rot is a scientifically-confirmed phenomenon where LLM performance degrades progressively as the context window fills. This affects ALL LLMs (Claude, GPT, Gemini).
+
+**Source**: [Chroma Context Rot Study](https://research.trychroma.com/context-rot) | Video: "The Secret Poison Killing Your Claude Code Performance" (Chase AI)
+
+### What is Context Rot?
+- **Definition**: Performance degrades ~proportionally to context window usage
+- **Mechanism**: Each message carries ALL previous history (input + output tokens accumulated)
+- **Silent Killer**: Degradation is gradual, so users don't notice until quality drops significantly
+
+### What Fills Context Window
+| Source | Impact | Mitigation |
+|--------|--------|------------|
+| Messages (back-and-forth) | Medium | Session management |
+| System prompts | Low | Keep concise |
+| Tools | Medium | Use only needed |
+| **MCP Tools** | **HIGH** | **Limit MCPs to 3-4 max** |
+
+### The 4 Weapons Against Context Rot
+1. **Task Management** → Break tasks into atomic units (see PRD Requirements)
+2. **Session Management** → Use summaries + fresh sessions (see Session Management)
+3. **Scaffolding Frameworks** → Use subagents with clean context (already implemented)
+4. **MCP Consciousness** → Use only needed MCPs (see MCP Conscious Usage)
+
+**Key Insight**: Just the first 2 weapons (task management + session management) solve ~90% of context rot!
+
+---
+
+## 🔄 SESSION MANAGEMENT - NEW
+
+**Principle**: Don't let conversations drag for hours without active management.
+
+### When to Reset Session
+- Context window > 100,000 tokens (~50% of Claude's 200k limit)
+- Task completed successfully
+- Starting a new major feature
+- After 20+ back-and-forth exchanges
+- Quality noticeably degrading
+
+### How to Reset Session
+
+**Step 1: Request Summary**
+```
+Create a comprehensive summary of everything we discussed:
+- Completed tasks and results
+- In-progress work and blockers
+- Key decisions and rationale
+- Next steps for continuation
+```
+
+**Step 2: Save Summary**
+- Store in project memory: `mcp__memory__create_entities` or file
+- Use file for complex state: `/docs/session-summaries/YYYY-MM-DD.md`
+
+**Step 3: Full Clear**
+- `Ctrl+C` twice to fully exit (NOT just `/clear` which doesn't clear context)
+- Start fresh session
+- Provide summary as initial context
+
+### Summary Template
+```markdown
+## Session Summary - YYYY-MM-DD
+
+### Completed Tasks
+- [Task]: [Result/Status]
+
+### In Progress
+- [Task]: [Current state, blockers, next action]
+
+### Key Decisions
+- [Decision]: [Rationale]
+
+### Important Context
+- [Context needed for continuation]
+
+### Next Steps
+1. [Action item]
+2. [Action item]
+```
+
+### Autocompact Feature
+Claude Code automatically triggers at ~150k-155k tokens:
+1. Asks Claude to generate summary
+2. Starts new session with summary as context
+3. Continues seamlessly
+
+---
+
+## 🔌 MCP CONSCIOUS USAGE - NEW
+
+**IMPORTANT**: With `ENABLE_TOOL_SEARCH: true` configuration, MCPs use **on-demand/deferred tool loading**. Tools are NOT loaded into context until explicitly requested via `ToolSearch`. This dramatically reduces context pollution.
+
+### How ENABLE_TOOL_SEARCH Works
+- **Deferred Loading**: MCP tools are listed but NOT loaded into context
+- **On-Demand Access**: Use `ToolSearch` to load specific tools when needed
+- **Context Savings**: Only actively-used tools consume context window
+- **No Removal Needed**: You can have 20+ MCPs without context bloat
+
+### ToolSearch Usage Pattern
+```javascript
+// Search for tools by keyword
+ToolSearch({ query: "docker container", max_results: 5 })
+
+// Direct select if you know the exact tool
+ToolSearch({ query: "select:mcp__docker__docker_container_list" })
+
+// After ToolSearch returns tools, they become available for use
+// Example: mcp__docker__docker_container_list() is now callable
+```
+
+### When MCP Removal IS Still Needed
+| Scenario | Action |
+|----------|--------|
+| MCP server causing errors | Remove problematic MCP |
+| Unused MCP consuming memory | Consider removal |
+| Redundant MCPs | Keep one, remove others |
+| Session feels sluggish | Check active MCP count |
+
+### When MCP Removal IS NOT Needed
+| Scenario | Why |
+|----------|-----|
+| Many MCPs configured | ENABLE_TOOL_SEARCH prevents bloat |
+| Need many tools available | Load on-demand only |
+| Working normally | No action needed |
+
+### Current MCP Inventory (Safe to Keep All)
+| MCP Server | Tools | Purpose |
+|------------|-------|---------|
+| archon-tailscale | 28 | Task management, RAG search |
+| claude-flow | 80+ | Swarm coordination, neural |
+| github | 25 | PR management, code review |
+| ruv-swarm | 20+ | Distributed agents |
+| flow-nexus | 80+ | Cloud platform operations |
+| docker | 8 | Container management |
+| proxmox | 6 | VM/CT management |
+| cloudflare-dns | 60 | DNS, workers, R2 |
+
+### Key Insight
+> **With ENABLE_TOOL_SEARCH, the "3-4 MCPs max" rule is obsolete.** Focus on Task Management and Session Management instead - these still solve ~90% of context rot.
+
+---
+
+## 📋 PRD REQUIREMENTS - NEW
+
+**MANDATORY**: Before ANY coding task, create a PRD or specification.
+
+### Why PRD Matters
+- Reduces token waste on vague tasks
+- Enables atomic task decomposition
+- Provides clear completion criteria
+- Supports session continuity
+
+### PRD Workflow
+```
+Idea → /plan-product → /write-spec → /create-tasks → /implement-tasks
+```
+
+### Minimal PRD Template
+```markdown
+# [Feature Name] Requirements
+
+## Overview
+[1-2 sentence description]
+
+## Goals
+- [Primary goal]
+- [Secondary goal]
+
+## Non-Goals
+[What this is NOT - prevents scope creep]
+
+## Features
+### Feature 1: [Name]
+- Description: [What it does]
+- Acceptance Criteria:
+  - [ ] [Specific, testable criterion]
+  - [ ] [Another criterion]
+
+## Technical Approach
+[High-level architecture - keep brief]
+
+## Dependencies
+[Required tools/libraries/infrastructure]
+```
+
+### Atomic Task Decomposition
+
+**Rule**: Each task should be completable in ONE session with MINIMAL context.
+
+**Task Size Checklist**:
+- [ ] Completable in < 30 minutes?
+- [ ] Clear, testable completion criteria?
+- [ ] Requires < 5 files to modify?
+- [ ] Describable in < 100 characters?
+- [ ] Single responsibility?
+
+**Decomposition Example**:
+
+| Level | BAD (Too Broad) | GOOD (Atomic) |
+|-------|-----------------|---------------|
+| 5 | "Build auth system" | - |
+| 4 | "Implement login" | - |
+| 3 | - | "Create login form component" |
+| 2 | - | "Add password hashing to User model" |
+| 1 | - | "Write test for password validation" |
+
+**Pattern**:
+```
+Broad Task
+  → Feature
+    → Component
+      → Function
+        → Test case (atomic!)
+```
+
+---
+
 ## 📊 Performance Benefits
 
 ### Execution Performance
@@ -229,6 +451,11 @@ Message 4: Write "file.js"
 - ✅ Use modular design patterns
 - ✅ Update documentation with changes
 - ✅ Verify before claiming completion
+- ✅ **Reset sessions at ~100k tokens**
+- ✅ **Use ToolSearch to load MCP tools on-demand**
+- ✅ **Create PRD before coding**
+- ✅ **Break tasks into atomic units**
+- ✅ **Request summaries before session reset**
 
 ### DON'T ❌
 - ❌ Save files to root folder
@@ -239,6 +466,11 @@ Message 4: Write "file.js"
 - ❌ Create files without clear purpose
 - ❌ Mix multiple concerns in one file
 - ❌ Claim success without verification
+- ❌ **Let sessions exceed 150k tokens**
+- ❌ **Remove MCPs just because you have "too many"** (ENABLE_TOOL_SEARCH handles bloat)
+- ❌ **Start coding without PRD/spec**
+- ❌ **Create tasks too broad for one session**
+- ❌ **Use `/clear` expecting context reset (use Ctrl+C twice)**
 
 ---
 
@@ -379,6 +611,7 @@ def process_data(data):
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-10-28
+**Document Version**: 2.0.0
+**Last Updated**: 2026-02-18
 **Maintainer**: Claude Code (AGL Infrastructure Management)
+**Context Rot Mitigation**: Added based on Chroma Study research

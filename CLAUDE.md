@@ -1,6 +1,6 @@
 # Claude Code Configuration - AGL Infrastructure Management
 
-> **Last Updated**: 2025-10-28 | **Version**: 3.0.0
+> **Last Updated**: 2026-02-22 | **Version**: 3.0.1
 
 ## 🔖 CRITICAL: Always Read These Documents
 

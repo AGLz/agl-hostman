@@ -1,0 +1,24 @@
+{
+    "_comment": "Add this to your composer.json autoload section",
+
+    "autoload": {
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ],
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": [
+            "app/Helpers/MysqlCompatibility.php",
+            "app/Helpers/MoneyFormatShim.php",
+            "app/Helpers/StringFunctions.php"
+        ]
+    },
+
+    "_autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    }
+}

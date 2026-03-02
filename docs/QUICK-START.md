@@ -1,6 +1,6 @@
 # Quick Start Guide - AGL Infrastructure
 
-> **Last Updated**: 2025-10-28 | **Version**: 1.0.0
+> **Last Updated**: 2026-03-01 | **Version**: 1.3.0
 
 **Purpose**: Fast reference for common commands, connection patterns, and environment-specific operations.
 
@@ -16,8 +16,9 @@
 4. [Storage Access](#-storage-access)
 5. [Docker Operations](#-docker-operations)
 6. [Archon Quick Commands](#-archon-quick-commands)
-7. [Troubleshooting](#-troubleshooting)
-8. [Document Navigation](#-document-navigation)
+7. [Context Rot Quick Commands](#-context-rot-quick-commands---new)
+8. [Troubleshooting](#-troubleshooting)
+9. [Document Navigation](#-document-navigation)
 
 ---
 
@@ -290,6 +291,57 @@ ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compo
 
 ---
 
+## 🧠 Context Rot Quick Commands - NEW
+
+### What is Context Rot?
+Performance degrades as context window fills. Reset sessions at ~100k tokens.
+
+### Session Management
+
+```bash
+# Request summary before reset
+"Create a comprehensive summary of everything we discussed"
+
+# Save summary
+# → /docs/session-summaries/YYYY-MM-DD.md
+
+# Full session reset (NOT just /clear)
+# Ctrl+C twice to fully exit
+```
+
+### MCP Management (Updated for ENABLE_TOOL_SEARCH)
+
+With `ENABLE_TOOL_SEARCH: true`, MCP tools load on-demand - no need to limit MCPs!
+
+```javascript
+// ToolSearch pattern - load tools when needed
+ToolSearch({ query: "docker container", max_results: 5 })
+ToolSearch({ query: "select:mcp__docker__docker_container_list" })
+```
+
+```bash
+# List configured MCPs
+claude mcp list
+
+# Remove MCP only if problematic
+claude mcp remove <name>
+```
+
+### Quick Reference Card
+See: `@docs/CONTEXT_ROT_QUICK_REF.md`
+
+### The 4 Weapons (Updated)
+| Weapon | Rule |
+|--------|------|
+| Task Management | Atomic tasks only (<30 min) |
+| Session Management | Reset at ~100k tokens |
+| Scaffolding | Use subagents (clean context) |
+| MCP Consciousness | Use ToolSearch for on-demand loading |
+
+**Skill**: `context-rot-mitigation` | **Full Docs**: `@docs/RULES.md`
+
+---
+
 ## 🔧 Troubleshooting
 
 ### Common Issues
@@ -301,6 +353,7 @@ ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compo
 | Docker permission | Permission denied | Add user to docker group: `usermod -aG docker $USER` |
 | WireGuard no handshake | `wg show` timestamp=0 | Restart: `wg-quick down wg0 && wg-quick up wg0` |
 | Archon MCP 400 error | Session ID invalid | Restart archon-mcp container |
+| Statusline mostra `5h ?` / `7d ?` | OAuth usage não exibido | Bug corrigido em 2026-03-01: `cygpath` pipe retornava vazio no Linux; fix em `/root/.claude/statusline-command.sh` |
 
 ### Diagnostic Commands
 
@@ -355,6 +408,7 @@ sudo umount -f /mnt/pve/fgsrv6-wg && sudo mount -a
 | Archon integration | **docs/ARCHON.md** | MCP tools, API reference, development guidelines |
 | Workflow methodologies | **docs/WORKFLOWS.md** | SPARC, Agent OS, development processes |
 | Coding standards | **docs/RULES.md** | Execution patterns, best practices, quality standards |
+| Context rot prevention | **docs/CONTEXT_ROT_QUICK_REF.md** | Session management, MCP limits, atomic tasks |
 | Quick commands | **docs/QUICK-START.md** | This file - fast reference |
 | Main config | **CLAUDE.md** | Core rules, project overview, navigation hub |
 
@@ -399,6 +453,9 @@ CT183_WG="10.6.0.21"     # Archon
 AGLSRV1_LAN="192.168.0.245"  # AGLSRV1 host
 CT183_LAN="192.168.0.183"    # Archon
 CT202_LAN="192.168.0.202"    # n8n
+
+# Network devices
+SWT_AGLSRV1="192.168.0.242"   # ZX-SWTG124AS switch
 ```
 
 ### Environment Quick Card
@@ -417,6 +474,7 @@ check_network() {
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-10-28
+**Document Version**: 1.2.0
+**Last Updated**: 2026-02-22
 **Maintainer**: Claude Code (AGL Infrastructure Management)
+**New**: Added ZX-SWTG124AS network switch documentation
