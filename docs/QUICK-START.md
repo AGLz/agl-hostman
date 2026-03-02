@@ -1,6 +1,6 @@
 # Quick Start Guide - AGL Infrastructure
 
-> **Last Updated**: 2025-11-08 | **Version**: 1.1.0
+> **Last Updated**: 2026-03-01 | **Version**: 1.3.0
 
 **Purpose**: Fast reference for common commands, connection patterns, and environment-specific operations.
 
@@ -16,8 +16,9 @@
 4. [Storage Access](#-storage-access)
 5. [Docker Operations](#-docker-operations)
 6. [Archon Quick Commands](#-archon-quick-commands)
-7. [Troubleshooting](#-troubleshooting)
-8. [Document Navigation](#-document-navigation)
+7. [Context Rot Quick Commands](#-context-rot-quick-commands---new)
+8. [Troubleshooting](#-troubleshooting)
+9. [Document Navigation](#-document-navigation)
 
 ---
 
@@ -45,7 +46,6 @@ fi
 | WSL2 (AGLHQ11) | ❌ | ❌ | ✅ | ❌ | ❌ |
 | CT179 (agldv03) | ✅ | ✅ | ✅ | ✅ | Via host |
 | CT108 (agldv06) | Limited | ❌ | ✅ | ⚠️ | Via host |
-| AGLSRV6D (man6d) | ✅ | ⏳ Pending | ✅ | ⏳ Pending | ⏳ After Proxmox |
 
 ---
 
@@ -58,7 +58,6 @@ fi
 ssh root@100.94.221.87   # CT179 (primary dev)
 ssh root@100.107.113.33  # AGLSRV1 host
 ssh root@100.98.108.66   # AGLSRV6 host
-ssh root@100.76.201.83   # AGLSRV6D (man6d) - Debian 13
 ssh root@100.71.229.12   # CT108 (agldv06)
 
 # Check infrastructure
@@ -66,24 +65,22 @@ ssh root@100.107.113.33 'pct list'  # AGLSRV1 containers
 ssh root@100.98.108.66 'pct list'   # AGLSRV6 containers
 ```
 
-### From CT179 (Full Stack - Prefer Tailscale)
+### From CT179 (Full Stack - Prefer WireGuard)
 
 ```bash
-# Tailscale (PRIMARY - recommended for all hosts)
-ssh root@100.98.108.66  # AGLSRV6 host
-ssh root@100.83.51.9    # FGSRV6 host
-ssh root@100.71.229.12  # CT108
-ssh root@100.65.189.83  # CT111 (aluzdivina)
+# WireGuard mesh (fastest)
+ssh root@10.6.0.12   # AGLSRV6 via WireGuard
+ssh root@10.6.0.5    # FGSRV6 via WireGuard
+ssh root@10.6.0.20   # CT111 (aluzdivina) via WireGuard
 
-# Local LAN (fastest for local resources)
+# Local LAN
 ssh root@192.168.0.245  # AGLSRV1 host
 ssh root@192.168.0.202  # n8n container
 ssh root@192.168.0.200  # ollama-gpu container
 
-# WireGuard (legacy - being phased out)
-ssh root@10.6.0.12   # AGLSRV6 via WireGuard
-ssh root@10.6.0.5    # FGSRV6 via WireGuard
-ssh root@10.6.0.20   # CT111 (aluzdivina) via WireGuard
+# Tailscale (fallback)
+ssh root@100.98.108.66  # AGLSRV6 host
+ssh root@100.71.229.12  # CT108
 
 # Proxmox commands (via host)
 ssh root@192.168.0.245 'pct list'
@@ -94,15 +91,13 @@ ssh root@192.168.0.245 'pct exec 183 -- docker ps'
 
 | Target | From WSL2 | From CT179 | From CT108 |
 |--------|-----------|------------|------------|
-| AGLSRV1 Host | 100.107.113.33 (TS) 🔧 | 100.107.113.33 (TS) 🔧 or 192.168.0.245 (LAN) | 100.107.113.33 (TS) 🔧 |
-| AGLSRV6 Host | 100.98.108.66 (TS) 🔧 | 100.98.108.66 (TS) 🔧 | 100.98.108.66 (TS) 🔧 |
-| AGLSRV6D Host | 100.76.201.83 (TS) 🔧 | 100.76.201.83 (TS) 🔧 | 100.76.201.83 (TS) 🔧 |
-| FGSRV6 Host | 100.83.51.9 (TS) 🔧 | 100.83.51.9 (TS) 🔧 | 100.83.51.9 (TS) 🔧 |
-| CT179 Dev | 100.94.221.87 (TS) 🔧 | 100.94.221.87 (TS) 🔧 | 100.94.221.87 (TS) 🔧 |
-| CT183 Archon | Via host | 100.80.30.59 (TS) 🔧 or 192.168.0.183 (LAN) | Via host |
+| AGLSRV1 Host | 100.107.113.33 (TS) | 192.168.0.245 (LAN) or 10.6.0.10 (WG) | 100.107.113.33 (TS) |
+| AGLSRV6 Host | 100.98.108.66 (TS) | 10.6.0.12 (WG) ⚡ | 10.6.0.12 or 100.98.108.66 |
+| FGSRV6 Host | 100.83.51.9 (TS) | 10.6.0.5 (WG) ⚡ | 100.83.51.9 (TS) |
+| CT179 Dev | 100.94.221.87 (TS) | 192.168.0.179 (LAN) | 100.94.221.87 (TS) |
+| CT183 Archon | Via host | 192.168.0.183 (LAN) or 10.6.0.21 (WG) | Via host |
 
-🔧 = **PRIMARY (Tailscale)** - Use for all host access
-⚡ = LAN (fastest for same-location hosts) |
+⚡ = Fastest option (WireGuard mesh)
 
 ---
 
@@ -118,12 +113,9 @@ ssh root@100.98.108.66 'pct list'   # AGLSRV6
 
 **From CT179**:
 ```bash
-# Tailscale (PRIMARY - recommended)
-ssh root@100.107.113.33 'pct list'  # AGLSRV1
-ssh root@100.98.108.66 'pct list'   # AGLSRV6
-
-# Local LAN (fastest for same location)
+# Direct LAN (fastest)
 ssh root@192.168.0.245 'pct list'  # AGLSRV1
+ssh root@10.6.0.12 'pct list'      # AGLSRV6 via WireGuard
 ```
 
 ### Execute Commands in Containers
@@ -140,18 +132,14 @@ ssh root@192.168.0.183  # CT183 (Archon)
 ### Check Network Connectivity
 
 ```bash
-# Test Tailscale (PRIMARY)
-ping 100.83.51.9   # FGSRV6 hub
-ping 100.98.108.66  # AGLSRV6
-
-# Test WireGuard (legacy)
+# Test WireGuard mesh
 ping 10.6.0.5   # FGSRV6 hub
 ping 10.6.0.12  # AGLSRV6
 
-# Check Tailscale status
-tailscale status
+# Test Tailscale
+ping 100.98.108.66  # AGLSRV6
 
-# Check WireGuard status (legacy)
+# Check WireGuard status
 wg show
 ```
 
@@ -262,14 +250,14 @@ ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compo
 ### MCP Connection Setup
 
 ```bash
-# Tailscale (PRIMARY - recommended for all access)
-claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp
+# LAN (development)
+claude mcp add --transport http archon http://192.168.0.183:8052/mcp
 
-# WireGuard (legacy - being phased out)
+# WireGuard (primary external)
 claude mcp add --transport http archon-wg http://10.6.0.21:8051/mcp
 
-# LAN (development - local only)
-claude mcp add --transport http archon http://192.168.0.183:8052/mcp
+# Tailscale (backup external)
+claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp
 
 # Verify connections
 claude mcp list
@@ -278,11 +266,11 @@ claude mcp list
 ### Archon Health Checks
 
 ```bash
-# Test MCP endpoints (PRIMARY = Tailscale)
-curl http://100.80.30.59:8051/mcp   # Tailscale (PRIMARY)
-curl http://10.6.0.21:8051/mcp         # WireGuard (legacy)
-curl http://192.168.0.183:8051/mcp     # LAN (development)
-curl http://192.168.0.183:8052/mcp     # nginx LAN
+# Test MCP endpoints
+curl http://192.168.0.183:8051/mcp  # Direct Docker
+curl http://192.168.0.183:8052/mcp  # nginx LAN
+curl http://10.6.0.21:8051/mcp      # WireGuard
+curl http://100.80.30.59:8051/mcp   # Tailscale
 
 # Test with Basic Auth (public HTTPS)
 curl -u admin:ArchonPass2025 https://archon.aglz.io
@@ -303,6 +291,57 @@ ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compo
 
 ---
 
+## 🧠 Context Rot Quick Commands - NEW
+
+### What is Context Rot?
+Performance degrades as context window fills. Reset sessions at ~100k tokens.
+
+### Session Management
+
+```bash
+# Request summary before reset
+"Create a comprehensive summary of everything we discussed"
+
+# Save summary
+# → /docs/session-summaries/YYYY-MM-DD.md
+
+# Full session reset (NOT just /clear)
+# Ctrl+C twice to fully exit
+```
+
+### MCP Management (Updated for ENABLE_TOOL_SEARCH)
+
+With `ENABLE_TOOL_SEARCH: true`, MCP tools load on-demand - no need to limit MCPs!
+
+```javascript
+// ToolSearch pattern - load tools when needed
+ToolSearch({ query: "docker container", max_results: 5 })
+ToolSearch({ query: "select:mcp__docker__docker_container_list" })
+```
+
+```bash
+# List configured MCPs
+claude mcp list
+
+# Remove MCP only if problematic
+claude mcp remove <name>
+```
+
+### Quick Reference Card
+See: `@docs/CONTEXT_ROT_QUICK_REF.md`
+
+### The 4 Weapons (Updated)
+| Weapon | Rule |
+|--------|------|
+| Task Management | Atomic tasks only (<30 min) |
+| Session Management | Reset at ~100k tokens |
+| Scaffolding | Use subagents (clean context) |
+| MCP Consciousness | Use ToolSearch for on-demand loading |
+
+**Skill**: `context-rot-mitigation` | **Full Docs**: `@docs/RULES.md`
+
+---
+
 ## 🔧 Troubleshooting
 
 ### Common Issues
@@ -314,6 +353,7 @@ ssh root@192.168.0.245 'pct exec 183 -- bash -c "cd /root/Archon && docker compo
 | Docker permission | Permission denied | Add user to docker group: `usermod -aG docker $USER` |
 | WireGuard no handshake | `wg show` timestamp=0 | Restart: `wg-quick down wg0 && wg-quick up wg0` |
 | Archon MCP 400 error | Session ID invalid | Restart archon-mcp container |
+| Statusline mostra `5h ?` / `7d ?` | OAuth usage não exibido | Bug corrigido em 2026-03-01: `cygpath` pipe retornava vazio no Linux; fix em `/root/.claude/statusline-command.sh` |
 
 ### Diagnostic Commands
 
@@ -343,11 +383,11 @@ ip route show
 ### Quick Reset Commands
 
 ```bash
-# Restart Tailscale (PRIMARY)
-sudo systemctl restart tailscaled
-
-# Restart WireGuard (legacy)
+# Restart WireGuard
 sudo wg-quick down wg0 && sudo wg-quick up wg0
+
+# Restart Tailscale
+sudo systemctl restart tailscaled
 
 # Restart Docker service
 sudo systemctl restart docker
@@ -368,6 +408,7 @@ sudo umount -f /mnt/pve/fgsrv6-wg && sudo mount -a
 | Archon integration | **docs/ARCHON.md** | MCP tools, API reference, development guidelines |
 | Workflow methodologies | **docs/WORKFLOWS.md** | SPARC, Agent OS, development processes |
 | Coding standards | **docs/RULES.md** | Execution patterns, best practices, quality standards |
+| Context rot prevention | **docs/CONTEXT_ROT_QUICK_REF.md** | Session management, MCP limits, atomic tasks |
 | Quick commands | **docs/QUICK-START.md** | This file - fast reference |
 | Main config | **CLAUDE.md** | Core rules, project overview, navigation hub |
 
@@ -396,25 +437,25 @@ Always consult these documents together for infrastructure tasks:
 ### SSH Aliases Quick Card
 
 ```bash
-# Core hosts (Tailscale - PRIMARY access method)
+# Core hosts (from any environment via Tailscale)
 AGLSRV1_HOST="100.107.113.33"  # Main Proxmox host
 AGLSRV6_HOST="100.98.108.66"   # Secondary Proxmox host
 CT179_DEV="100.94.221.87"      # Primary development
 CT108_DEV="100.71.229.12"      # AGLSRV6 development
-FGSRV6_HOST="100.83.51.9"      # FGSRV6 hub
-CT111_HOST="100.65.189.83"     # CT111 storage
-CT183_HOST="100.80.30.59"      # Archon
 
-# WireGuard mesh (legacy - from CT179 only)
-AGLSRV6_WG="10.6.0.12"   # AGLSRV6 host (legacy)
-FGSRV6_WG="10.6.0.5"     # FGSRV6 hub (legacy)
-CT111_WG="10.6.0.20"     # CT111 storage (legacy)
-CT183_WG="10.6.0.21"     # Archon (legacy)
+# WireGuard mesh (from CT179 only)
+AGLSRV6_WG="10.6.0.12"   # AGLSRV6 host (fastest)
+FGSRV6_WG="10.6.0.5"     # FGSRV6 hub
+CT111_WG="10.6.0.20"     # CT111 storage
+CT183_WG="10.6.0.21"     # Archon
 
-# Local LAN (from CT179 only - fastest for local resources)
+# Local LAN (from CT179 only)
 AGLSRV1_LAN="192.168.0.245"  # AGLSRV1 host
 CT183_LAN="192.168.0.183"    # Archon
 CT202_LAN="192.168.0.202"    # n8n
+
+# Network devices
+SWT_AGLSRV1="192.168.0.242"   # ZX-SWTG124AS switch
 ```
 
 ### Environment Quick Card
@@ -423,16 +464,17 @@ CT202_LAN="192.168.0.202"    # n8n
 # Current environment
 CURRENT_ENV=$(if [[ -f /proc/version ]] && grep -q microsoft /proc/version; then echo "WSL2"; elif [[ -f /.dockerenv ]]; then echo "Container"; else echo "Unknown"; fi)
 
-# Network availability check (Tailscale priority)
+# Network availability check
 check_network() {
-    ping -c 1 100.83.51.9 &>/dev/null && echo "Tailscale: ✅" || echo "Tailscale: ❌"
     ping -c 1 192.168.0.1 &>/dev/null && echo "LAN: ✅" || echo "LAN: ❌"
     ping -c 1 10.6.0.5 &>/dev/null && echo "WireGuard: ✅" || echo "WireGuard: ❌"
+    ping -c 1 100.98.108.66 &>/dev/null && echo "Tailscale: ✅" || echo "Tailscale: ❌"
 }
 ```
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-10-28
+**Document Version**: 1.2.0
+**Last Updated**: 2026-02-22
 **Maintainer**: Claude Code (AGL Infrastructure Management)
+**New**: Added ZX-SWTG124AS network switch documentation

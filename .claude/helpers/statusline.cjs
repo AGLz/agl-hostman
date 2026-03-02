@@ -27,10 +27,6 @@ const CONFIG = {
   topology: 'hierarchical-mesh',
 };
 
-// Cross-platform helpers
-const isWin32 = process.platform === 'win32';
-const nullDev = isWin32 ? 'NUL' : '/dev/null';
-
 // ANSI colors
 const c = {
   reset: '\x1b[0m',
@@ -58,11 +54,11 @@ function getUserInfo() {
   let modelName = '🤖 Claude Code';
 
   try {
-    name = execSync('git config user.name 2>' + nullDev, { encoding: 'utf-8' }).trim() || 'user';
-  } catch (e) { /* ignore */ }
-  try {
-    gitBranch = execSync('git branch --show-current 2>' + nullDev, { encoding: 'utf-8' }).trim();
-  } catch (e) { /* ignore */ }
+    name = execSync('git config user.name 2>/dev/null || echo "user"', { encoding: 'utf-8' }).trim();
+    gitBranch = execSync('git branch --show-current 2>/dev/null || echo ""', { encoding: 'utf-8' }).trim();
+  } catch (e) {
+    // Ignore errors
+  }
 
   // Auto-detect model from Claude Code's config
   try {
@@ -76,7 +72,7 @@ function getUserInfo() {
       if (claudeConfig.projects) {
         // Try exact match first, then check if cwd starts with any project path
         for (const [projectPath, projectConfig] of Object.entries(claudeConfig.projects)) {
-          if (cwd === projectPath || cwd.startsWith(projectPath + '/') || cwd.startsWith(projectPath + '\\')) {
+          if (cwd === projectPath || cwd.startsWith(projectPath + '/')) {
             lastModelUsage = projectConfig.lastModelUsage;
             break;
           }
@@ -135,51 +131,107 @@ function getUserInfo() {
   return { name, gitBranch, modelName };
 }
 
-// Get learning stats from memory database
+// Get learning stats from intelligence loop data (ADR-050)
 function getLearningStats() {
-  const memoryPaths = [
-    path.join(process.cwd(), '.swarm', 'memory.db'),
-    path.join(process.cwd(), '.claude-flow', 'memory.db'),
-    path.join(process.cwd(), '.claude', 'memory.db'),
-    path.join(process.cwd(), 'data', 'memory.db'),
-    path.join(process.cwd(), 'memory.db'),
-    path.join(process.cwd(), '.agentdb', 'memory.db'),
-  ];
-
   let patterns = 0;
   let sessions = 0;
   let trajectories = 0;
+  let edges = 0;
+  let confidenceMean = 0;
+  let accessedCount = 0;
+  let trend = 'STABLE';
 
-  // Try to read from sqlite database
-  for (const dbPath of memoryPaths) {
-    if (fs.existsSync(dbPath)) {
+  // PRIMARY: Read from intelligence loop data files
+  const dataDir = path.join(process.cwd(), '.claude-flow', 'data');
+
+  // 1. graph-state.json — authoritative node/edge counts
+  const graphPath = path.join(dataDir, 'graph-state.json');
+  if (fs.existsSync(graphPath)) {
+    try {
+      const graph = JSON.parse(fs.readFileSync(graphPath, 'utf-8'));
+      patterns = graph.nodes ? Object.keys(graph.nodes).length : 0;
+      edges = Array.isArray(graph.edges) ? graph.edges.length : 0;
+    } catch (e) { /* ignore */ }
+  }
+
+  // 2. ranked-context.json — confidence and access data
+  const rankedPath = path.join(dataDir, 'ranked-context.json');
+  if (fs.existsSync(rankedPath)) {
+    try {
+      const ranked = JSON.parse(fs.readFileSync(rankedPath, 'utf-8'));
+      if (ranked.entries && ranked.entries.length > 0) {
+        patterns = Math.max(patterns, ranked.entries.length);
+        let confSum = 0;
+        let accCount = 0;
+        for (let i = 0; i < ranked.entries.length; i++) {
+          confSum += (ranked.entries[i].confidence || 0);
+          if ((ranked.entries[i].accessCount || 0) > 0) accCount++;
+        }
+        confidenceMean = confSum / ranked.entries.length;
+        accessedCount = accCount;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  // 3. intelligence-snapshot.json — trend history
+  const snapshotPath = path.join(dataDir, 'intelligence-snapshot.json');
+  if (fs.existsSync(snapshotPath)) {
+    try {
+      const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'));
+      if (snapshot.history && snapshot.history.length >= 2) {
+        const first = snapshot.history[0];
+        const last = snapshot.history[snapshot.history.length - 1];
+        const confDrift = (last.confidenceMean || 0) - (first.confidenceMean || 0);
+        trend = confDrift > 0.01 ? 'IMPROVING' : confDrift < -0.01 ? 'DECLINING' : 'STABLE';
+        sessions = Math.max(sessions, snapshot.history.length);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  // 4. auto-memory-store.json — fallback entry count
+  if (patterns === 0) {
+    const autoMemPath = path.join(dataDir, 'auto-memory-store.json');
+    if (fs.existsSync(autoMemPath)) {
       try {
-        // Count entries in memory file (rough estimate from file size)
-        const stats = fs.statSync(dbPath);
-        const sizeKB = stats.size / 1024;
-        // Estimate: ~2KB per pattern on average
-        patterns = Math.floor(sizeKB / 2);
-        sessions = Math.max(1, Math.floor(patterns / 10));
-        trajectories = Math.floor(patterns / 5);
-        break;
-      } catch (e) {
-        // Ignore
+        const data = JSON.parse(fs.readFileSync(autoMemPath, 'utf-8'));
+        patterns = Array.isArray(data) ? data.length : (data.entries ? data.entries.length : 0);
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  // FALLBACK: Legacy memory.db file-size estimation
+  if (patterns === 0) {
+    const memoryPaths = [
+      path.join(process.cwd(), '.swarm', 'memory.db'),
+      path.join(process.cwd(), '.claude-flow', 'memory.db'),
+      path.join(process.cwd(), '.claude', 'memory.db'),
+      path.join(process.cwd(), 'data', 'memory.db'),
+      path.join(process.cwd(), 'memory.db'),
+      path.join(process.cwd(), '.agentdb', 'memory.db'),
+    ];
+    for (let j = 0; j < memoryPaths.length; j++) {
+      if (fs.existsSync(memoryPaths[j])) {
+        try {
+          const dbStats = fs.statSync(memoryPaths[j]);
+          patterns = Math.floor(dbStats.size / 1024 / 2);
+          break;
+        } catch (e) { /* ignore */ }
       }
     }
   }
 
-  // Also check for session files
+  // Session count from session files
   const sessionsPath = path.join(process.cwd(), '.claude', 'sessions');
   if (fs.existsSync(sessionsPath)) {
     try {
       const sessionFiles = fs.readdirSync(sessionsPath).filter(f => f.endsWith('.json'));
       sessions = Math.max(sessions, sessionFiles.length);
-    } catch (e) {
-      // Ignore
-    }
+    } catch (e) { /* ignore */ }
   }
 
-  return { patterns, sessions, trajectories };
+  trajectories = Math.floor(patterns / 5);
+
+  return { patterns, sessions, trajectories, edges, confidenceMean, accessedCount, trend };
 }
 
 // Get V3 progress from REAL metrics files
@@ -405,17 +457,31 @@ function getSystemMetrics() {
   // Also get AgentDB stats for fallback intelligence calculation
   const agentdbStats = getAgentDBStats();
 
-  // Intelligence % based on learned patterns, vectors, or project maturity
-  // Calculate all sources and take the maximum
+  // Intelligence % — priority chain (ADR-050):
+  // 1. Intelligence loop data (confidenceMean + accessRatio + density)
+  // 2. learning.json file metric
+  // 3. Pattern count / vector count fallback
+  // 4. Project maturity fallback (below)
   let intelligencePct = 0;
 
-  if (intelligenceFromFile !== null) {
+  // Priority 1: Intelligence loop real data
+  if (learning.confidenceMean > 0 || (learning.patterns > 0 && learning.accessedCount > 0)) {
+    const confScore = Math.min(100, Math.floor(learning.confidenceMean * 100));
+    const accessRatio = learning.patterns > 0 ? (learning.accessedCount / learning.patterns) : 0;
+    const accessScore = Math.min(100, Math.floor(accessRatio * 100));
+    const densityScore = Math.min(100, Math.floor(learning.patterns / 5));
+    intelligencePct = Math.floor(confScore * 0.4 + accessScore * 0.3 + densityScore * 0.3);
+  }
+
+  // Priority 2: learning.json file metric
+  if (intelligencePct === 0 && intelligenceFromFile !== null) {
     intelligencePct = intelligenceFromFile;
-  } else {
-    // Calculate from multiple sources and take the best
+  }
+
+  // Priority 3: Pattern/vector count fallback
+  if (intelligencePct === 0) {
     const fromPatterns = learning.patterns > 0 ? Math.min(100, Math.floor(learning.patterns / 10)) : 0;
     const fromVectors = agentdbStats.vectorCount > 0 ? Math.min(100, Math.floor(agentdbStats.vectorCount / 100)) : 0;
-
     intelligencePct = Math.max(fromPatterns, fromVectors);
   }
 
@@ -426,7 +492,7 @@ function getSystemMetrics() {
 
     // Check git commit count (proxy for project development)
     try {
-      const commitCount = parseInt(execSync('git rev-list --count HEAD 2>' + nullDev, { encoding: 'utf-8' }).trim()) || 0;
+      const commitCount = parseInt(execSync('git rev-list --count HEAD 2>/dev/null || echo "0"', { encoding: 'utf-8' }).trim());
       maturityScore += Math.min(30, Math.floor(commitCount / 10)); // Max 30% from commits
     } catch (e) { /* ignore */ }
 
@@ -502,16 +568,11 @@ function getSystemMetrics() {
     }
   }
 
-  // Fallback to process detection (cross-platform)
-  if (subAgents === 0) {
+  // Fallback to process detection on Unix only
+  if (subAgents === 0 && !isWindows) {
     try {
-      if (isWin32) {
-        const ps = execSync('tasklist /FI "IMAGENAME eq node.exe" /NH 2>NUL', { encoding: 'utf-8' });
-        subAgents = Math.max(0, (ps.match(/node\.exe/gi) || []).length - 1);
-      } else {
-        const agents = execSync('ps aux 2>/dev/null | grep -c "claude-flow.*agent" || echo "0"', { encoding: 'utf-8' });
-        subAgents = Math.max(0, parseInt(agents.trim()) - 1);
-      }
+      const agents = execSync('ps aux 2>/dev/null | grep -c "claude-flow.*agent" || echo "0"', { encoding: 'utf-8' });
+      subAgents = Math.max(0, parseInt(agents.trim()) - 1);
     } catch (e) {
       // Ignore
     }

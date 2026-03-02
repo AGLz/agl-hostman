@@ -1,487 +1,387 @@
-# Claude Code Configuration - SPARC Development Environment
+# Claude Code Configuration - AGL Infrastructure Management
 
-## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+> **Last Updated**: 2026-02-22 | **Version**: 3.0.1
 
-**ABSOLUTE RULES**:
-1. ALL operations MUST be concurrent/parallel in a single message
-2. **NEVER save working files, text/mds and tests to the root folder**
-3. ALWAYS organize files in appropriate subdirectories
-4. **USE CLAUDE CODE'S TASK TOOL** for spawning agents concurrently, not just MCP
+## 🔖 CRITICAL: Always Read These Documents
 
-### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+**Before any infrastructure or Archon-related task, ALWAYS read:**
+- **`docs/INFRA.md`** - Complete infrastructure map, network topology, connection matrix
+- **`docs/ARCHON.md`** - Archon AI Command Center integration guide and MCP tools
+- **`docs/WORKFLOWS.md`** - SPARC methodology, Agent OS integration, development workflows
+- **`docs/RULES.md`** - Coding standards, execution patterns, best practices
+- **`docs/QUICK-START.md`** - Fast reference for commands, connections, troubleshooting
 
-**MANDATORY PATTERNS:**
-- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
-- **Task tool (Claude Code)**: ALWAYS spawn ALL agents in ONE message with full instructions
-- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
-- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
-- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
-
-### 🎯 CRITICAL: Claude Code Task Tool for Agent Execution
-
-**Claude Code's Task tool is the PRIMARY way to spawn agents:**
-```javascript
-// ✅ CORRECT: Use Claude Code's Task tool for parallel agent execution
-[Single Message]:
-  Task("Research agent", "Analyze requirements and patterns...", "researcher")
-  Task("Coder agent", "Implement core features...", "coder")
-  Task("Tester agent", "Create comprehensive tests...", "tester")
-  Task("Reviewer agent", "Review code quality...", "reviewer")
-  Task("Architect agent", "Design system architecture...", "system-architect")
-```
-
-**MCP tools are ONLY for coordination setup:**
-- `mcp__claude-flow__swarm_init` - Initialize coordination topology
-- `mcp__claude-flow__agent_spawn` - Define agent types for coordination
-- `mcp__claude-flow__task_orchestrate` - Orchestrate high-level workflows
-
-### 📁 File Organization Rules
-
-**NEVER save to root folder. Use these directories:**
-- `/src` - Source code files
-- `/tests` - Test files
-- `/docs` - Documentation and markdown files
-- `/config` - Configuration files
-- `/scripts` - Utility scripts
-- `/examples` - Example code
-
-
-## 🧠 MANDATORY MEMORY COORDINATION PROTOCOL
-
-### 🚨 CRITICAL: Every Agent MUST Write AND Read Memory
-
-**EVERY spawned agent MUST follow this exact pattern:**
-
-```javascript
-// 1️⃣ IMMEDIATELY when agent starts - WRITE initial status
-mcp__claude-flow__memory_usage {
-  action: "store",
-  key: "swarm/[agent-name]/status",
-  namespace: "coordination",
-  value: JSON.stringify({
-    agent: "[agent-name]",
-    status: "starting",
-    timestamp: Date.now(),
-    tasks: ["list", "of", "tasks"],
-    progress: 0
-  })
-}
-
-// 2️⃣ AFTER EACH MAJOR STEP - WRITE progress
-mcp__claude-flow__memory_usage {
-  action: "store",
-  key: "swarm/[agent-name]/progress",
-  namespace: "coordination",
-  value: JSON.stringify({
-    completed: ["task1", "task2"],
-    current: "working on task3",
-    progress: 35,
-    files_created: ["file1.js"],
-    interfaces: { "API": "definition" },
-    dependencies_needed: []
-  })
-}
-
-// 3️⃣ SHARE ARTIFACTS - WRITE for others
-mcp__claude-flow__memory_usage {
-  action: "store",
-  key: "swarm/shared/[component]",
-  namespace: "coordination",
-  value: JSON.stringify({
-    type: "interface",
-    definition: "actual code here",
-    created_by: "[agent-name]"
-  })
-}
-
-// 4️⃣ CHECK DEPENDENCIES - READ then WAIT
-const dep = mcp__claude-flow__memory_usage {
-  action: "retrieve",
-  key: "swarm/shared/[component]",
-  namespace: "coordination"
-}
-if (!dep.found) {
-  // Write waiting status
-  mcp__claude-flow__memory_usage {
-    action: "store",
-    key: "swarm/[agent-name]/waiting",
-    namespace: "coordination",
-    value: JSON.stringify({
-      waiting_for: "[component]",
-      from: "[other-agent]"
-    })
-  }
-}
-
-// 5️⃣ SIGNAL COMPLETION
-mcp__claude-flow__memory_usage {
-  action: "store",
-  key: "swarm/[agent-name]/complete",
-  namespace: "coordination",
-  value: JSON.stringify({
-    status: "complete",
-    deliverables: ["list"],
-    integration_points: ["how to use"]
-  })
-}
-```
-
-### 📊 MEMORY KEY STRUCTURE
-- Use namespace: "coordination" ALWAYS
-- Keys: swarm/[agent]/status|progress|waiting|complete
-- Shared: swarm/shared/[component]
-
-### ❌ COMMON MISTAKES
-1. Only reading, never writing
-2. Wrong namespace
-3. No progress updates
-4. Missing shared artifacts
-
-
-## Project Overview
-
-This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
-
-## SPARC Commands
-
-### Core Commands
-- `npx claude-flow sparc modes` - List available modes
-- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
-- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
-- `npx claude-flow sparc info <mode>` - Get mode details
-
-### Batchtools Commands
-- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
-- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
-- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
-
-### Build Commands
-- `npm run build` - Build project
-- `npm run test` - Run tests
-- `npm run lint` - Linting
-- `npm run typecheck` - Type checking
-
-## SPARC Workflow Phases
-
-1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
-2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
-3. **Architecture** - System design (`sparc run architect`)
-4. **Refinement** - TDD implementation (`sparc tdd`)
-5. **Completion** - Integration (`sparc run integration`)
-
-## Skills Management
-
-Skills are specialized instruction sets that guide Claude Code in adhering to specific coding standards and best practices. Skills are stored in `.claude/skills/*/SKILL.md` and provide domain-specific guidance.
-
-### Skill Management Commands
-
-```bash
-# List all available skills
-python scripts/skills/list_skills.py
-python scripts/skills/list_skills.py --format json
-python scripts/skills/list_skills.py --category "Backend Development"
-
-# Search skills by keyword
-python scripts/skills/search_skills.py "API"
-python scripts/skills/search_skills.py "testing" --fields name,description
-
-# Validate skill structure
-python scripts/skills/validate_skill.py backend-api
-python scripts/skills/validate_skill.py --all
-
-# Create new skill from template
-python scripts/skills/init_skill.py "API Design" --category backend
-python scripts/skills/init_skill.py "React Hooks" --description "Best practices for React hooks" --tags react,hooks
-```
-
-### Available Skill Categories
-
-- **Backend Development**: API design, migrations, models, queries
-- **Frontend Development**: Components, CSS, accessibility, responsive design
-- **GitHub & Repository**: Code review, multi-repo, project management, releases
-- **Global Standards**: Coding style, conventions, error handling, validation
-- **Swarm & Coordination**: Hive Mind, hooks, pair programming, orchestration
-- **Claude Flow V3**: CLI modernization, core implementation, DDD architecture
-- **AI & Learning**: AgentDB, ReasoningBank, Flow Nexus, neural networks
-- **Testing & Quality**: Test writing, verification
-- **DevOps & Infrastructure**: CI/CD, monitoring, deployment
-
-### See Also
-
-- **SKILLS.md**: Complete skills registry with all available skills
-- **scripts/skills/**: Skill management utilities
-
-## Code Style & Best Practices
-
-- **Modular Design**: Files under 500 lines
-- **Environment Safety**: Never hardcode secrets
-- **Test-First**: Write tests before implementation
-- **Clean Architecture**: Separate concerns
-- **Documentation**: Keep updated
-
-## 🚀 Available Agents (54 Total)
-
-### Core Development
-`coder`, `reviewer`, `tester`, `planner`, `researcher`
-
-### Swarm Coordination
-`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
-
-### Consensus & Distributed
-`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
-
-### Performance & Optimization
-`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
-
-### GitHub & Repository
-`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
-
-### SPARC Methodology
-`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
-
-### Specialized Development
-`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
-
-### Testing & Validation
-`tdd-london-swarm`, `production-validator`
-
-### Migration & Planning
-`migration-planner`, `swarm-init`
-
-## 🎯 Claude Code vs MCP Tools
-
-### Claude Code Handles ALL EXECUTION:
-- **Task tool**: Spawn and run agents concurrently for actual work
-- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
-- Code generation and programming
-- Bash commands and system operations
-- Implementation work
-- Project navigation and analysis
-- TodoWrite and task management
-- Git operations
-- Package management
-- Testing and debugging
-
-### MCP Tools ONLY COORDINATE:
-- Swarm initialization (topology setup)
-- Agent type definitions (coordination patterns)
-- Task orchestration (high-level planning)
-- Memory management
-- Neural features
-- Performance tracking
-- GitHub integration
-
-**KEY**: MCP coordinates the strategy, Claude Code's Task tool executes with real agents.
-
-## 🚀 Quick Setup
-
-```bash
-# Add MCP servers (Claude Flow required, others optional)
-claude mcp add claude-flow npx claude-flow@alpha mcp start
-claude mcp add ruv-swarm npx ruv-swarm mcp start  # Optional: Enhanced coordination
-claude mcp add flow-nexus npx flow-nexus@latest mcp start  # Optional: Cloud features
-```
-
-## MCP Tool Categories
-
-### Coordination
-`swarm_init`, `agent_spawn`, `task_orchestrate`
-
-### Monitoring
-`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
-
-### Memory & Neural
-`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
-
-### GitHub Integration
-`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
-
-### System
-`benchmark_run`, `features_detect`, `swarm_monitor`
-
-### Flow-Nexus MCP Tools (Optional Advanced Features)
-Flow-Nexus extends MCP capabilities with 70+ cloud-based orchestration tools:
-
-**Key MCP Tool Categories:**
-- **Swarm & Agents**: `swarm_init`, `swarm_scale`, `agent_spawn`, `task_orchestrate`
-- **Sandboxes**: `sandbox_create`, `sandbox_execute`, `sandbox_upload` (cloud execution)
-- **Templates**: `template_list`, `template_deploy` (pre-built project templates)
-- **Neural AI**: `neural_train`, `neural_patterns`, `seraphina_chat` (AI assistant)
-- **GitHub**: `github_repo_analyze`, `github_pr_manage` (repository management)
-- **Real-time**: `execution_stream_subscribe`, `realtime_subscribe` (live monitoring)
-- **Storage**: `storage_upload`, `storage_list` (cloud file management)
-
-**Authentication Required:**
-- Register: `mcp__flow-nexus__user_register` or `npx flow-nexus@latest register`
-- Login: `mcp__flow-nexus__user_login` or `npx flow-nexus@latest login`
-- Access 70+ specialized MCP tools for advanced orchestration
-
-## 🚀 Agent Execution Flow with Claude Code
-
-### The Correct Pattern:
-
-1. **Optional**: Use MCP tools to set up coordination topology
-2. **REQUIRED**: Use Claude Code's Task tool to spawn agents that do actual work
-3. **REQUIRED**: Each agent runs hooks for coordination
-4. **REQUIRED**: Batch all operations in single messages
-
-### Example Full-Stack Development:
-
-```javascript
-// Single message with all agent spawning via Claude Code's Task tool
-[Parallel Agent Execution]:
-  Task("Backend Developer", "Build REST API with Express. Use hooks for coordination.", "backend-dev")
-  Task("Frontend Developer", "Create React UI. Coordinate with backend via memory.", "coder")
-  Task("Database Architect", "Design PostgreSQL schema. Store schema in memory.", "code-analyzer")
-  Task("Test Engineer", "Write Jest tests. Check memory for API contracts.", "tester")
-  Task("DevOps Engineer", "Setup Docker and CI/CD. Document in memory.", "cicd-engineer")
-  Task("Security Auditor", "Review authentication. Report findings via hooks.", "reviewer")
-  
-  // All todos batched together
-  TodoWrite { todos: [...8-10 todos...] }
-  
-  // All file operations together
-  Write "backend/server.js"
-  Write "frontend/App.jsx"
-  Write "database/schema.sql"
-```
-
-## 📋 Agent Coordination Protocol
-
-### Every Agent Spawned via Task Tool MUST:
-
-**1️⃣ BEFORE Work:**
-```bash
-npx claude-flow@alpha hooks pre-task --description "[task]"
-npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
-```
-
-**2️⃣ DURING Work:**
-```bash
-npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
-npx claude-flow@alpha hooks notify --message "[what was done]"
-```
-
-**3️⃣ AFTER Work:**
-```bash
-npx claude-flow@alpha hooks post-task --task-id "[task]"
-npx claude-flow@alpha hooks session-end --export-metrics true
-```
-
-## 🎯 Concurrent Execution Examples
-
-### ✅ CORRECT WORKFLOW: MCP Coordinates, Claude Code Executes
-
-```javascript
-// Step 1: MCP tools set up coordination (optional, for complex tasks)
-[Single Message - Coordination Setup]:
-  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
-  mcp__claude-flow__agent_spawn { type: "researcher" }
-  mcp__claude-flow__agent_spawn { type: "coder" }
-  mcp__claude-flow__agent_spawn { type: "tester" }
-
-// Step 2: Claude Code Task tool spawns ACTUAL agents that do the work
-[Single Message - Parallel Agent Execution]:
-  // Claude Code's Task tool spawns real agents concurrently
-  Task("Research agent", "Analyze API requirements and best practices. Check memory for prior decisions.", "researcher")
-  Task("Coder agent", "Implement REST endpoints with authentication. Coordinate via hooks.", "coder")
-  Task("Database agent", "Design and implement database schema. Store decisions in memory.", "code-analyzer")
-  Task("Tester agent", "Create comprehensive test suite with 90% coverage.", "tester")
-  Task("Reviewer agent", "Review code quality and security. Document findings.", "reviewer")
-  
-  // Batch ALL todos in ONE call
-  TodoWrite { todos: [
-    {id: "1", content: "Research API patterns", status: "in_progress", priority: "high"},
-    {id: "2", content: "Design database schema", status: "in_progress", priority: "high"},
-    {id: "3", content: "Implement authentication", status: "pending", priority: "high"},
-    {id: "4", content: "Build REST endpoints", status: "pending", priority: "high"},
-    {id: "5", content: "Write unit tests", status: "pending", priority: "medium"},
-    {id: "6", content: "Integration tests", status: "pending", priority: "medium"},
-    {id: "7", content: "API documentation", status: "pending", priority: "low"},
-    {id: "8", content: "Performance optimization", status: "pending", priority: "low"}
-  ]}
-  
-  // Parallel file operations
-  Bash "mkdir -p app/{src,tests,docs,config}"
-  Write "app/package.json"
-  Write "app/src/server.js"
-  Write "app/tests/server.test.js"
-  Write "app/docs/API.md"
-```
-
-### ❌ WRONG (Multiple Messages):
-```javascript
-Message 1: mcp__claude-flow__swarm_init
-Message 2: Task("agent 1")
-Message 3: TodoWrite { todos: [single todo] }
-Message 4: Write "file.js"
-// This breaks parallel coordination!
-```
-
-## Performance Benefits
-
-- **84.8% SWE-Bench solve rate**
-- **32.3% token reduction**
-- **2.8-4.4x speed improvement**
-- **27+ neural models**
-
-## Hooks Integration
-
-### Pre-Operation
-- Auto-assign agents by file type
-- Validate commands for safety
-- Prepare resources automatically
-- Optimize topology by complexity
-- Cache searches
-
-### Post-Operation
-- Auto-format code
-- Train neural patterns
-- Update memory
-- Analyze performance
-- Track token usage
-
-### Session Management
-- Generate summaries
-- Persist state
-- Track metrics
-- Restore context
-- Export workflows
-
-## Advanced Features (v2.0.0)
-
-- 🚀 Automatic Topology Selection
-- ⚡ Parallel Execution (2.8-4.4x speed)
-- 🧠 Neural Training
-- 📊 Bottleneck Analysis
-- 🤖 Smart Auto-Spawning
-- 🛡️ Self-Healing Workflows
-- 💾 Cross-Session Memory
-- 🔗 GitHub Integration
-
-## Integration Tips
-
-1. Start with basic swarm init
-2. Scale agents gradually
-3. Use memory for context
-4. Monitor progress regularly
-5. Train patterns from success
-6. Enable hooks automation
-7. Use GitHub tools first
-
-## Support
-
-- Documentation: https://github.com/ruvnet/claude-flow
-- Issues: https://github.com/ruvnet/claude-flow/issues
-- Flow-Nexus Platform: https://flow-nexus.ruv.io (registration required for cloud features)
+**How to load on-demand**: Use `@docs/filename.md` syntax to load only when needed.
 
 ---
 
-Remember: **Claude Flow coordinates, Claude Code creates!**
+## 📚 Document Navigation - When to Read Which Document
 
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
-Never save working files, text/mds and tests to the root folder.
+### Primary Documents (Load First)
+
+**1. `docs/INFRA.md` - Infrastructure Map**
+- **Read When**: Infrastructure queries, connection issues, checking container status
+- **Contains**:
+  - Complete host/container inventory with IPs (AGLSRV1, AGLSRV6, FGSRV6)
+  - Network topology (WireGuard mesh, Tailscale, LAN)
+  - Connection priority matrix by environment (WSL2, CT179, CT108)
+  - Storage configuration (NFS, SSHFS, mount points)
+  - WireGuard configuration standards
+- **Example Queries**: "What's the IP for CT179?", "How to connect to AGLSRV6?", "Where is NFS storage mounted?"
+
+**2. `docs/ARCHON.md` - Archon Integration**
+- **Read When**: Using MCP tools, task management, knowledge base operations
+- **Contains**:
+  - Complete MCP tools reference (28 tools available)
+  - Archon deployment architecture (CT183 configuration)
+  - Development guidelines (fail-fast philosophy)
+  - RAG knowledge base usage
+  - Project and task management workflows
+- **Example Queries**: "How to search Archon knowledge base?", "How to create Archon project?", "What MCP tools are available?"
+
+**3. `docs/WORKFLOWS.md` - Development Workflows**
+- **Read When**: Following SPARC methodology, using Agent OS, understanding available agents
+- **Contains**:
+  - Agent OS integration (7 commands, 16 Skills, 4 workflows)
+  - SPARC methodology (5 phases: Specification, Pseudocode, Architecture, Refinement, Completion)
+  - Available agents (54 total) organized by category
+  - MCP tool categories and agent coordination protocol
+  - Infrastructure workflows and best practices
+- **Example Queries**: "How to use Agent OS?", "What are SPARC phases?", "Which agents are available?", "How to run infrastructure workflows?"
+
+**4. `docs/RULES.md` - Coding Standards**
+- **Read When**: Before implementing code, debugging issues, checking execution patterns
+- **Contains**:
+  - CRITICAL execution rules (concurrent operations, file organization)
+  - Mandatory subagent usage patterns
+  - Claude Code vs MCP tools division
+  - Concurrent execution examples
+  - Code quality standards and best practices
+- **Example Queries**: "What are the mandatory patterns?", "When to use subagents?", "What are file organization rules?"
+
+**5. `docs/QUICK-START.md` - Fast Reference**
+- **Read When**: Need quick commands, connection troubleshooting, common operations
+- **Contains**:
+  - Environment detection scripts
+  - Quick connection commands by source (WSL2, CT179, CT108)
+  - SSH commands, storage access, Docker operations
+  - Archon quick commands (MCP setup, health checks)
+  - Troubleshooting guide with common issues table
+- **Example Queries**: "How to SSH from WSL2?", "How to access NFS storage?", "How to restart Archon?", "Quick troubleshooting?"
+
+---
+
+## 📍 Project Context
+
+**Project**: `agl-hostman` - Infrastructure management and host administration
+**Working Directory**: `/root/agl-hostman` (can be on any host with WSL/Linux)
+**Repository**: Git-based infrastructure as code
+
+**Key Infrastructure** (see `@docs/INFRA.md` for complete details):
+- **AGLSRV1**: Main Proxmox host (192.168.0.245) - 68 containers/VMs
+- **AGLSRV6**: Secondary Proxmox host (WG: 10.6.0.12) - Remote operations
+- **CT179**: Primary development container (48GB RAM, Docker, triple network stack)
+- **CT183**: Archon AI Command Center (MCP server, task management, RAG)
+- **WireGuard Mesh**: 14 active nodes (10.6.0.0/24) - Primary network
+- **Tailscale**: Cross-site VPN overlay (100.x.x.x) - Backup network
+
+**Network Priority**: WireGuard (fastest) > LAN (local) > Tailscale (fallback)
+
+---
+
+## 🤖 Archon Integration - Quick Summary
+
+**CT183 (Archon)** - AI Command Center deployed on AGLSRV1:
+- **Primary Access**: WireGuard (10.6.0.21) → `claude mcp add --transport http archon-wg http://10.6.0.21:8051/mcp`
+- **Backup Access**: Tailscale (100.80.30.59) → `claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp`
+- **LAN Access** (dev only): 192.168.0.183 → `claude mcp add --transport http archon http://192.168.0.183:8052/mcp`
+- **Public DNS**: https://archon.aglz.io (Basic Auth: admin/ArchonPass2025)
+
+**Available MCP Tools** (28 total):
+- **Knowledge Base**: `rag_search_knowledge_base`, `rag_search_code_examples`, `rag_read_full_page`
+- **Project Management**: `find_projects`, `manage_project`, `get_project_features`
+- **Task Management**: `find_tasks`, `manage_task` (status: todo/doing/review/done)
+- **Document Management**: `find_documents`, `manage_document`
+- **System**: `health_check`, `session_info`, `archon_get_status`
+
+**Verification**:
+```bash
+claude mcp list  # Should show all 3 endpoints connected
+```
+
+**Complete Documentation**: See `@docs/ARCHON.md` for full MCP tools reference, architecture, development guidelines, and troubleshooting.
+
+---
+
+## 🚨 CRITICAL RULES - Quick Reference
+
+**ABSOLUTE REQUIREMENTS**:
+1. ✅ **Concurrent Execution**: ALL related operations in ONE message (TodoWrite, Task tool, File operations, Bash commands)
+2. ✅ **File Organization**: NEVER save to root folder (use `/src`, `/tests`, `/docs`, `/config`, `/scripts`, `/examples`)
+3. ✅ **Mandatory Subagents**: ALWAYS use Task tool for complex operations (Explore, researcher, coder, tester, reviewer, architect)
+4. ✅ **Documentation Loading**: Use `@docs/filename.md` syntax for on-demand loading
+
+**Golden Rule**: "1 MESSAGE = ALL RELATED OPERATIONS"
+
+**Example - Correct Batching**:
+```javascript
+[BatchTool]:
+  // Spawn multiple agents in parallel
+  Task("Research agent: Analyze requirements...")
+  Task("Coder agent: Implement features...")
+  Task("Tester agent: Create test suite...")
+
+  // Batch all todos in ONE call
+  TodoWrite { todos: [
+    {content: "Research", status: "in_progress"},
+    {content: "Design", status: "pending"},
+    {content: "Implement", status: "pending"},
+    {content: "Test", status: "pending"},
+    {content: "Document", status: "pending"}
+  ]}
+
+  // Batch file operations
+  Bash "mkdir -p app/{src,tests,docs}"
+  Write "app/src/index.js"
+  Write "app/tests/index.test.js"
+  Write "app/docs/README.md"
+```
+
+**Complete Rules**: See `@docs/RULES.md` for execution patterns, code quality standards, error handling, Git workflow, and best practices.
+
+---
+
+## 🎯 Workflows & Methodologies
+
+**Agent OS Integration** (Spec-Driven Development):
+- **6 Slash Commands**: `/create-tasks`, `/implement-tasks`, `/shape-spec`, `/write-spec`, `/plan-product`, `/improve-skills`
+- **16 Skills**: Auto-apply standards (backend, frontend, global, infrastructure, testing)
+- **4 Infrastructure Workflows**: WireGuard setup, NFS mounts, container deployment, Archon integration
+
+**SPARC Methodology** (Test-Driven Development):
+1. **Specification** - Requirements analysis
+2. **Pseudocode** - Algorithm design
+3. **Architecture** - System design
+4. **Refinement** - TDD implementation
+5. **Completion** - Integration and validation
+
+**Available Agents** (54 total):
+- **Core**: coder, reviewer, tester, planner, researcher
+- **Swarm**: hierarchical-coordinator, mesh-coordinator, adaptive-coordinator
+- **Performance**: perf-analyzer, performance-benchmarker, task-orchestrator
+- **GitHub**: pr-manager, code-review-swarm, issue-tracker, workflow-automation
+- **SPARC**: sparc-coord, sparc-coder, specification, pseudocode, architecture, refinement
+
+**Complete Details**: See `@docs/WORKFLOWS.md` for full command reference, workflows, and agent catalog.
+
+---
+
+## 🚀 Quick Operations
+
+### Environment Detection
+```bash
+# Detect where you are running
+if [[ -f /proc/version ]] && grep -q microsoft /proc/version; then
+    echo "WSL2 (Tailscale only)"
+elif [[ -f /.dockerenv ]]; then
+    echo "Container (CT179/CT108)"
+fi
+```
+
+### Quick Connections
+```bash
+# From WSL2 (Tailscale only)
+ssh root@100.94.221.87  # CT179 development
+ssh root@100.107.113.33  # AGLSRV1 host
+
+# From CT179 (prefer WireGuard)
+ssh root@10.6.0.12  # AGLSRV6 (fastest)
+ssh root@192.168.0.245  # AGLSRV1 host
+```
+
+### Essential Commands
+```bash
+# Check containers
+ssh root@192.168.0.245 'pct list'
+
+# Access storage
+ls /mnt/pve/fgsrv6-wg  # NFS via WireGuard
+
+# Docker operations
+docker ps  # From CT179
+```
+
+**Complete Reference**: See `@docs/QUICK-START.md` for environment-specific commands, storage access, Docker operations, Archon management, and troubleshooting.
+
+---
+
+## 💻 Development Environments - Summary
+
+**WSL2 (AGLHQ11)** - Remote Access:
+- **Network**: Tailscale only (100.75.205.122)
+- **Best For**: Remote work, Windows-based development
+- **Limitations**: No WireGuard, no local LAN access, no Docker
+- **Typical Use**: SSH to CT179 for infrastructure work
+
+**CT179 (agldv03)** - Full Stack:
+- **Network**: Triple-stack (LAN + WireGuard + Tailscale)
+- **Resources**: 48GB RAM, Docker, full development tools
+- **Best For**: High-performance local operations, WireGuard mesh access
+- **Connection Priority**: WireGuard (fastest) > LAN (local) > Tailscale (fallback)
+
+**CT108 (agldv06)** - Tailscale Only:
+- **Network**: Tailscale only (100.71.229.12)
+- **Best For**: AGLSRV6 local operations
+- **Similar to**: WSL2 but with better container performance
+
+**Complete Details**: See `@docs/INFRA.md` for network topology, connection matrix, tooling requirements, and environment-specific workflows.
+
+---
+
+## 📋 Integration with Archon MCP
+
+**How Agent OS and Archon Work Together**:
+1. **Standards → Archon Knowledge Base**: Agent OS standards indexed for semantic search
+2. **Workflows → Archon Task Management**: Convert workflows to trackable tasks
+3. **Skills → MCP Tool Discovery**: Skills trigger appropriate Archon tools
+4. **Documentation → Cross-Referencing**: All docs reference each other
+
+**Workflow Patterns**:
+```
+1. Read Agent OS workflow spec
+2. Create Archon project and tasks (via MCP)
+3. Execute with Skills auto-applying standards
+4. Update Archon task status (todo → doing → done)
+```
+
+**Integration Commands**:
+```bash
+# Search Archon knowledge base
+mcp__archon__rag_search_knowledge_base(query="wireguard mesh", match_count=5)
+
+# Create infrastructure project
+mcp__archon__manage_project("create", title="WireGuard Expansion")
+
+# Track workflow as tasks
+mcp__archon__manage_task("create", project_id="...", title="Setup CT184")
+```
+
+---
+
+## 📊 Performance & Features
+
+**Performance Benefits**:
+- **84.8% SWE-Bench solve rate**
+- **32.3% token reduction** with modular documentation
+- **2.8-4.4x speed improvement** with parallel execution
+- **10-20x faster** concurrent operations vs sequential
+- **90% token savings** with on-demand document loading
+
+**Advanced Features**:
+- 🚀 Automatic Topology Selection
+- ⚡ Parallel Execution (Task tool batching)
+- 🧠 Neural Training (27+ models)
+- 📊 Bottleneck Analysis
+- 🤖 Smart Auto-Spawning
+- 🛡️ Self-Healing Workflows
+- 💾 Cross-Session Memory (Archon MCP)
+- 🔗 GitHub Integration
+
+---
+
+## 🔧 Troubleshooting Quick Reference
+
+### Common Issues
+
+| Issue | Solution | Documentation |
+|-------|----------|---------------|
+| SSH timeout | Check Tailscale/WireGuard status | `@docs/QUICK-START.md` |
+| NFS mount stale | `umount -f /mnt/pve/<storage> && mount -a` | `@docs/INFRA.md` |
+| WireGuard handshake fails | Check config (remove PresharedKey in LXC) | `@docs/INFRA.md` |
+| Archon MCP error | Restart archon-mcp container | `@docs/ARCHON.md` |
+| Docker permission | Add user to docker group | `@docs/QUICK-START.md` |
+
+### Diagnostic Commands
+```bash
+# Network
+wg show  # WireGuard status
+ping 10.6.0.5  # Test mesh
+
+# Storage
+df -h | grep wg  # NFS mounts
+showmount -e 10.6.0.5  # Check exports
+
+# Archon
+curl http://10.6.0.21:8051/mcp  # Test MCP endpoint
+```
+
+**Complete Troubleshooting**: See `@docs/QUICK-START.md` for common issues table and diagnostic procedures.
+
+---
+
+## 📝 Git Commit Guidelines
+
+```bash
+# Format: <type>: <description>
+git commit -m "feat: add WireGuard peer CT184
+
+- Generated keys and configuration
+- Added to hub (10.6.0.22)
+- Verified mesh connectivity"
+
+# Types: feat, fix, docs, refactor, test, perf, chore
+```
+
+---
+
+## 🎯 Next Steps & Task Tracking
+
+**Use Archon MCP for task management**:
+```bash
+# List all tasks
+find_tasks(filter_by="status", filter_value="todo")
+
+# Update task status
+manage_task("update", task_id="...", status="doing")
+
+# Mark complete
+manage_task("update", task_id="...", status="done")
+```
+
+**Current Focus Areas**:
+- Infrastructure monitoring (WireGuard mesh, NFS storage)
+- Container management (configuration updates, deployments)
+- Documentation maintenance (keep INFRA.md, ARCHON.md, WORKFLOWS.md current)
+- Archon integration (test all MCP tools, knowledge base expansion)
+
+---
+
+## 📚 Support & Documentation
+
+**Official Resources**:
+- **Claude-Flow**: https://github.com/ruvnet/claude-flow
+- **Claude Code Docs**: https://docs.claude.com/en/docs/claude-code
+
+**Project Documentation**:
+- **INFRA.md**: Infrastructure map, network topology, connection matrix
+- **ARCHON.md**: Archon integration, MCP tools reference, development guidelines
+- **WORKFLOWS.md**: Agent OS, SPARC methodology, available agents
+- **RULES.md**: Coding standards, execution patterns, best practices
+- **QUICK-START.md**: Fast reference, commands, troubleshooting
+
+**Loading Pattern**: Use `@docs/filename.md` to load on-demand (saves 90% tokens!)
+
+---
+
+**Remember**:
+- 📖 Always read context documents before starting infrastructure or Archon tasks
+- 🔄 Claude Code creates, Claude-Flow coordinates, Archon MCP tracks
+- ⚡ Batch all operations in single messages for maximum performance
+- 🎯 Use Agent OS for spec-driven workflows, SPARC for TDD development
+
+---
+
+**Document Version**: 3.0.0
+**Last Updated**: 2025-10-28
+**Maintainer**: Claude Code (agl-hostman project)
+**Always Load**: `@docs/INFRA.md` and `@docs/ARCHON.md` for complete context

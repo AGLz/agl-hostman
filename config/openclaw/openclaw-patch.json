@@ -1,0 +1,51 @@
+{
+  "auth": {
+    "profiles": {
+      "anthropic:default": {
+        "provider": "anthropic",
+        "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "moonshot": {
+        "baseUrl": "https://api.moonshot.ai/v1",
+        "apiKey": "${MOONSHOT_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5",
+            "contextWindow": 262144,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "zai/glm-4.7",
+        "fallbacks": [
+          "anthropic/claude-sonnet-4-6",
+          "moonshot/kimi-k2.5",
+          "kimi/moonshot-v1-128k",
+          "deepseek/deepseek-chat",
+          "openai/gpt-4o",
+          "google/gemini-2.0-flash",
+          "openrouter/deepseek/deepseek-v3.2",
+          "openrouter/z-ai/glm-4.5-air:free",
+          "openrouter/google/gemini-2.0-flash-exp:free"
+        ]
+      },
+      "models": {
+        "anthropic/claude-opus-4-6": { "alias": "claude-opus" },
+        "anthropic/claude-sonnet-4-6": { "alias": "claude-sonnet" },
+        "anthropic/claude-haiku-4-5-20251001": { "alias": "claude-haiku" },
+        "moonshot/kimi-k2.5": { "alias": "kimi-k2" }
+      }
+    }
+  }
+}
