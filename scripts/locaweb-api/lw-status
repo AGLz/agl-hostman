@@ -1,0 +1,48 @@
+#!/bin/bash
+# ========================================
+# Get detailed status of a VPS
+# Usage: lw-status <vps_id>
+# Example: lw-status vps41772
+# ========================================
+source "$(dirname "$0")/config.sh"
+
+VPS_ID="${1:-$VPS_FGSRV06}"
+
+echo "=== VPS Status: $VPS_ID ==="
+result=$(lw_curl "${LW_API_URL}/vps/servers/${VPS_ID}")
+
+if [ -z "$result" ]; then
+    echo "Error: no data returned or API error"
+    exit 1
+fi
+
+# Check for errors in the response
+errors=$(echo "$result" | jq -r '.errors[]? | .detail' 2>/dev/null)
+if [ -n "$errors" ]; then
+    echo "=== Errors ==="
+    echo "$errors"
+    exit 1
+fi
+
+echo ""
+echo "=== Response Data ==="
+echo "$result" | jq '.' 2>/dev/null | head -50
+
+echo ""
+echo "=== VPS Details ==="
+echo "$result" | jq -r '
+  "ID: \(.data.id)",
+  "Title: \(.data.attributes.title)",
+  "Status: \(.data.attributes.status)",
+  "Plan Status: \(.data.attributes.plan_status)",
+  "Public IP: \(.data.attributes.public_ip)",
+  "Private IP: \(.data.attributes.private_ip // "N/A")",
+  "vCPUs: \(.data.attributes.base_hardware.cpus)",
+  "RAM: \(.data.attributes.base_hardware.memory) MB",
+  "Disk: \(.data.attributes.base_hardware.hdd) GB",
+  "OS: \(.data.attributes.operating_system // "N/A")",
+  "Domain: \(.data.attributes.domain)",
+  "Created: \(.data.attributes.created_at)"
+' 2>/dev/null
+
+exit 0

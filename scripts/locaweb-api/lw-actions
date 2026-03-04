@@ -1,0 +1,13 @@
+#!/bin/bash
+# ========================================
+# List pending/running actions for a VPS
+# Usage: lw-actions <vps_id>
+# Example: lw-actions vps41772
+# ========================================
+source "$(dirname "$0")/config.sh"
+
+VPS_ID="${1:-$VPS_FGSRV06}"
+
+echo "=== Actions for VPS: $VPS_ID ==="
+lw_curl "${LW_API_URL}/vps/servers/${VPS_ID}/actions" | \
+    jq -r '.data[] | "\(.id) | \(.attributes.type) | \(.attributes.status) | \(.attributes.created_at)"'

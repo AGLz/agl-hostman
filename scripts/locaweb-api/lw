@@ -1,0 +1,85 @@
+#!/bin/bash
+# ========================================
+# Locaweb VPS Manager - CLI
+# ========================================
+# Usage: lw <command> [args]
+#
+# Commands:
+#   list              - List all VPS servers
+#   status [vps_id]   - Show detailed status of a VPS
+#   reboot [vps_id]   - Reboot a VPS
+#   snapshot [vps_id] [name] [desc] - Create snapshot
+#   snapshots [vps_id] - List snapshots
+#   actions [vps_id]  - List pending actions
+#
+# VPS IDs:
+#   fgsrv03 = vps14419
+#   fgsrv04 = vps22826
+#   fgsrv05 = vps24136
+#   fgsrv06 = vps41772
+#   fgsrv07 = vps64306
+#
+# Shortcuts:
+#   lw fgsrv03  - Show FGSRV03 status
+#   lw fgsrv04  - Show FGSRV04 status
+#   lw fgsrv05  - Show FGSRV05 status
+#   lw fgsrv06  - Show FGSRV06 status
+#   lw fgsrv07  - Show FGSRV07 status
+#
+# Example: lw status vps41772
+# ========================================
+
+SCRIPT_DIR="$(dirname "$0")"
+CONFIG_FILE="$SCRIPT_DIR/config.sh"
+
+# Source config if available
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
+# Check if first argument is provided
+if [ -z "$1" ]; then
+    echo "Usage: lw <command> [args]"
+    echo "Run 'lw help' for more information"
+    exit 1
+fi
+
+case "$1" in
+    list)       shift; "$SCRIPT_DIR/lw-list" ;;
+    status)       shift; "$SCRIPT_DIR/lw-status" "${2:-$VPS_FGSRV06}" ;;
+    reboot)       shift; "$SCRIPT_DIR/lw-reboot" "${2:-$VPS_FGSRV06}" ;;
+    snapshot)   shift; "$SCRIPT_DIR/lw-snapshot" "$VPS_FGSRV06" "$2" "$3" "$4" ;;
+    snapshots)   shift; "$SCRIPT_DIR/lw-snapshots" "${2:-$VPS_FGSRV06}" ;;
+    actions)       shift; "$SCRIPT_DIR/lw-actions" "${2:-$VPS_FGSRV06}" ;;
+    help)           shift; cat << 'EOF'
+Available commands:
+  list              - List all VPS servers
+  status [vps_id]   - Show detailed status of a VPS
+  reboot [vps_id]   - Reboot a VPS
+  snapshot [vps_id] [name] [desc] - Create snapshot
+  snapshots [vps_id] - List snapshots
+  actions [vps_id]  - List pending actions
+
+VPS IDs:
+  fgsrv03 = vps14419
+  fgsrv04 = vps22826
+  fgsrv05 = vps41771
+  fgsrv06 = vps41772
+  fgsrv07 = vps64306
+
+Shortcuts:
+  lw fgsrv03  - Show FGSRV03 status
+  lw fgsrv04  - Show FGSRV04 status
+  lw fgsrv05  - Show FGSRV05 status
+  lw fgsrv06  - Show FGSRV06 status
+  lw fgsrv07  - Show FGSRV07 status
+Example: lw status vps41772
+EOF
+    ;;
+    fgsrv03) shift; "$SCRIPT_DIR/lw-status" "$VPS_FGSRV03" ;;
+    fgsrv04) shift; "$SCRIPT_DIR/lw-status" "$VPS_FGSRV04" ;;
+    fgsrv05) shift; "$SCRIPT_DIR/lw-status" "$VPS_FGSRV05" ;;
+    fgsrv06) shift; "$SCRIPT_DIR/lw-status" "$VPS_FGSRV06" ;;
+    fgsrv07) shift; "$SCRIPT_DIR/lw-status" "$VPS_FGSRV07" ;;
+    *) echo "Unknown command: $1. Use 'lw help' for more information." ;;
+esac

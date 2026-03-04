@@ -1,0 +1,28 @@
+#!/bin/bash
+# ========================================
+# Reboot a VPS
+# Usage: lw-reboot <vps_id>
+# Example: lw-reboot vps41772
+# ========================================
+source "$(dirname "$0")/config.sh"
+
+VPS_ID="${1:-$VPS_FGSRV06}"
+
+echo "=== Rebooting VPS: $VPS_ID ==="
+echo "Are you sure? (y/N)"
+read -r confirm
+
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "Cancelled."
+    exit 0
+fi
+
+result=$(lw_curl -X POST -d "{\"data\": {\"type\": \"actions\", \"attributes\": {\"resource_id\": \"${VPS_ID}\", \"resource_type\": \"vps\", \"action\": \"reboot\"}}}" "${LW_API_URL}/vps/servers/${VPS_ID}/actions")
+
+if echo "$result" | jq -e '.data' > /dev/null 2>&1; then
+    echo "Reboot initiated successfully!"
+    echo "$result" | jq -r '"Action ID: \(.data.id)\nStatus: \(.data.attributes.status)"'
+else
+    echo "Error:"
+    echo "$result" | jq -r '.errors[0].detail // "Unknown error"'
+fi

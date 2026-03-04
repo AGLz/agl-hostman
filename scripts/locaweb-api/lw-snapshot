@@ -1,0 +1,29 @@
+#!/bin/bash
+# ========================================
+# Create a snapshot of a VPS
+# Usage: lw-snapshot <vps_id> [name] [description]
+# Example: lw-snapshot vps41772 "pre-upgrade" "Before upgrading packages"
+# ========================================
+source "$(dirname "$0")/config.sh"
+
+VPS_ID="${1:-$VPS_FGSRV06}"
+NAME="${2:-backup-$(date +%Y%m%d-%H%M%S)}"
+DESC="${3:-Automated backup via CLI}"
+
+echo "=== Creating Snapshot for VPS: $VPS_ID ==="
+echo "Name: $NAME"
+echo "Description: $DESC"
+echo ""
+
+result=$(lw_curl -X POST \
+    -d "$(jq -n --arg name "$NAME" --arg desc "$DESC" \
+        '{data: {type: "snapshots", attributes: {name: $name, description: $desc}}}') \
+    "${LW_API_URL}/vps/servers/${VPS_ID}/snapshots")
+
+if echo "$result" | jq -e '.data' > /dev/null 2>&1; then
+    echo "Snapshot created successfully!"
+    echo "$result" | jq -r '"ID: \(.data.id)\nName: \(.data.attributes.name)\nStatus: \(.data.attributes.status)"'
+else
+    echo "Error:"
+    echo "$result" | jq -r '.errors[0].detail // "Unknown error"'
+fi
