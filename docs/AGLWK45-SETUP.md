@@ -9,22 +9,42 @@
 
 O **GLM-5** está configurado como modelo padrão no OpenClaw em todos os hosts AGL.
 
-| Host | Modelo Default | Provider |
-|------|----------------|----------|
-| agldv03 | zai/glm-5 | ZAI API |
-| fgsrv06 | zai/glm-5 | ZAI API |
-| aglwk45 | zai/glm-5 | ZAI API |
+| Host | Modelo Default | Provider | IP Tailscale |
+|------|----------------|----------|--------------|
+| agldv03 | zai/glm-5 | ZAI API | 100.94.221.87 |
+| agldv04 | zai/glm-5 | ZAI API | - |
+| agldv05 | zai/glm-5 | ZAI API | - |
+| agldv06 | zai/glm-5 | ZAI API | - |
+| fgsrv06 | zai/glm-5 | ZAI API | 100.83.51.9 |
+| aglwk45 | zai/glm-5 | ZAI API | 100.117.146.21 |
 
 ## Estado Atual
 
 | Componente | Status | Versão |
 |------------|--------|--------|
 | Node.js | Instalado | v24.13.1 |
-| OpenClaw | Instalado | v2026.2.22-2 |
+| OpenClaw | Instalado | v2026.2.26 |
 | Git Bash | Instalado | - |
 | Zsh (WSL) | Opcional | - |
 | Docker | Não instalado | - |
 | LiteLLM | Usa agldv03 remoto | - |
+
+## Atualizações de Modelos (2026-03-07)
+
+| Provider | Modelo | Preço (In/Out) | Context | Destaque |
+|----------|--------|----------------|---------|----------|
+| **Z.AI** | glm-5 | $1/$3.2 | 200K | 744B params (40B active), agentic |
+| **Z.AI** | glm-4.7-flash | **FREE** | 131K | Ultra-barato |
+| **Anthropic** | claude-opus-4-6 | $5/$25 | 1M (beta) | Agent Teams, SOTA coding |
+| **Anthropic** | claude-sonnet-4-6 | $3/$15 | 200K | Opus-level coding |
+| **DeepSeek** | V3.2 unificado | $0.28/$0.42 | 128K | Chat + Reasoner mesmo preço |
+| **OpenAI** | gpt-5.3-instant | $1.10/$10 | 400K | Anti-cringe, less hallucinations |
+| **OpenAI** | gpt-4.1 | $2/$8 | 1M | Long context |
+| **Google** | gemini-3.1-pro | $2/$12 | 1M | ARC-AGI-2, native video |
+| **Google** | gemini-2.5-flash-lite | $0.10/$0.40 | 1M | Cheapest capable |
+| **Moonshot** | kimi-k2.5 | $0.60/$3 | 256K | Agent Swarm (100 agents) |
+| **Moonshot** | kimi-k2-thinking | $0.60/$2.50 | 256K | Deep reasoning |
+| **Qwen** | qwen3.5-plus | $0.26/$1.56 | 1M | MoE + linear attention |
 
 ## Arquitetura
 
@@ -233,18 +253,18 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "apiKey": "${ZAI_API_KEY}",
         "api": "anthropic-messages",
         "models": [
-          { "id": "glm-5", "name": "GLM-5", "contextWindow": 125000, "maxTokens": 8192 },
-          { "id": "glm-4.7", "name": "GLM-4.7", "contextWindow": 200000, "maxTokens": 8192 },
-          { "id": "glm-4.7-flash", "name": "GLM-4.7 Flash", "contextWindow": 195000, "maxTokens": 8192 }
+          { "id": "glm-5", "name": "GLM-5 (744B/40B)", "contextWindow": 200000, "maxTokens": 8192 },
+          { "id": "glm-4.7", "name": "GLM-4.7", "contextWindow": 203000, "maxTokens": 8192 },
+          { "id": "glm-4.7-flash", "name": "GLM-4.7 Flash (FREE)", "contextWindow": 131072, "maxTokens": 8192 }
         ]
       },
       "anthropic": {
         "baseUrl": "https://api.anthropic.com",
         "apiKey": "${ANTHROPIC_API_KEY}",
         "models": [
-          { "id": "claude-opus-4-6", "name": "Claude Opus 4.6", "contextWindow": 195000, "maxTokens": 8192 },
-          { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6", "contextWindow": 195000, "maxTokens": 8192 },
-          { "id": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5", "contextWindow": 195000, "maxTokens": 8192 }
+          { "id": "claude-opus-4-6", "name": "Claude Opus 4.6 (1M beta)", "contextWindow": 1000000, "maxTokens": 8192 },
+          { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6", "contextWindow": 200000, "maxTokens": 8192 },
+          { "id": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5", "contextWindow": 200000, "maxTokens": 8192 }
         ]
       },
       "deepseek": {
@@ -252,15 +272,17 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "apiKey": "${DEEPSEEK_API_KEY}",
         "api": "anthropic-messages",
         "models": [
-          { "id": "deepseek-chat", "name": "DeepSeek Chat V3.2", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "deepseek-reasoner", "name": "DeepSeek Reasoner R1", "contextWindow": 131072, "maxTokens": 8192, "reasoning": true }
+          { "id": "deepseek-chat", "name": "DeepSeek V3.2 Chat", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "deepseek-reasoner", "name": "DeepSeek V3.2 Reasoner", "contextWindow": 131072, "maxTokens": 65536, "reasoning": true }
         ]
       },
-      "kimi": {
+      "moonshot": {
         "baseUrl": "${KIMI_URL}",
         "apiKey": "${KIMI_AUTH}",
         "api": "anthropic-messages",
         "models": [
+          { "id": "kimi-k2.5", "name": "Kimi K2.5 (256K)", "contextWindow": 262144, "maxTokens": 16384 },
+          { "id": "kimi-k2-thinking", "name": "Kimi K2 Thinking", "contextWindow": 262144, "maxTokens": 16384 },
           { "id": "moonshot-v1-128k", "name": "Kimi 128k", "contextWindow": 131072, "maxTokens": 8192 }
         ]
       },
@@ -268,17 +290,20 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
         "apiKey": "${GEMINI_API_KEY}",
         "models": [
-          { "id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1024000, "maxTokens": 8192 },
-          { "id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "contextWindow": 1024000, "maxTokens": 8192 }
+          { "id": "gemini-3.1-pro", "name": "Gemini 3.1 Pro", "contextWindow": 1048576, "maxTokens": 16384 },
+          { "id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro", "contextWindow": 2097152, "maxTokens": 65536 },
+          { "id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1048576, "maxTokens": 65536 },
+          { "id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash-Lite", "contextWindow": 1048576, "maxTokens": 65536 }
         ]
       },
       "openai": {
         "baseUrl": "https://api.openai.com/v1",
         "apiKey": "${OPENAI_API_KEY}",
         "models": [
-          { "id": "gpt-5", "name": "GPT-5", "contextWindow": 391000, "maxTokens": 8192 },
-          { "id": "gpt-4o", "name": "GPT-4o", "contextWindow": 125000, "maxTokens": 8192 },
-          { "id": "gpt-5-mini", "name": "GPT-5 Mini", "contextWindow": 391000, "maxTokens": 8192 }
+          { "id": "gpt-5.3-instant", "name": "GPT-5.3 Instant (400K)", "contextWindow": 400000, "maxTokens": 16384 },
+          { "id": "gpt-4.1", "name": "GPT-4.1 (1M)", "contextWindow": 1048576, "maxTokens": 32768 },
+          { "id": "gpt-4o", "name": "GPT-4o", "contextWindow": 128000, "maxTokens": 16384 },
+          { "id": "gpt-4o-mini", "name": "GPT-4o Mini", "contextWindow": 128000, "maxTokens": 16384 }
         ]
       },
       "qwen": {
@@ -286,13 +311,10 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "apiKey": "${DASHSCOPE_API_KEY}",
         "api": "openai-completions",
         "models": [
-          { "id": "qwen-turbo", "name": "Qwen Turbo", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "qwen-plus", "name": "Qwen Plus", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "qwen-max", "name": "Qwen Max", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "qwen3.5", "name": "Qwen 3.5", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "qwen3.5-plus", "name": "Qwen 3.5 Plus", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "qwen3-max", "name": "Qwen 3 Max", "contextWindow": 131072, "maxTokens": 8192 },
-          { "id": "qwen-coder", "name": "Qwen Coder", "contextWindow": 131072, "maxTokens": 8192 }
+          { "id": "qwen3.5-plus-02-15", "name": "Qwen 3.5 Plus (1M)", "contextWindow": 1048576, "maxTokens": 131072 },
+          { "id": "qwen3-max-2026-01-23", "name": "Qwen 3 Max", "contextWindow": 262144, "maxTokens": 131072 },
+          { "id": "qwen3-coder-next", "name": "Qwen 3 Coder", "contextWindow": 1048576, "maxTokens": 131072 },
+          { "id": "qwen-turbo", "name": "Qwen Turbo", "contextWindow": 131072, "maxTokens": 8192 }
         ]
       },
       "openrouter": {
@@ -310,19 +332,27 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "baseUrl": "http://192.168.0.200:11434/v1",
         "api": "openai-completions",
         "models": [
-          { "id": "phi3:mini", "name": "Phi-3 Mini Local", "contextWindow": 8192, "maxTokens": 4096 },
-          { "id": "llama3.2:3b", "name": "Llama 3.2 3B Local", "contextWindow": 8192, "maxTokens": 4096 },
-          { "id": "mistral:7b", "name": "Mistral 7B Local", "contextWindow": 8192, "maxTokens": 4096 },
-          { "id": "qwen3:4b", "name": "Qwen 3 4B Local", "contextWindow": 8192, "maxTokens": 4096 },
-          { "id": "qwen3:8b", "name": "Qwen 3 8B Local", "contextWindow": 8192, "maxTokens": 4096 },
-          { "id": "qwen2.5-coder:7b", "name": "Qwen 2.5 Coder Local", "contextWindow": 8192, "maxTokens": 4096 },
-          { "id": "gemma2:9b", "name": "Gemma 2 9B Local", "contextWindow": 8192, "maxTokens": 4096 }
+          { "id": "phi3:mini", "name": "Phi-3 Mini Local", "contextWindow": 4096, "maxTokens": 4096 },
+          { "id": "llama3.2:3b", "name": "Llama 3.2 3B Local", "contextWindow": 4096, "maxTokens": 4096 },
+          { "id": "mistral:7b", "name": "Mistral 7B Local", "contextWindow": 8192, "maxTokens": 8192 },
+          { "id": "qwen3:4b", "name": "Qwen 3 4B Local", "contextWindow": 8192, "maxTokens": 8192 },
+          { "id": "qwen3:8b", "name": "Qwen 3 8B Local", "contextWindow": 8192, "maxTokens": 8192 },
+          { "id": "qwen2.5-coder:7b", "name": "Qwen 2.5 Coder Local", "contextWindow": 16384, "maxTokens": 16384 },
+          { "id": "gemma2:9b", "name": "Gemma 2 9B Local", "contextWindow": 8192, "maxTokens": 8192 }
         ]
       }
     }
   },
   "agents": {
     "defaults": {
+      "model": "zai/glm-5",
+      "fallback": [
+        "anthropic/claude-sonnet-4-6",
+        "deepseek/deepseek-chat",
+        "moonshot/kimi-k2.5",
+        "google/gemini-3.1-pro",
+        "openrouter/z-ai/glm-4.5-air:free"
+      ],
       "compaction": { "mode": "safeguard" },
       "maxConcurrent": 4
     }
@@ -415,17 +445,23 @@ claude --version
 
 ## Modelos Disponíveis no LiteLLM (agldv03)
 
-| Modelo | Alias | Latência | Uso |
-|--------|-------|----------|-----|
-| glm-5 | - | ~2.4s | Raciocínio geral |
-| glm-4.7 | glm | ~1.5s | Uso diário |
-| glm-flash | - | ~0.8s | Tarefas rápidas |
-| qwen3.5-plus | - | ~0.9s | FREE (DashScope) |
-| deepseek | - | ~1.4s | Código |
-| r1 | deepseek-reasoner | ~3s | Reasoning |
-| kimi | moonshot-v1-128k | ~2s | Contexto longo |
-| phi3-local | - | ~8s | Local (Ollama) |
-| qwen3-local | - | ~21s | Local (Ollama) |
+| Modelo | Alias | Preço (In/Out) | Latência | Uso |
+|--------|-------|----------------|----------|-----|
+| glm-5 | - | $1/$3.2 | ~2.4s | Raciocínio geral (744B params) |
+| glm-4.7 | glm | $0.6/$2.2 | ~1.5s | Uso diário |
+| glm-flash | - | **FREE** | ~0.8s | Tarefas rápidas |
+| qwen3.5-plus | - | $0.26/$1.56 | ~0.9s | DashScope (1M ctx) |
+| deepseek | - | $0.28/$0.42 | ~1.4s | Código V3.2 |
+| r1 | deepseek-reasoner | $0.28/$0.42 | ~3s | Reasoning unificado |
+| kimi-k2.5 | kimi | $0.60/$3 | ~2s | 256K, Agent Swarm |
+| kimi-thinking | - | $0.60/$2.50 | ~4s | Deep reasoning |
+| claude-opus | - | $5/$25 | ~4s | 1M ctx, Agent Teams |
+| claude-sonnet | - | $3/$15 | ~2s | Opus-level coding |
+| gpt-5.3-instant | gpt | $1.10/$10 | ~1.5s | 400K ctx, anti-cringe |
+| gemini-3.1-pro | gemini | $2/$12 | ~2s | ARC-AGI-2, native video |
+| gemini-lite | - | $0.10/$0.40 | ~0.5s | Cheapest capable |
+| phi3-local | - | FREE | ~8s | Local (Ollama) |
+| qwen3-local | - | FREE | ~21s | Local (Ollama) |
 
 ---
 

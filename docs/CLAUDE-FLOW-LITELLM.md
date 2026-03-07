@@ -85,6 +85,26 @@ claude --model kimi "Resuma este documento longo"
 
 ---
 
+## 3-tier router (Ruflo v3.5+)
+
+O **3-tier router** (SONA) complementa o fallback do LiteLLM: escolhe o modelo ideal **por tipo de tarefa** antes de chamar, economizando ~75% em custos de API.
+
+| Aspecto | LiteLLM (fallback) | 3-tier router |
+|---------|-------------------|---------------|
+| **Quando** | Modelo falha / excede contexto | Antes de chamar |
+| **Critério** | Erro | Tipo de tarefa |
+| **Economia** | Resiliência | ~75% custo API |
+
+```bash
+# Roteamento inteligente por tipo de tarefa
+npx agentic-flow@alpha hooks intel route "Optimize database queries" --top-k 3
+npx ruflo@latest hooks intel route "Build REST API" --top-k 3
+```
+
+**Deploy completo**: `./scripts/ruflo-deploy-agldv03.sh` — ver `docs/RUFLO-ADVANCED.md`
+
+---
+
 ## Cadeias de fallback
 
 O LiteLLM aplica fallbacks automaticamente quando o modelo primário falha ou excede o contexto:
@@ -201,14 +221,23 @@ O script `./scripts/deploy-openclaw-config.sh` aplica:
 
 ---
 
+## Troubleshooting
+
+- **401 Unauthorized**: Use `Authorization: Bearer $LITELLM_MASTER_KEY` ou endpoints públicos `/health/readiness`, `/health/liveliness`
+- **Container unhealthy**: O healthcheck padrão usa `/health` (exige auth). Use o compose em `docker/litellm/docker-compose.yml` que usa `/health/readiness`
+- **Guia completo**: [docs/LITELLM-TROUBLESHOOTING.md](LITELLM-TROUBLESHOOTING.md)
+
+---
+
 ## Referências
 
 - [Claude-Flow LiteLLM Wiki](https://github.com/ruvnet/claude-flow/wiki/litellm-integration)
 - [LiteLLM Proxy Config](https://docs.litellm.ai/docs/proxy/configs)
 - [Claude Code LLM Gateway](https://docs.claude.com/en/docs/claude-code/llm-gateway)
 - [OpenClaw Multi-Model](docs/OPENCLAW.md) — cadeia de fallback AGL
+- [Ruflo Advanced](docs/RUFLO-ADVANCED.md) — 3-tier router, RuVector, Hive Mind, ReasoningBank
 
 ---
 
 **Maintainer**: agl-hostman  
-**Relacionado**: `docs/OPENCLAW.md`, `docs/FREE-LLM-MODELS.md`
+**Relacionado**: `docs/OPENCLAW.md`, `docs/FREE-LLM-MODELS.md`, `docs/RUFLO-ADVANCED.md`

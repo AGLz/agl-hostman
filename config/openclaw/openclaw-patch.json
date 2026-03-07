@@ -18,7 +18,19 @@
             "id": "kimi-k2.5",
             "name": "Kimi K2.5",
             "contextWindow": 262144,
-            "maxTokens": 8192
+            "maxTokens": 16384
+          },
+          {
+            "id": "kimi-k2-thinking",
+            "name": "Kimi K2 Thinking",
+            "contextWindow": 262144,
+            "maxTokens": 16384
+          },
+          {
+            "id": "kimi-k2-thinking-turbo",
+            "name": "Kimi K2 Turbo Preview",
+            "contextWindow": 262144,
+            "maxTokens": 16384
           }
         ]
       }
@@ -27,24 +39,37 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "zai/glm-4.7",
+        "primary": "zai/glm-5",
         "fallbacks": [
           "anthropic/claude-sonnet-4-6",
           "moonshot/kimi-k2.5",
           "kimi/moonshot-v1-128k",
           "deepseek/deepseek-chat",
-          "openai/gpt-4o",
-          "google/gemini-2.0-flash",
+          "openai/gpt-5.3-instant",
+          "google/gemini-3.1-pro",
           "openrouter/deepseek/deepseek-v3.2",
           "openrouter/z-ai/glm-4.5-air:free",
-          "openrouter/google/gemini-2.0-flash-exp:free"
+          "openrouter/google/gemini-2.5-flash-lite:free"
         ]
       },
       "models": {
         "anthropic/claude-opus-4-6": { "alias": "claude-opus" },
         "anthropic/claude-sonnet-4-6": { "alias": "claude-sonnet" },
         "anthropic/claude-haiku-4-5-20251001": { "alias": "claude-haiku" },
-        "moonshot/kimi-k2.5": { "alias": "kimi-k2" }
+        "zai/glm-5": { "alias": "glm" },
+        "zai/glm-4.7": { "alias": "glm-4.7" },
+        "zai/glm-4.7-flash": { "alias": "glm-flash" },
+        "moonshot/kimi-k2.5": { "alias": "kimi-k2" },
+        "moonshot/kimi-k2-thinking": { "alias": "kimi-think" },
+        "moonshot/kimi-k2-thinking-turbo": { "alias": "kimi-turbo" },
+        "deepseek/deepseek-chat": { "alias": "deepseek" },
+        "deepseek/deepseek-reasoner": { "alias": "r1" },
+        "openai/gpt-5.3-instant": { "alias": "gpt" },
+        "openai/gpt-4.1": { "alias": "gpt-4.1" },
+        "openai/gpt-4o-mini": { "alias": "gpt-mini" },
+        "google/gemini-3.1-pro": { "alias": "gemini" },
+        "google/gemini-2.5-pro": { "alias": "gemini-pro" },
+        "google/gemini-2.5-flash-lite": { "alias": "gemini-lite" }
       }
     }
   }

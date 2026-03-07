@@ -1,0 +1,36 @@
+2026-03-02 10:25:55,496 - proxmox-mcp.proxmox - INFO - Connecting to Proxmox host: 192.168.0.245
+2026-03-02 10:25:55,652 - proxmox-mcp.proxmox - INFO - Successfully connected to Proxmox API
+2026-03-02 10:25:55,662 - proxmox-mcp - INFO - Starting MCP server...
+2026-03-02 10:25:55,675 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-03-02 10:25:55,676 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-03-02 10:25:55,677 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2026-03-03 10:37:14,392 - proxmox-mcp.proxmox - INFO - Connecting to Proxmox host: 192.168.0.245
+2026-03-03 10:37:14,553 - proxmox-mcp.proxmox - INFO - Successfully connected to Proxmox API
+2026-03-03 10:37:14,564 - proxmox-mcp - INFO - Starting MCP server...
+2026-03-03 10:37:14,583 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-03-03 10:37:14,584 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-03-03 10:37:14,585 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2026-03-04 10:07:35,412 - proxmox-mcp - INFO - Received signal to shutdown...
+2026-03-04 10:07:35,519 - proxmox-mcp - INFO - Received signal to shutdown...
+2026-03-04 10:09:48,867 - proxmox-mcp.proxmox - INFO - Connecting to Proxmox host: 192.168.0.245
+2026-03-04 10:09:49,018 - proxmox-mcp.proxmox - INFO - Successfully connected to Proxmox API
+2026-03-04 10:09:49,028 - proxmox-mcp - INFO - Starting MCP server...
+2026-03-04 10:09:49,041 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-03-04 10:09:49,042 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-03-04 10:09:49,043 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2026-03-04 10:30:58,662 - proxmox-mcp - INFO - Received signal to shutdown...
+2026-03-04 10:30:58,765 - proxmox-mcp - INFO - Received signal to shutdown...
+2026-03-04 10:34:52,066 - proxmox-mcp.proxmox - INFO - Connecting to Proxmox host: 192.168.0.245
+2026-03-04 10:34:52,178 - proxmox-mcp.proxmox - INFO - Successfully connected to Proxmox API
+2026-03-04 10:34:52,188 - proxmox-mcp - INFO - Starting MCP server...
+2026-03-04 10:34:52,200 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-03-04 10:34:52,201 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-03-04 10:34:52,202 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2026-03-06 23:21:36,114 - proxmox-mcp - INFO - Received signal to shutdown...
+2026-03-06 23:21:36,317 - proxmox-mcp - INFO - Received signal to shutdown...
+2026-03-06 23:22:39,221 - proxmox-mcp.proxmox - INFO - Connecting to Proxmox host: 192.168.0.245
+2026-03-06 23:22:39,366 - proxmox-mcp.proxmox - INFO - Successfully connected to Proxmox API
+2026-03-06 23:22:39,376 - proxmox-mcp - INFO - Starting MCP server...
+2026-03-06 23:22:39,391 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-03-06 23:22:39,392 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-03-06 23:22:39,393 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest

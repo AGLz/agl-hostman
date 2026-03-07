@@ -940,6 +940,7 @@ ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel info archon'
 - **Archon**: `docs/archon-integration.md` - AI Command Center
 - **OpenClaw**: `docs/OPENCLAW.md` - AI agent platform, multi-model config, versões
 - **Claude-Flow + LiteLLM**: `docs/CLAUDE-FLOW-LITELLM.md` - Multi-model gateway, fallbacks, Claude Code
+- **Ruflo Advanced**: `docs/RUFLO-ADVANCED.md` - 3-tier router, RuVector, Hive Mind, ReasoningBank (agldv03)
 - **Docker in LXC**: `docs/docker-in-lxc-apparmor-solution.md`
 - **WireGuard**: Various host-specific docs
 

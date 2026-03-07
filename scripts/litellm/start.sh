@@ -16,6 +16,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 cd "$REPO_ROOT"
+# Usa healthcheck com /health/readiness (não exige auth) — evita status "unhealthy"
 docker compose -f docker/litellm/docker-compose.yml up -d
 
 echo ""

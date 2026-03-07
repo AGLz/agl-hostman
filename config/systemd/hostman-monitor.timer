@@ -1,0 +1,11 @@
+[Unit]
+Description=AGL Hostman Monitoring Timer
+Requires=hostman-monitor.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Unit=hostman-monitor.service
+
+[Install]
+WantedBy=timers.target
