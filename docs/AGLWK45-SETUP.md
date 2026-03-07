@@ -5,6 +5,16 @@
 > **IP Tailscale**: 100.117.146.21
 > **Última atualização**: 2026-03-07
 
+## Modelo Padrão: GLM-5
+
+O **GLM-5** está configurado como modelo padrão no OpenClaw em todos os hosts AGL.
+
+| Host | Modelo Default | Provider |
+|------|----------------|----------|
+| agldv03 | zai/glm-5 | ZAI API |
+| fgsrv06 | zai/glm-5 | ZAI API |
+| aglwk45 | zai/glm-5 | ZAI API |
+
 ## Estado Atual
 
 | Componente | Status | Versão |
@@ -12,6 +22,7 @@
 | Node.js | Instalado | v24.13.1 |
 | OpenClaw | Instalado | v2026.2.22-2 |
 | Git Bash | Instalado | - |
+| Zsh (WSL) | Opcional | - |
 | Docker | Não instalado | - |
 | LiteLLM | Usa agldv03 remoto | - |
 
@@ -127,6 +138,63 @@ source ~/.bashrc
 
 ---
 
+## Passo 2.5: Configurar Zsh (se usar WSL)
+
+Se você usa WSL com zsh, adicione ao `~/.zshrc`:
+
+```bash
+# ~/.zshrc - WSL no Windows
+
+# === Claude Code + LiteLLM Gateway ===
+export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
+export LITELLM_GATEWAY_URL="http://100.94.221.87:4000"
+export LITELLM_MASTER_KEY="sk-litellm-default"
+
+# === API Keys (OpenClaw + LiteLLM) ===
+export ZAI_API_KEY="896fb1e6936a4cd1b61aa2314d6d3728.u2lsAqLNfajAslfx"
+export GLM_AUTH="${ZAI_API_KEY}"
+export GLM_URL="https://api.z.ai/api/anthropic"
+export DEEPSEEK_API_KEY="sk-7e5ed90fb4fc44d6b2b440d0cba7f791"
+export DEEPSEEK_URL="https://api.deepseek.com/anthropic"
+export DEEPSEEK_AUTH="${DEEPSEEK_API_KEY}"
+export KIMI_AUTH="sk-8yrkMKdWtgsEVEPaq5i0NuDBAg3UTdZJNg2o6R4FMc2bnTG0"
+export KIMI_URL="https://api.moonshot.ai/anthropic"
+export MOONSHOT_API_KEY="${KIMI_AUTH}"
+export OPENROUTER_API_KEY="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"
+export DASHSCOPE_API_KEY="sk-48f612bb16634018a21eec165e13f78a"
+
+# === Funções úteis ===
+cclitellm() {
+    export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+    export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
+    echo "Claude Code usando LiteLLM Gateway (agldv03)"
+}
+
+ccglm5() {
+    export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+    export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
+    echo "Claude Code usando GLM-5 via LiteLLM"
+}
+
+ccdirect() {
+    unset ANTHROPIC_BASE_URL
+    unset ANTHROPIC_AUTH_TOKEN
+    echo "Claude Code usando API direta"
+}
+
+# Alias para OpenClaw com GLM-5
+alias ocglm5='openclaw models set zai/glm-5'
+alias ocmodels='openclaw models list'
+```
+
+Depois recarregue:
+```bash
+source ~/.zshrc
+```
+
+---
+
 ## Passo 3: Atualizar OpenClaw
 
 ```powershell
@@ -160,6 +228,16 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
   },
   "models": {
     "providers": {
+      "zai": {
+        "baseUrl": "${GLM_URL}",
+        "apiKey": "${ZAI_API_KEY}",
+        "api": "anthropic-messages",
+        "models": [
+          { "id": "glm-5", "name": "GLM-5", "contextWindow": 125000, "maxTokens": 8192 },
+          { "id": "glm-4.7", "name": "GLM-4.7", "contextWindow": 200000, "maxTokens": 8192 },
+          { "id": "glm-4.7-flash", "name": "GLM-4.7 Flash", "contextWindow": 195000, "maxTokens": 8192 }
+        ]
+      },
       "kimi": {
         "baseUrl": "${KIMI_URL}",
         "apiKey": "${KIMI_AUTH}",
@@ -179,8 +257,9 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
       }
     },
     "defaults": {
-      "model": "zai/glm-4.7",
+      "model": "zai/glm-5",
       "fallback": [
+        "zai/glm-4.7",
         "anthropic/claude-sonnet-4-6",
         "deepseek/deepseek-chat",
         "kimi/moonshot-v1-128k",
@@ -195,6 +274,22 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
     }
   }
 }
+```
+
+### Definir GLM-5 como Default via CLI
+
+Após criar o config, execute:
+
+```bash
+# Carregar variáveis de ambiente
+source ~/.bashrc  # ou source ~/.zshrc
+
+# Definir GLM-5 como modelo padrão
+openclaw models set zai/glm-5
+
+# Verificar
+openclaw models list | grep default
+# Deve mostrar: zai/glm-5 ... default
 ```
 
 ---
