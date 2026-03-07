@@ -238,6 +238,24 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
           { "id": "glm-4.7-flash", "name": "GLM-4.7 Flash", "contextWindow": 195000, "maxTokens": 8192 }
         ]
       },
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "models": [
+          { "id": "claude-opus-4-6", "name": "Claude Opus 4.6", "contextWindow": 195000, "maxTokens": 8192 },
+          { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6", "contextWindow": 195000, "maxTokens": 8192 },
+          { "id": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5", "contextWindow": 195000, "maxTokens": 8192 }
+        ]
+      },
+      "deepseek": {
+        "baseUrl": "${DEEPSEEK_URL}",
+        "apiKey": "${DEEPSEEK_API_KEY}",
+        "api": "anthropic-messages",
+        "models": [
+          { "id": "deepseek-chat", "name": "DeepSeek Chat V3.2", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "deepseek-reasoner", "name": "DeepSeek Reasoner R1", "contextWindow": 131072, "maxTokens": 8192, "reasoning": true }
+        ]
+      },
       "kimi": {
         "baseUrl": "${KIMI_URL}",
         "apiKey": "${KIMI_AUTH}",
@@ -246,7 +264,71 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
           { "id": "moonshot-v1-128k", "name": "Kimi 128k", "contextWindow": 131072, "maxTokens": 8192 }
         ]
       },
-      "deepseek": {
+      "google": {
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+        "apiKey": "${GEMINI_API_KEY}",
+        "models": [
+          { "id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1024000, "maxTokens": 8192 },
+          { "id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "contextWindow": 1024000, "maxTokens": 8192 }
+        ]
+      },
+      "openai": {
+        "baseUrl": "https://api.openai.com/v1",
+        "apiKey": "${OPENAI_API_KEY}",
+        "models": [
+          { "id": "gpt-5", "name": "GPT-5", "contextWindow": 391000, "maxTokens": 8192 },
+          { "id": "gpt-4o", "name": "GPT-4o", "contextWindow": 125000, "maxTokens": 8192 },
+          { "id": "gpt-5-mini", "name": "GPT-5 Mini", "contextWindow": 391000, "maxTokens": 8192 }
+        ]
+      },
+      "qwen": {
+        "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+        "apiKey": "${DASHSCOPE_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "qwen-turbo", "name": "Qwen Turbo", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen-plus", "name": "Qwen Plus", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen-max", "name": "Qwen Max", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen3.5", "name": "Qwen 3.5", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen3.5-plus", "name": "Qwen 3.5 Plus", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen3-max", "name": "Qwen 3 Max", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen-coder", "name": "Qwen Coder", "contextWindow": 131072, "maxTokens": 8192 }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "z-ai/glm-4.5-air:free", "name": "GLM 4.5 Air Free", "contextWindow": 131072, "maxTokens": 8192 },
+          { "id": "qwen/qwen3.5:free", "name": "Qwen 3.5 Free", "contextWindow": 256000, "maxTokens": 8192 },
+          { "id": "qwen/qwen3-coder:free", "name": "Qwen 3 Coder Free", "contextWindow": 256000, "maxTokens": 8192 },
+          { "id": "deepseek/deepseek-v3.2", "name": "DeepSeek V3.2 OR", "contextWindow": 160000, "maxTokens": 8192 }
+        ]
+      },
+      "ollama": {
+        "baseUrl": "http://192.168.0.200:11434/v1",
+        "api": "openai-completions",
+        "models": [
+          { "id": "phi3:mini", "name": "Phi-3 Mini Local", "contextWindow": 8192, "maxTokens": 4096 },
+          { "id": "llama3.2:3b", "name": "Llama 3.2 3B Local", "contextWindow": 8192, "maxTokens": 4096 },
+          { "id": "mistral:7b", "name": "Mistral 7B Local", "contextWindow": 8192, "maxTokens": 4096 },
+          { "id": "qwen3:4b", "name": "Qwen 3 4B Local", "contextWindow": 8192, "maxTokens": 4096 },
+          { "id": "qwen3:8b", "name": "Qwen 3 8B Local", "contextWindow": 8192, "maxTokens": 4096 },
+          { "id": "qwen2.5-coder:7b", "name": "Qwen 2.5 Coder Local", "contextWindow": 8192, "maxTokens": 4096 },
+          { "id": "gemma2:9b", "name": "Gemma 2 9B Local", "contextWindow": 8192, "maxTokens": 4096 }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "compaction": { "mode": "safeguard" },
+      "maxConcurrent": 4
+    }
+  }
+}
+```
         "baseUrl": "${DEEPSEEK_URL}",
         "apiKey": "${DEEPSEEK_AUTH}",
         "api": "anthropic-messages",
