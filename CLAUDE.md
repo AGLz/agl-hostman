@@ -1,387 +1,357 @@
-# Claude Code Configuration - AGL Infrastructure Management
-
-> **Last Updated**: 2026-02-22 | **Version**: 3.0.1
-
-## 🔖 CRITICAL: Always Read These Documents
-
-**Before any infrastructure or Archon-related task, ALWAYS read:**
-- **`docs/INFRA.md`** - Complete infrastructure map, network topology, connection matrix
-- **`docs/ARCHON.md`** - Archon AI Command Center integration guide and MCP tools
-- **`docs/WORKFLOWS.md`** - SPARC methodology, Agent OS integration, development workflows
-- **`docs/RULES.md`** - Coding standards, execution patterns, best practices
-- **`docs/QUICK-START.md`** - Fast reference for commands, connections, troubleshooting
-
-**How to load on-demand**: Use `@docs/filename.md` syntax to load only when needed.
-
----
-
-## 📚 Document Navigation - When to Read Which Document
-
-### Primary Documents (Load First)
-
-**1. `docs/INFRA.md` - Infrastructure Map**
-- **Read When**: Infrastructure queries, connection issues, checking container status
-- **Contains**:
-  - Complete host/container inventory with IPs (AGLSRV1, AGLSRV6, FGSRV6)
-  - Network topology (WireGuard mesh, Tailscale, LAN)
-  - Connection priority matrix by environment (WSL2, CT179, CT108)
-  - Storage configuration (NFS, SSHFS, mount points)
-  - WireGuard configuration standards
-- **Example Queries**: "What's the IP for CT179?", "How to connect to AGLSRV6?", "Where is NFS storage mounted?"
-
-**2. `docs/ARCHON.md` - Archon Integration**
-- **Read When**: Using MCP tools, task management, knowledge base operations
-- **Contains**:
-  - Complete MCP tools reference (28 tools available)
-  - Archon deployment architecture (CT183 configuration)
-  - Development guidelines (fail-fast philosophy)
-  - RAG knowledge base usage
-  - Project and task management workflows
-- **Example Queries**: "How to search Archon knowledge base?", "How to create Archon project?", "What MCP tools are available?"
-
-**3. `docs/WORKFLOWS.md` - Development Workflows**
-- **Read When**: Following SPARC methodology, using Agent OS, understanding available agents
-- **Contains**:
-  - Agent OS integration (7 commands, 16 Skills, 4 workflows)
-  - SPARC methodology (5 phases: Specification, Pseudocode, Architecture, Refinement, Completion)
-  - Available agents (54 total) organized by category
-  - MCP tool categories and agent coordination protocol
-  - Infrastructure workflows and best practices
-- **Example Queries**: "How to use Agent OS?", "What are SPARC phases?", "Which agents are available?", "How to run infrastructure workflows?"
-
-**4. `docs/RULES.md` - Coding Standards**
-- **Read When**: Before implementing code, debugging issues, checking execution patterns
-- **Contains**:
-  - CRITICAL execution rules (concurrent operations, file organization)
-  - Mandatory subagent usage patterns
-  - Claude Code vs MCP tools division
-  - Concurrent execution examples
-  - Code quality standards and best practices
-- **Example Queries**: "What are the mandatory patterns?", "When to use subagents?", "What are file organization rules?"
-
-**5. `docs/QUICK-START.md` - Fast Reference**
-- **Read When**: Need quick commands, connection troubleshooting, common operations
-- **Contains**:
-  - Environment detection scripts
-  - Quick connection commands by source (WSL2, CT179, CT108)
-  - SSH commands, storage access, Docker operations
-  - Archon quick commands (MCP setup, health checks)
-  - Troubleshooting guide with common issues table
-- **Example Queries**: "How to SSH from WSL2?", "How to access NFS storage?", "How to restart Archon?", "Quick troubleshooting?"
-
----
-
-## 📍 Project Context
-
-**Project**: `agl-hostman` - Infrastructure management and host administration
-**Working Directory**: `/root/agl-hostman` (can be on any host with WSL/Linux)
-**Repository**: Git-based infrastructure as code
-
-**Key Infrastructure** (see `@docs/INFRA.md` for complete details):
-- **AGLSRV1**: Main Proxmox host (192.168.0.245) - 68 containers/VMs
-- **AGLSRV6**: Secondary Proxmox host (WG: 10.6.0.12) - Remote operations
-- **CT179**: Primary development container (48GB RAM, Docker, triple network stack)
-- **CT183**: Archon AI Command Center (MCP server, task management, RAG)
-- **WireGuard Mesh**: 14 active nodes (10.6.0.0/24) - Primary network
-- **Tailscale**: Cross-site VPN overlay (100.x.x.x) - Backup network
-
-**Network Priority**: WireGuard (fastest) > LAN (local) > Tailscale (fallback)
-
----
-
-## 🤖 Archon Integration - Quick Summary
-
-**CT183 (Archon)** - AI Command Center deployed on AGLSRV1:
-- **Primary Access**: WireGuard (10.6.0.21) → `claude mcp add --transport http archon-wg http://10.6.0.21:8051/mcp`
-- **Backup Access**: Tailscale (100.80.30.59) → `claude mcp add --transport http archon-tailscale http://100.80.30.59:8051/mcp`
-- **LAN Access** (dev only): 192.168.0.183 → `claude mcp add --transport http archon http://192.168.0.183:8052/mcp`
-- **Public DNS**: https://archon.aglz.io (Basic Auth: admin/ArchonPass2025)
-
-**Available MCP Tools** (28 total):
-- **Knowledge Base**: `rag_search_knowledge_base`, `rag_search_code_examples`, `rag_read_full_page`
-- **Project Management**: `find_projects`, `manage_project`, `get_project_features`
-- **Task Management**: `find_tasks`, `manage_task` (status: todo/doing/review/done)
-- **Document Management**: `find_documents`, `manage_document`
-- **System**: `health_check`, `session_info`, `archon_get_status`
-
-**Verification**:
-```bash
-claude mcp list  # Should show all 3 endpoints connected
-```
-
-**Complete Documentation**: See `@docs/ARCHON.md` for full MCP tools reference, architecture, development guidelines, and troubleshooting.
-
----
-
-## 🚨 CRITICAL RULES - Quick Reference
-
-**ABSOLUTE REQUIREMENTS**:
-1. ✅ **Concurrent Execution**: ALL related operations in ONE message (TodoWrite, Task tool, File operations, Bash commands)
-2. ✅ **File Organization**: NEVER save to root folder (use `/src`, `/tests`, `/docs`, `/config`, `/scripts`, `/examples`)
-3. ✅ **Mandatory Subagents**: ALWAYS use Task tool for complex operations (Explore, researcher, coder, tester, reviewer, architect)
-4. ✅ **Documentation Loading**: Use `@docs/filename.md` syntax for on-demand loading
-
-**Golden Rule**: "1 MESSAGE = ALL RELATED OPERATIONS"
-
-**Example - Correct Batching**:
-```javascript
-[BatchTool]:
-  // Spawn multiple agents in parallel
-  Task("Research agent: Analyze requirements...")
-  Task("Coder agent: Implement features...")
-  Task("Tester agent: Create test suite...")
-
-  // Batch all todos in ONE call
-  TodoWrite { todos: [
-    {content: "Research", status: "in_progress"},
-    {content: "Design", status: "pending"},
-    {content: "Implement", status: "pending"},
-    {content: "Test", status: "pending"},
-    {content: "Document", status: "pending"}
-  ]}
-
-  // Batch file operations
-  Bash "mkdir -p app/{src,tests,docs}"
-  Write "app/src/index.js"
-  Write "app/tests/index.test.js"
-  Write "app/docs/README.md"
-```
-
-**Complete Rules**: See `@docs/RULES.md` for execution patterns, code quality standards, error handling, Git workflow, and best practices.
-
----
-
-## 🎯 Workflows & Methodologies
-
-**Agent OS Integration** (Spec-Driven Development):
-- **6 Slash Commands**: `/create-tasks`, `/implement-tasks`, `/shape-spec`, `/write-spec`, `/plan-product`, `/improve-skills`
-- **16 Skills**: Auto-apply standards (backend, frontend, global, infrastructure, testing)
-- **4 Infrastructure Workflows**: WireGuard setup, NFS mounts, container deployment, Archon integration
-
-**SPARC Methodology** (Test-Driven Development):
-1. **Specification** - Requirements analysis
-2. **Pseudocode** - Algorithm design
-3. **Architecture** - System design
-4. **Refinement** - TDD implementation
-5. **Completion** - Integration and validation
-
-**Available Agents** (54 total):
-- **Core**: coder, reviewer, tester, planner, researcher
-- **Swarm**: hierarchical-coordinator, mesh-coordinator, adaptive-coordinator
-- **Performance**: perf-analyzer, performance-benchmarker, task-orchestrator
-- **GitHub**: pr-manager, code-review-swarm, issue-tracker, workflow-automation
-- **SPARC**: sparc-coord, sparc-coder, specification, pseudocode, architecture, refinement
-
-**Complete Details**: See `@docs/WORKFLOWS.md` for full command reference, workflows, and agent catalog.
-
----
-
-## 🚀 Quick Operations
-
-### Environment Detection
-```bash
-# Detect where you are running
-if [[ -f /proc/version ]] && grep -q microsoft /proc/version; then
-    echo "WSL2 (Tailscale only)"
-elif [[ -f /.dockerenv ]]; then
-    echo "Container (CT179/CT108)"
-fi
-```
-
-### Quick Connections
-```bash
-# From WSL2 (Tailscale only)
-ssh root@100.94.221.87  # CT179 development
-ssh root@100.107.113.33  # AGLSRV1 host
-
-# From CT179 (prefer WireGuard)
-ssh root@10.6.0.12  # AGLSRV6 (fastest)
-ssh root@192.168.0.245  # AGLSRV1 host
-```
-
-### Essential Commands
-```bash
-# Check containers
-ssh root@192.168.0.245 'pct list'
-
-# Access storage
-ls /mnt/pve/fgsrv6-wg  # NFS via WireGuard
-
-# Docker operations
-docker ps  # From CT179
-```
-
-**Complete Reference**: See `@docs/QUICK-START.md` for environment-specific commands, storage access, Docker operations, Archon management, and troubleshooting.
-
----
-
-## 💻 Development Environments - Summary
-
-**WSL2 (AGLHQ11)** - Remote Access:
-- **Network**: Tailscale only (100.75.205.122)
-- **Best For**: Remote work, Windows-based development
-- **Limitations**: No WireGuard, no local LAN access, no Docker
-- **Typical Use**: SSH to CT179 for infrastructure work
-
-**CT179 (agldv03)** - Full Stack:
-- **Network**: Triple-stack (LAN + WireGuard + Tailscale)
-- **Resources**: 48GB RAM, Docker, full development tools
-- **Best For**: High-performance local operations, WireGuard mesh access
-- **Connection Priority**: WireGuard (fastest) > LAN (local) > Tailscale (fallback)
-
-**CT108 (agldv06)** - Tailscale Only:
-- **Network**: Tailscale only (100.71.229.12)
-- **Best For**: AGLSRV6 local operations
-- **Similar to**: WSL2 but with better container performance
-
-**Complete Details**: See `@docs/INFRA.md` for network topology, connection matrix, tooling requirements, and environment-specific workflows.
-
----
-
-## 📋 Integration with Archon MCP
-
-**How Agent OS and Archon Work Together**:
-1. **Standards → Archon Knowledge Base**: Agent OS standards indexed for semantic search
-2. **Workflows → Archon Task Management**: Convert workflows to trackable tasks
-3. **Skills → MCP Tool Discovery**: Skills trigger appropriate Archon tools
-4. **Documentation → Cross-Referencing**: All docs reference each other
-
-**Workflow Patterns**:
-```
-1. Read Agent OS workflow spec
-2. Create Archon project and tasks (via MCP)
-3. Execute with Skills auto-applying standards
-4. Update Archon task status (todo → doing → done)
-```
-
-**Integration Commands**:
-```bash
-# Search Archon knowledge base
-mcp__archon__rag_search_knowledge_base(query="wireguard mesh", match_count=5)
-
-# Create infrastructure project
-mcp__archon__manage_project("create", title="WireGuard Expansion")
-
-# Track workflow as tasks
-mcp__archon__manage_task("create", project_id="...", title="Setup CT184")
-```
-
----
-
-## 📊 Performance & Features
-
-**Performance Benefits**:
-- **84.8% SWE-Bench solve rate**
-- **32.3% token reduction** with modular documentation
-- **2.8-4.4x speed improvement** with parallel execution
-- **10-20x faster** concurrent operations vs sequential
-- **90% token savings** with on-demand document loading
-
-**Advanced Features**:
-- 🚀 Automatic Topology Selection
-- ⚡ Parallel Execution (Task tool batching)
-- 🧠 Neural Training (27+ models)
-- 📊 Bottleneck Analysis
-- 🤖 Smart Auto-Spawning
-- 🛡️ Self-Healing Workflows
-- 💾 Cross-Session Memory (Archon MCP)
-- 🔗 GitHub Integration
-
----
-
-## 🔧 Troubleshooting Quick Reference
-
-### Common Issues
-
-| Issue | Solution | Documentation |
-|-------|----------|---------------|
-| SSH timeout | Check Tailscale/WireGuard status | `@docs/QUICK-START.md` |
-| NFS mount stale | `umount -f /mnt/pve/<storage> && mount -a` | `@docs/INFRA.md` |
-| WireGuard handshake fails | Check config (remove PresharedKey in LXC) | `@docs/INFRA.md` |
-| Archon MCP error | Restart archon-mcp container | `@docs/ARCHON.md` |
-| Docker permission | Add user to docker group | `@docs/QUICK-START.md` |
-
-### Diagnostic Commands
-```bash
-# Network
-wg show  # WireGuard status
-ping 10.6.0.5  # Test mesh
-
-# Storage
-df -h | grep wg  # NFS mounts
-showmount -e 10.6.0.5  # Check exports
-
-# Archon
-curl http://10.6.0.21:8051/mcp  # Test MCP endpoint
-```
-
-**Complete Troubleshooting**: See `@docs/QUICK-START.md` for common issues table and diagnostic procedures.
-
----
-
-## 📝 Git Commit Guidelines
+# Claude Code Configuration - Claude Flow V3
+
+## Behavioral Rules (Always Enforced)
+
+- Do what has been asked; nothing more, nothing less
+- NEVER create files unless they're absolutely necessary for achieving your goal
+- ALWAYS prefer editing an existing file to creating a new one
+- NEVER proactively create documentation files (*.md) or README files unless explicitly requested
+- NEVER save working files, text/mds, or tests to the root folder
+- Never continuously check status after spawning a swarm — wait for results
+- ALWAYS read a file before editing it
+- NEVER commit secrets, credentials, or .env files
+
+## File Organization
+
+- NEVER save to root folder — use the directories below
+- Use `/src` for source code files
+- Use `/tests` for test files
+- Use `/docs` for documentation and markdown files
+- Use `/config` for configuration files
+- Use `/scripts` for utility scripts
+- Use `/examples` for example code
+
+## Project Architecture
+
+- Follow Domain-Driven Design with bounded contexts
+- Keep files under 500 lines
+- Use typed interfaces for all public APIs
+- Prefer TDD London School (mock-first) for new code
+- Use event sourcing for state changes
+- Ensure input validation at system boundaries
+
+### Project Config
+
+- **Topology**: hierarchical-mesh
+- **Max Agents**: 15
+- **Memory**: hybrid
+- **HNSW**: Enabled
+- **Neural**: Enabled
+
+## Build & Test
 
 ```bash
-# Format: <type>: <description>
-git commit -m "feat: add WireGuard peer CT184
+# Build
+npm run build
 
-- Generated keys and configuration
-- Added to hub (10.6.0.22)
-- Verified mesh connectivity"
+# Test
+npm test
 
-# Types: feat, fix, docs, refactor, test, perf, chore
+# Lint
+npm run lint
 ```
 
----
+- ALWAYS run tests after making code changes
+- ALWAYS verify build succeeds before committing
 
-## 🎯 Next Steps & Task Tracking
+## Security Rules
 
-**Use Archon MCP for task management**:
+- NEVER hardcode API keys, secrets, or credentials in source files
+- NEVER commit .env files or any file containing secrets
+- Always validate user input at system boundaries
+- Always sanitize file paths to prevent directory traversal
+- Run `npx @claude-flow/cli@latest security scan` after security-related changes
+
+## Concurrency: 1 MESSAGE = ALL RELATED OPERATIONS
+
+- All operations MUST be concurrent/parallel in a single message
+- Use Claude Code's Task tool for spawning agents, not just MCP
+- ALWAYS batch ALL todos in ONE TodoWrite call (5-10+ minimum)
+- ALWAYS spawn ALL agents in ONE message with full instructions via Task tool
+- ALWAYS batch ALL file reads/writes/edits in ONE message
+- ALWAYS batch ALL Bash commands in ONE message
+
+## Swarm Orchestration
+
+- MUST initialize the swarm using CLI tools when starting complex tasks
+- MUST spawn concurrent agents using Claude Code's Task tool
+- Never use CLI tools alone for execution — Task tool agents do the actual work
+- MUST call CLI tools AND Task tool in ONE message for complex work
+
+### 3-Tier Model Routing (ADR-026)
+
+| Tier | Handler | Latency | Cost | Use Cases |
+|------|---------|---------|------|-----------|
+| **1** | Agent Booster (WASM) | <1ms | $0 | Simple transforms (var→const, add types) — Skip LLM |
+| **2** | Haiku | ~500ms | $0.0002 | Simple tasks, low complexity (<30%) |
+| **3** | Sonnet/Opus | 2-5s | $0.003-0.015 | Complex reasoning, architecture, security (>30%) |
+
+- Always check for `[AGENT_BOOSTER_AVAILABLE]` or `[TASK_MODEL_RECOMMENDATION]` before spawning agents
+- Use Edit tool directly when `[AGENT_BOOSTER_AVAILABLE]`
+
+## Swarm Configuration & Anti-Drift
+
+- ALWAYS use hierarchical topology for coding swarms
+- Keep maxAgents at 6-8 for tight coordination
+- Use specialized strategy for clear role boundaries
+- Use `raft` consensus for hive-mind (leader maintains authoritative state)
+- Run frequent checkpoints via `post-task` hooks
+- Keep shared memory namespace for all agents
+
 ```bash
-# List all tasks
-find_tasks(filter_by="status", filter_value="todo")
-
-# Update task status
-manage_task("update", task_id="...", status="doing")
-
-# Mark complete
-manage_task("update", task_id="...", status="done")
+npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --strategy specialized
 ```
 
-**Current Focus Areas**:
-- Infrastructure monitoring (WireGuard mesh, NFS storage)
-- Container management (configuration updates, deployments)
-- Documentation maintenance (keep INFRA.md, ARCHON.md, WORKFLOWS.md current)
-- Archon integration (test all MCP tools, knowledge base expansion)
+## Swarm Execution Rules
+
+- ALWAYS use `run_in_background: true` for all agent Task calls
+- ALWAYS put ALL agent Task calls in ONE message for parallel execution
+- After spawning, STOP — do NOT add more tool calls or check status
+- Never poll TaskOutput or check swarm status — trust agents to return
+- When agent results arrive, review ALL results before proceeding
+
+## V3 CLI Commands
+
+### Core Commands
+
+| Command | Subcommands | Description |
+|---------|-------------|-------------|
+| `init` | 4 | Project initialization |
+| `agent` | 8 | Agent lifecycle management |
+| `swarm` | 6 | Multi-agent swarm coordination |
+| `memory` | 11 | AgentDB memory with HNSW search |
+| `task` | 6 | Task creation and lifecycle |
+| `session` | 7 | Session state management |
+| `hooks` | 17 | Self-learning hooks + 12 workers |
+| `hive-mind` | 6 | Byzantine fault-tolerant consensus |
+
+### Quick CLI Examples
+
+```bash
+npx @claude-flow/cli@latest init --wizard
+npx @claude-flow/cli@latest agent spawn -t coder --name my-coder
+npx @claude-flow/cli@latest swarm init --v3-mode
+npx @claude-flow/cli@latest memory search --query "authentication patterns"
+npx @claude-flow/cli@latest doctor --fix
+```
+
+## Available Agents (60+ Types)
+
+### Core Development
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
+
+### Specialized
+`security-architect`, `security-auditor`, `memory-specialist`, `performance-engineer`
+
+### Swarm Coordination
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`
+
+### GitHub & Repository
+`pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`
+
+### SPARC Methodology
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`
+
+## Memory Commands Reference
+
+```bash
+# Store (REQUIRED: --key, --value; OPTIONAL: --namespace, --ttl, --tags)
+npx @claude-flow/cli@latest memory store --key "pattern-auth" --value "JWT with refresh" --namespace patterns
+
+# Search (REQUIRED: --query; OPTIONAL: --namespace, --limit, --threshold)
+npx @claude-flow/cli@latest memory search --query "authentication patterns"
+
+# List (OPTIONAL: --namespace, --limit)
+npx @claude-flow/cli@latest memory list --namespace patterns --limit 10
+
+# Retrieve (REQUIRED: --key; OPTIONAL: --namespace)
+npx @claude-flow/cli@latest memory retrieve --key "pattern-auth" --namespace patterns
+```
+
+## Quick Setup
+
+```bash
+claude mcp add claude-flow -- npx -y @claude-flow/cli@latest
+npx @claude-flow/cli@latest daemon start
+npx @claude-flow/cli@latest doctor --fix
+```
+
+## Claude Code vs CLI Tools
+
+- Claude Code's Task tool handles ALL execution: agents, file ops, code generation, git
+- CLI tools handle coordination via Bash: swarm init, memory, hooks, routing
+- NEVER use CLI tools as a substitute for Task tool agents
+
+## Support
+
+- Documentation: https://github.com/ruvnet/claude-flow
+- Issues: https://github.com/ruvnet/claude-flow/issues
 
 ---
 
-## 📚 Support & Documentation
+## Project: agl-hostman
 
-**Official Resources**:
-- **Claude-Flow**: https://github.com/ruvnet/claude-flow
-- **Claude Code Docs**: https://docs.claude.com/en/docs/claude-code
+> **Last Updated**: 2026-03-12
+> **PRD**: `docs/PRD.md`
+> **Infra Map**: `docs/INFRA.md`
+> **Cloudflare Tunnels**: `docs/CLOUDFLARE-TUNNELS.md`
 
-**Project Documentation**:
-- **INFRA.md**: Infrastructure map, network topology, connection matrix
-- **ARCHON.md**: Archon integration, MCP tools reference, development guidelines
-- **WORKFLOWS.md**: Agent OS, SPARC methodology, available agents
-- **RULES.md**: Coding standards, execution patterns, best practices
-- **QUICK-START.md**: Fast reference, commands, troubleshooting
+### O que é este projeto
 
-**Loading Pattern**: Use `@docs/filename.md` to load on-demand (saves 90% tokens!)
+AGL Host Management System — plataforma unificada para gerenciar a infraestrutura AGL (Proxmox, WireGuard, NFS, storage, AI stack). Consolida ferramentas de infra, scripts de automação e documentação de múltiplos hosts.
 
----
+### Estrutura real do projeto
 
-**Remember**:
-- 📖 Always read context documents before starting infrastructure or Archon tasks
-- 🔄 Claude Code creates, Claude-Flow coordinates, Archon MCP tracks
-- ⚡ Batch all operations in single messages for maximum performance
-- 🎯 Use Agent OS for spec-driven workflows, SPARC for TDD development
+```
+agl-hostman/
+├── src/
+│   ├── api/                    # REST API Fastify (porta 3030)
+│   │   ├── server.js           # Entry point com Bearer auth
+│   │   └── routes/             # hosts.js, storage.js, ai.js
+│   ├── services/               # proxmox.js, storage-monitor.js, ai-stack.js
+│   ├── hive-mind-integration/  # HiveMindWorkerPool, AgentTemplates, PerformanceMonitor
+│   ├── performance/worker-pool/ # WorkerPool.js (2.8-4.4x perf)
+│   ├── database/database.sqlite # SQLite local (hive state)
+│   ├── web/                    # Dashboard React + Vite + Tailwind
+│   │   └── src/components/     # HostGrid, StorageBar, AIStackStatus, HealthCard
+│   └── .env.example
+├── projects/
+│   └── hive-migration/         # Migração API1→API8 (Falg Imóveis)
+│       └── hive/code/
+│           ├── shim/           # LegacyDatabaseShim.php, RouteMapper.php, FeatureFlags.php
+│           ├── rollback-api.sh
+│           └── transform-namespaces.sh
+├── scripts/
+│   ├── monitoring/             # storage-alert.sh, host-health.sh, ai-stack-health.sh,
+│   │                           # wireguard-mesh.sh, morning-briefing.sh
+│   └── setup-monitoring.sh     # Instala timer systemd no agldv03
+├── config/
+│   ├── systemd/                # hostman.service, hostman-monitor.service/.timer
+│   ├── litellm/                # config.yaml, .env.example
+│   ├── ruflo/                  # hive-mind.env, ruvector.env, background-workers.json
+│   └── openclaw/               # litellm-gateway-client.env, openclaw-patch.json
+└── docs/
+    ├── PRD.md                  # Product Requirements Document completo
+    ├── INFRA.md                # Mapa de infra (sempre ler antes de queries de infra)
+    ├── OPENCLAW.md             # Config multi-model OpenClaw
+    ├── RUFLO-ADVANCED.md       # Stack AI avançada (Ruflo, RuVector, Hive Mind)
+    └── CLAUDE-FLOW-LITELLM.md # Gateway multi-model LiteLLM
+```
 
----
+### Como iniciar os serviços
 
-**Document Version**: 3.0.0
-**Last Updated**: 2025-10-28
-**Maintainer**: Claude Code (agl-hostman project)
-**Always Load**: `@docs/INFRA.md` and `@docs/ARCHON.md` for complete context
+```bash
+# API (porta 3030) — em agldv03
+cp src/.env.example src/.env   # configurar vars
+npm start                       # ou: npm run dev (watch mode)
+
+# Dashboard (porta 5173)
+cd src/web && npm install && npm run dev
+
+# Monitoramento
+./scripts/monitoring/morning-briefing.sh   # manual
+sudo ./scripts/setup-monitoring.sh         # instala timer 15min
+
+# Ruflo daemon (garantir que está rodando)
+npx ruflo@latest daemon status
+npx ruflo@latest daemon start
+```
+
+### Hosts AGL (referência rápida)
+
+| Host | Tailscale IP | Papel |
+|------|-------------|-------|
+| agldv03 (CT179) | 100.94.221.87 | **Dev principal** — Node 24, Ruflo, LiteLLM |
+| aglsrv1 | 100.107.113.33 | Proxmox VE principal (68 CTs/VMs) |
+| aglsrv6 | 100.98.108.66 | Proxmox VE secundário |
+| fgsrv3 | 100.67.99.115 | MySQL master (falgimoveis11) |
+| fgsrv5 | 100.71.107.26 | APIs Falg (fg_OLD2_NEW + fg_API8_d) |
+| fgsrv6 | 100.83.51.9 | WireGuard Hub (10.6.0.5) |
+| aglwk45 (VM104) | 100.117.146.21 | Windows workstation — OpenClaw, usa LiteLLM remoto (agldv03) |
+
+- **SSH padrão**: `ssh root@<tailscale-ip>`
+- **WireGuard mesh**: 10.6.0.0/24 (14 nós)
+- **Prioridade de rede em agldv03**: WireGuard > LAN > Tailscale
+
+### Variáveis de ambiente críticas (src/.env)
+
+```bash
+HOSTMAN_PORT=3030
+HOSTMAN_API_KEY=              # Bearer token para a API
+PROXMOX_HOST=192.168.0.245
+PROXMOX_TOKEN_ID=             # API token Proxmox (não usuário/senha)
+PROXMOX_TOKEN_SECRET=
+LITELLM_BASE_URL=http://localhost:4000
+LITELLM_MASTER_KEY=           # do config/litellm/.env
+STORAGE_ALERT_THRESHOLD=90    # spark em 91.5%, overpower em 92.5% — CRÍTICO
+```
+
+### AI Stack (agldv03)
+
+| Componente | Versão/Status | Config |
+|-----------|--------------|--------|
+| Ruflo | v3.5.2 | `npx ruflo@latest` |
+| LiteLLM | 19 modelos, porta 4000 | `config/litellm/` |
+| OpenClaw | v2026.2.26+ | `~/.openclaw/openclaw.json` — gateway.mode=local, ANTHROPIC_API_KEY=sk-optional (placeholder) |
+| Hive Mind | 23 workers, byzantine | `npx ruflo@latest hive-mind status` |
+| Memory | 117k entradas, HNSW | `npx ruflo@latest memory search` |
+
+- **ANTHROPIC_BASE_URL**: `http://localhost:4000` (via LiteLLM)
+- **Modelo primário**: `zai/glm-5` → fallback chain configurado
+- **Deploy OpenClaw**: `./scripts/deploy-openclaw-config.sh` (agldv03, fgsrv06, agldv04-06)
+
+### OpenClaw — verificação multi-host
+
+| Host | Comando |
+|------|---------|
+| agldv03 | `source ~/.openclaw/zshrc-openclaw.env && openclaw status` |
+| fgsrv06 | `ssh root@100.83.51.9 'openclaw status'` |
+| aglwk45 (VM104) | Via AGLSRV1: `ssh root@192.168.0.245 'qm agent 104 ping'` e `qm guest exec 104 -- openclaw --version` |
+
+Scripts: `scripts/verify-openclaw-aglwk45.sh`, `scripts/verify-openclaw-aglwk45.ps1` (ver `docs/AGLWK45-SETUP.md`)
+
+### Projeto hive-migration (Falg Imóveis)
+
+- **API1** (legacy): Laravel 5.5 / PHP 7.4 — `/var/www/fg_OLD2_NEW` — `api.falg.com.br`
+- **API8** (target): Laravel 8.x / PHP 8.1 — `/var/www/fg_API8_d`
+- **DB produção**: `falgimoveis11` em 191.252.201.205 (fgsrv3)
+- **DB dev/staging**: `fgdev` (sync 4x/dia via backup-db-sync.sh)
+- **Shim layer**: `projects/hive-migration/hive/code/shim/` — **registrar em `config/app.php` do Laravel 8**
+- Adicionar `App\Shim\ShimServiceProvider::class` em `config/app.php`
+
+### Alertas de storage (crítico)
+
+- `spark` (7.1TB): **91.5% usado** — alerta acima de 90%
+- `overpower` (9.8TB): **92.5% usado** — alerta acima de 90%
+- Script: `scripts/monitoring/storage-alert.sh`
+- **Não gravar dados volumosos em storage local sem verificar espaço**
+
+### Preferências do usuário (registradas)
+
+- **Idioma**: Respostas em pt-BR
+- **Execução paralela**: Sempre spawnar múltiplos agentes em paralelo (1 mensagem, todos os Task calls juntos)
+- **PRD primeiro**: Para projetos novos ou avanço, criar PRD antes de implementar
+- **Análise de docs**: Ler toda documentação existente (infra, outros projetos) antes de propor soluções
+- **Quick wins junto com implementação**: Aplicar correções imediatas (daemons parados, permissões, etc.) enquanto agentes rodam em background
+- **Validação pós-implementação**: Sempre rodar syntax check / smoke test após implementar
+- **Sem estimativas de tempo**: Não dar estimativas de quanto vai demorar
+- **Respostas concisas**: Preferência por sumários diretos ao final, não explicações longas durante execução
+
+### Infra: troubleshooting rápido (AGLSRV1)
+
+| Problema | Solução |
+|----------|---------|
+| **Restart CT** | Executar do host (100.107.113.33) ou via Proxmox Web UI — **nunca** do próprio CT (ex: CT179) |
+| **CT locked (snapshot)** | `ssh root@100.107.113.33 'pct unlock <vmid> && pct start <vmid>'` |
+| **CT102 (pihole) parado** | `pct unlock 102 && pct start 102` |
+| **Cloudflared (CT117) sem túnel** | `pct exec 117 -- systemctl restart cloudflared` |
+| **DNS no aglsrv1** | `tailscale set --accept-dns=false`; `/etc/resolv.conf`: 192.168.0.102, 1.1.1.1, 8.8.8.8 |
+| **Host sobrecarregado** | Verificar load, swap, zombies; VM125 (AGLMAC06) alta CPU → `qm stop 125` |
+| **OpenClaw em aglwk45** | VM104 sem SSH — usar `qm guest exec 104` do AGLSRV1: `ssh root@192.168.0.245 'qm guest exec 104 -- openclaw --version'` |
+
+### Sessões recentes (agent-transcripts)
+
+- **HA fileserver7 + agldv07**: CT240/241, storage NFS, WireGuard+Tailscale fallback
+- **AGLSRV1 sobrecarga**: VM125 parada, zombies containerd, pct move-volume lento via NFS
+- **CT102/CT117/CT179**: lock snapshot, cloudflared restart, DNS config
+- **OpenClaw multi-host**: verificação agldv03, fgsrv06, aglwk45; qm guest exec para VM104; ANTHROPIC_API_KEY placeholder; gateway.mode=local

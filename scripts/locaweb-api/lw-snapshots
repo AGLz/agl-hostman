@@ -1,0 +1,19 @@
+#!/bin/bash
+# ========================================
+# List snapshots for a VPS
+# Usage: lw-snapshots <vps_id>
+# Example: lw-snapshots vps41772
+# ========================================
+source "$(dirname "$0")/config.sh"
+
+VPS_ID="${1:-$VPS_FGSRV06}"
+
+echo "=== Snapshots for VPS: $VPS_ID ==="
+result=$(lw_curl "${LW_API_URL}/vps/servers/${VPS_ID}/snapshots")
+
+if [ -z "$result" ]; then
+    echo "No snapshots or API error"
+    exit 1
+fi
+
+echo "$result" | jq -r '.data[] | "\(.id) | \(.attributes.name) | \(.attributes.status) | \(.attributes.created_at)"'

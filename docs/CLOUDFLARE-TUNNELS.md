@@ -205,8 +205,20 @@ ssh root@100.119.223.113 'pct exec 130 -- systemctl restart cloudflared'
 ```yaml
 - hostname: archon.aglz.io
   service: http://192.168.0.183:8080
+- hostname: mysql-master.aglz.io
+  service: tcp://192.168.0.131:3306
+- hostname: mesh.aglz.io
+  service: https://192.168.0.162
+  originRequest:
+    noTLSVerify: true
+    disableChunkedEncoding: true
 - service: http_status:404
 ```
+
+**Endpoints**:
+- archon.aglz.io → Archon AI (CT183:8080)
+- mysql-master.aglz.io → MySQL HA Master (CT131:3306)
+- mesh.aglz.io → MeshCentral (CT162)
 
 **Comandos Úteis**:
 ```bash

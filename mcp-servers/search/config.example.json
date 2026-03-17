@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "agl-search": {
+      "command": "node",
+      "args": ["/mnt/overpower/apps/dev/agl/agl-hostman/mcp-servers/search/server.js"],
+      "env": {
+        "AGL_PROJECT_ROOT": "/mnt/overpower/apps/dev/agl/agl-hostman",
+        "AGL_MAX_RESULTS": "50",
+        "AGL_SEARCH_TIMEOUT": "30000"
+      }
+    }
+  }
+}

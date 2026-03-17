@@ -1,0 +1,92 @@
+# Cursor Agent Composer 1.5 Configuration for LiteLLM
+# Reference: https://docs.litellm.ai/docs/tutorials/cursor_integration
+#
+# IMPORTANT: Cursor Agent mode has limitations with custom API keys.
+# Supported modes: Ask, Plan (Agent mode doesn't fully support custom keys yet)
+#
+# Known issue (Feb 2026): Cursor Agent sends Responses API format instead of
+# Chat Completions format to /chat/completions endpoint.
+# GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
+
+model_list:
+  # Cursor Agent Composer 1.5 - Primary Models
+  - model_name: cursor-claude-sonnet
+    litellm_params:
+      model: claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      description: "Claude Sonnet 4.6 for Cursor Agent Composer - Best for code generation"
+      max_tokens: 16384
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+
+  - model_name: cursor-claude-opus
+    litellm_params:
+      model: claude-opus-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      description: "Claude Opus 4.6 for Cursor Agent - Complex reasoning"
+      max_tokens: 16384
+      input_cost_per_token: 0.000015
+      output_cost_per_token: 0.000075
+
+  - model_name: cursor-glm-5
+    litellm_params:
+      model: openai/z-ai/glm-5
+      api_key: os.environ/OPENROUTER_API_KEY
+      api_base: https://openrouter.ai/api/v1
+    model_info:
+      description: "GLM-5 via OpenRouter - Cost-effective alternative"
+      max_tokens: 8192
+
+  - model_name: cursor-deepseek
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+    model_info:
+      description: "DeepSeek V3.2 - Excellent for code"
+      max_tokens: 8192
+
+  - model_name: cursor-gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      description: "GPT-4o - Reliable fallback"
+      max_tokens: 8192
+
+# Fallbacks for Cursor Agent
+fallbacks:
+  - model_name: cursor-claude-sonnet
+    fallbacks: [cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+  - model_name: cursor-claude-opus
+    fallbacks: [cursor-claude-sonnet, cursor-gpt-4o]
+  - model_name: cursor-glm-5
+    fallbacks: [cursor-deepseek, cursor-gpt-4o]
+
+# Router settings for Cursor
+router_settings:
+  routing_strategy: "simple-shuffle"
+  num_retries: 3
+  timeout: 120
+  retry_after: 1
+
+# Rate limiting
+litellm_settings:
+  drop_params: True
+  set_verbose: False
+  max_budget: 100  # $100 daily budget for Cursor
+  budget_duration: "1d"
+
+# Cursor-specific endpoint
+# Access at: http://localhost:4000/cursor
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+
+  # Cursor integration settings
+  proxy_batch_write_at: 60
+
+  # Enable /cursor endpoint for Cursor IDE
+  # This endpoint handles Cursor-specific request formats
+  enable_preview_image_role: True

@@ -6,6 +6,7 @@
 
 # Dependencies
 node_modules/
+src/web/node_modules/
 .pnpm-debug.log*
 
 # Environment
@@ -68,3 +69,27 @@ coordination/orchestration/*
 claude-flow
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
+
+# Codex local configuration
+.codex/
+
+# Claude Flow runtime data
+.claude-flow/data/
+.claude-flow/logs/
+
+# Auto Claude generated files
+.auto-claude/
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+.worktrees/
+.security-key
+logs/security/
+
+# Playwright & tests
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Logs
+proxmox_mcp.log

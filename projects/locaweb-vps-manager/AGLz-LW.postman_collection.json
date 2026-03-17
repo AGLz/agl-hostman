@@ -1,0 +1,595 @@
+{
+	"info": {
+		"_postman_id": "e17814b5-75de-45da-9f42-00a2c78b6856",
+		"name": "AGLz-LW",
+		"description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" alt=\"\" height=\"1530\" width=\"2162\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2866654",
+		"_collection_link": "https://aglteam.postman.co/workspace/BB~2e4836b1-41bb-4da9-8e74-083792bee7e1/collection/2866654-e17814b5-75de-45da-9f42-00a2c78b6856?action=share&source=collection_link&creator=2866654"
+	},
+	"item": [
+		{
+			"name": "Show VPS FGSRV03",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-User-Token",
+						"value": "cfadcdc252c769e5ef66f3c7a867c3731fc590de3c78fdefd5062d6a",
+						"description": "TOKEN é único e obtido na área de API do painel de Servidores Cloud e Dedicados",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "adminfalg",
+						"description": "ID_CONTA é o usuário utilizado para acessar os serviços da Locaweb.",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api-servidores.locaweb.com.br/v1/vps/servers/vps14419?locale=pt-BR",
+					"protocol": "https",
+					"host": [
+						"api-servidores",
+						"locaweb",
+						"com",
+						"br"
+					],
+					"path": [
+						"v1",
+						"vps",
+						"servers",
+						"vps14419"
+					],
+					"query": [
+						{
+							"key": "locale",
+							"value": "pt-BR"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS FGSRV04",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-User-Token",
+						"value": "cfadcdc252c769e5ef66f3c7a867c3731fc590de3c78fdefd5062d6a",
+						"description": "TOKEN é único e obtido na área de API do painel de Servidores Cloud e Dedicados",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "adminfalg",
+						"description": "ID_CONTA é o usuário utilizado para acessar os serviços da Locaweb.",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api-servidores.locaweb.com.br/v1/vps/servers/vps22826",
+					"protocol": "https",
+					"host": [
+						"api-servidores",
+						"locaweb",
+						"com",
+						"br"
+					],
+					"path": [
+						"v1",
+						"vps",
+						"servers",
+						"vps22826"
+					],
+					"query": [
+						{
+							"key": "locale",
+							"value": "pt-BR",
+							"disabled": true
+						},
+						{
+							"key": "fields[vps]",
+							"value": "network_version",
+							"disabled": true
+						},
+						{
+							"key": "fields[vps]",
+							"value": "power_state,status",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS FGSRV04 actions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-User-Token",
+						"value": "cfadcdc252c769e5ef66f3c7a867c3731fc590de3c78fdefd5062d6a",
+						"description": "TOKEN é único e obtido na área de API do painel de Servidores Cloud e Dedicados",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "adminfalg",
+						"description": "ID_CONTA é o usuário utilizado para acessar os serviços da Locaweb.",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api-servidores.locaweb.com.br/v1/vps/servers/vps22826/actions",
+					"protocol": "https",
+					"host": [
+						"api-servidores",
+						"locaweb",
+						"com",
+						"br"
+					],
+					"path": [
+						"v1",
+						"vps",
+						"servers",
+						"vps22826",
+						"actions"
+					],
+					"query": [
+						{
+							"key": "locale",
+							"value": "pt-BR",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS FGSRV04 reboot",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-User-Token",
+						"value": "cfadcdc252c769e5ef66f3c7a867c3731fc590de3c78fdefd5062d6a",
+						"description": "TOKEN é único e obtido na área de API do painel de Servidores Cloud e Dedicados",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "adminfalg",
+						"description": "ID_CONTA é o usuário utilizado para acessar os serviços da Locaweb.",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"data\": {\r\n        \"type\": \"actions\",\r\n        \"attributes\": {\r\n            \"resource_id\": \"vps22826\",\r\n            \"resource_type\": \"vps\",\r\n            \"action\": \"reboot\"\r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api-servidores.locaweb.com.br/v1/vps/servers/vps22826/actions",
+					"protocol": "https",
+					"host": [
+						"api-servidores",
+						"locaweb",
+						"com",
+						"br"
+					],
+					"path": [
+						"v1",
+						"vps",
+						"servers",
+						"vps22826",
+						"actions"
+					],
+					"query": [
+						{
+							"key": "locale",
+							"value": "pt-BR",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS FGSRV05",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-User-Token",
+						"value": "cfadcdc252c769e5ef66f3c7a867c3731fc590de3c78fdefd5062d6a",
+						"description": "TOKEN é único e obtido na área de API do painel de Servidores Cloud e Dedicados",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "adminfalg",
+						"description": "ID_CONTA é o usuário utilizado para acessar os serviços da Locaweb.",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api-servidores.locaweb.com.br/v1/vps/servers/vps24136?locale=pt-BR",
+					"protocol": "https",
+					"host": [
+						"api-servidores",
+						"locaweb",
+						"com",
+						"br"
+					],
+					"path": [
+						"v1",
+						"vps",
+						"servers",
+						"vps24136"
+					],
+					"query": [
+						{
+							"key": "locale",
+							"value": "pt-BR"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS FGSRV06",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-User-Token",
+						"value": "cfadcdc252c769e5ef66f3c7a867c3731fc590de3c78fdefd5062d6a",
+						"description": "TOKEN é único e obtido na área de API do painel de Servidores Cloud e Dedicados",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "adminfalg",
+						"description": "ID_CONTA é o usuário utilizado para acessar os serviços da Locaweb.",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api-servidores.locaweb.com.br/v1/vps/servers/vps41772?locale=pt-BR",
+					"protocol": "https",
+					"host": [
+						"api-servidores",
+						"locaweb",
+						"com",
+						"br"
+					],
+					"path": [
+						"v1",
+						"vps",
+						"servers",
+						"vps41772"
+					],
+					"query": [
+						{
+							"key": "locale",
+							"value": "pt-BR"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS Servers",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Token",
+						"value": "{{api_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "{{api_user}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/vps/servers",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"vps",
+						"servers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS Details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Token",
+						"value": "{{api_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "{{api_user}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/vps/servers/{{vps_id}}",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"vps",
+						"servers",
+						"{{vps_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show VPS Snapshots",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Token",
+						"value": "{{api_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "{{api_user}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/vps/servers/{{vps_id}}/snapshots",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"vps",
+						"servers",
+						"{{vps_id}}",
+						"snapshots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Make VPS Snapshot",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Token",
+						"value": "{{api_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "{{api_user}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"data\": {\r\n    \"type\": \"snapshots\",\r\n    \"attributes\": {\r\n      \"name\": \"backup-pre-upgrade-ubuntu-24.04\",\r\n      \"description\": \"Backup antes do upgrade Ubuntu 18.04 para 24.04 - {{$timestamp}}\"\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_url}}/vps/servers/{{vps_id}}/snapshots",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"vps",
+						"servers",
+						"{{vps_id}}",
+						"snapshots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify VPS Actions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Token",
+						"value": "{{api_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Login",
+						"value": "{{api_user}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/vps/servers/{{vps_id}}/actions",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"vps",
+						"servers",
+						"{{vps_id}}",
+						"actions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "1"
+		},
+		{
+			"key": "base_url",
+			"value": "https://postman-rest-api-learner.glitch.me/"
+		}
+	]
+}

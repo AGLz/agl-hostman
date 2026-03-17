@@ -1,0 +1,15 @@
+#!/bin/bash
+# ========================================
+# List all VPS servers
+# ========================================
+source "$(dirname "$0")/config.sh"
+
+echo "=== Locaweb VPS List ==="
+result=$(lw_curl "${LW_API_URL}/vps/servers")
+
+if [ -z "$result" ]; then
+    echo "No data returned or API error"
+    exit 1
+fi
+
+echo "$result" | jq -r '.data[] | "\(.id) | \(.attributes.title) | \(.attributes.status) | \(.attributes.public_ip)"'

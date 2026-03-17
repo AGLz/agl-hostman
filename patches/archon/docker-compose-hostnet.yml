@@ -1,0 +1,33 @@
+services:
+  archon-server:
+    image: renatabk/archon-server:latest
+    container_name: archon-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - HOST=0.0.0.0
+      - PORT=8181
+    volumes:
+      - ./logs:/app/logs
+
+  archon-mcp:
+    image: renatabk/archon-mcp:latest
+    container_name: archon-mcp
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - HOST=0.0.0.0
+      - PORT=8051
+
+  archon-ui:
+    image: renatabk/archon-frontend:latest
+    container_name: archon-ui
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - VITE_API_URL=http://localhost:8181
+      - VITE_ALLOWED_HOSTS=archon.aglz.io,localhost,127.0.0.1

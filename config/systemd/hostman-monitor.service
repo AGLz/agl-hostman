@@ -1,0 +1,11 @@
+[Unit]
+Description=AGL Hostman Monitoring Run
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/mnt/overpower/apps/dev/agl/agl-hostman
+ExecStart=/mnt/overpower/apps/dev/agl/agl-hostman/scripts/monitoring/morning-briefing.sh
+StandardOutput=journal
+StandardError=journal

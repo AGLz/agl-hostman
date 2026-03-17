@@ -1,0 +1,51 @@
+{
+  "workers": [
+    {
+      "id": "ultralearn",
+      "enabled": true,
+      "autoStart": true,
+      "hooks": ["post-task"],
+      "description": "Aprendizado contínuo de padrões"
+    },
+    {
+      "id": "consolidate",
+      "enabled": true,
+      "autoStart": true,
+      "hooks": ["session-end"],
+      "description": "Consolidação de memória"
+    },
+    {
+      "id": "deepdive",
+      "enabled": true,
+      "autoStart": false,
+      "hooks": ["pre-task"],
+      "description": "Análise profunda para tarefas complexas"
+    },
+    {
+      "id": "testgaps",
+      "enabled": true,
+      "autoStart": true,
+      "hooks": ["post-edit"],
+      "description": "Detecção de gaps de teste"
+    },
+    {
+      "id": "refactor",
+      "enabled": true,
+      "autoStart": false,
+      "hooks": ["post-edit"],
+      "description": "Sugestões de refatoração"
+    },
+    {
+      "id": "benchmark",
+      "enabled": true,
+      "autoStart": false,
+      "hooks": [],
+      "description": "Benchmarks de performance (manual)"
+    }
+  ],
+  "infraSpecs": [
+    "agent-os/specs/infrastructure/wireguard-peer-setup.md",
+    "agent-os/specs/infrastructure/nfs-storage-mount.md",
+    "agent-os/specs/infrastructure/archon-integration.md"
+  ]
+}

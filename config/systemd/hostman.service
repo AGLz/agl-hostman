@@ -1,0 +1,17 @@
+[Unit]
+Description=AGL Host Management API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/mnt/overpower/apps/dev/agl/agl-hostman
+EnvironmentFile=/mnt/overpower/apps/dev/agl/agl-hostman/src/.env
+ExecStart=/usr/bin/node src/api/server.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

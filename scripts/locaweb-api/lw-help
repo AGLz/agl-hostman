@@ -1,0 +1,32 @@
+#!/bin/bash
+# ========================================
+# Locaweb VPS Manager - Help
+# ========================================
+
+echo "Usage: lw <command> [args]"
+echo ""
+echo "Commands:"
+echo "  list              - List all VPS servers"
+echo "  status [vps_id]   - Show detailed status of a VPS"
+echo "  reboot [vps_id]   - Reboot a VPS (with confirmation)
+echo "  snapshot [vps_id] [name] [desc] - Create snapshot"
+echo "  snapshots [vps_id] - List snapshots for a VPS"
+echo "  actions [vps_id]  - List pending actions"
+echo ""
+echo "VPS IDs:"
+echo "  fgsrv03 = vps14419"
+echo "  fgsrv04 = vps22826"
+echo "  fgsrv05 = vps24136"
+echo "  fgsrv06 = vps41772"
+echo "  fgsrv07 = vps64306"
+echo ""
+echo "Shortcuts:"
+echo "  lw fgsrv03  - Show FGSRV03 status"
+echo "  lw fgsrv04  - Show FGSRV04 status"
+echo "  lw fgsrv05  - Show FGSRV05 status"
+echo "  lw fgsrv06  - Show FGSRV06 status"
+echo "  lw fgsrv07  - Show FGSRV07 status"
+echo ""
+echo "Example: lw status vps41772"
+echo "          lw fgsrv06   # Show FGSRV06 status"
+echo "          lw help       # Show this help"

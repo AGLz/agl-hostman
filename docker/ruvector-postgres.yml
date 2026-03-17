@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  ruvector-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ruvector-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: agl_ruvector_2026
+      POSTGRES_DB: agl_ruvector
+    ports:
+      - "5433:5432"
+    volumes:
+      - ruvector_data:/var/lib/postgresql/data
+      - ./init-ruvector.sql:/docker-entrypoint-initdb.d/init-ruvector.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d agl_ruvector"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ruvector_data:

@@ -1,102 +1,30 @@
 {
   "name": "agl-hostman",
-  "version": "0.3.0",
-  "description": "AGL Infrastructure Management - Host administration, monitoring, and automation tools for Proxmox-based infrastructure",
-  "main": "src/greeting/index.js",
-  "type": "commonjs",
+  "version": "1.0.0",
+  "description": "AGL Infrastructure Management System",
+  "main": "src/api/server.js",
   "scripts": {
-    "test": "JEST_PUPPETEER_SKIP_DOWNLOAD=1 NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=test ./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --no-cache --coverage",
-    "test:watch": "./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --watch --no-cache",
-    "test:greeting": "./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js tests/validation/greeting-system.test.js --no-cache",
-    "test:performance": "node tests/validation/greeting-performance-benchmark.js",
-    "test:coverage": "NODE_ENV=test ./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js --no-cache --coverage --coverageReporters=json-summary --coverageReporters=json --coverageReporters=lcov --coverageReporters=text",
-    "test:backup": "NODE_ENV=test ./node_modules/.pnpm/jest-cli@29.7.0_@types+node@18.19.130/node_modules/jest-cli/bin/jest.js tests/backup/restoration.test.js --no-cache",
-    "test:backup:python": "python3 tests/backup/verify_restoration.py",
-    "test:backup:bash": "bash tests/backup/test_restoration.sh",
-    "test:backup:all": "npm run test:backup && npm run test:backup:python && npm run test:backup:bash",
-    "lint": "./node_modules/.pnpm/eslint@8.57.1/node_modules/eslint/bin/eslint.js 'src/greeting/**/*.js' 'tests/**/*.js' 'examples/**/*.js'",
-    "lint:fix": "./node_modules/.pnpm/eslint@8.57.1/node_modules/eslint/bin/eslint.js src/**/*.js tests/**/*.js examples/**/*.js --fix",
-    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"examples/**/*.js\"",
-    "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\" \"examples/**/*.js\"",
-    "demo:greeting": "node examples/greeting-demo.js",
-    "docs:generate": "jsdoc -c jsdoc.json",
-    "precommit": "npm run lint && npm run format:check && npm test",
-    "prepare": "husky install || true"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/aguileraz/agl-hostman.git"
-  },
-  "keywords": [
-    "infrastructure",
-    "proxmox",
-    "host-management",
-    "automation",
-    "monitoring",
-    "wireguard",
-    "docker",
-    "nfs",
-    "homelab"
-  ],
-  "author": "Andre Guilherme <andre@aglz.io>",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.20.8",
-    "npm": ">=10.8.0"
+    "start": "node src/api/server.js",
+    "dev": "node --watch src/api/server.js",
+    "build": "echo 'No build step required'",
+    "test": "node --test tests/api/*.test.js",
+    "test:all": "node --test tests/api/ && node tests/hive-mind/test-hive-mind-integration.js",
+    "test:e2e": "playwright test",
+    "seed:user": "node scripts/seed-test-user.js",
+    "migrate": "node src/database/migrate.js",
+    "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "better-sqlite3": "12.4.1",
-    "bindings": "1.5.0",
-    "chalk": "5.6.2",
-    "compression": "^1.7.4",
-    "cors": "^2.8.5",
+    "@fastify/cors": "^9.0.1",
+    "better-sqlite3": "^12.6.2",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "file-uri-to-path": "2.0.0",
-    "helmet": "^7.1.0",
-    "uuid": "13.0.0",
-    "winston": "3.18.3"
+    "fastify": "^4.27.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
-    "@types/node": "^18.19.50",
-    "ajv": "^8.17.1",
-    "dockerode": "^4.0.9",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-jest": "^27.9.0",
-    "eslint-plugin-node": "^11.1.0",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
-    "jsdoc": "^4.0.3",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
-    "semver": "^7.7.4",
-    "shadcn": "3.6.1",
-    "supertest": "^6.3.4",
-    "write-file-atomic": "^4.0.2"
+    "@playwright/test": "^1.58.2"
   },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "prettier --write",
-      "jest --bail --findRelatedTests"
-    ]
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 100,
-    "arrowParens": "always",
-    "endOfLine": "lf"
-  },
-  "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8",
-  "pnpm": {
-    "overrides": {
-      "signal-exit": "3.0.7"
-    }
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

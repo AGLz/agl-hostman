@@ -1,0 +1,56 @@
+# LiteLLM Proxy - Claude-Flow Multi-Model
+# Uso: docker compose -f docker/litellm/docker-compose.yml up -d
+# Ref: docs/CLAUDE-FLOW-LITELLM.md, docs/LITELLM-TROUBLESHOOTING.md
+
+services:
+  litellm-db:
+    image: postgres:16-alpine
+    container_name: litellm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: litellm_db_pass
+      POSTGRES_DB: litellm
+    volumes:
+      - litellm-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - litellm-net
+
+  litellm-proxy:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm-proxy
+    restart: unless-stopped
+    depends_on:
+      litellm-db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    env_file:
+      - ../../config/litellm/.env
+    environment:
+      - CONFIG_FILE_PATH=/app/config.yaml
+      - DATABASE_URL=postgresql://litellm:litellm_db_pass@litellm-db:5432/litellm
+    volumes:
+      - ../../config/litellm/config.yaml:/app/config.yaml:ro
+    # Healthcheck: imagem LiteLLM não tem curl/wget — usa Python
+    # /health/readiness não exige auth (endpoint público)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/readiness', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - litellm-net
+
+volumes:
+  litellm-db-data:
+
+networks:
+  litellm-net:
+    driver: bridge
