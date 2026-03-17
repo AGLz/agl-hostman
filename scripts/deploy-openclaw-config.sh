@@ -118,7 +118,7 @@ echo "=== Gerando environment file e reiniciando gateway OpenClaw ==="
 for h in 100.94.221.87 100.83.51.9; do
   echo -n "  $h: "
   # Gerar environment file a partir do zshrc
-  ssh "root@$h" 'mkdir -p ~/.config/environment.d && grep -E "^export (ZAI_API_KEY|GLM_AUTH|GLM_URL|KIMI_AUTH|KIMI_URL|MOONSHOT_API_KEY|DEEPSEEK_API_KEY|DEEPSEEK_AUTH|DEEPSEEK_URL|OPENAI_API_KEY|OPENAI_AUTH|GEMINI_API_KEY|GEMINI_AUTH|OPENROUTER_API_KEY|DASHSCOPE_API_KEY|ANTHROPIC_API_KEY)=" ~/.zshrc 2>/dev/null | sed "s/^export //" > ~/.config/environment.d/openclaw.conf 2>/dev/null; echo "env OK"' && echo -n " -> "
+  ssh "root@$h" 'mkdir -p ~/.config/environment.d && grep -h -E "^export (ZAI_API_KEY|GLM_AUTH|GLM_URL|KIMI_AUTH|KIMI_URL|MOONSHOT_API_KEY|DEEPSEEK_API_KEY|DEEPSEEK_AUTH|DEEPSEEK_URL|OPENAI_API_KEY|OPENAI_AUTH|OPENAI_URL|GEMINI_API_KEY|GEMINI_AUTH|GEMINI_URL|OPENROUTER_API_KEY|DASHSCOPE_API_KEY|ANTHROPIC_API_KEY)=" ~/.zshrc ~/.openclaw/zshrc-openclaw.env 2>/dev/null | sed "s/^export //" > ~/.config/environment.d/openclaw.conf; grep -q "ANTHROPIC_API_KEY=" ~/.config/environment.d/openclaw.conf || echo 'ANTHROPIC_API_KEY="sk-optional"' >> ~/.config/environment.d/openclaw.conf; sed -i '\''s/^ANTHROPIC_API_KEY=""$/ANTHROPIC_API_KEY="sk-optional"/'\'' ~/.config/environment.d/openclaw.conf 2>/dev/null; echo "env OK"' && echo -n " -> "
   # Reiniciar gateway
   ssh "root@$h" 'systemctl --user daemon-reload && systemctl --user restart openclaw-gateway 2>/dev/null' && echo "gateway OK" || echo "skip"
 done

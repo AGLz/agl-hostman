@@ -1,10 +1,10 @@
 # LiteLLM Proxy - Claude-Flow Multi-Model & Fallback
 # Integração com agl-hostman (OpenClaw model list)
 # Ref: https://github.com/ruvnet/claude-flow/wiki/litellm-integration
-# Última atualização modelos: 2026-03-07
+# Última atualização modelos: 2026-03-13
 # Env vars: ANTHROPIC_API_KEY, ZAI_API_KEY, MOONSHOT_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, DASHSCOPE_API_KEY (Qwen direto)
 #
-# ATUALIZAÇÕES 2026-03-07:
+# ATUALIZAÇÕES 2026-03-13:
 # - Claude: Opus 4.6 (1M ctx), Sonnet 4.6, Haiku 4.5 - confirmados
 # - GLM: GLM-5 (744B/40B active), GLM-4.7-FlashX adicionado
 # - DeepSeek: V3.2 unificado ($0.28/$0.42), V4 em breve
@@ -12,8 +12,86 @@
 # - Gemini: 3.1 Pro (Feb 2026), 2.5 Pro/Flash atualizados
 # - Kimi: K2.5, K2 Thinking, K2 Turbo Preview
 # - Qwen: Qwen3.5 Plus (1M ctx), Qwen3-Max-Thinking
+#
+# NOVIDADES 2026-03-13:
+# - Agentes especializados: claude-code-agent, infra-agent, research-agent
+# - Rate limits por modelo (TPM/RPM)
+# - Fallbacks otimizados por latência
+# - Cache Redis melhorado com TTL diferenciado
 
 model_list:
+  # ============================================================
+  # AGENTES ESPECIALIZADOS (System Prompts + Tools)
+  # ============================================================
+  # Configurados para Claude Flow V3 + agl-hostman
+
+  # === claude-code-agent: Especialista em código ===
+  # Claude Sonnet 4.6 com system prompt otimizado para desenvolvimento
+  - model_name: "claude-code-agent"
+    litellm_params:
+      model: "anthropic/claude-sonnet-4-6"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      system_prompt: |
+        Você é um especialista em desenvolvimento de software backend.
+        Especialidades: Node.js, Fastify, PostgreSQL, Redis, APIs RESTful.
+        Siga sempre: TDD London School, Domain-Driven Design, Clean Architecture.
+        Valide inputs, trate erros, documente APIs.
+        Responda em português brasileiro.
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      context_window: 200000
+      access: direct
+      agent_type: "coder"
+      rpm: 1000
+      tpm: 400000
+
+  # === infra-agent: Especialista em infraestrutura ===
+  # GLM-5 com tools de infraestrutura (Proxmox, WireGuard, NFS)
+  - model_name: "infra-agent"
+    litellm_params:
+      model: "anthropic/glm-5"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 45
+      system_prompt: |
+        Você é um especialista em infraestrutura AGL.
+        Hosts: agldv03 (dev), aglsrv1 (Proxmox), fgsrv3-6 (MySQL/APIs/WireGuard).
+        Ferramentas: Proxmox API, WireGuard, NFS, Tailscale, Cloudflare Tunnels.
+        Priorize: alta disponibilidade, monitoramento, alertas de storage.
+        Responda em português brasileiro.
+    model_info:
+      max_tokens: 131072
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.0000032
+      context_window: 200000
+      access: direct
+      agent_type: "infrastructure"
+      rpm: 60
+      tpm: 100000
+
+  # === research-agent: Especialista em pesquisa ===
+  # Kimi K2.5 para contexto longo e análise de documentação
+  - model_name: "research-agent"
+    litellm_params:
+      model: "moonshot/kimi-k2.5"
+      api_key: os.environ/MOONSHOT_API_KEY
+      system_prompt: |
+        Você é um especialista em pesquisa e análise de documentação.
+        Capacidades: análise de código, revisão de PRs, documentação técnica.
+        Use contexto longo para analisar múltiplos arquivos simultaneamente.
+        Responda em português brasileiro.
+    model_info:
+      max_tokens: 16384
+      input_cost_per_token: 0.0000006
+      output_cost_per_token: 0.000003
+      context_window: 262144
+      access: direct
+      agent_type: "researcher"
+      rpm: 30
+      tpm: 50000
+
   # ============================================================
   # ACESSO DIRETO (preferir sempre)
   # ============================================================
@@ -160,11 +238,11 @@ model_list:
       context_window: 131072
       access: direct
 
+  # glm-4.5-air: usar zai/ (LiteLLM) — anthropic/ causava 400 no /v1/messages
   - model_name: "glm-air"
     litellm_params:
-      model: "anthropic/glm-4.5-air"
+      model: "zai/glm-4.5-air"
       api_key: os.environ/ZAI_API_KEY
-      api_base: "https://api.z.ai/api/anthropic"
       timeout: 30
     model_info:
       max_tokens: 8192
@@ -267,6 +345,70 @@ model_list:
       input_cost_per_token: 0.00000028
       output_cost_per_token: 0.00000042
       context_window: 131072
+      access: direct
+
+  # ============================================================
+  # CURSOR AGENT COMPOSER 1.5 (integrado do cursor-agent-config.yaml)
+  # Base URL: http://localhost:4000 ou http://100.94.221.87:4000
+  # Adicionar em Cursor Settings → Models → Custom Models
+  # ============================================================
+  - model_name: "cursor-claude-sonnet"
+    litellm_params:
+      model: "anthropic/claude-sonnet-4-6"
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      description: "Claude Sonnet 4.6 para Cursor - código"
+      max_tokens: 16384
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      context_window: 200000
+      access: direct
+
+  - model_name: "cursor-claude-opus"
+    litellm_params:
+      model: "anthropic/claude-opus-4-6"
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      description: "Claude Opus 4.6 para Cursor - raciocínio complexo"
+      max_tokens: 16384
+      input_cost_per_token: 0.000005
+      output_cost_per_token: 0.000025
+      context_window: 1000000
+      access: direct
+
+  - model_name: "cursor-glm-5"
+    litellm_params:
+      model: "anthropic/glm-5"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 45
+    model_info:
+      description: "GLM-5 via ZAI - custo reduzido"
+      max_tokens: 8192
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.0000032
+      context_window: 200000
+      access: direct
+
+  - model_name: "cursor-deepseek"
+    litellm_params:
+      model: "deepseek/deepseek-chat"
+      api_key: os.environ/DEEPSEEK_API_KEY
+    model_info:
+      description: "DeepSeek V3.2 - excelente para código"
+      max_tokens: 8192
+      input_cost_per_token: 0.00000028
+      output_cost_per_token: 0.00000042
+      context_window: 131072
+      access: direct
+
+  - model_name: "cursor-gpt-4o"
+    litellm_params:
+      model: "openai/gpt-4o"
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      description: "GPT-4o - fallback robusto"
+      max_tokens: 8192
       access: direct
 
   # === OpenAI (GPT-5.3 Instant / GPT-4.1) ===
@@ -640,6 +782,12 @@ litellm_settings:
     - glm: [qwen3.5-plus, deepseek, phi3-local, qwen3-local, kimi, gemini]
     - glm-5: [qwen3.5-plus, deepseek, phi3-local, qwen3-local, kimi, gemini]
     - glm-flash: [qwen3.5-plus, deepseek, phi3-local, qwen3-4b, kimi, gemini]
+    - glm-air: [glm-flash, qwen3.5-plus, deepseek, phi3-local]  # glm-4.5-air pode falhar via /v1/messages
+
+    # === Cursor Agent fallbacks (Ask/Plan modes) ===
+    - cursor-claude-sonnet: [cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+    - cursor-claude-opus: [cursor-claude-sonnet, cursor-gpt-4o]
+    - cursor-glm-5: [cursor-deepseek, cursor-gpt-4o]
 
     # === DeepSeek fallbacks ===
     - deepseek: [qwen3.5-plus, glm, phi3-local, qwen3-local, kimi, gemini]

@@ -1,6 +1,6 @@
 # AGL Infrastructure Map
 
-> **Last Updated**: 2026-03-01 | **Version**: 2.9.0
+> **Last Updated**: 2026-03-16 | **Version**: 2.9.1
 > **Reference**: Always read this document for infrastructure queries
 
 ---
@@ -76,7 +76,7 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.113.9.98 | aglsrv1-agldv04 | linux | Idle | Dev container agldv04 |
 | 100.69.187.105 | aglsrv1-aglfs1 | linux | Active | File server / NFS (CT178) |
 | 100.117.146.21 | aglsrv1-aglwk45 | windows | Active | Windows workstation VM |
-| 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) |
+| 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
 | 100.72.66.106 | aglsrv1-dokploy | linux | Active | Dokploy deployment manager (CT180) |
 | 100.105.133.18 | aglsrv1-haos | linux | Offline 158d | Home Assistant OS VM |
 | 100.116.57.111 | aglsrv1-ollama-gpu | linux | Active | Ollama GPU inference (CT200) |
@@ -181,6 +181,16 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 - Development: CT179 (agldv03), CT180 (dokploy)
 - AI: CT183 (archon), CT200 (ollama-gpu), CT202 (n8n)
 - Monitoring: CT132 (observium), CT162 (meshcentral)
+
+**Archon Stack (CT183)**:
+- **Tailscale IP**: 100.80.30.59 | **LAN IP**: 192.168.0.183
+- **Services**: archon-server (8181), archon-mcp (8051), archon-ui (3737)
+- **Network**: `network_mode: host` — containers share CT's network namespace
+- **Domain**: archon.aglz.io (Cloudflare Tunnel)
+- **Config**: `VITE_ALLOWED_HOSTS=archon.aglz.io,localhost,127.0.0.1`
+- **Health**: `curl http://100.80.30.59:8181/health`
+- **MCP**: `http://100.80.30.59:8051/mcp` (Streamable HTTP)
+- **Docs**: `patches/archon/README.md`
 
 ---
 
@@ -695,6 +705,7 @@ zpool status -v local-zfs
 | 103 | portainer | 192.168.0.103 | - | - | Docker mgmt |
 | 178 | aglfs1 | 192.168.0.178 | - | - | File server |
 | 179 | agldv03 | 192.168.0.179 | WG: 10.6.0.19, TS: 100.94.221.87 | 48GB | **Primary Dev** |
+| 185 | agldv12 | 192.168.0.185 | TS: 100.71.217.115 | - | Turbo Flow v4.0 (clone agldv03) |
 | 180 | dokploy | 192.168.0.180 | - | - | Deployment |
 | 202 | n8n-docker | 192.168.0.202 | - | - | Workflow automation |
 
@@ -936,6 +947,7 @@ ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel info archon'
 
 ## 📚 Related Documentation
 
+- **PegaProx**: `docs/PEGAPROX.md` - Multi-cluster Proxmox management (CT210)
 - **Main Config**: `CLAUDE.md` - Claude Code configuration
 - **Archon**: `docs/archon-integration.md` - AI Command Center
 - **OpenClaw**: `docs/OPENCLAW.md` - AI agent platform, multi-model config, versões
@@ -946,7 +958,7 @@ ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel info archon'
 
 ---
 
-**Document Version**: 2.9.0
-**Last Updated**: 2026-03-01
+**Document Version**: 2.9.1
+**Last Updated**: 2026-03-16
 **Maintainer**: Claude Code (agl-hostman project)
 **Always Read**: This document should ALWAYS be read for infrastructure queries

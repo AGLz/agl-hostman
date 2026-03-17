@@ -18,6 +18,28 @@ O **GLM-5** está configurado como modelo padrão no OpenClaw em todos os hosts 
 | fgsrv06 | zai/glm-5 | ZAI API | 100.83.51.9 |
 | aglwk45 | zai/glm-5 | ZAI API | 100.117.146.21 |
 
+## QEMU Guest Agent (Proxmox)
+
+O **QEMU Guest Agent** permite ao Proxmox administrar a VM104 (shutdown gracioso, snapshots com VSS, etc.).
+
+| Item | Status |
+|------|--------|
+| Serviço no Windows | ✅ Instalado e em execução (`QEMU-GA`) |
+| Inicialização | Automática |
+| Habilitar no Proxmox | Executar no host AGLSRV1 (veja abaixo) |
+
+**Habilitar no Proxmox** (executar no host AGLSRV1):
+
+```bash
+# Via SSH no AGLSRV1
+ssh root@192.168.0.245 'qm set 104 --agent 1'
+
+# Verificar
+ssh root@192.168.0.245 'qm agent 104 ping'
+```
+
+Se `qm agent 104 ping` retornar sem erro, a comunicação está OK.
+
 ## Estado Atual
 
 | Componente | Status | Versão |
@@ -488,6 +510,15 @@ echo $ANTHROPIC_AUTH_TOKEN
 # No Git Bash, sempre faça source antes
 source ~/.bashrc
 openclaw status
+```
+
+### Verificação rápida (scripts)
+```bash
+# Git Bash
+bash scripts/verify-openclaw-aglwk45.sh
+
+# PowerShell
+powershell -ExecutionPolicy Bypass -File scripts/verify-openclaw-aglwk45.ps1
 ```
 
 ---

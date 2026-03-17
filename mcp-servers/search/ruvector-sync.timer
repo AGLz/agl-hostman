@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for RuVector Sync (hourly)
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+AccuracySec=1m
+
+[Install]
+WantedBy=timers.target

@@ -7,15 +7,22 @@
     "start": "node src/api/server.js",
     "dev": "node --watch src/api/server.js",
     "build": "echo 'No build step required'",
-    "test": "node tests/hive-mind/test-hive-mind-integration.js",
+    "test": "node --test tests/api/*.test.js",
+    "test:all": "node --test tests/api/ && node tests/hive-mind/test-hive-mind-integration.js",
+    "test:e2e": "playwright test",
+    "seed:user": "node scripts/seed-test-user.js",
+    "migrate": "node src/database/migrate.js",
     "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
-    "fastify": "^4.27.0",
     "@fastify/cors": "^9.0.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^16.4.5",
+    "fastify": "^4.27.0",
     "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   },
   "engines": {
     "node": ">=18.0.0"

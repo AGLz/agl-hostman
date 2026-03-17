@@ -1,0 +1,254 @@
+{
+  "plugins": {
+    "agl-infra": {
+      "name": "AGL Infrastructure",
+      "description": "Manage AGL infrastructure: Proxmox CTs/VMs, WireGuard mesh, storage monitoring, network status",
+      "version": "1.0.0",
+      "enabled": true,
+      "skills": ["agl-infra"],
+      "commands": {
+        "ct-status": {
+          "description": "Get status of Proxmox containers",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'pct list'"
+        },
+        "ct-start": {
+          "description": "Start a Proxmox container by VMID",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'pct start ${VMID}'"
+        },
+        "ct-stop": {
+          "description": "Stop a Proxmox container by VMID",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'pct stop ${VMID}'"
+        },
+        "ct-unlock": {
+          "description": "Unlock a locked container (snapshot backup)",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'pct unlock ${VMID} && pct start ${VMID}'"
+        },
+        "vm-list": {
+          "description": "List all VMs on Proxmox",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'qm list'"
+        },
+        "storage-status": {
+          "description": "Check storage usage on AGLSRV1",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'pvesm status && df -h | grep -E \"(spark|overpower|local)\"'"
+        },
+        "storage-alert": {
+          "description": "Run storage alert script",
+          "command": "/mnt/overpower/apps/dev/agl/agl-hostman/scripts/monitoring/storage-alert.sh"
+        },
+        "wg-status": {
+          "description": "Check WireGuard mesh status",
+          "command": "wg show 2>/dev/null || ssh root@${AGLDV03:-100.94.221.87} 'wg show'"
+        },
+        "wg-peers": {
+          "description": "Check WireGuard peer handshakes",
+          "command": "wg show wg0 latest-handshakes 2>/dev/null || ssh root@${AGLDV03:-100.94.221.87} 'wg show wg0 latest-handshakes'"
+        },
+        "ts-status": {
+          "description": "Check Tailscale status",
+          "command": "tailscale status 2>/dev/null || ssh root@${AGLDV03:-100.94.221.87} 'tailscale status --peers | head -20'"
+        },
+        "host-health": {
+          "description": "Check host health (AGLSRV1)",
+          "command": "ssh root@${PROXMOX_HOST:-192.168.0.245} 'uptime && free -h && zpool status -x'"
+        },
+        "ai-stack-status": {
+          "description": "Check AI stack status (LiteLLM, Ruflo, Hive Mind)",
+          "command": "ssh root@${AGLDV03:-100.94.221.87} 'npx ruflo@latest daemon status && curl -s http://localhost:4000/health 2>/dev/null | head -5'"
+        }
+      },
+      "hooks": {
+        "preTask": [
+          {
+            "condition": "task.involves('container') || task.involves('CT') || task.involves('VM')",
+            "action": "readInfraDoc"
+          },
+          {
+            "condition": "task.involves('storage') || task.involves('NFS')",
+            "action": "checkStorageSpace"
+          }
+        ],
+        "postTask": [
+          {
+            "condition": "task.modified('infrastructure')",
+            "action": "updateInfraDoc"
+          }
+        ]
+      }
+    },
+    "code-review": {
+      "name": "Automated Code Review",
+      "description": "Automated code review with quality checks, linting, and security scanning",
+      "version": "1.0.0",
+      "enabled": true,
+      "triggers": {
+        "onFileSave": true,
+        "onCommit": true,
+        "onPullRequest": true
+      },
+      "checks": {
+        "lint": {
+          "command": "npm run lint --if-present",
+          "failThreshold": "error"
+        },
+        "typecheck": {
+          "command": "npm run typecheck --if-present",
+          "failThreshold": "error"
+        },
+        "test": {
+          "command": "npm test --if-present -- --passWithNoTests",
+          "failThreshold": "fail"
+        },
+        "security": {
+          "command": "npx @claude-flow/cli@latest security scan --quiet",
+          "failThreshold": "critical"
+        }
+      },
+      "reviewCriteria": [
+        "Follows DDD bounded contexts",
+        "Uses typed interfaces for public APIs",
+        "Files under 500 lines",
+        "No hardcoded secrets",
+        "Input validation at boundaries",
+        "Proper error handling with context"
+      ]
+    },
+    "auto-docs": {
+      "name": "Automatic Documentation",
+      "description": "Generate and update documentation automatically based on code changes",
+      "version": "1.0.0",
+      "enabled": true,
+      "triggers": {
+        "onApiChange": true,
+        "onNewFeature": true,
+        "onConfigChange": true
+      },
+      "templates": {
+        "apiEndpoint": "docs/templates/api-endpoint.md",
+        "component": "docs/templates/component.md",
+        "service": "docs/templates/service.md"
+      },
+      "outputDir": "docs/generated",
+      "excludePatterns": [
+        "node_modules/**",
+        "dist/**",
+        "coverage/**"
+      ]
+    },
+    "test-gen": {
+      "name": "Test Generation",
+      "description": "Generate tests following TDD London School (mock-first) methodology",
+      "version": "1.0.0",
+      "enabled": true,
+      "methodology": "tdd-london",
+      "coverage": {
+        "target": 80,
+        "failThreshold": 60
+      },
+      "testTypes": {
+        "unit": {
+          "dir": "tests/unit",
+          "framework": "vitest",
+          "pattern": "**/*.test.{js,ts}"
+        },
+        "integration": {
+          "dir": "tests/integration",
+          "framework": "vitest",
+          "pattern": "**/*.integration.test.{js,ts}"
+        },
+        "e2e": {
+          "dir": "tests/e2e",
+          "framework": "playwright",
+          "pattern": "**/*.spec.{js,ts}"
+        }
+      },
+      "hooks": {
+        "postImplementation": [
+          {
+            "condition": "file.isNew || file.hasNewFunction",
+            "action": "generateTests"
+          }
+        ]
+      }
+    },
+    "memory-sync": {
+      "name": "Memory Sync",
+      "description": "Synchronize patterns and learnings with Claude Flow memory system",
+      "version": "1.0.0",
+      "enabled": true,
+      "backend": "hybrid",
+      "features": {
+        "hnsw": true,
+        "learningBridge": true,
+        "memoryGraph": true,
+        "agentScopes": true
+      },
+      "sync": {
+        "interval": "5m",
+        "namespace": "agl-hostman",
+        "patterns": [
+          "coordination",
+          "optimization",
+          "prediction"
+        ]
+      },
+      "hooks": {
+        "onPatternLearned": [
+          {
+            "action": "store",
+            "command": "npx @claude-flow/cli@latest memory store --key \"${patternName}\" --value \"${patternValue}\" --namespace agl-hostman"
+          }
+        ],
+        "onSessionEnd": [
+          {
+            "action": "sync",
+            "command": "node .claude/helpers/auto-memory-hook.mjs sync"
+          }
+        ]
+      },
+      "retention": {
+        "shortTerm": "24h",
+        "longTerm": "30d"
+      }
+    }
+  },
+  "pluginOrder": [
+    "agl-infra",
+    "code-review",
+    "test-gen",
+    "auto-docs",
+    "memory-sync"
+  ],
+  "globalHooks": {
+    "SessionStart": [
+      {
+        "plugin": "memory-sync",
+        "action": "restoreSession"
+      },
+      {
+        "plugin": "agl-infra",
+        "action": "checkCriticalServices"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "plugin": "memory-sync",
+        "action": "syncPatterns"
+      }
+    ],
+    "PreCommit": [
+      {
+        "plugin": "code-review",
+        "action": "runChecks"
+      },
+      {
+        "plugin": "memory-sync",
+        "action": "storeCommit"
+      }
+    ]
+  },
+  "metadata": {
+    "createdAt": "2026-03-13",
+    "project": "agl-hostman",
+    "claudeFlowVersion": "3.0.0"
+  }
+}

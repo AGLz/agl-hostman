@@ -8,6 +8,7 @@ A Claude Flow powered project
 
 **Tech Stack**: TypeScript, Node.js
 **Architecture**: Domain-Driven Design with bounded contexts
+**Last Updated**: 2026-03-12
 
 ## Quick Start
 
@@ -138,6 +139,29 @@ npx @claude-flow/cli memory search \
   --query "search terms" \
   --namespace patterns
 ```
+
+## Infrastructure Operations (AGL)
+
+Para tarefas de infra (Proxmox, CTs, DNS, túneis), consulte `docs/INFRA.md` e `CLAUDE.md` (seção Project). Padrões recorrentes:
+
+| Operação | Comando / Observação |
+|----------|----------------------|
+| Restart CT | Executar **do host ou de outra máquina**, nunca do próprio CT (ex: CT179) |
+| CT locked (snapshot) | `pct unlock <vmid>` antes de `pct start` |
+| CT102 (pihole) parado | `pct unlock 102 && pct start 102` |
+| Cloudflared (CT117) sem redirecionar | `pct exec 117 -- systemctl restart cloudflared` |
+| DNS no aglsrv1 | Pi-hole (192.168.0.102) + Cloudflare (1.1.1.1) + Google (8.8.8.8); `tailscale set --accept-dns=false` |
+| **OpenClaw em aglwk45** | VM104 (Windows) — verificar via host: `ssh root@192.168.0.245 'qm agent 104 ping'` e `qm guest exec 104 -- openclaw --version` |
+
+### OpenClaw (multi-host)
+
+| Host | IP | Verificação |
+|------|-----|-------------|
+| agldv03 | 100.94.221.87 | `source ~/.openclaw/zshrc-openclaw.env && openclaw status` |
+| fgsrv06 | 100.83.51.9 | `ssh root@100.83.51.9 'openclaw status'` |
+| aglwk45 (VM104) | 100.117.146.21 | Via AGLSRV1: `ssh root@192.168.0.245 'qm guest exec 104 -- openclaw --version'` |
+
+Scripts: `scripts/verify-openclaw-aglwk45.sh`, `scripts/verify-openclaw-aglwk45.ps1`, `scripts/deploy-openclaw-config.sh`
 
 ## Links
 

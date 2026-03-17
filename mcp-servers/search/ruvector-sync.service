@@ -1,0 +1,16 @@
+[Unit]
+Description=Sync RuVector Embeddings (agldv03 -> fgsrv06)
+After=network.target postgresql.service
+Wants=ruvector-sync.timer
+
+[Service]
+Type=oneshot
+ExecStart=/mnt/overpower/apps/dev/agl/agl-hostman/mcp-servers/search/sync-ruvector.sh
+User=root
+WorkingDirectory=/mnt/overpower/apps/dev/agl/agl-hostman/mcp-servers/search
+Environment=PGPASSWORD=agl_ruvector_2026
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

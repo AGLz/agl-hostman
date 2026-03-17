@@ -1,0 +1,21 @@
+# Systemd mount unit for fileserver7-nfs on FGSRV7
+# Ensures NFS is mounted before Proxmox storage activation
+# Deploy: scp to FGSRV7:/etc/systemd/system/mnt-pve-fileserver7\\x2dnfs.mount
+#
+# Alternative: add to /etc/fstab on FGSRV7:
+# 100.66.136.84:/storage/nfs-export /mnt/pve/fileserver7-nfs nfs vers=4.2,timeo=10,retrans=2,_netdev 0 0
+
+[Unit]
+Description=Mount fileserver7 NFS for Proxmox
+Before=pve-cluster.service
+After=network-online.target
+Wants=network-online.target
+
+[Mount]
+What=100.66.136.84:/storage/nfs-export
+Where=/mnt/pve/fileserver7-nfs
+Type=nfs
+Options=vers=4.2,timeo=10,retrans=2,_netdev
+
+[Install]
+WantedBy=multi-user.target

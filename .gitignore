@@ -40,3 +40,25 @@ hive-mind-prompt-*.txt
 .env
 .env.local
 .env.*.local
+
+# Auto Claude generated files
+.auto-claude/
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+.worktrees/
+.security-key
+logs/security/
+
+# Dependencies & build
+node_modules/
+src/web/node_modules/
+
+# Playwright & tests
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Logs
+*.log
+proxmox_mcp.log

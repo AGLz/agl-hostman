@@ -22,7 +22,7 @@ result=$(lw_curl -X POST \
 
 if echo "$result" | jq -e '.data' > /dev/null 2>&1; then
     echo "Snapshot created successfully!"
-    echo "$result" | jq -r '"ID: \(.data.id)\nName: \(.data.attributes.name)\nStatus: \(.data.attributes.status)"'
+    echo "$result" | jq -r '"ID: \(.data.id), Name: \(.data.attributes.name), Status: \(.data.attributes.status)"'
 else
     echo "Error:"
     echo "$result" | jq -r '.errors[0].detail // "Unknown error"'

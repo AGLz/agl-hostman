@@ -138,8 +138,12 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_FLOW_V3_ENABLED": "true",
-    "CLAUDE_FLOW_HOOKS_ENABLED": "true"
+    "CLAUDE_FLOW_HOOKS_ENABLED": "true",
+    "ANTHROPIC_BASE_URL": "http://localhost:4000",
+    "ANTHROPIC_AUTH_TOKEN": "sk-litellm-default",
+    "ANTHROPIC_API_KEY": "sk-litellm-default"
   },
+  "apiKeyHelper": ".claude/helpers/get-litellm-key.sh",
   "claudeFlow": {
     "version": "3.0.0",
     "enabled": true,

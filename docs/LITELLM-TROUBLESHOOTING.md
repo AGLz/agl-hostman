@@ -109,17 +109,82 @@ docker logs litellm-proxy -f
 
 ---
 
-### 5. Claude Code / Ruflo não conecta
+### 5. 401 "expected to start with sk-" / "Received=896f..."
 
-**Variáveis necessárias**:
+**Causa**: O cliente está enviando **ZAI_API_KEY** (formato 896f...) em vez de **LITELLM_MASTER_KEY** (sk-...). LiteLLM exige chaves com prefixo `sk-`.
+
+**Solução**:
 ```bash
+# NUNCA use ZAI_API_KEY ou GLM_AUTH para Authorization no LiteLLM
 export ANTHROPIC_BASE_URL=http://localhost:4000
-export ANTHROPIC_AUTH_TOKEN=$LITELLM_MASTER_KEY
+export ANTHROPIC_AUTH_TOKEN=sk-litellm-default   # = LITELLM_MASTER_KEY
+export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 ```
 
-**Em agldv03**: `source ~/.openclaw/zshrc-openclaw.env` já define isso.
+**Validar**:
+```bash
+./scripts/litellm/validate-client-auth.sh
+```
+
+**Cursor**: O `.claude/settings.json` já define `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_API_KEY` no env do projeto. Feche e reabra o Cursor para aplicar.
+
+---
+
+### 6. 400 "Invalid model name passed in model=glm-4.5-air" (anthropic_messages)
+
+**Causa**: O config usava `anthropic/glm-4.5-air`, fazendo o LiteLLM rotear para a API Anthropic real ao invés da ZAI. O endpoint `/v1/messages` (formato Anthropic) não suporta modelos ZAI.
+
+**Solução**: O config foi corrigido para `zai/glm-4.5-air` (formato LiteLLM para ZAI). O glm-air agora usa o endpoint correto.
+
+**Fallback**: Se glm-4.5-air ainda falhar, glm-air tem fallback para glm-flash (gratuito).
+
+**Reiniciar**: `docker compose -f docker/litellm/docker-compose.yml restart litellm-proxy`
+
+---
+
+### 7. Claude Code / Ruflo não conecta
+
+**Causa comum**: O Cursor inicia como app gráfica e **não herda** variáveis do `.zshrc`. Ou `ANTHROPIC_API_KEY` está com ZAI key (896f...) em `~/.config/environment.d/`.
+
+**Solução (agldv03)**: O projeto configura via `.claude/settings.json`:
+- `ANTHROPIC_BASE_URL`: http://localhost:4000
+- `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_API_KEY`: sk-litellm-default (força chave correta)
+- `apiKeyHelper`: fallback que lê `LITELLM_MASTER_KEY` de `config/litellm/.env`
+
+**Verificar**:
+```bash
+./.claude/helpers/get-litellm-key.sh | head -c 5   # deve retornar "sk-li"
+./scripts/litellm/validate-client-auth.sh
+```
+
+**Se ~/.config/environment.d/** tem ANTHROPIC_API_KEY=896f..., remova ou corrija para sk-litellm-default.
 
 **Em hosts cliente** (agldv04/05/06): `LITELLM_GATEWAY_URL=http://100.94.221.87:4000`
+
+---
+
+### 7. 400 "Invalid model name passed in model=glm-4.5-air"
+
+**Causa**: Uso de `anthropic/glm-4.5-air` com api_base ZAI fazia o endpoint `/v1/messages` rotear para a API Anthropic real, que não reconhece GLM.
+
+**Solução aplicada** (config.yaml): trocar para `zai/glm-4.5-air` (formato LiteLLM ZAI). Fallback de glm-air para glm-flash.
+
+**Se ainda falhar**: ZAI pode ter descontinuado glm-4.5-air — usar `glm-flash` (glm-4.7-flash, FREE) diretamente.
+
+---
+
+### 8. Implementações não visíveis nos agents
+
+**Agentes especializados** (claude-code-agent, infra-agent, research-agent) e **modelos Cursor** (cursor-claude-sonnet, cursor-glm-5, etc.) estão no `config.yaml` principal. O `cursor-agent-config.yaml` **não é montado** no container — seu conteúdo foi integrado ao config principal.
+
+**Para aplicar mudanças**:
+```bash
+docker compose -f docker/litellm/docker-compose.yml restart litellm-proxy
+# ou
+docker compose -f docker/litellm/docker-compose.yml up -d --force-recreate litellm-proxy
+```
+
+**Cursor**: Configurar Base URL = `http://100.94.221.87:4000` (ou localhost) e adicionar modelos custom: `cursor-claude-sonnet`, `cursor-glm-5`, `cursor-deepseek`.
 
 ---
 

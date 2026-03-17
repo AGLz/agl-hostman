@@ -1,0 +1,34 @@
+# RuVector PostgreSQL with pgvector
+# Part of AGL Hostman - Vector Store Integration
+#
+# Provides PostgreSQL with pgvector extension for RuVector
+# semantic memory system.
+
+version: '3.8'
+
+services:
+  ruvector-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ruvector-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: agl_ruvector_2026
+      POSTGRES_DB: agl_ruvector
+    ports:
+      - "5433:5432"
+    volumes:
+      - ruvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "admin"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  ruvector_data:
+    driver: local
+
+networks:
+  ruvector_net:
+    driver: bridge
