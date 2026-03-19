@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "agl_hostman",
+  "project_id": "4c0645d1-1235-4b41-b2c2-e63e1d99c865"
+}

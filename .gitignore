@@ -104,3 +104,6 @@ logs/mcp-monitoring/
 !.claude/settings.json
 *.bak.*
 .claude/settings.json.bak*
+
+# Dolt database files (added by bd init)
+.dolt/
