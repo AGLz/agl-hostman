@@ -1,0 +1,4 @@
+# Adicione ao final do ~/.zshrc (ou execute: tail -n +2 config/openclaw/zshrc-append.txt >> ~/.zshrc)
+
+source config/openclaw/zshrc-openclaw.env
+cclitellm

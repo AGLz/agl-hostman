@@ -1,0 +1,35 @@
+{
+  "name": "agl-hostman + Turbo Flow v4.0",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "1.70"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "containerEnv": {
+    "WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "DEVPOD_WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "AGENTS_DIR": "${containerWorkspaceFolder}/agents",
+    "LITELLM_GATEWAY_URL": "http://100.94.221.87:4000"
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y tmux htop && cd ${containerWorkspaceFolder} && git clone -b main --depth 1 https://github.com/marcuspat/turbo-flow tf-src && cp -r tf-src/devpods . && rm -rf tf-src && chmod +x devpods/*.sh 2>/dev/null || true && [ -f devpods/setup.sh ] && ./devpods/setup.sh && for f in /home/vscode/.zshrc /root/.zshrc; do touch \"$f\" 2>/dev/null && grep -q 'zshrc-openclaw.env' \"$f\" 2>/dev/null || (echo '' >> \"$f\" && echo '# Claude-Flow + LiteLLM (cclitellm)' >> \"$f\" && echo '[[ -f \"$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env\" ]] && source \"$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env\" && cclitellm' >> \"$f\") && break; done",
+  "postStartCommand": "echo '✅ Container started, Turbo Flow + agl-hostman ready'",
+  "postAttachCommand": "if [ -f ${containerWorkspaceFolder}/devpods/post-setup.sh ]; then chmod +x ${containerWorkspaceFolder}/devpods/post-setup.sh && ${containerWorkspaceFolder}/devpods/post-setup.sh; fi",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rooveterinaryinc.roo-cline",
+        "github.copilot",
+        "github.copilot-chat"
+      ],
+      "settings": {
+        "terminal.integrated.cwd": "${containerWorkspaceFolder}",
+        "terminal.integrated.shellIntegration.enabled": true,
+        "workbench.startupEditor": "none"
+      }
+    }
+  }
+}

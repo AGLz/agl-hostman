@@ -303,6 +303,24 @@ export OPENROUTER_API_KEY="<key>"
 
 ---
 
+## 🔄 Usar LiteLLM local (localhost:4000)
+
+Para OpenClaw e Claude Flow usarem LiteLLM rodando localmente em cada host (agldv03, agldv04, agldv12, fgsrv06 ou Docker no Windows):
+
+```bash
+# OpenClaw: apontar todos os providers para localhost:4000
+node scripts/openclaw/use-litellm-local.mjs
+# ou (Linux/WSL com jq): bash scripts/openclaw/use-litellm-local.sh
+
+# Claude Flow: .claude/settings.json já tem ANTHROPIC_BASE_URL=http://localhost:4000
+# Reiniciar gateway OpenClaw
+openclaw gateway restart
+```
+
+**Requisito**: LiteLLM rodando em `http://localhost:4000` em cada host. Ver [LITELLM-MULTI-HOST-DEPLOYMENT.md](LITELLM-MULTI-HOST-DEPLOYMENT.md).
+
+---
+
 ## 🔄 Sincronizar config para outros hosts
 
 ```bash
@@ -327,7 +345,10 @@ done
 | Arquivo | Descrição |
 |---------|-----------|
 | `config/openclaw/openclaw-patch.json` | Patch com Anthropic, moonshot/kimi-k2.5, fallbacks |
+| `config/openclaw/openclaw-litellm-local.jq` | Patch jq para providers → localhost:4000 |
+| `config/openclaw/litellm-gateway-local.env` | LITELLM_GATEWAY_URL=http://localhost:4000 |
 | `config/openclaw/zshrc-openclaw.env` | Vars para OpenClaw + LiteLLM (source no .zshrc) |
+| `scripts/openclaw/use-litellm-local.mjs` | Configura OpenClaw para LiteLLM local (Node, sem jq) |
 | `scripts/deploy-openclaw-config.sh` | Deploy para agldv03 + fgsrv6 |
 
 ---

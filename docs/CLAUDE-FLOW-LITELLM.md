@@ -101,7 +101,8 @@ npx agentic-flow@alpha hooks intel route "Optimize database queries" --top-k 3
 npx ruflo@latest hooks intel route "Build REST API" --top-k 3
 ```
 
-**Deploy completo**: `./scripts/ruflo-deploy-agldv03.sh` — ver `docs/RUFLO-ADVANCED.md`
+**Deploy completo**: `./scripts/ruflo-deploy-agldv03.sh [host]` — ver `docs/RUFLO-ADVANCED.md`  
+**Sync config multi-host**: `./scripts/ruflo/sync-config-all-hosts.sh` — ver `docs/CLAUDE-FLOW-CONFIG.md`
 
 ---
 
@@ -141,6 +142,8 @@ export ANTHROPIC_BASE_URL=http://localhost:4000
 export ANTHROPIC_AUTH_TOKEN=$LITELLM_MASTER_KEY  # mesma chave do .env
 ```
 
+**Config no repositório**: `.claude/settings.json` já define `ANTHROPIC_BASE_URL=http://localhost:4000` e `ANTHROPIC_AUTH_TOKEN=sk-litellm-default` para uso com LiteLLM local.
+
 ### Compatibilidade com OpenClaw
 
 Se já usa `~/.zshrc` com `GLM_AUTH`, `KIMI_AUTH`, etc.:
@@ -171,6 +174,42 @@ curl -X POST http://localhost:4000/chat/completions \
   -d '{"model": "glm", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 
+### Testes de integração (LiteLLM + Claude-Flow + Turbo-Flow)
+
+```bash
+# Executar cenários e caso de uso real
+npm run test:integration:litellm
+```
+
+**Cenários cobertos:**
+- LiteLLM health/readiness
+- LiteLLM models list (requer `LITELLM_MASTER_KEY` válido)
+- **Multi-model latency**: glm-flash, glm, deepseek, claude-haiku, gemini-2.0 — ordena por velocidade
+- **Modelos gratuitos**: glm-flash, glm-air, qwen-turbo, qwen-plus, qwen3.5-plus — ordena por velocidade
+- Chat completion via LiteLLM (caso de uso: analisar estrutura de projeto)
+- API hostman `GET /api/ai/status`
+- Ruflo daemon status
+- Ruflo 3-tier router (`hooks intel route`)
+- Turbo Flow status
+
+**Benchmark multi-model em todos os hosts:**
+```bash
+./scripts/litellm/benchmark-models-all-hosts.sh
+./scripts/litellm/benchmark-models-all-hosts.sh --free   # apenas gratuitos (qwen, glm-air)
+./scripts/litellm/test-claude-code-all-hosts.sh --benchmark
+```
+
+**Resultados consolidados (tabela comparativa):**
+```bash
+./scripts/litellm/benchmark-consolidate.sh           # gera docs/litellm-benchmark/benchmark-*.md e *.csv
+./scripts/litellm/benchmark-consolidate.sh --free   # apenas modelos gratuitos
+```
+
+**Variáveis:**
+- `LITELLM_BASE_URL` (default: http://localhost:4000)
+- `LITELLM_MASTER_KEY` (para testes com auth)
+- `SKIP_LIVE_LITELLM=1` (pula testes que exigem LiteLLM online)
+
 ---
 
 ## Integração MCP (Claude-Flow)
@@ -190,22 +229,27 @@ export ANTHROPIC_AUTH_TOKEN=$LITELLM_MASTER_KEY
 
 ## Deploy em hosts AGL
 
-O script `./scripts/deploy-openclaw-config.sh` aplica:
+**Modelo multi-host** (cada host com LiteLLM local): agldv03, agldv04, agldv12, fgsrv06.
 
-| Host      | IP            | OpenClaw | Multi-model (LiteLLM)      |
-|-----------|---------------|----------|----------------------------|
-| agldv03   | 100.94.221.87 | ✅       | Gateway (localhost:4000)   |
-| fgsrv6    | 100.83.51.9   | ✅       | Gateway (localhost:4000)   |
-| agldv04   | 100.113.9.98  | ❌       | Cliente → agldv03:4000     |
-| agldv05   | 100.119.41.63 | ❌       | Cliente → agldv03:4000     |
-| agldv06   | 100.71.229.12 | ❌       | Cliente → agldv03:4000     |
+| Host      | IP            | LiteLLM local | OpenClaw/Claude-flow |
+|-----------|---------------|---------------|----------------------|
+| agldv03   | 100.94.221.87 | ✅ localhost:4000 | localhost:4000 |
+| agldv04   | 100.113.9.98  | ✅ localhost:4000 | localhost:4000 |
+| agldv12   | 100.71.217.115| ✅ localhost:4000 | localhost:4000 |
+| fgsrv06   | 100.83.51.9   | ✅ localhost:4000 | localhost:4000 |
 
-**Gateway central**: agldv03. Para clientes (agldv04/05/06) funcionarem, o LiteLLM deve estar rodando em agldv03:
+**Deploy**: Ver [LITELLM-MULTI-HOST-DEPLOYMENT.md](LITELLM-MULTI-HOST-DEPLOYMENT.md)
 
 ```bash
-# Em agldv03 (ou onde o repo está)
-./scripts/litellm/start.sh
+# Deploy em host específico
+./scripts/litellm/deploy-litellm-host.sh agldv04
+./scripts/litellm/deploy-litellm-host.sh fgsrv06
+
+# Em cada host: configurar OpenClaw para local
+node scripts/openclaw/use-litellm-local.mjs
 ```
+
+**Hosts legados** (agldv05, agldv06) sem LiteLLM local: usar `litellm-gateway-client.env` apontando para agldv03.
 
 ---
 
@@ -213,11 +257,15 @@ O script `./scripts/deploy-openclaw-config.sh` aplica:
 
 | Arquivo                         | Descrição                    |
 |---------------------------------|------------------------------|
-| `config/litellm/config.yaml`    | Modelos, fallbacks, settings  |
+| `config/litellm/config.yaml`    | Modelos, fallbacks (LAN)      |
+| `config/litellm/config-remote.yaml` | Config para fgsrv06 (Ollama via Tailscale) |
 | `config/litellm/.env.example`   | Template de variáveis        |
-| `config/openclaw/litellm-gateway-client.env` | Override para hosts cliente |
+| `config/openclaw/litellm-gateway-local.env` | localhost:4000 (hosts com LiteLLM) |
+| `config/openclaw/litellm-gateway-client.env` | Override para hosts legados (agldv05/06) |
 | `docker/litellm/docker-compose.yml` | Stack Docker LiteLLM     |
-| `scripts/litellm/start.sh`      | Script de inicialização       |
+| `scripts/litellm/start.sh`      | Inicialização (repo local)    |
+| `scripts/litellm/deploy-litellm-host.sh` | Deploy em host remoto  |
+| `scripts/litellm/sync-config-all-hosts.sh` | Sync config para todos |
 
 ---
 

@@ -2,13 +2,15 @@
 
 **Date**: 2026-03-16
 **Severity**: HIGH
-**Status**: ✅ RESOLVED - VPS Recovered After Reboot
+**Status**: 🔴 RECURRING OUTAGE - 2026-03-17 Update
 
 ---
 
 ## Summary
 
-FGSRV06 (Locaweb VPS vps41772) experienced a complete network outage. The VPS was rebooted via Locaweb API and **recovered successfully** after approximately 16 minutes.
+FGSRV06 (Locaweb VPS vps41772) experienced a complete network outage. The VPS was rebooted via Locaweb API and **recovered successfully** after approximately 16 minutes on 2026-03-16.
+
+**⚠️ UPDATE 2026-03-17**: VPS went offline again. Multiple reboots (actions 192814, 192815) initiated but VPS not responding after 3+ minutes.
 
 ---
 
@@ -41,6 +43,13 @@ FGSRV06 (Locaweb VPS vps41772) experienced a complete network outage. The VPS wa
 | ~03:55 | **RECOVERY**: VPS came back online (uptime: 16 min) |
 | 03:56 | SSH connection successful via key authentication |
 | 03:57 | WireGuard and Tailscale services confirmed operational |
+| **2026-03-17** | |
+| ~00:05 | VPS detected offline again (same symptoms) |
+| 00:08 | Reboot via API (action 192814) - completed |
+| 00:10 | Still 100% packet loss on both IPs |
+| 00:12 | Second reboot via API (action 192815) - completed |
+| 00:15 | Still 100% packet loss - VPS not recovering |
+| 00:20 | **ONGOING** - Awaiting recovery or contact Locaweb support |
 
 ---
 

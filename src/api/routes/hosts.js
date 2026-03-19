@@ -35,7 +35,7 @@ async function fetchLiveStatus(host) {
 }
 
 async function hostsRoutes(fastify) {
-  fastify.get('/hosts', async (request, reply) => {
+  fastify.get('/hosts', async (_request, _reply) => {
     const results = await Promise.all(
       KNOWN_HOSTS.map(async (host) => {
         const live = await fetchLiveStatus(host);

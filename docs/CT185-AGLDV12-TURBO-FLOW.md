@@ -130,8 +130,28 @@ O plugin depende de `@claude-flow/ruvector-upstream` que não existe mais. Usar 
 
 Ou manualmente no CT: editar `~/.claude-flow/plugins/package.json` (ou `/opt/turbo-flow/.claude-flow/plugins/`), adicionar dependency + override, e rodar `npm install`.
 
+## Issues conhecidos
+
+| Item | Status | Nota |
+|------|--------|------|
+| **Ruflo doctor** | ❌ Invalid Version | Bug em dependência agentic-flow/@claude-flow (version vazia). Usar ruflo no agldv03 ou aguardar fix upstream. |
+| **Beads** | ✅ | Pacote correto: `@beads/bd` — `npm i -g @beads/bd && bd init` |
+| **Trivy (security-check)** | ⚠️ | Timeout ao baixar imagem Docker. Usar `--skip-docker` ou pré-pull: `docker pull aquasec/trivy:latest`. |
+
+## Alternativa: DevPod
+
+Para criar ambiente Turbo Flow via DevPod (sem clone de CT):
+
+```bash
+devpod up . --ide vscode
+```
+
+Ver [DEVPOD-TURBO-FLOW.md](DEVPOD-TURBO-FLOW.md) para o fluxo completo.
+
 ## Referências
 
+- [DEVPOD-TURBO-FLOW.md](DEVPOD-TURBO-FLOW.md) — workflow DevPod + agl-hostman
+- [TROUBLESHOOTING-AGLDV12.md](TROUBLESHOOTING-AGLDV12.md) — soluções detalhadas para Ruflo, Beads, Docker/Trivy
 - [Turbo Flow README](https://github.com/marcuspat/turbo-flow)
 - [INFRA.md](INFRA.md) — mapa de infraestrutura
 - [CLAUDE-FLOW-LITELLM.md](CLAUDE-FLOW-LITELLM.md) — gateway multi-model

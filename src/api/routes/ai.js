@@ -15,7 +15,7 @@ const OPENCLAW_INFO = {
 };
 
 async function aiRoutes(fastify) {
-  fastify.get('/ai/status', async (request, reply) => {
+  fastify.get('/ai/status', async (_request, _reply) => {
     const [litellm, ruflo] = await Promise.all([
       getLiteLLMStatus(),
       getRufloStatus(),

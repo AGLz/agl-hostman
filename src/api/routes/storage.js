@@ -5,7 +5,7 @@ const { checkStoragePools, getAlerts } = require('../../services/storage-monitor
 const ALERT_THRESHOLD = parseInt(process.env.STORAGE_ALERT_THRESHOLD || '90', 10);
 
 async function storageRoutes(fastify) {
-  fastify.get('/storage', async (request, reply) => {
+  fastify.get('/storage', async (_request, _reply) => {
     let pools = [];
     let source = 'static';
 

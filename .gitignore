@@ -1,3 +1,6 @@
+# Turbo Flow (copiado do turbo-flow, não versionar)
+devpods/
+
 # Gemini-Flow
 .gemini-flow/cache/
 .gemini-flow/logs/
@@ -93,3 +96,11 @@ playwright/.cache/
 
 # Logs
 proxmox_mcp.log
+.security-reports/
+logs/mcp-monitoring/
+
+# Backups e configs locais por host
+.claude/settings.*.json
+!.claude/settings.json
+*.bak.*
+.claude/settings.json.bak*

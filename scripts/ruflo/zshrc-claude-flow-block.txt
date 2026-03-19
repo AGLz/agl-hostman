@@ -1,0 +1,5 @@
+
+# Claude-Flow + LiteLLM (agl-hostman) — source e cclitellm com key dinâmica
+for _cf_root in "$WORKSPACE_FOLDER" "$DEVPOD_WORKSPACE_FOLDER" "/mnt/overpower/apps/dev/agl/agl-hostman" "/workspaces/agl-hostman"; do
+  [[ -n "$_cf_root" && -f "$_cf_root/config/openclaw/zshrc-openclaw.env" ]] && source "$_cf_root/config/openclaw/zshrc-openclaw.env" && cclitellm && break
+done

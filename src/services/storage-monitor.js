@@ -13,7 +13,7 @@ const STATIC_POOLS = [
   { id: 'ct111-sistema', path: '/mnt/pve/ct111-sistema', size: '818GB', used_pct: null, host: 'aglsrv1', alert: false },
 ];
 
-const KNOWN_PATHS = STATIC_POOLS
+const _KNOWN_PATHS = STATIC_POOLS
   .filter((p) => p.path !== null)
   .map((p) => p.path);
 

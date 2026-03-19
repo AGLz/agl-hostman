@@ -205,14 +205,24 @@ npx claude-flow@alpha memory status --reasoningbank
 
 ## Deploy unificado
 
-### Executar em agldv03
+### Executar em host específico
 
 ```bash
-# Do repositório agl-hostman (local ou em agldv03)
-./scripts/ruflo-deploy-agldv03.sh
+# Do repositório agl-hostman
+./scripts/ruflo-deploy-agldv03.sh [host]
+# host: root@100.94.221.87 (agldv03), root@100.113.9.98 (agldv04), root@100.71.217.115 (agldv12), root@100.83.51.9 (fgsrv06), ou "local"
 ```
 
-O script:
+### Sync config para todos os hosts
+
+```bash
+./scripts/ruflo/sync-config-all-hosts.sh
+# Replica .claude/, config/ruflo/, scripts/ruflo/ para agldv03, agldv04, agldv12, fgsrv06
+```
+
+Ver `docs/CLAUDE-FLOW-CONFIG.md` para checklist e procedimento.
+
+O script de deploy:
 
 1. Valida Ruflo/claude-flow
 2. Configura RuVector (se PostgreSQL disponível)

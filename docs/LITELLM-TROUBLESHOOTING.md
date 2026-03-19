@@ -163,7 +163,48 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 7. 400 "Invalid model name passed in model=glm-4.5-air"
+### 7a. agldv04 — Erro ao usar Claude Code/Claude-Flow após `cclitellm`
+
+**Causa**: O `cclitellm` antigo usava `sk-litellm-default` fixo, mas o LiteLLM em execução espera a chave de `/opt/litellm/.env` (ex: `sk-your-secure-master-key`). Ou o `.claude/settings.json` usa localhost enquanto o LiteLLM está em agldv03.
+
+**Solução** (uma das opções):
+
+1. **Usar cclitellm atualizado** (recomendado para terminal):
+   ```bash
+   cd /caminho/agl-hostman
+   source config/openclaw/zshrc-openclaw.env
+   cclitellm
+   claude-flow hive-mind spawn "tarefa" --claude
+   ```
+   O `cclitellm` em `zshrc-openclaw.env` usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env).
+
+2. **Aplicar settings para agldv04** (para Cursor/Claude Code na IDE):
+   ```bash
+   cp .claude/settings.agldv04.json .claude/settings.json
+   ```
+   Depois feche e reabra o Cursor/Claude Code.
+
+3. **Verificar conectividade** antes de usar:
+   ```bash
+   # No agldv04 — deve retornar lista de modelos
+   curl -s -H "Authorization: Bearer sk-litellm-default" \
+        http://100.94.221.87:4000/v1/models | jq -r '.data[].id' | head -5
+   ```
+
+4. **Confirmar que LiteLLM está rodando no agldv03**:
+   ```bash
+   ssh root@100.94.221.87 'curl -s http://localhost:4000/health/readiness'
+   ```
+
+5. **Se usar `cclitellm` no terminal**: Use `source config/openclaw/zshrc-openclaw.env` e depois `cclitellm` — a função agora usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env). O Cursor iniciado pelo menu **não herda** variáveis do shell; use settings.agldv04.json para Cursor.
+
+**Erros comuns**:
+- `Connection refused` / `ECONNREFUSED` → localhost:4000 (settings errado) ou LiteLLM parado no agldv03
+- `401 Unauthorized` → ANTHROPIC_AUTH_TOKEN com ZAI key (896f...) em vez de sk-litellm-default
+
+---
+
+### 7b. 400 "Invalid model name passed in model=glm-4.5-air"
 
 **Causa**: Uso de `anthropic/glm-4.5-air` com api_base ZAI fazia o endpoint `/v1/messages` rotear para a API Anthropic real, que não reconhece GLM.
 
@@ -173,7 +214,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 8. Implementações não visíveis nos agents
+### 9. Implementações não visíveis nos agents
 
 **Agentes especializados** (claude-code-agent, infra-agent, research-agent) e **modelos Cursor** (cursor-claude-sonnet, cursor-glm-5, etc.) estão no `config.yaml` principal. O `cursor-agent-config.yaml` **não é montado** no container — seu conteúdo foi integrado ao config principal.
 
