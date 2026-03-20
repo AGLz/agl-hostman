@@ -1,282 +1,147 @@
 # agl-hostman
 
-> Multi-agent orchestration framework for agentic coding
+> Orquestração multi-agente e gestão de infra AGL (hosts, stacks, gateway LLM)
 
-## Project Overview
+## Visão do projeto
 
-A Claude Flow powered project
+Repositório **agl-hostman**: automação, documentação operacional e APIs de apoio à infraestrutura AGL (Proxmox, containers, redes, LiteLLM, integrações). Convivem **API Node (Fastify)** e **aplicação Laravel** no ramo `src/`, mais configs e Docker na raiz.
 
-**Tech Stack**: TypeScript, Node.js
-**Architecture**: Domain-Driven Design with bounded contexts
-**Last Updated**: 2026-03-12
+**Stack (resumo)**  
+- Node.js 18+ — API em `src/api/` (Fastify, SQLite onde aplicável)  
+- PHP / Laravel 12 — app principal em `src/` (Inertia **React**, Pest, Horizon, etc.; convénções em `.cursor/rules/laravel-boost.mdc`)  
+- LiteLLM — `config/litellm/config.yaml` (+ `config-remote.yaml`); integração Cursor: `docs/CURSOR-LITELLM-INTEGRATION.md`  
+- Docker / Compose — `docker/`, `docker-compose*.yml` na raiz  
 
-## Quick Start
+**Última revisão deste ficheiro**: 2026-03-19
 
-### Installation
+## Quick start (raiz do repositório)
+
 ```bash
-npm install
+npm install          # API Node + tooling da raiz
+npm run dev          # API: node --watch src/api/server.js
+npm test             # tests/api/*.test.js + tests/unit/*.test.js
 ```
 
-### Build
+Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan test`.
+
+## Estrutura útil (não esgotativa)
+
+| Caminho | Conteúdo |
+|---------|----------|
+| `src/api/` | Servidor Fastify (`server.js`, rotas) |
+| `src/app`, `src/routes`, `resources/` | Laravel (árvore clássica sob `src/`) |
+| `config/litellm/` | Modelos, proxy OpenAI/Anthropic, rota `/cursor` para IDE |
+| `docker/` | Stacks (ex.: LiteLLM, monitoring) |
+| `docs/` | INFRA, troubleshooting, integrações |
+| `scripts/` | Automação (backup, litellm, openclaw, etc.) |
+| `tests/api`, `tests/unit`, `tests/integration/` | Testes Node |
+| `ai-docs/`, `agent-os/` | Planeamento e specs quando existirem |
+| `.cursor/rules/` | Regras Cursor (Laravel Boost, guia primário PT) |
+
+**Nota:** A raiz contém muitos artefactos de projeto (compose, config, Python pontual). **Não** adicionar ficheiros soltos sem propósito; preferir `docs/`, `scripts/`, `config/` ou o módulo `src/` adequado.
+
+## Coordenação de agentes
+
+### Swarm (quando aplicável)
+
+| Definição | Valor |
+|-----------|--------|
+| Topology | `hierarchical` |
+| Max agents | 8 |
+| Estratégia | especializada por papel |
+
+**Usar swarm / decomposição:** alterações em 3+ ficheiros, features novas, refactor transversal, APIs com testes, segurança, performance.  
+**Evitar:** edição única trivial, typos, só docs de uma linha (avaliar caso a caso).
+
+### Skills (Claude Flow / Cursor)
+
+Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de swarm, SPARC, auditoria de segurança, infra AGL (`agl-infra`).
+
+### Papéis típicos
+
+| Tipo | Foco |
+|------|------|
+| researcher | Âmbito e requisitos |
+| architect | Desenho e limites |
+| coder | Implementação |
+| tester | Testes e regressões |
+| reviewer | Qualidade e risco |
+
+## Normas de código
+
+- Ficheiros **&lt; 500 linhas** quando possível; dividir por responsabilidade.
+- Sem segredos no Git; usar env / gestão de secrets.
+- Validação nas fronteiras (HTTP, forms, paths — anti-traversal).
+- **Commits:** `feat|fix|docs|style|refactor|perf|test|chore(scope): mensagem` (ver histórico do repo para estilo da equipa).
+
+## Segurança
+
+- Nunca commitar `.env` com credenciais.
+- Queries parametrizadas; saída escapada onde houver HTML.
+- Caminhos validados antes de I/O.
+
+## Memória (Claude Flow CLI)
+
 ```bash
-npm run build
+npx @claude-flow/cli memory store --key "nome" --value "descrição" --namespace patterns
+npx @claude-flow/cli memory search --query "termos" --namespace patterns
 ```
 
-### Test
-```bash
-npm test
-```
+## Infra AGL (operações)
 
-### Development
-```bash
-npm run dev
-```
+Resumo — detalhe em `docs/INFRA.md`:
 
-## Agent Coordination
+| Tema | Nota |
+|------|------|
+| Restart CT | Preferir **host** ou outra máquina, não de dentro do CT (ex. CT179) |
+| CT locked | `pct unlock <vmid>` antes de `pct start` |
+| Pi-hole CT102 | `pct unlock 102 && pct start 102` |
+| Cloudflared CT117 | `pct exec 117 -- systemctl restart cloudflared` |
+| OpenClaw aglwk45 | VM104 — via AGLSRV1 / scripts em `scripts/verify-openclaw-*` |
 
-### Swarm Configuration
+### OpenClaw (referência rápida)
 
-This project uses hierarchical swarm coordination for complex tasks:
+| Host | Tailscale / verificação |
+|------|-------------------------|
+| agldv03 | `100.94.221.87` |
+| fgsrv06 | `100.83.51.9` |
+| aglwk45 | Via `192.168.0.245` / guest exec |
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Topology | `hierarchical` | Queen-led coordination (anti-drift) |
-| Max Agents | 8 | Optimal team size |
-| Strategy | `specialized` | Clear role boundaries |
-| Consensus | `raft` | Leader-based consistency |
+## LiteLLM + Cursor (Composer)
 
-### When to Use Swarms
+O modelo **Composer 2** na Cursor é proprietário; no proxy, nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** mapeiam para **`openai/gpt-5.3-instant`** (ver `config/litellm/config.yaml`). Documentação de setup: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
 
-**Invoke swarm for:**
-- Multi-file changes (3+ files)
-- New feature implementation
-- Cross-module refactoring
-- API changes with tests
-- Security-related changes
-- Performance optimization
+## Ligações
 
-**Skip swarm for:**
-- Single file edits
-- Simple bug fixes (1-2 lines)
-- Documentation updates
-- Configuration changes
-
-### Available Skills
-
-Use `$skill-name` syntax to invoke:
-
-| Skill | Use Case |
-|-------|----------|
-| `$swarm-orchestration` | Multi-agent task coordination |
-| `$memory-management` | Pattern storage and retrieval |
-| `$sparc-methodology` | Structured development workflow |
-| `$security-audit` | Security scanning and CVE detection |
-
-### Agent Types
-
-| Type | Role | Use Case |
-|------|------|----------|
-| `researcher` | Requirements analysis | Understanding scope |
-| `architect` | System design | Planning structure |
-| `coder` | Implementation | Writing code |
-| `tester` | Test creation | Quality assurance |
-| `reviewer` | Code review | Security and quality |
-
-## Code Standards
-
-### File Organization
-- **NEVER** save to root folder
-- `/src` - Source code files
-- `/tests` - Test files
-- `/docs` - Documentation
-- `/config` - Configuration files
-
-### Quality Rules
-- Files under 500 lines
-- No hardcoded secrets
-- Input validation at boundaries
-- Typed interfaces for public APIs
-- TDD London School (mock-first) preferred
-
-### Commit Messages
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-Co-Authored-By: claude-flow <ruv@ruv.net>
-```
-
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
-
-## Security
-
-### Critical Rules
-- NEVER commit secrets, credentials, or .env files
-- NEVER hardcode API keys
-- Always validate user input
-- Use parameterized queries for SQL
-- Sanitize output to prevent XSS
-
-### Path Security
-- Validate all file paths
-- Prevent directory traversal (../)
-- Use absolute paths internally
-
-## Memory System
-
-### Storing Patterns
-```bash
-npx @claude-flow/cli memory store \
-  --key "pattern-name" \
-  --value "pattern description" \
-  --namespace patterns
-```
-
-### Searching Memory
-```bash
-npx @claude-flow/cli memory search \
-  --query "search terms" \
-  --namespace patterns
-```
-
-## Infrastructure Operations (AGL)
-
-Para tarefas de infra (Proxmox, CTs, DNS, túneis), consulte `docs/INFRA.md` e `CLAUDE.md` (seção Project). Padrões recorrentes:
-
-| Operação | Comando / Observação |
-|----------|----------------------|
-| Restart CT | Executar **do host ou de outra máquina**, nunca do próprio CT (ex: CT179) |
-| CT locked (snapshot) | `pct unlock <vmid>` antes de `pct start` |
-| CT102 (pihole) parado | `pct unlock 102 && pct start 102` |
-| Cloudflared (CT117) sem redirecionar | `pct exec 117 -- systemctl restart cloudflared` |
-| DNS no aglsrv1 | Pi-hole (192.168.0.102) + Cloudflare (1.1.1.1) + Google (8.8.8.8); `tailscale set --accept-dns=false` |
-| **OpenClaw em aglwk45** | VM104 (Windows) — verificar via host: `ssh root@192.168.0.245 'qm agent 104 ping'` e `qm guest exec 104 -- openclaw --version` |
-
-### OpenClaw (multi-host)
-
-| Host | IP | Verificação |
-|------|-----|-------------|
-| agldv03 | 100.94.221.87 | `source ~/.openclaw/zshrc-openclaw.env && openclaw status` |
-| fgsrv06 | 100.83.51.9 | `ssh root@100.83.51.9 'openclaw status'` |
-| aglwk45 (VM104) | 100.117.146.21 | Via AGLSRV1: `ssh root@192.168.0.245 'qm guest exec 104 -- openclaw --version'` |
-
-Scripts: `scripts/verify-openclaw-aglwk45.sh`, `scripts/verify-openclaw-aglwk45.ps1`, `scripts/deploy-openclaw-config.sh`
-
-## Links
-
-- Documentation: https://github.com/ruvnet/claude-flow
-- Issues: https://github.com/ruvnet/claude-flow/issues
+- Claude Flow: https://github.com/ruvnet/claude-flow  
+- LiteLLM Cursor: https://docs.litellm.ai/docs/tutorials/cursor_integration  
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:full hash:d4f96305 -->
-## Issue Tracking with bd (beads)
+## Issue tracking (bd / beads)
 
-**IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
+**IMPORTANTE:** Usar **bd** para acompanhamento de trabalho orientado a issues. Evitar TODOs em markdown como sistema único de tracking.
 
-### Why bd?
-
-- Dependency-aware: Track blockers and relationships between issues
-- Git-friendly: Dolt-powered version control with native sync
-- Agent-optimized: JSON output, ready work detection, discovered-from links
-- Prevents duplicate tracking systems and confusion
-
-### Quick Start
-
-**Check for ready work:**
+### Comandos úteis
 
 ```bash
 bd ready --json
-```
-
-**Create new issues:**
-
-```bash
-bd create "Issue title" --description="Detailed context" -t bug|feature|task -p 0-4 --json
-bd create "Issue title" --description="What this issue is about" -p 1 --deps discovered-from:bd-123 --json
-```
-
-**Claim and update:**
-
-```bash
+bd create "Título" --description="..." -t bug|feature|task -p 0-4 --json
 bd update <id> --claim --json
-bd update bd-42 --priority 1 --json
+bd close <id> --reason "..." --json
 ```
 
-**Complete work:**
+**Tipos:** `bug`, `feature`, `task`, `epic`, `chore`  
+**Prioridade:** `0` crítico … `4` backlog  
+**Dependências:** `--deps discovered-from:bd-XXX`
 
-```bash
-bd close bd-42 --reason "Completed" --json
-```
+### Landing the plane (fim de sessão)
 
-### Issue Types
+Trabalho considerado fechado apenas com **push** bem-sucedido quando há remoto Git:
 
-- `bug` - Something broken
-- `feature` - New functionality
-- `task` - Work item (tests, docs, refactoring)
-- `epic` - Large feature with subtasks
-- `chore` - Maintenance (dependencies, tooling)
-
-### Priorities
-
-- `0` - Critical (security, data loss, broken builds)
-- `1` - High (major features, important bugs)
-- `2` - Medium (default, nice-to-have)
-- `3` - Low (polish, optimization)
-- `4` - Backlog (future ideas)
-
-### Workflow for AI Agents
-
-1. **Check ready work**: `bd ready` shows unblocked issues
-2. **Claim your task atomically**: `bd update <id> --claim`
-3. **Work on it**: Implement, test, document
-4. **Discover new work?** Create linked issue:
-   - `bd create "Found bug" --description="Details about what was found" -p 1 --deps discovered-from:<parent-id>`
-5. **Complete**: `bd close <id> --reason "Done"`
-
-### Auto-Sync
-
-bd automatically syncs via Dolt:
-
-- Each write auto-commits to Dolt history
-- Use `bd dolt push`/`bd dolt pull` for remote sync
-- No manual export/import needed!
-
-### Important Rules
-
-- ✅ Use bd for ALL task tracking
-- ✅ Always use `--json` flag for programmatic use
-- ✅ Link discovered work with `discovered-from` dependencies
-- ✅ Check `bd ready` before asking "what should I work on?"
-- ❌ Do NOT create markdown TODO lists
-- ❌ Do NOT use external issue trackers
-- ❌ Do NOT duplicate tracking systems
-
-For more details, see README.md and docs/QUICKSTART.md.
-
-## Landing the Plane (Session Completion)
-
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
-
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd dolt push
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+1. Registar follow-up em bd se necessário  
+2. Testes / lint após mudanças de código (`npm test`, `php artisan test` no Laravel afetado)  
+3. `git pull --rebase` → `bd dolt push` (quando usas Dolt remoto) → `git push`  
+4. `git status`: **up to date** com `origin`  
+5. Não deixar alterações críticas só locais sem issue associada  
 
 <!-- END BEADS INTEGRATION -->

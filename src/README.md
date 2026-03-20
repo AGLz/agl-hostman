@@ -1,8 +1,10 @@
-# AGL Infrastructure Admin Platform
+# agl-hostman — aplicação Laravel (Admin Platform)
 
-Uma plataforma completa de administração de infraestrutura para AGL, integrando múltiplos modelos de IA, automação com N8N, e metodologia Scrum.
+Parte **PHP/Laravel** do monorepo **[agl-hostman](../README.md)** na raiz: na mesma árvore, a API **Fastify** está em **`api/`** relativo a esta pasta ([`api/`](api/)); comandos `npm` na **raiz** do repositório. **LiteLLM:** [`config/litellm/`](../config/litellm/). **Docs:** [`docs/`](../docs/). Contexto para agentes: [`AGENTS.md`](../AGENTS.md), [`CLAUDE.md`](../CLAUDE.md).
 
-## 🚀 Características Principais
+Plataforma de administração de infraestrutura AGL: multi-IA (incl. Hive-Mind), automação com N8N, operações e Scrum integrados.
+
+## Características principais
 
 ### 1. **Autenticação Empresarial**
 - **WorkOS AuthKit** para SSO empresarial
@@ -46,38 +48,46 @@ Uma plataforma completa de administração de infraestrutura para AGL, integrand
 - **Burndown Charts**: Visualização de progresso
 - **Velocity Tracking**: Métricas de performance
 
-### 6. **Tecnologias Utilizadas**
-- **Backend**: Laravel 12 com PHP 8.4
-- **Frontend**: React + Vite + shadcn/ui
+### 6. **Tecnologias utilizadas**
+- **Backend**: Laravel 12 (`laravel/framework` ^12), PHP ^8.2 (ver `composer.json`)
+- **Frontend**: Inertia + React + Vite + shadcn/ui + Tailwind
 - **Databases**: MySQL + Redis
 - **Queue**: Laravel Horizon
 - **Monitoring**: Laravel Telescope
 - **Containers**: Docker + Docker Compose
-- **Deploy**: Harbor Registry + Dokploy
+- **Deploy**: Harbor Registry + Dokploy (conforme pipeline da equipa)
 
-## 📦 Instalação
+## Instalação
 
 ### Pré-requisitos
-- Docker e Docker Compose
-- PHP 8.4+
-- Node.js 18+
-- MySQL 8.0+
-- Redis
+- Docker e Docker Compose (se usar stack containerizada)
+- PHP 8.2+ e [Composer](https://getcomposer.org/)
+- Node.js 18+ (assets front-end)
+- MySQL 8+ e Redis (ou serviços via Compose)
 
-### Passo a Passo
+### Passo a passo
 
-1. **Clone o repositório**
+1. **Repositório (raiz do monorepo, depois esta pasta)**
 ```bash
-git clone https://github.com/agl/agl-hostman.git
+git clone <url-do-repositorio> agl-hostman
 cd agl-hostman/src
 ```
 
-2. **Configure o ambiente**
+2. **Dependências PHP e Inertia**
+```bash
+composer install
+```
+Inclui **`inertiajs/inertia-laravel`** ^2 (servidor Inertia para `Inertia::render`).
+
+3. **Ambiente (`.env`)**
 ```bash
 cp .env.example .env
+touch database/database.sqlite   # se usar SQLite como no exemplo
+php artisan key:generate         # preenche APP_KEY
 ```
+O ficheiro **`.env.example`** inclui valores mínimos Laravel + variáveis HOSTMAN/Proxmox/LiteLLM. Para MySQL/Redis via Docker, ver comentários no próprio exemplo e `docker-compose.yml`.
 
-3. **Configure as variáveis de ambiente**
+4. **Configure as variáveis de ambiente (alternativa MySQL / Compose)**
 ```env
 # Banco de dados
 DB_CONNECTION=mysql
@@ -108,28 +118,33 @@ OPENAI_API_KEY=seu_openai_key
 ABACUSAI_API_KEY=seu_abacusai_key
 ```
 
-4. **Inicie os containers**
+5. **Inicie os containers**
 ```bash
 docker-compose up -d
 ```
 
-5. **Execute as migrações**
+6. **Execute as migrações**
 ```bash
 docker-compose exec app php artisan migrate --seed
 ```
 
-6. **Instale dependências do frontend**
+7. **Instale dependências do frontend**
 ```bash
 npm install
 npm run build
 ```
 
-7. **Acesse a aplicação**
+8. **Acesse a aplicação**
 ```
 http://localhost
 ```
 
-## 🔧 Configuração
+### Artisan / PHP CLI
+
+- Se **`php artisan`** sair com código **255** e sem output no teu sistema, o bootstrap ainda pode estar íntegro: `php -r "require 'vendor/autoload.php'; require 'bootstrap/app.php'; echo 'ok';"` deve mostrar `ok`. Nesse caso usa **Docker** (`docker compose` nesta pasta) ou outro runtime PHP para comandos Artisan.
+- **Git / Composer:** se aparecer *dubious ownership*, define `git config --global --add safe.directory /caminho/do/agl-hostman`.
+
+## Configuração
 
 ### Laravel Horizon
 Acesse o dashboard do Horizon em `/horizon` para monitorar filas.
@@ -142,7 +157,7 @@ Acesse o Telescope em `/telescope` para debugging (apenas em desenvolvimento).
 2. Importe os workflows de `n8n-workflows/`
 3. Configure os webhooks para o Laravel
 
-## 📊 API Endpoints
+## API Endpoints
 
 ### Autenticação
 - `GET /auth/workos/redirect` - Iniciar login SSO
@@ -175,7 +190,7 @@ Acesse o Telescope em `/telescope` para debugging (apenas em desenvolvimento).
 - `POST /api/scrum/tasks` - Criar task
 - `POST /api/scrum/tasks/{id}/move` - Mover task
 
-## 🚢 Deploy para Produção
+## Deploy para produção
 
 ### Com Harbor + Dokploy
 
@@ -199,7 +214,7 @@ docker build -t agl-hostman:latest .
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## 🛠️ Desenvolvimento
+## Desenvolvimento
 
 ### Estrutura do Projeto
 ```
@@ -238,7 +253,7 @@ php artisan queue:work --queue=monitoring
 php artisan test --coverage
 ```
 
-## 🔍 Monitoramento
+## Monitoramento
 
 ### Métricas Disponíveis
 - **Infrastructure Health**: Status em tempo real de todos servidores
@@ -255,7 +270,7 @@ php artisan test --coverage
 - Queue backlog > 100 jobs
 - AI API failures
 
-## 🔐 Segurança
+## Segurança
 
 ### Implementações de Segurança
 - Autenticação SSO com WorkOS
@@ -267,7 +282,7 @@ php artisan test --coverage
 - CSRF protection
 - XSS protection
 
-## 📈 Roadmap
+## Roadmap
 
 ### Phase 2 (Em desenvolvimento)
 - [ ] WebSocket para atualizações em tempo real
@@ -283,33 +298,26 @@ php artisan test --coverage
 - [ ] Predictive analytics
 - [ ] Cost optimization engine
 
-## 🤝 Contribuindo
+## Contribuindo
 
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. Branch a partir do padrão da equipa (`feature/…`, `fix/…`, etc.).
+2. Commits no estilo convencional (`feat(scope): …`, `fix: …`); ver **[`AGENTS.md`](../AGENTS.md)** e fluxo **bd** se aplicável.
+3. `php artisan test` (Pest) antes de abrir PR; na raiz do monorepo, `npm test` quando alterar a API Node.
 
-## 📝 Licença
+## Licença
 
-Proprietary - AGL © 2025
+Proprietary — AGL (ajustar ano/legal conforme contrato interno).
 
-## 📞 Suporte
+## Suporte e docs
 
-- **Email**: admin@agl.com.br
-- **Discord**: discord.gg/agl
-- **Documentation**: https://docs.aglz.io
+- Documentação de infra: **[`docs/INFRA.md`](../docs/INFRA.md)** e **[`docs/README.md`](../docs/README.md)**.
+- Integração Cursor + LiteLLM: **[`docs/CURSOR-LITELLM-INTEGRATION.md`](../docs/CURSOR-LITELLM-INTEGRATION.md)**.
+- Contactos internos (email, Discord, docs públicos): manter alinhados com a política da organização; atualizar esta secção com URLs oficiais válidos.
 
-## 🙏 Agradecimentos
+## Agradecimentos
 
-- Laravel Team
-- Anthropic (Claude)
-- Google (Gemini)
-- OpenAI
-- N8N Community
-- Docker Community
+Comunidades Laravel, ecossistema Inertia/React, fornecedores de API de IA, N8N e Docker.
 
 ---
 
-**Desenvolvido com ❤️ pela equipe AGL**
+*Última revisão: 2026-03-19.*

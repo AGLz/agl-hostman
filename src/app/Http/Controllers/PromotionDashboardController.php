@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Promotion;
 use App\Models\Environment;
-use Illuminate\Http\Request;
+use App\Models\Promotion;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class PromotionDashboardController extends Controller
 {
@@ -17,7 +16,7 @@ class PromotionDashboardController extends Controller
      */
     public function getPromotionPipeline(): JsonResponse
     {
-        $environments = Environment::whereIn('type', ['development', 'qa', 'uat', 'production'])
+        $environments = Environment::whereIn('type', ['dev', 'qa', 'uat', 'production'])
             ->with('latestDeployment')
             ->get()
             ->keyBy('type');
@@ -27,7 +26,7 @@ class PromotionDashboardController extends Controller
             ->get();
 
         return response()->json([
-            'environments' => $environments->map(fn($env) => [
+            'environments' => $environments->map(fn ($env) => [
                 'type' => $env->type,
                 'current_version' => $env->current_version,
                 'last_deployed' => $env->latestDeployment?->completed_at,
@@ -43,7 +42,7 @@ class PromotionDashboardController extends Controller
     public function getPromotionMetrics(): JsonResponse
     {
         $metrics = [
-            'dev_to_qa' => $this->calculatePromotionMetrics('development', 'qa'),
+            'dev_to_qa' => $this->calculatePromotionMetrics('dev', 'qa'),
             'qa_to_uat' => $this->calculatePromotionMetrics('qa', 'uat'),
             'uat_to_production' => $this->calculatePromotionMetrics('uat', 'production'),
         ];
@@ -87,8 +86,8 @@ class PromotionDashboardController extends Controller
      */
     private function calculatePromotionMetrics(string $sourceType, string $targetType): array
     {
-        $promotions = Promotion::whereHas('sourceEnvironment', fn($q) => $q->where('type', $sourceType))
-            ->whereHas('targetEnvironment', fn($q) => $q->where('type', $targetType))
+        $promotions = Promotion::whereHas('sourceEnvironment', fn ($q) => $q->where('type', $sourceType))
+            ->whereHas('targetEnvironment', fn ($q) => $q->where('type', $targetType))
             ->where('created_at', '>', now()->subDays(30))
             ->get();
 
@@ -101,11 +100,11 @@ class PromotionDashboardController extends Controller
             'completed' => $completed->count(),
             'failed' => $failed->count(),
             'rolled_back' => $rolledBack->count(),
-            'success_rate' => $promotions->count() > 0 
-                ? round(($completed->count() / $promotions->count()) * 100, 2) 
+            'success_rate' => $promotions->count() > 0
+                ? round(($completed->count() / $promotions->count()) * 100, 2)
                 : 0,
             'average_duration' => $completed->isNotEmpty()
-                ? round($completed->avg(fn($p) => $p->getDuration() ?? 0), 2)
+                ? round($completed->avg(fn ($p) => $p->getDuration() ?? 0), 2)
                 : 0,
         ];
     }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use Exception;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 /**
  * Harbor Repository
@@ -19,14 +19,19 @@ use Exception;
 class HarborRepository
 {
     private const CACHE_TTL = 300;
+
     private const MAX_RETRIES = 3;
+
     private const RETRY_DELAY_MS = 1000;
 
-    private PendingRequest $client;
+    /** @var PendingRequest|null Lazily built to avoid DI/bootstrap recursion ao carregar o console */
+    private ?PendingRequest $client = null;
 
-    public function __construct()
+    public function __construct() {}
+
+    private function client(): PendingRequest
     {
-        $this->client = $this->createClient();
+        return $this->client ??= $this->createClient();
     }
 
     /**
@@ -39,11 +44,11 @@ class HarborRepository
         $password = config('harbor.password');
         $timeout = config('harbor.timeout', 30);
 
-        if (!$baseUrl) {
+        if (! $baseUrl) {
             throw new Exception('Harbor base URL is not configured');
         }
 
-        if (!$username || !$password) {
+        if (! $username || ! $password) {
             throw new Exception('Harbor credentials are not configured');
         }
 
@@ -62,9 +67,7 @@ class HarborRepository
      */
     public function get(string $endpoint, array $params = []): array
     {
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->get($endpoint, $params)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->get($endpoint, $params));
 
         return $this->handleResponse($response);
     }
@@ -74,9 +77,7 @@ class HarborRepository
      */
     public function post(string $endpoint, array $data = []): array
     {
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->post($endpoint, $data)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->post($endpoint, $data));
 
         return $this->handleResponse($response);
     }
@@ -86,9 +87,7 @@ class HarborRepository
      */
     public function put(string $endpoint, array $data = []): array
     {
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->put($endpoint, $data)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->put($endpoint, $data));
 
         return $this->handleResponse($response);
     }
@@ -98,9 +97,7 @@ class HarborRepository
      */
     public function patch(string $endpoint, array $data = []): array
     {
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->patch($endpoint, $data)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->patch($endpoint, $data));
 
         return $this->handleResponse($response);
     }
@@ -110,9 +107,7 @@ class HarborRepository
      */
     public function delete(string $endpoint): array
     {
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->delete($endpoint)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->delete($endpoint));
 
         return $this->handleResponse($response);
     }
@@ -162,7 +157,7 @@ class HarborRepository
         }
 
         throw new Exception(
-            "Harbor API request failed after {$retryTimes} attempts: " .
+            "Harbor API request failed after {$retryTimes} attempts: ".
             ($lastException?->getMessage() ?? 'Unknown error')
         );
     }
@@ -199,12 +194,14 @@ class HarborRepository
     public function testConnection(): bool
     {
         try {
-            $response = $this->client->get('/api/v2.0/systeminfo');
+            $response = $this->client()->get('/api/v2.0/systeminfo');
+
             return $response->successful();
         } catch (Exception $e) {
             Log::error('Harbor connection test failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

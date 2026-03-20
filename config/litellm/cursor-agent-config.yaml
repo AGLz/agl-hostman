@@ -1,4 +1,4 @@
-# Cursor Agent Composer 1.5 Configuration for LiteLLM
+# Cursor Agent — Composer 2 Fast (referência; conteúdo efetivo em config.yaml)
 # Reference: https://docs.litellm.ai/docs/tutorials/cursor_integration
 #
 # IMPORTANT: Cursor Agent mode has limitations with custom API keys.
@@ -9,7 +9,23 @@
 # GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
 
 model_list:
-  # Cursor Agent Composer 1.5 - Primary Models
+  # Proxy “Composer 2 Fast”: usar gpt-5.3-instant no config montado no container
+  - model_name: cursor-composer
+    litellm_params:
+      model: gpt-5.3-instant
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      description: "Proxy Composer 2 Fast (OpenAI GPT-5.3 Instant)"
+      max_tokens: 16384
+
+  - model_name: cursor-composer-2-fast
+    litellm_params:
+      model: gpt-5.3-instant
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      description: "Alias cursor-composer-2-fast"
+      max_tokens: 16384
+
   - model_name: cursor-claude-sonnet
     litellm_params:
       model: claude-sonnet-4-6

@@ -1,11 +1,11 @@
-# Cursor Agent Composer 1.5 + LiteLLM Integration
+# Cursor Agent Composer 2 Fast + LiteLLM Integration
 
-> **Last Updated**: 2026-03-13
+> **Last Updated**: 2026-03-19
 > **Status**: Beta - Agent mode has known limitations
 
 ## Visão Geral
 
-Integração do Cursor IDE (Agent Composer 1.5) com o gateway LiteLLM para usar modelos Claude, GLM-5, DeepSeek e outros.
+Integração do Cursor IDE com o gateway LiteLLM. O modelo **Composer 2 / Composer 2 Fast** é [proprietário da Cursor](https://cursor.com/docs/models/cursor-composer-2) (focado em agente, ferramentas e edição); **não existe API pública** para o mesmo modelo fora do produto. Neste repositório, os nomes públicos `cursor-composer` e `cursor-composer-2-fast` encaminham para **`openai/gpt-5.3-instant`** como substituto rápido (~400K contexto), alinhado ao papel do Composer 2 Fast na documentação Cursor (variante *fast* ~\$1.50/M in / \$7.50/M out no pool da Cursor; custos reais no LiteLLM seguem a tabela OpenAI).
 
 ## Limitações Conhecidas
 
@@ -48,7 +48,7 @@ curl -X POST http://localhost:4000/key/generate \
   -d '{
     "user_id": "cursor-user",
     "key_alias": "cursor-key",
-    "models": ["cursor-claude-sonnet", "cursor-glm-5", "cursor-deepseek"],
+    "models": ["cursor-composer", "cursor-composer-2-fast", "cursor-claude-sonnet", "cursor-glm-5", "cursor-deepseek"],
     "max_budget": 50
   }'
 ```
@@ -57,6 +57,8 @@ curl -X POST http://localhost:4000/key/generate \
 
 1. Clicar em **+ Add Custom Model**
 2. Adicionar os nomes públicos dos modelos:
+   - `cursor-composer` (proxy Composer 2 Fast → GPT-5.3 Instant)
+   - `cursor-composer-2-fast` (mesmo backend; nome explícito)
    - `cursor-claude-sonnet`
    - `cursor-claude-opus`
    - `cursor-glm-5`
@@ -75,16 +77,19 @@ curl -X POST http://localhost:4000/key/generate \
 
 | Modelo | Descrição | Uso |
 |--------|-----------|-----|
+| `cursor-composer` | Proxy Composer 2 Fast (GPT-5.3 Instant) | Fluxo tipo Composer rápido |
+| `cursor-composer-2-fast` | Idem (alias explícito) | Idem |
 | `cursor-claude-sonnet` | Claude Sonnet 4.6 | Código geral |
 | `cursor-claude-opus` | Claude Opus 4.6 | Raz. complexo |
-| `cursor-glm-5` | GLM-5 via OpenRouter | Custo reduzido |
+| `cursor-glm-5` | GLM-5 (Z.AI) | Custo reduzido |
 | `cursor-deepseek` | DeepSeek V3.2 | Excelente para código |
 | `cursor-gpt-4o` | GPT-4o | Fallback robusto |
 
 ## Fallbacks Configurados
 
 ```
-cursor-claude-sonnet → cursor-claude-opus → cursor-glm-5 → cursor-deepseek
+cursor-composer → cursor-claude-sonnet → cursor-claude-opus → cursor-glm-5 → cursor-deepseek
+cursor-claude-sonnet → cursor-composer → cursor-composer-2-fast → …
 cursor-glm-5 → cursor-deepseek → cursor-gpt-4o
 ```
 
@@ -118,6 +123,7 @@ O Cursor também pode conectar aos MCP servers do LiteLLM:
 
 ## Referências
 
+- [Composer 2 (Cursor)](https://cursor.com/docs/models/cursor-composer-2)
 - [LiteLLM Cursor Integration](https://docs.litellm.ai/docs/tutorials/cursor_integration)
 - [Cursor MCP Documentation](https://cursor.com/en-US/docs/context/mcp)
 - [GitHub Issue #19800](https://github.com/BerriAI/litellm/issues/19800)

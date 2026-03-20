@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -17,6 +18,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // Enable pg_stat_statements extension for query logging
         DB::statement('CREATE EXTENSION IF NOT EXISTS pg_stat_statements;');
 
@@ -213,6 +218,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('DROP MATERIALIZED VIEW IF EXISTS mv_slow_queries_top');
         DB::statement('DROP FUNCTION IF EXISTS update_slow_queries_log()');
         Schema::dropIfExists('query_execution_samples');

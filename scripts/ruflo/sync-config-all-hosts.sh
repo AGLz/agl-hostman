@@ -12,11 +12,12 @@ REPO_PATH_REMOTE="/mnt/overpower/apps/dev/agl/agl-hostman"
 declare -A HOST_IPS
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
+HOST_IPS[agldv05]="100.119.41.63"
 HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 
 # Hosts alvo (default: todos)
-[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv03 agldv04 agldv12 fgsrv06)
+[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv03 agldv04 agldv05 agldv12 fgsrv06)
 
 echo "=============================================="
 echo "  Claude Flow / Ruflo — Sync Config → Hosts"

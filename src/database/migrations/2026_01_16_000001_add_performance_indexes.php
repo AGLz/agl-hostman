@@ -14,10 +14,9 @@ return new class extends Migration
         // Users table indexes
         Schema::table('users', function (Blueprint $table) {
             // Email is already indexed by Laravel
-            // Add composite indexes for common queries
+            // workos_id já tem índice em add_workos_fields_to_users_table
             $table->index(['is_active', 'created_at'], 'users_active_created_index');
             $table->index(['last_login_at'], 'users_last_login_index');
-            $table->index('workos_id', 'users_workos_id_index');
         });
 
         // LXC Containers indexes
@@ -96,7 +95,6 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropIndex('users_active_created_index');
             $table->dropIndex('users_last_login_index');
-            $table->dropIndex('users_workos_id_index');
         });
 
         // LXC Containers

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Deployment;
 
-use App\Models\Promotion;
-use App\Models\ProductionApproval;
-use App\Models\User;
 use App\Events\PromotionApproved;
 use App\Events\PromotionRejected;
+use App\Models\ProductionApproval;
+use App\Models\Promotion;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Promotion Approval Service
@@ -19,17 +18,14 @@ use Carbon\Carbon;
  */
 class PromotionApprovalService
 {
-    public function __construct(
-        private readonly PromotionWorkflowService $workflowService
-    ) {}
+    public function __construct() {}
 
     /**
      * Request approval for promotion
      *
-     * @param Promotion $promotion Promotion requiring approval
-     * @param array $approvers List of approver roles or user IDs
-     * @param int $requiredCount Number of approvals required
-     * @return void
+     * @param  Promotion  $promotion  Promotion requiring approval
+     * @param  array  $approvers  List of approver roles or user IDs
+     * @param  int  $requiredCount  Number of approvals required
      */
     public function requestApproval(
         Promotion $promotion,
@@ -81,10 +77,9 @@ class PromotionApprovalService
     /**
      * Approve promotion
      *
-     * @param Promotion $promotion Promotion to approve
-     * @param User $approver User approving
-     * @param string|null $notes Optional approval notes
-     * @return ProductionApproval
+     * @param  Promotion  $promotion  Promotion to approve
+     * @param  User  $approver  User approving
+     * @param  string|null  $notes  Optional approval notes
      */
     public function approve(
         Promotion $promotion,
@@ -121,7 +116,7 @@ class PromotionApprovalService
 
         // 5. Update promotion's approved_by array
         $approvedBy = $promotion->approved_by ?? [];
-        if (!in_array($approver->id, $approvedBy)) {
+        if (! in_array($approver->id, $approvedBy)) {
             $approvedBy[] = $approver->id;
             $promotion->update(['approved_by' => $approvedBy]);
         }
@@ -141,8 +136,8 @@ class PromotionApprovalService
             ]);
 
             // Execute promotion asynchronously
-            dispatch(function() use ($promotion) {
-                $this->workflowService->executePromotion($promotion);
+            dispatch(function () use ($promotion): void {
+                app(PromotionWorkflowService::class)->executePromotion($promotion);
             })->afterResponse();
         }
 
@@ -158,10 +153,9 @@ class PromotionApprovalService
     /**
      * Reject promotion
      *
-     * @param Promotion $promotion Promotion to reject
-     * @param User $approver User rejecting
-     * @param string $reason Rejection reason
-     * @return void
+     * @param  Promotion  $promotion  Promotion to reject
+     * @param  User  $approver  User rejecting
+     * @param  string  $reason  Rejection reason
      */
     public function reject(
         Promotion $promotion,
@@ -205,7 +199,7 @@ class PromotionApprovalService
     /**
      * Check if all approvals are complete
      *
-     * @param Promotion $promotion Promotion to check
+     * @param  Promotion  $promotion  Promotion to check
      * @return bool True if fully approved
      */
     public function isFullyApproved(Promotion $promotion): bool
@@ -220,7 +214,7 @@ class PromotionApprovalService
     /**
      * Get pending approvals for a user
      *
-     * @param User $approver User to get pending approvals for
+     * @param  User  $approver  User to get pending approvals for
      * @return array List of promotions awaiting approval
      */
     public function getPendingApprovals(User $approver): array
@@ -231,8 +225,9 @@ class PromotionApprovalService
             ->with(['promotion.sourceEnvironment', 'promotion.targetEnvironment'])
             ->get();
 
-        return $pendingApprovals->map(function($approval) {
+        return $pendingApprovals->map(function ($approval) {
             $promotion = $approval->promotion;
+
             return [
                 'promotion_id' => $promotion->id,
                 'approval_id' => $approval->id,
@@ -251,7 +246,7 @@ class PromotionApprovalService
     /**
      * Get approval status for a promotion
      *
-     * @param Promotion $promotion Promotion to check
+     * @param  Promotion  $promotion  Promotion to check
      * @return array Approval status details
      */
     public function getApprovalStatus(Promotion $promotion): array
@@ -268,7 +263,7 @@ class PromotionApprovalService
             'rejected_count' => $approvals->where('status', 'rejected')->count(),
             'pending_count' => $approvals->where('status', 'pending')->count(),
             'is_fully_approved' => $this->isFullyApproved($promotion),
-            'approvals' => $approvals->map(function($approval) {
+            'approvals' => $approvals->map(function ($approval) {
                 return [
                     'approver' => $approval->approver->name,
                     'approver_email' => $approval->approver->email,

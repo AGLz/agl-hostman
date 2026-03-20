@@ -1,76 +1,89 @@
-# gemini-flow-project
+# agl-hostman
 
-AI-powered project using Gemini-Flow
+Repositório de **orquestração multi-agente**, **automação** e **documentação operacional** para a infraestrutura **AGL** (hosts, stacks, redes, gateway LLM e integrações).
 
-## Getting Started
+Na mesma árvore coexistem uma **API Node (Fastify)** e uma **aplicação Laravel 12** sob `src/`, além de configs Docker, LiteLLM e scripts de operações.
 
-This project is powered by Gemini-Flow, an AI orchestration platform with intelligent agent swarms.
+## Requisitos
 
-### Prerequisites
+| Componente | Versão / notas |
+|------------|----------------|
+| Node.js | 18+ |
+| PHP / Composer | Para a app Laravel em `src/` |
+| Docker / Compose | Opcional — stacks em `docker/` e ficheiros `docker-compose*.yml` na raiz |
 
-- Node.js 18+ 
-- npm or yarn
-- Google Cloud Project (for AI features)
+Variáveis de ambiente: ver `.env.example` na raiz e nos diretórios relevantes (ex. serviços Laravel / LiteLLM). **Não** commitar credenciais.
 
-### Installation
+## Início rápido (API Node na raiz)
 
 ```bash
 npm install
+npm run dev      # inicia src/api/server.js com --watch
+npm test         # tests/api/*.test.js + tests/unit/*.test.js
 ```
 
-### Configuration
+Outros scripts úteis (ver `package.json`):
 
-1. Set up Google Cloud credentials:
+- `npm run start` — API sem watch  
+- `npm run test:integration:litellm` — teste de integração LiteLLM  
+- `npm run lint` / `npm run lint:fix` — ESLint (`src/api/`, `src/services/`, `tests/api/`)  
+
+## Aplicação Laravel (`src/`)
+
+A app PHP vive em **`src/`** (artisan, `composer.json`, `app/`, `resources/`, etc.).
+
 ```bash
-export GOOGLE_CLOUD_PROJECT_ID="your-project-id"
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
+cd src
+composer install
+cp .env.example .env   # se ainda não existir
+php artisan key:generate
+php artisan test       # Pest
 ```
 
-2. Initialize swarm:
-```bash
-npm run swarm:init
-```
+Mais detalhes: **`src/README.md`** (se existir) e regras do projeto em **`.cursor/rules/laravel-boost.mdc`**.
 
-3. Spawn agents:
-```bash
-npm run agents:spawn
-```
+## Documentação
 
-### Usage
+| Documento | Conteúdo |
+|-----------|----------|
+| [**docs/README.md**](docs/README.md) | Índice da documentação AGL |
+| [**docs/INFRA.md**](docs/INFRA.md) | Mapa de infra, operações recorrentes |
+| [**docs/CURSOR-LITELLM-INTEGRATION.md**](docs/CURSOR-LITELLM-INTEGRATION.md) | Cursor IDE + LiteLLM (modelos `cursor-*`, proxy Composer) |
+| [**AGENTS.md**](AGENTS.md) | Normas para agentes, bd/beads, OpenClaw, LiteLLM |
+| [**CLAUDE.md**](CLAUDE.md) | Contexto do workspace e caminhos-chave |
 
-#### Development Mode
-```bash
-npm run dev
-```
-
-#### Build Project
-```bash
-npm run build
-```
-
-#### Run Tests
-```bash
-npm run test
-```
-
-## Gemini-Flow Commands
-
-- `gemini-flow swarm init` - Initialize agent swarm
-- `gemini-flow agent spawn` - Spawn AI agents
-- `gemini-flow sparc run <mode>` - Run SPARC methodology
-- `gemini-flow hive-mind sync` - Sync collective intelligence
-
-## Project Structure
+## Estrutura (resumo)
 
 ```
-gemini-flow-project/
-├── .gemini-flow/          # Gemini-Flow configuration
-├── src/                   # Source code
-├── tests/                 # Test files
-├── docs/                  # Documentation
-└── scripts/               # Build scripts
+agl-hostman/
+├── src/
+│   ├── api/                 # API Fastify (entrada npm run dev na raiz)
+│   ├── app/                 # Laravel: aplicação PHP
+│   ├── routes/, resources/  # Laravel
+│   └── ...
+├── config/litellm/          # Gateway LLM (config.yaml, integração Cursor)
+├── docker/                  # Stacks (ex. LiteLLM, monitoring)
+├── docs/                    # Infra, troubleshooting, guias
+├── scripts/                 # Automação (backup, litellm, verify-openclaw, …)
+├── tests/                   # Testes Node: api/, unit/, integration/
+├── infrastructure/          # Terraform / docs de plataforma
+├── ops/                     # Runbooks / operações
+├── AGENTS.md, CLAUDE.md     # Contexto para humanos e agentes
+└── package.json             # Tooling Node da raiz
 ```
 
-## License
+A raiz reúne também compose, configs e ferramentas auxiliares; **novos ficheiros** devem ir para `docs/`, `scripts/`, `config/` ou para o módulo adequado em `src/`, não como ficheiros soltos sem propósito.
 
-MIT
+## LiteLLM e Cursor
+
+Configuração principal: **`config/litellm/config.yaml`** (e **`config-remote.yaml`** onde aplicável).  
+Os nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** encaminham para **`openai/gpt-5.3-instant`** como proxy do fluxo tipo Composer 2 Fast (o modelo Composer 2 da Cursor é proprietário). Setup passo a passo: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
+
+## Contribuição e rastreio
+
+- Estilo de commits: `feat|fix|docs|style|refactor|perf|test|chore(scope): descrição` (alinhar com o histórico da equipa).  
+- Issues / bd: ver secção **beads** em **`AGENTS.md`**.
+
+---
+
+*Última atualização do README: 2026-03-19.*

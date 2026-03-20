@@ -35,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'mcp.rbac' => \App\Http\Middleware\McpRbac::class,
         ]);
 
-        // Apply security and performance middleware to API routes (Laravel 11)
+        // Apply security and performance middleware to API routes
         $middleware->api(prepend: [
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\RateLimiting::class,

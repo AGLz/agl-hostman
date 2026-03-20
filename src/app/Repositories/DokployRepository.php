@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use Exception;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 /**
  * Dokploy Repository
@@ -20,14 +20,19 @@ use Exception;
 class DokployRepository
 {
     private const CACHE_TTL = 300; // 5 minutes
+
     private const MAX_RETRIES = 3;
+
     private const RETRY_DELAY_MS = 1000;
 
-    private PendingRequest $client;
+    /** @var PendingRequest|null Lazily built to avoid DI/bootstrap recursion ao carregar o console */
+    private ?PendingRequest $client = null;
 
-    public function __construct()
+    public function __construct() {}
+
+    private function client(): PendingRequest
     {
-        $this->client = $this->createClient();
+        return $this->client ??= $this->createClient();
     }
 
     /**
@@ -39,11 +44,11 @@ class DokployRepository
         $apiToken = config('dokploy.api_key');
         $timeout = config('dokploy.timeout', 30);
 
-        if (!$baseUrl) {
+        if (! $baseUrl) {
             throw new Exception('Dokploy base URL is not configured');
         }
 
-        if (!$apiToken) {
+        if (! $apiToken) {
             throw new Exception('Dokploy API token is not configured');
         }
 
@@ -66,12 +71,11 @@ class DokployRepository
 
         if ($cache && Cache::has($cacheKey)) {
             Log::debug('Dokploy cache hit', ['endpoint' => $endpoint]);
+
             return Cache::get($cacheKey);
         }
 
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->get($endpoint, $params)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->get($endpoint, $params));
 
         $data = $this->handleResponse($response);
 
@@ -89,9 +93,7 @@ class DokployRepository
     {
         $this->invalidateCache($endpoint);
 
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->post($endpoint, $data)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->post($endpoint, $data));
 
         return $this->handleResponse($response);
     }
@@ -103,9 +105,7 @@ class DokployRepository
     {
         $this->invalidateCache($endpoint);
 
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->put($endpoint, $data)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->put($endpoint, $data));
 
         return $this->handleResponse($response);
     }
@@ -117,9 +117,7 @@ class DokployRepository
     {
         $this->invalidateCache($endpoint);
 
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->patch($endpoint, $data)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->patch($endpoint, $data));
 
         return $this->handleResponse($response);
     }
@@ -131,9 +129,7 @@ class DokployRepository
     {
         $this->invalidateCache($endpoint);
 
-        $response = $this->sendWithRetry(fn() =>
-            $this->client->delete($endpoint)
-        );
+        $response = $this->sendWithRetry(fn () => $this->client()->delete($endpoint));
 
         return $this->handleResponse($response);
     }
@@ -187,7 +183,7 @@ class DokployRepository
         }
 
         throw new Exception(
-            "Dokploy API request failed after {$retryTimes} attempts: " .
+            "Dokploy API request failed after {$retryTimes} attempts: ".
             ($lastException?->getMessage() ?? 'Unknown error')
         );
     }
@@ -224,7 +220,7 @@ class DokployRepository
      */
     private function getCacheKey(string $method, string $endpoint, array $params = []): string
     {
-        return 'dokploy:' . md5($method . ':' . $endpoint . ':' . json_encode($params));
+        return 'dokploy:'.md5($method.':'.$endpoint.':'.json_encode($params));
     }
 
     /**
@@ -253,12 +249,14 @@ class DokployRepository
     public function testConnection(): bool
     {
         try {
-            $response = $this->client->get('/api/health');
+            $response = $this->client()->get('/api/health');
+
             return $response->successful();
         } catch (Exception $e) {
             Log::error('Dokploy connection test failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

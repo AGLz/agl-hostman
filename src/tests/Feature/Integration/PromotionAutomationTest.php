@@ -4,33 +4,50 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Integration;
 
-use Tests\TestCase;
 use App\Models\Environment;
 use App\Models\Promotion;
 use App\Models\User;
-use App\Services\Deployment\PromotionWorkflowService;
 use App\Services\Deployment\PromotionApprovalService;
+use App\Services\Deployment\PromotionWorkflowService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PromotionAutomationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected bool $useDatabaseTransactions = false;
+
     private PromotionWorkflowService $workflowService;
+
     private PromotionApprovalService $approvalService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->workflowService = $this->app->make(PromotionWorkflowService::class);
         $this->approvalService = $this->app->make(PromotionApprovalService::class);
 
-        // Create test environments
-        Environment::create(['type' => 'development', 'status' => 'active', 'current_version' => 'v1.0.0']);
-        Environment::create(['type' => 'qa', 'status' => 'active', 'current_version' => 'v1.0.0']);
-        Environment::create(['type' => 'uat', 'status' => 'active', 'current_version' => 'v1.0.0']);
-        Environment::create(['type' => 'production', 'status' => 'active', 'current_version' => 'v1.0.0']);
+        foreach ([
+            ['dev', 'Development', 'develop'],
+            ['qa', 'QA', 'qa'],
+            ['uat', 'UAT', 'uat'],
+            ['production', 'Production', 'main'],
+        ] as [$type, $name, $branch]) {
+            Environment::create([
+                'name' => $name,
+                'type' => $type,
+                'harbor_project' => 'agl-hostman-test',
+                'git_branch' => $branch,
+                'auto_deploy' => false,
+                'auto_test' => false,
+                'status' => 'active',
+                'domains' => [],
+                'env_vars' => [],
+                'resources' => [],
+            ]);
+        }
     }
 
     /** @test */
@@ -124,7 +141,7 @@ class PromotionAutomationTest extends TestCase
             'status' => 'failed',
         ]);
 
-        $controller = new \App\Http\Controllers\PromotionDashboardController();
+        $controller = new \App\Http\Controllers\PromotionDashboardController;
         $response = $controller->getPromotionMetrics();
 
         $data = $response->getData(true);
@@ -193,7 +210,7 @@ class PromotionAutomationTest extends TestCase
 
         config(['deployment.github_webhook_secret' => $secret]);
 
-        $signature = 'sha256=' . hash_hmac('sha256', $payload, $secret);
+        $signature = 'sha256='.hash_hmac('sha256', $payload, $secret);
 
         $response = $this->postJson('/api/webhooks/github/push', json_decode($payload, true), [
             'X-Hub-Signature-256' => $signature,

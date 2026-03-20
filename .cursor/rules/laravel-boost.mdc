@@ -9,20 +9,22 @@ alwaysApply: true
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to enhance the user's satisfaction building Laravel applications.
 
 ## Foundational Context
-This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
+This application is a Laravel application. Locked versions follow **`src/composer.json`** and **`src/package.json`**; you are an expert with the stack below.
 
-- php - 8.4.11
-- inertiajs/inertia-laravel (INERTIA) - v1
-- laravel/framework (LARAVEL) - v11
-- laravel/prompts (PROMPTS) - v0
-- livewire/livewire (LIVEWIRE) - v3
-- tightenco/ziggy (ZIGGY) - v2
-- laravel/pennant (PENNANT) - v1
-- laravel/pint (PINT) - v1
-- pestphp/pest (PEST) - v3
-- @inertiajs/vue3 (INERTIA) - v1
-- tailwindcss (TAILWINDCSS) - v3
-- vue (VUE) - v3
+**Backend (`src/composer.json`)**
+- php - ^8.2
+- laravel/framework (LARAVEL) - ^12
+- **inertiajs/inertia-laravel** ^2 — servidor Inertia (`Inertia::render`); dependência declarada em `src/composer.json`
+- laravel/horizon, laravel/reverb, laravel/sanctum, laravel/socialite, laravel/telescope, laravel/tinker
+- spatie/**laravel-permission**, workos/**workos-php**, darkaonline/**l5-swagger**, predis/**predis**
+- pestphp/**pest** (dev), laravel/**pint** (dev), laravel/**boost** (dev)
+
+**Frontend (`src/package.json`)**
+- **@inertiajs/react** (Inertia.js client) + **Vite**
+- **tailwindcss** ^4 (**@tailwindcss/vite**)
+- **React** + **shadcn**/Radix UI
+
+**Not in `composer.json` today (do not assume; add packages before using):** `livewire/livewire`, `tightenco/ziggy`, `laravel/pennant`. Secções Livewire / Pennant / Ziggy / Inertia+Vue abaixo são **referência** ou futuras extensões—confirmar com `composer.json` antes de assumir.
 
 
 ## Conventions
@@ -120,8 +122,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## Inertia Core
 
-- Inertia.js components should be placed in the `resources/js/Pages` directory unless specified differently in the JS bundler (vite.config.js).
-- Use `Inertia::render()` for server-side routing instead of traditional Blade views.
+- This repo’s UI is **Inertia + React** (JSX). Pages live under **`src/resources/js/Pages/`** (e alguns legados em `resources/js/pages/` — seguir a convenção dos ficheiros irmãos).
+- Usar `Inertia::render()` nas rotas Inertia (já usado no projeto) em vez de views Blade “cheias” para esses ecrãs.
+- Cliente: pacote **`@inertiajs/react`** (`Link`, `router`, `usePage`, etc.), não `@inertiajs/vue3`.
 
 <code-snippet lang="php" name="Inertia::render Example">
 // routes/web.php example
@@ -191,39 +194,30 @@ Route::get('/users', function () {
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
 
 
-=== laravel/v11 rules ===
+=== laravel/v12 rules ===
 
-## Laravel 11
+## Laravel 12
 
-- Use the `search-docs` tool to get version specific documentation.
-- This project upgraded from Laravel 10 without migrating to the new streamlined Laravel 11 file structure.
-- This is **perfectly fine** and recommended by Laravel. Follow the existing structure from Laravel 10. We do not to need migrate to the Laravel 11 structure unless the user explicitly requests that.
-
-### Laravel 10 Structure
-- Middleware typically live in `app/Http/Middleware/` and service providers in `app/Providers/`.
-- There is no `bootstrap/app.php` application configuration in a Laravel 10 structure:
-    - Middleware registration is in `app/Http/Kernel.php`
-    - Exception handling is in `app/Exceptions/Handler.php`
-    - Console commands and schedule registration is in `app/Console/Kernel.php`
-    - Rate limits likely exist in `RouteServiceProvider` or `app/Http/Kernel.php`
+- Use the `search-docs` tool for version-specific Laravel 12 documentation.
+- **`src/bootstrap/app.php`** é o ponto central de routing, middleware e exceptions (estilo Laravel 11+). Não existe `app/Http/Kernel.php` neste projeto—registar aliases e grupos em `bootstrap/app.php`.
+- **`app/Console/Kernel.php`** ainda existe aqui para **schedule** e comandos explicitamente listados—**preservar** ao mexer em agendamento; novos comandos em `app/Console/Commands/` são descobertos automaticamente.
+- `routes/console.php` e providers em `app/Providers/` seguem a árvore atual—alinhar sempre com os ficheiros existentes em `src/`.
 
 ### Database
 - When modifying a column, the migration must include all of the attributes that were previously defined on the column. Otherwise, they will be dropped and lost.
-- Laravel 11 allows limiting eagerly loaded records natively, without external packages: `$query->latest()->limit(10);`.
+- Limite em **eager load** de relações: `$query->latest()->limit(10);` (suportado nativamente pelo ORM).
 
 ### Models
 - Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
 
-### New Artisan Commands
-- List Artisan commands using Boost's MCP tool, if available. New commands available in Laravel 11:
-    - `php artisan make:enum`
-    - `php artisan make:class`
-    - `php artisan make:interface`
+### Artisan
+- List Artisan commands using Boost's MCP tool, if available. Exemplos úteis: `php artisan make:enum`, `make:class`, `make:interface` (e demais `make:*` da versão instalada).
 
 
 === livewire/core rules ===
 
 ## Livewire Core
+- **Nota:** `livewire/livewire` **não** está em `src/composer.json`; saltar esta secção salvo se o pacote for adicionado.
 - Use the `search-docs` tool to find exact version specific documentation for how to write Livewire & Livewire tests.
 - Use the `php artisan make:livewire [Posts\\CreatePost]` artisan command to create new components
 - State should live on the server, with the UI reflecting it.
@@ -308,8 +302,8 @@ document.addEventListener('livewire:init', function () {
 
 ## Laravel Pennant
 
-- This application uses Laravel Pennant for feature flag management, providing a flexible system for controlling feature availability across different organizations and user types.
-- Use the `search-docs` tool if available, in combination with existing codebase conventions, to assist the user effectively with feature flags.
+- **Nota:** `laravel/pennant` **não** está em `src/composer.json`; ao trabalhar com feature flags, usar o mecanismo já presente no código ou propor `composer require laravel/pennant`.
+- When installed, Pennant provides feature flags across organizations and user types—use `search-docs` + convenções do projeto.
 
 
 === pint/core rules ===
@@ -376,7 +370,10 @@ it('has emails', function (string $email) {
 
 === inertia-vue/core rules ===
 
-## Inertia + Vue
+## Inertia + Vue (referência)
+
+- **Stack actual deste repo:** Inertia **React**—ver secção "Inertia Core" acima.
+- Só aplicar as regras abaixo se existir `@inertiajs/vue3` e páginas `.vue`.
 
 - Vue components must have a single root element.
 - Use `router.visit()` or `<Link>` for navigation instead of traditional links.
@@ -428,7 +425,8 @@ it('has emails', function (string $email) {
 
 ## Tailwind Core
 
-- Use Tailwind CSS classes to style HTML, check and use existing tailwind conventions within the project before writing your own.
+- Projeto em **Tailwind v4** (`src/`); ver também secção "Tailwind 4" abaixo.
+- Use Tailwind CSS classes to style HTML/JSX, check and use existing tailwind conventions within the project before writing your own.
 - Offer to extract repeated patterns into components that match the project's conventions (i.e. Blade, JSX, Vue, etc..)
 - Think through class placement, order, priority, and defaults - remove redundant classes, add classes to parent or child carefully to limit repetition, group elements logically
 - You can use the `search-docs` tool to get exact examples from the official documentation when needed.
@@ -449,11 +447,12 @@ it('has emails', function (string $email) {
 - If existing pages and components support dark mode, new pages and components must support dark mode in a similar way, typically using `dark:`.
 
 
-=== tailwindcss/v3 rules ===
+=== tailwindcss/v4 rules ===
 
-## Tailwind 3
+## Tailwind 4
 
-- Always use Tailwind CSS v3 - verify you're using only classes supported by this version.
+- Este projeto usa **Tailwind CSS v4** (`@tailwindcss/vite` em `src/package.json`). Usar apenas classes e padrões suportados pela v4—confirmar com `search-docs` ou documentação oficial quando houver dúvida.
+- Evitar copiar snippets exclusivos da v3 que já não se aplicam (config e diretivas mudam face à v3).
 
 
 === tests rules ===

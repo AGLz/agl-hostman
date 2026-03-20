@@ -7,7 +7,7 @@
     "start": "node src/api/server.js",
     "dev": "node --watch src/api/server.js",
     "build": "echo 'No build step required'",
-    "test": "node --test tests/api/*.test.js",
+    "test": "node --test tests/api/*.test.js tests/unit/*.test.js",
     "test:integration:litellm": "node --test tests/integration/litellm-claude-flow.test.js",
     "test:all": "node --test tests/api/ && node --test tests/integration/litellm-claude-flow.test.js && node tests/hive-mind/test-hive-mind-integration.js",
     "test:e2e": "playwright test",

@@ -13,7 +13,9 @@
     "WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
     "DEVPOD_WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
     "AGENTS_DIR": "${containerWorkspaceFolder}/agents",
-    "LITELLM_GATEWAY_URL": "http://100.94.221.87:4000"
+    "LITELLM_GATEWAY_URL": "http://100.94.221.87:4000",
+    "ANTHROPIC_BASE_URL": "http://100.94.221.87:4000",
+    "IS_SANDBOX": "1"
   },
   "postCreateCommand": "sudo apt-get update && sudo apt-get install -y tmux htop && cd ${containerWorkspaceFolder} && git clone -b main --depth 1 https://github.com/marcuspat/turbo-flow tf-src && cp -r tf-src/devpods . && rm -rf tf-src && chmod +x devpods/*.sh 2>/dev/null || true && [ -f devpods/setup.sh ] && ./devpods/setup.sh && for f in /home/vscode/.zshrc /root/.zshrc; do touch \"$f\" 2>/dev/null && grep -q 'zshrc-openclaw.env' \"$f\" 2>/dev/null || (echo '' >> \"$f\" && echo '# Claude-Flow + LiteLLM (cclitellm)' >> \"$f\" && echo '[[ -f \"$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env\" ]] && source \"$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env\" && cclitellm' >> \"$f\") && break; done",
   "postStartCommand": "echo '✅ Container started, Turbo Flow + agl-hostman ready'",

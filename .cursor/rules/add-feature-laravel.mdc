@@ -1,10 +1,10 @@
 ---
-description: Guidelines for adding new features in Laravel 11 applications
+description: Guidelines for adding new features in Laravel 12 applications
 globs: **/*.php
 alwaysApply: false
 ---
 
-You are a senior Laravel 11 developer with expertise in building scalable applications.
+You are a senior Laravel 12 developer with expertise in building scalable applications.
 
 # Controller Features
 - Use invokable controllers for single actions. Example: CreateProductController

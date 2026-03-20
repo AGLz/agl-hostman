@@ -1,6 +1,6 @@
 # LiteLLM — Troubleshooting
 
-> **Last Updated**: 2026-03-02  
+> **Last Updated**: 2026-03-19  
 > **Host**: agldv03 (100.94.221.87) — porta 4000
 
 ## Diagnóstico rápido
@@ -68,7 +68,20 @@ Recriar: `docker compose -f docker/litellm/docker-compose.yml up -d --force-recr
 
 ---
 
-### 3. "API key not valid" nos logs
+### 3. Claude-flow trava 20+ min sem retorno
+
+**Causa**: (a) `request_timeout: 20` muito curto; (b) fallbacks Ollama (phi3, qwen3, llama) não suportam "thinking" → erro 500; (c) Ollama frio demora 30-60s.
+
+**Soluções aplicadas**:
+- `request_timeout: 120` em `litellm_settings`
+- Claude fallbacks: apenas cloud APIs (glm, deepseek, qwen3.5-plus, gemini) — sem Ollama
+- Timeouts por modelo: claude-opus 90s, claude-haiku 60s, phi3/qwen3-4b 45-60s
+
+**Deploy**: `sudo cp config/litellm/config.yaml /opt/litellm/ && docker restart litellm-proxy`
+
+---
+
+### 4. "API key not valid" nos logs
 
 **Causa**: Algum provider (Anthropic, OpenAI, Gemini, etc.) tem chave inválida ou vazia.
 
@@ -90,7 +103,7 @@ Modelos que funcionam sem Anthropic/OpenAI: glm, glm-flash, kimi, deepseek, r1.
 
 ---
 
-### 4. LiteLLM não inicia
+### 5. LiteLLM não inicia
 
 **Verificar**:
 ```bash
@@ -109,7 +122,7 @@ docker logs litellm-proxy -f
 
 ---
 
-### 5. 401 "expected to start with sk-" / "Received=896f..."
+### 6. 401 "expected to start with sk-" / "Received=896f..."
 
 **Causa**: O cliente está enviando **ZAI_API_KEY** (formato 896f...) em vez de **LITELLM_MASTER_KEY** (sk-...). LiteLLM exige chaves com prefixo `sk-`.
 
@@ -130,7 +143,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 6. 400 "Invalid model name passed in model=glm-4.5-air" (anthropic_messages)
+### 7. 400 "Invalid model name passed in model=glm-4.5-air" (anthropic_messages)
 
 **Causa**: O config usava `anthropic/glm-4.5-air`, fazendo o LiteLLM rotear para a API Anthropic real ao invés da ZAI. O endpoint `/v1/messages` (formato Anthropic) não suporta modelos ZAI.
 
@@ -142,7 +155,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 7. Claude Code / Ruflo não conecta
+### 8. Claude Code / Ruflo não conecta
 
 **Causa comum**: O Cursor inicia como app gráfica e **não herda** variáveis do `.zshrc`. Ou `ANTHROPIC_API_KEY` está com ZAI key (896f...) em `~/.config/environment.d/`.
 
@@ -163,7 +176,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 7a. agldv04 — Erro ao usar Claude Code/Claude-Flow após `cclitellm`
+### 8a. agldv04 — Erro ao usar Claude Code/Claude-Flow após `cclitellm`
 
 **Causa**: O `cclitellm` antigo usava `sk-litellm-default` fixo, mas o LiteLLM em execução espera a chave de `/opt/litellm/.env` (ex: `sk-your-secure-master-key`). Ou o `.claude/settings.json` usa localhost enquanto o LiteLLM está em agldv03.
 
@@ -204,7 +217,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 7b. 400 "Invalid model name passed in model=glm-4.5-air"
+### 8b. 400 "Invalid model name passed in model=glm-4.5-air"
 
 **Causa**: Uso de `anthropic/glm-4.5-air` com api_base ZAI fazia o endpoint `/v1/messages` rotear para a API Anthropic real, que não reconhece GLM.
 
@@ -214,7 +227,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 9. Implementações não visíveis nos agents
+### 9. Implementações não visíveis (legado) nos agents
 
 **Agentes especializados** (claude-code-agent, infra-agent, research-agent) e **modelos Cursor** (cursor-claude-sonnet, cursor-glm-5, etc.) estão no `config.yaml` principal. O `cursor-agent-config.yaml` **não é montado** no container — seu conteúdo foi integrado ao config principal.
 
@@ -226,6 +239,19 @@ docker compose -f docker/litellm/docker-compose.yml up -d --force-recreate litel
 ```
 
 **Cursor**: Configurar Base URL = `http://100.94.221.87:4000` (ou localhost) e adicionar modelos custom: `cursor-claude-sonnet`, `cursor-glm-5`, `cursor-deepseek`.
+
+---
+
+### 10. Claude-flow — "dangerously-skip-permissions cannot be used with root/sudo"
+
+**Causa**: O CLI do Claude rejeita o flag quando executado como root.
+
+**Controle via IS_SANDBOX**:
+- `IS_SANDBOX=1` → `cc`, `cl`, `dsp`, `claude-hierarchical` e hive-mind usam `--dangerously-skip-permissions`
+- Definido em: `~/.zshrc`, devcontainer `containerEnv`, `~/.claude/settings.json` (defaultMode: bypassPermissions)
+- **Exceção**: root — o CLI rejeita; use usuário não-root (ex: vscode no devcontainer) ou `--no-auto-permissions`
+
+**Para desabilitar**: `export IS_SANDBOX=0` ou `unset IS_SANDBOX`
 
 ---
 

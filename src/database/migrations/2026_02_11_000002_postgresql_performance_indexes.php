@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * PostgreSQL Performance Indexes
@@ -15,6 +15,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // ============================================================================
         // ALERTS TABLE - Critical for monitoring
         // ============================================================================
@@ -124,11 +128,11 @@ return new class extends Migration
         Schema::table('container_health_logs', function (Blueprint $table) {
             // BRIN index for time-series data (PostgreSQL 9.4+)
             // Much more efficient for time-series than B-tree
-            DB::statement("
+            DB::statement('
                 CREATE INDEX CONCURRENTLY container_health_logs_created_at_brin
                 ON container_health_logs USING BRIN(created_at)
                 WITH (pages_per_range = 128)
-            ");
+            ');
 
             // Composite index for latest health per container
             $table->index(['node_code', 'vmid', 'created_at DESC'], 'health_logs_node_vmid_time_index');
@@ -161,11 +165,11 @@ return new class extends Migration
             $table->index(['is_active', 'created_at'], 'users_active_created_index');
 
             // Partial index for active users only
-            DB::statement("
+            DB::statement('
                 CREATE INDEX CONCURRENTLY users_active_only
                 ON users(id, email, last_login_at)
                 WHERE is_active = true
-            ");
+            ');
         });
     }
 
@@ -217,11 +221,11 @@ return new class extends Migration
     {
         Schema::table('audit_logs', function (Blueprint $table) {
             // BRIN index for time-series audit data
-            DB::statement("
+            DB::statement('
                 CREATE INDEX CONCURRENTLY audit_logs_created_at_brin
                 ON audit_logs USING BRIN(created_at)
                 WITH (pages_per_range = 128)
-            ");
+            ');
 
             // User activity tracking
             $table->index(['user_id', 'created_at'], 'audit_logs_user_created_index');
@@ -247,20 +251,20 @@ return new class extends Migration
             $table->index(['active', 'last_executed_at'], 'n8n_active_executed_index');
 
             // Partial index for active workflows
-            DB::statement("
+            DB::statement('
                 CREATE INDEX CONCURRENTLY n8n_active_workflows
                 ON n8n_workflows(category, last_executed_at DESC, name)
                 WHERE active = true
-            ");
+            ');
         });
 
         Schema::table('n8n_workflow_executions', function (Blueprint $table) {
             // BRIN for execution history
-            DB::statement("
+            DB::statement('
                 CREATE INDEX CONCURRENTLY n8n_executions_created_at_brin
                 ON n8n_workflow_executions USING BRIN(created_at)
                 WITH (pages_per_range = 128)
-            ");
+            ');
 
             // Workflow execution status tracking
             $table->index(['workflow_id', 'status', 'created_at'], 'n8n_exec_workflow_status_created_index');
@@ -282,11 +286,11 @@ return new class extends Migration
     {
         Schema::table('performance_trends', function (Blueprint $table) {
             // BRIN index for time-series metrics
-            DB::statement("
+            DB::statement('
                 CREATE INDEX CONCURRENTLY performance_trends_recorded_brin
                 ON performance_trends USING BRIN(recorded_at)
                 WITH (pages_per_range = 128)
-            ");
+            ');
 
             // Resource-specific metric queries (most common pattern)
             $table->index(['resource_type', 'resource_id', 'metric_type', 'recorded_at DESC'], 'perf_trends_resource_metric_time_index');
@@ -309,10 +313,10 @@ return new class extends Migration
     protected function createCoveringIndexes(): void
     {
         // Containers dashboard query (covering index)
-        DB::statement("
+        DB::statement('
             CREATE INDEX CONCURRENTLY lxc_containers_dashboard_covering
             ON lxc_containers(proxmox_server_id, status, name, vmid, cores, memory_mb, disk_gb)
-        ");
+        ');
 
         // Deployment statistics query (covering index)
         DB::statement("
@@ -322,11 +326,11 @@ return new class extends Migration
         ");
 
         // User permissions check (covering index)
-        DB::statement("
+        DB::statement('
             CREATE INDEX CONCURRENTLY user_roles_permissions_covering
             ON model_has_roles(user_id, role_id)
             INCLUDE (model_type)
-        ");
+        ');
 
         // Recent activity UNION query optimization
         DB::statement("
@@ -338,6 +342,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // Drop alerts indexes
         Schema::table('alerts', function (Blueprint $table) {
             $table->dropIndex('alerts_unresolved_created_index');

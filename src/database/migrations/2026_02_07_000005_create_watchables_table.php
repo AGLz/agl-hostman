@@ -18,7 +18,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'watchable_type', 'watchable_id']);
-            $table->index(['watchable_type', 'watchable_id']);
         });
     }
 

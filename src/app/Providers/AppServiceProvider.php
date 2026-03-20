@@ -65,10 +65,8 @@ class AppServiceProvider extends ServiceProvider
         // Register Coordination Services
         $this->app->singleton(\App\Services\AgentOS\Coordination\HierarchicalCoordinator::class);
         $this->app->singleton(\App\Services\AgentOS\Coordination\MeshCoordinator::class);
-        $this->app->singleton(\App\Services\AgentOS\Coordination\AdaptiveCoordinator::class, function ($app) {
-            return new \App\Services\AgentOS\Coordination\AdaptiveCoordinator(
-                config('agent-os.coordination')
-            );
+        $this->app->singleton(\App\Services\AgentOS\Coordination\AdaptiveCoordinator::class, function () {
+            return new \App\Services\AgentOS\Coordination\AdaptiveCoordinator;
         });
 
         // Register Consensus Services

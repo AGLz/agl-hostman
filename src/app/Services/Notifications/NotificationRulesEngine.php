@@ -10,47 +10,46 @@ use Illuminate\Support\Facades\Log;
 class NotificationRulesEngine
 {
     /**
-     * Built-in noise reduction rules
+     * Regras embutidas (inicializadas no construtor: PHP 8.4 não permite closures em propriedades estáticas/padrão).
+     *
+     * @var array<int, array<string, mixed>>
      */
-    protected array $noiseReductionRules = [
-        // Suppress info-level alerts during business hours
-        [
-            'name' => 'suppress_info_business_hours',
-            'condition' => fn($type, $data) =>
-                $type === 'alert' &&
-                $data->type === 'info' &&
-                $this->isBusinessHours(),
-            'action' => 'suppress'
-        ],
-        // Group container restart alerts
-        [
-            'name' => 'group_container_restarts',
-            'condition' => fn($type, $data) =>
-                $type === 'alert' &&
-                $data->source === 'container' &&
-                str_contains($data->message ?? '', 'restart'),
-            'action' => 'group',
-            'window' => 300 // 5 minutes
-        ],
-        // Escalate critical production alerts
-        [
-            'name' => 'escalate_critical_production',
-            'condition' => fn($type, $data) =>
-                $type === 'alert' &&
-                $data->type === 'critical' &&
-                ($data->metadata['environment'] ?? '') === 'production',
-            'action' => 'escalate',
-            'channels' => ['slack', 'pagerduty', 'email']
-        ],
-        // Suppress duplicate alerts within 10 minutes
-        [
-            'name' => 'suppress_duplicates',
-            'condition' => fn($type, $data) =>
-                $type === 'alert' &&
-                $this->hasDuplicateRecently($data, 600),
-            'action' => 'suppress'
-        ],
-    ];
+    protected array $noiseReductionRules;
+
+    public function __construct()
+    {
+        $this->noiseReductionRules = [
+            [
+                'name' => 'suppress_info_business_hours',
+                'condition' => fn ($type, $data) => $type === 'alert'
+                    && $data->type === 'info'
+                    && $this->isBusinessHours(),
+                'action' => 'suppress',
+            ],
+            [
+                'name' => 'group_container_restarts',
+                'condition' => fn ($type, $data) => $type === 'alert'
+                    && $data->source === 'container'
+                    && str_contains($data->message ?? '', 'restart'),
+                'action' => 'group',
+                'window' => 300,
+            ],
+            [
+                'name' => 'escalate_critical_production',
+                'condition' => fn ($type, $data) => $type === 'alert'
+                    && $data->type === 'critical'
+                    && ($data->metadata['environment'] ?? '') === 'production',
+                'action' => 'escalate',
+                'channels' => ['slack', 'pagerduty', 'email'],
+            ],
+            [
+                'name' => 'suppress_duplicates',
+                'condition' => fn ($type, $data) => $type === 'alert'
+                    && $this->hasDuplicateRecently($data, 600),
+                'action' => 'suppress',
+            ],
+        ];
+    }
 
     /**
      * Get channels that should receive the notification
@@ -100,7 +99,7 @@ class NotificationRulesEngine
 
             foreach ($channelTypes as $channelType) {
                 $channel = $allChannels->firstWhere('type', $channelType);
-                if ($channel && !$channels->contains('id', $channel->id)) {
+                if ($channel && ! $channels->contains('id', $channel->id)) {
                     $channels->push($channel);
                 }
             }
@@ -127,7 +126,7 @@ class NotificationRulesEngine
 
                 Log::info('Notification suppressed by built-in rule', [
                     'rule' => $rule['name'] ?? 'unknown',
-                    'type' => $type
+                    'type' => $type,
                 ]);
 
                 return true;
@@ -144,7 +143,7 @@ class NotificationRulesEngine
             if ($this->ruleMatches($rule, $type, $data)) {
                 Log::info('Notification suppressed by custom rule', [
                     'rule_id' => $rule->id,
-                    'rule_name' => $rule->name
+                    'rule_name' => $rule->name,
                 ]);
 
                 return true;
@@ -184,7 +183,7 @@ class NotificationRulesEngine
         // Check alert severity (for alert notifications)
         if ($type === 'alert' && isset($conditions['severity'])) {
             if (is_array($conditions['severity'])) {
-                if (!in_array($data->type, $conditions['severity'])) {
+                if (! in_array($data->type, $conditions['severity'])) {
                     return false;
                 }
             } else {
@@ -197,7 +196,7 @@ class NotificationRulesEngine
         // Check source (for alert notifications)
         if ($type === 'alert' && isset($conditions['source'])) {
             if (is_array($conditions['source'])) {
-                if (!in_array($data->source, $conditions['source'])) {
+                if (! in_array($data->source, $conditions['source'])) {
                     return false;
                 }
             } else {
@@ -211,7 +210,7 @@ class NotificationRulesEngine
         if (isset($conditions['environment'])) {
             $environment = $this->getEnvironment($type, $data);
             if (is_array($conditions['environment'])) {
-                if (!in_array($environment, $conditions['environment'])) {
+                if (! in_array($environment, $conditions['environment'])) {
                     return false;
                 }
             } else {
@@ -223,7 +222,7 @@ class NotificationRulesEngine
 
         // Check time window
         if (isset($conditions['time_window'])) {
-            if (!$this->isInTimeWindow($conditions['time_window'])) {
+            if (! $this->isInTimeWindow($conditions['time_window'])) {
                 return false;
             }
         }
@@ -232,7 +231,7 @@ class NotificationRulesEngine
         if (isset($conditions['location'])) {
             $location = $this->getLocation($type, $data);
             if (is_array($conditions['location'])) {
-                if (!in_array($location, $conditions['location'])) {
+                if (! in_array($location, $conditions['location'])) {
                     return false;
                 }
             } else {
@@ -264,7 +263,7 @@ class NotificationRulesEngine
             'deployment' => ['slack'],
             'alert' => ['slack', 'pagerduty'],
             'pr' => ['slack'],
-            'custom' => ['slack']
+            'custom' => ['slack'],
         ]);
 
         $channelTypes = $defaults[$type] ?? ['slack'];
@@ -328,7 +327,7 @@ class NotificationRulesEngine
         // Check day of week
         if (isset($window['days'])) {
             $currentDay = strtolower($now->format('l'));
-            if (!in_array($currentDay, array_map('strtolower', $window['days']))) {
+            if (! in_array($currentDay, array_map('strtolower', $window['days']))) {
                 return false;
             }
         }
@@ -376,7 +375,7 @@ class NotificationRulesEngine
      */
     protected function hasDuplicateRecently(mixed $alert, int $windowSeconds): bool
     {
-        if (!isset($alert->source) || !isset($alert->source_id)) {
+        if (! isset($alert->source) || ! isset($alert->source_id)) {
             return false;
         }
 
@@ -412,7 +411,7 @@ class NotificationRulesEngine
             // Simple variable replacement
             $expression = $condition;
             foreach ($context as $key => $value) {
-                $expression = str_replace('$' . $key, var_export($value, true), $expression);
+                $expression = str_replace('$'.$key, var_export($value, true), $expression);
             }
 
             // For safety, only allow specific functions
@@ -423,7 +422,7 @@ class NotificationRulesEngine
         } catch (\Exception $e) {
             Log::error('Failed to evaluate rule condition', [
                 'condition' => $condition,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return false;
@@ -474,7 +473,7 @@ class NotificationRulesEngine
             'rule' => $rule->toArray(),
             'type' => $type,
             'data' => $sampleData,
-            'channels' => $matches ? $this->getChannelsForNotification($type, $sampleData) : []
+            'channels' => $matches ? $this->getChannelsForNotification($type, $sampleData) : [],
         ];
     }
 }

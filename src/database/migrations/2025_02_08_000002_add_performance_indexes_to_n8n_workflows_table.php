@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('n8n_workflows')) {
+            return;
+        }
+
         Schema::table('n8n_workflows', function (Blueprint $table) {
             // Active status index
             $table->index('active', 'idx_n8n_workflows_active');
@@ -36,6 +40,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('n8n_workflows')) {
+            return;
+        }
+
         Schema::table('n8n_workflows', function (Blueprint $table) {
             $table->dropIndex('idx_n8n_workflows_active');
             $table->dropIndex('idx_n8n_workflows_category');

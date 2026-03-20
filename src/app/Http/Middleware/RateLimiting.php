@@ -13,8 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
  * Rate Limiting Middleware
  *
  * Applies rate limiting to API endpoints to prevent abuse.
- *
- * @package App\Http\Middleware
  */
 class RateLimiting
 {
@@ -39,11 +37,6 @@ class RateLimiting
 
     /**
      * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string|null  $limitType
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next, ?string $limitType = null): Response
     {
@@ -62,10 +55,6 @@ class RateLimiting
 
     /**
      * Resolve rate limit key
-     *
-     * @param Request $request
-     * @param string|null $limitType
-     * @return string
      */
     private function resolveRateLimitKey(Request $request, ?string $limitType): string
     {
@@ -73,9 +62,9 @@ class RateLimiting
 
         // Add user ID if authenticated
         if (auth()->check()) {
-            $keyParts[] = 'user_' . auth()->id();
+            $keyParts[] = 'user_'.auth()->id();
         } else {
-            $keyParts[] = 'ip_' . $request->ip();
+            $keyParts[] = 'ip_'.$request->ip();
         }
 
         return implode(':', $keyParts);
@@ -83,9 +72,6 @@ class RateLimiting
 
     /**
      * Get rate limit configuration
-     *
-     * @param string|null $limitType
-     * @return array
      */
     private function getRateLimit(?string $limitType): array
     {
@@ -94,11 +80,6 @@ class RateLimiting
 
     /**
      * Check if request is rate limited
-     *
-     * @param Request $request
-     * @param string $key
-     * @param array $limit
-     * @return bool
      */
     private function isRateLimited(Request $request, string $key, array $limit): bool
     {
@@ -124,10 +105,6 @@ class RateLimiting
 
     /**
      * Build rate limit response
-     *
-     * @param Request $request
-     * @param array $limit
-     * @return Response
      */
     private function buildRateLimitResponse(Request $request, array $limit): Response
     {
@@ -146,11 +123,6 @@ class RateLimiting
 
     /**
      * Add rate limit headers to response
-     *
-     * @param Response $response
-     * @param string $key
-     * @param array $limit
-     * @return Response
      */
     private function addRateLimitHeaders(Response $response, string $key, array $limit): Response
     {
@@ -160,7 +132,7 @@ class RateLimiting
 
         $response->headers->set('X-RateLimit-Limit', (string) $limit['max_attempts']);
         $response->headers->set('X-RateLimit-Remaining', (string) $remaining);
-        $response->headers->set('X-RateLimit-Reset', now()->addMinutes($limit['decay_minutes'])->getTimestamp());
+        $response->headers->set('X-RateLimit-Reset', (string) now()->addMinutes($limit['decay_minutes'])->getTimestamp());
 
         return $response;
     }

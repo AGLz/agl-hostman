@@ -149,7 +149,8 @@ COPY --from=node-deps /app/node_modules ./node_modules
 # Copy source files needed for frontend build
 COPY resources ./resources
 COPY public ./public
-COPY vite.config.js postcss.config.js tailwind.config.js ./
+# Tailwind v4: config via resources/css/app.css (@import 'tailwindcss'). Ficheiros legados em web/.
+COPY vite.config.js ./
 
 # Build frontend assets with Vite cache mount
 # Cache mount speeds up subsequent builds significantly

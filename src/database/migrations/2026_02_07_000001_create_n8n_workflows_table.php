@@ -54,8 +54,7 @@ return new class extends Migration
             $table->json('metadata')->nullable()->comment('Additional execution metadata');
             $table->timestamps();
 
-            // Indexes for performance
-            $table->index('status');
+            // Indexes for performance (status já indexado no enum acima)
             $table->index('started_at');
             $table->index('completed_at');
             $table->index(['workflow_id', 'status']);

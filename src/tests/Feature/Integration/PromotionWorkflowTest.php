@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Integration;
 
-use App\Models\User;
 use App\Models\Environment;
 use App\Models\Promotion;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,9 +28,14 @@ class PromotionWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected bool $useDatabaseTransactions = false;
+
     private User $adminUser;
+
     private User $regularUser;
+
     private Environment $qaEnv;
+
     private Environment $uatEnv;
 
     protected function setUp(): void

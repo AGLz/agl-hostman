@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\WorkOSController;
 use App\Http\Controllers\N8NController;
 use App\Http\Controllers\WebhookController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -61,7 +61,7 @@ Route::middleware(['auth:sanctum'])->prefix('infrastructure')->group(function ()
     Route::get('/locations', function () {
         return \App\Models\PhysicalLocation::all();
     });
-    
+
     Route::get('/servers/{code}', function ($code) {
         return \App\Models\PhysicalLocation::where('code', $code)->firstOrFail();
     });
@@ -358,7 +358,7 @@ Route::prefix('deployment')->middleware(['auth:sanctum'])->group(function () {
             $environment = \App\Models\Environment::where('type', 'qa')->firstOrFail();
             $deployment = $environment->deployments()->latest()->first();
 
-            if (!$deployment) {
+            if (! $deployment) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No deployments found',
@@ -387,7 +387,7 @@ Route::prefix('deployment')->middleware(['auth:sanctum'])->group(function () {
             $environment = \App\Models\Environment::where('type', 'uat')->firstOrFail();
             $latestDeployment = $environment->deployments()->latest()->first();
 
-            if (!$latestDeployment) {
+            if (! $latestDeployment) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No deployments found to rollback',
@@ -406,7 +406,7 @@ Route::prefix('deployment')->middleware(['auth:sanctum'])->group(function () {
             $environment = \App\Models\Environment::where('type', 'uat')->firstOrFail();
             $deployment = $environment->deployments()->latest()->first();
 
-            if (!$deployment) {
+            if (! $deployment) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No deployments found',
@@ -471,19 +471,19 @@ Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
     Route::get('/metrics', [App\Http\Controllers\PromotionDashboardController::class, 'getPromotionMetrics']);
     Route::get('/active', [App\Http\Controllers\PromotionDashboardController::class, 'getActivePromotions']);
     Route::get('/history', [App\Http\Controllers\PromotionDashboardController::class, 'getPromotionHistory']);
-    
+
     // Promotion actions
     Route::post('/qa-to-uat', [App\Http\Controllers\PromotionController::class, 'promoteQAtoUAT']);
     Route::post('/uat-to-production', [App\Http\Controllers\PromotionController::class, 'promoteUATtoProduction']);
-    
+
     // Approval workflow
     Route::post('/{id}/approve', [App\Http\Controllers\PromotionController::class, 'approvePromotion'])
-        ->middleware('role:admin,lead-developer');
+        ->middleware('role:admin,lead-developer|any');
     Route::post('/{id}/reject', [App\Http\Controllers\PromotionController::class, 'rejectPromotion'])
-        ->middleware('role:admin,lead-developer');
+        ->middleware('role:admin,lead-developer|any');
     Route::get('/{id}/approvals', [App\Http\Controllers\PromotionController::class, 'getApprovalStatus']);
     Route::get('/pending-approvals', [App\Http\Controllers\PromotionController::class, 'getPendingApprovals']);
-    
+
     // Rollback
     Route::post('/{id}/rollback', [App\Http\Controllers\PromotionController::class, 'rollbackPromotion']);
 });
@@ -593,7 +593,7 @@ Route::prefix('monitoring')->middleware('auth:sanctum')->group(function () {
 });
 
 // ========== Agent OS v3 API Routes ==========
-require __DIR__ . '/agent-os.php';
+require __DIR__.'/agent-os.php';
 
 // ========== RBAC API Routes ==========
 Route::prefix('rbac')->middleware('auth:sanctum')->group(function () {

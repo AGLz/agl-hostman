@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Deployment;
 
+use App\Events\PromotionCompleted;
+use App\Events\PromotionDeploying;
+use App\Events\PromotionRequested;
+use App\Events\RollbackInitiated;
 use App\Models\Environment;
 use App\Models\Promotion;
-use App\Models\ProductionApproval;
 use App\Services\Notification\NotificationService;
-use App\Events\PromotionRequested;
-use App\Events\PromotionDeploying;
-use App\Events\PromotionCompleted;
-use App\Events\PromotionFailed;
-use App\Events\RollbackInitiated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Promotion Workflow Service
@@ -36,7 +33,7 @@ class PromotionWorkflowService
     /**
      * Auto-promote from dev to QA on develop branch push
      *
-     * @param array $payload GitHub webhook payload
+     * @param  array  $payload  GitHub webhook payload
      * @return array Promotion result with status and details
      */
     public function autoPromoteDevToQA(array $payload): array
@@ -59,7 +56,7 @@ class PromotionWorkflowService
             $version = substr($commitSha, 0, 7);
 
             // 3. Get environments
-            $devEnv = Environment::where('type', 'development')->firstOrFail();
+            $devEnv = Environment::where('type', 'dev')->firstOrFail();
             $qaEnv = Environment::where('type', 'qa')->firstOrFail();
 
             // 4. Create promotion record
@@ -93,7 +90,7 @@ class PromotionWorkflowService
                 ]
             );
 
-            if (!$deploymentResult['success']) {
+            if (! $deploymentResult['success']) {
                 // 6. Auto-rollback on deployment failure
                 $this->rollbackPromotion($promotion);
 
@@ -108,7 +105,7 @@ class PromotionWorkflowService
             // 7. Run integration tests
             $testResults = $this->deploymentService->runIntegrationTests($qaEnv->id);
 
-            if (!$testResults['success']) {
+            if (! $testResults['success']) {
                 // Auto-rollback on test failure
                 $this->rollbackPromotion($promotion);
 
@@ -162,9 +159,8 @@ class PromotionWorkflowService
     /**
      * Manual promotion from QA to UAT (requires 1 approval)
      *
-     * @param string $version Version to promote
-     * @param string $requestedBy User requesting promotion
-     * @return Promotion
+     * @param  string  $version  Version to promote
+     * @param  string  $requestedBy  User requesting promotion
      */
     public function promoteQAtoUAT(string $version, string $requestedBy): Promotion
     {
@@ -178,9 +174,9 @@ class PromotionWorkflowService
         $uatEnv = Environment::where('type', 'uat')->firstOrFail();
 
         $eligibility = $this->checkPromotionEligibility('qa', 'uat');
-        if (!$eligibility['eligible']) {
+        if (! $eligibility['eligible']) {
             throw new \RuntimeException(
-                'QA environment not eligible for promotion: ' .
+                'QA environment not eligible for promotion: '.
                 implode(', ', $eligibility['reasons'])
             );
         }
@@ -221,9 +217,8 @@ class PromotionWorkflowService
     /**
      * Manual promotion from UAT to Production (requires 2 approvals)
      *
-     * @param string $version Version to promote
-     * @param string $requestedBy User requesting promotion
-     * @return Promotion
+     * @param  string  $version  Version to promote
+     * @param  string  $requestedBy  User requesting promotion
      */
     public function promoteUATtoProduction(string $version, string $requestedBy): Promotion
     {
@@ -237,9 +232,9 @@ class PromotionWorkflowService
         $prodEnv = Environment::where('type', 'production')->firstOrFail();
 
         $eligibility = $this->checkPromotionEligibility('uat', 'production');
-        if (!$eligibility['eligible']) {
+        if (! $eligibility['eligible']) {
             throw new \RuntimeException(
-                'UAT environment not eligible for promotion: ' .
+                'UAT environment not eligible for promotion: '.
                 implode(', ', $eligibility['reasons'])
             );
         }
@@ -280,8 +275,8 @@ class PromotionWorkflowService
     /**
      * Check if environment is ready for promotion
      *
-     * @param string $sourceEnv Source environment type
-     * @param string $targetEnv Target environment type
+     * @param  string  $sourceEnv  Source environment type
+     * @param  string  $targetEnv  Target environment type
      * @return array Eligibility check results
      */
     public function checkPromotionEligibility(string $sourceEnv, string $targetEnv): array
@@ -296,13 +291,13 @@ class PromotionWorkflowService
             ->latest()
             ->first();
 
-        if (!$latestDeployment) {
+        if (! $latestDeployment) {
             $reasons[] = "No completed deployment in {$sourceEnv}";
             $eligible = false;
         }
 
         // Check minimum uptime
-        $minUptimeHours = match($targetEnv) {
+        $minUptimeHours = match ($targetEnv) {
             'uat' => 24,      // QA → UAT requires 24h
             'production' => 72, // UAT → Prod requires 72h
             default => 0,
@@ -352,7 +347,7 @@ class PromotionWorkflowService
     /**
      * Execute promotion after all approvals
      *
-     * @param Promotion $promotion Promotion to execute
+     * @param  Promotion  $promotion  Promotion to execute
      * @return array Execution result
      */
     public function executePromotion(Promotion $promotion): array
@@ -371,7 +366,7 @@ class PromotionWorkflowService
                 $promotion->target_environment_id
             );
 
-            if (!$backupResult['success']) {
+            if (! $backupResult['success']) {
                 throw new \RuntimeException('Environment backup failed');
             }
 
@@ -387,10 +382,10 @@ class PromotionWorkflowService
                 ]
             );
 
-            if (!$deploymentResult['success']) {
+            if (! $deploymentResult['success']) {
                 // Auto-rollback on deployment failure
                 $this->rollbackPromotion($promotion);
-                throw new \RuntimeException('Deployment failed: ' .
+                throw new \RuntimeException('Deployment failed: '.
                     ($deploymentResult['error'] ?? 'Unknown error'));
             }
 
@@ -399,7 +394,7 @@ class PromotionWorkflowService
                 $promotion->target_environment_id
             );
 
-            if (!$testResults['success']) {
+            if (! $testResults['success']) {
                 // Auto-rollback on test failure
                 $this->rollbackPromotion($promotion);
                 throw new \RuntimeException('Smoke tests failed');
@@ -450,7 +445,7 @@ class PromotionWorkflowService
     /**
      * Automatic rollback on promotion failure
      *
-     * @param Promotion $promotion Promotion to rollback
+     * @param  Promotion  $promotion  Promotion to rollback
      * @return array Rollback result
      */
     public function rollbackPromotion(Promotion $promotion): array
@@ -469,8 +464,8 @@ class PromotionWorkflowService
                 targetVersion: $promotion->sourceEnvironment->current_version ?? 'previous'
             );
 
-            if (!$rollbackResult['success']) {
-                throw new \RuntimeException('Rollback failed: ' .
+            if (! $rollbackResult['success']) {
+                throw new \RuntimeException('Rollback failed: '.
                     ($rollbackResult['error'] ?? 'Unknown error'));
             }
 
@@ -516,7 +511,7 @@ class PromotionWorkflowService
     /**
      * Detect failure reason for rollback
      *
-     * @param Promotion $promotion Promotion that failed
+     * @param  Promotion  $promotion  Promotion that failed
      * @return string Failure reason
      */
     private function detectFailureReason(Promotion $promotion): string
@@ -533,11 +528,11 @@ class PromotionWorkflowService
 
         // Check deployment logs
         if ($promotion->deployment_logs) {
-            $errors = array_filter($promotion->deployment_logs, function($log) {
+            $errors = array_filter($promotion->deployment_logs, function ($log) {
                 return isset($log['level']) && $log['level'] === 'error';
             });
             if (count($errors) > 0) {
-                $reasons[] = count($errors) . ' deployment errors';
+                $reasons[] = count($errors).' deployment errors';
             }
         }
 

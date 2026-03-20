@@ -1,72 +1,76 @@
-# CLAUDE.md — TurboFlow 4.0 Context
+# CLAUDE.md — Contexto do workspace (agl-hostman)
 
-## Identity
-This workspace runs TurboFlow 4.0 — a composed agentic development environment.
-Orchestration: Ruflo v3.5 (skills-based, not slash commands).
-Memory: Three-tier (Beads → Native Tasks → AgentDB).
-Isolation: Git worktrees per parallel agent.
+## Identidade
 
-## Memory Protocol (MANDATORY — follow this every session)
+Este repositório é **agl-hostman**: infraestrutura e automação AGL, API Node, app Laravel em `src/`, configs LiteLLM, Docker e documentação operacional.  
+Contexto **TurboFlow / Ruflo** pode coexistir com **Cursor** (regras em `.cursor/rules/`, incl. Laravel Boost e guia primário em PT).
 
-### Session Start
-1. Run `bd ready` to check project state (blockers, in-progress work, decisions)
-2. Check Native Tasks: review any persisted task lists from prior sessions
-3. AgentDB context loads automatically via Ruflo
+## Projeto agl-hostman (factos do codebase)
 
-### During Work — Decision Tree
-- **Project roadmap / blockers / dependencies / decisions** → `bd add` (Beads)
-- **Current session tasks / active checklist** → Native Tasks
-- **Learned patterns / routing weights / skills** → AgentDB (automatic)
+| Área | Local |
+|------|--------|
+| API Node (Fastify) | `src/api/` — entrada `npm run dev` / `server.js` |
+| Laravel 12 + Pest | árvore em `src/` (`artisan`, `composer.json`, `app/`, `tests/`, etc.) |
+| Gateway LLM | `config/litellm/config.yaml`, `config/litellm/config-remote.yaml` |
+| Cursor + LiteLLM | `docs/CURSOR-LITELLM-INTEGRATION.md`; modelos `cursor-composer` / `cursor-composer-2-fast` → proxy `openai/gpt-5.3-instant` |
+| Testes Node (raiz) | `tests/api/`, `tests/unit/`, `tests/integration/` — `npm test` |
+| Infra docs | `docs/INFRA.md`, `docs/README.md` |
+| Beads / bd | `.beads/`; fluxo em `AGENTS.md` |
 
-### Session End
-- File any discovered work as Beads issues: `bd add --type issue "description"`
-- Summarize architectural decisions in Beads: `bd add --type decision "description"`
-- AgentDB persists automatically
+Antes de alterações amplas: seguir convenções em **sibling files** e em `.cursor/rules/`.
 
-## Isolation Rules
-- Each parallel agent MUST operate in its own git worktree
-- Create worktree: `git worktree add .worktrees/agent-N -b agent-N/task-name`
-- Database schema per worktree: use $DATABASE_SCHEMA env var for PG Vector
-- NEVER run `--dangerously-skip-permissions` on bare metal — containers only
+## Protocolo de memória / tarefas (sessão)
 
-## Agent Teams
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is enabled
-- Lead agent may spawn up to 3 teammates
-- Recursion limit: depth 2 (lead → sub-agents, sub-agents cannot spawn swarms)
-- If 3+ agents are blocked simultaneously → pause and alert human
+### Início
+1. `bd ready --json` (se bd configurado) para trabalho desbloqueado  
+2. Revisar objetivos da sessão e ficheiros tocados recentemente  
+3. Skills AgentDB / Ruflo quando aplicável ao teu fluxo  
 
-## Model Routing
-- Ruflo auto-selects model tier per task complexity (saves ~75% API costs)
-- Claude Opus 4.6: complex reasoning, architecture decisions
-- Claude Sonnet 4.5: standard coding, implementation
-- Claude Haiku 4.5: simple tasks, formatting, quick lookups
+### Durante
+- Roadmap, blockers, decisões persistentes → **bd** (`bd create`, dependências `discovered-from`)  
+- Padrões recorrentes → skills / docs em `docs/`  
 
-## Stack Reference
-- Orchestration: `npx ruflo@latest` (NOT claude-flow)
-- Swarms: `npx ruflo swarm init --topology hierarchical --max-agents 8`
-- Memory: Beads (`bd`), Native Tasks, AgentDB (`npx ruflo agentdb`)
-- Codebase Graph: GitNexus (`npx gitnexus analyze`)
-- Browser: via Ruflo's bundled browser tools (59 MCP tools, element refs, snapshots)
-- Observability: via Ruflo's built-in session tracking + AttestationLog
-- Plugins: agentic-qe, code-intelligence, test-intelligence, perf-optimizer, teammate, gastown-bridge
-- Specs: OpenSpec (`npx @fission-ai/openspec`)
+### Fim
+- Fechar ou abrir issues em bd para continuidade  
+- Se alteraste código: correr **`npm test`** (e testes PHP afetados em `src/` quando relevante)  
+- Push conforme política da equipa (ver `AGENTS.md`)  
 
-## Ruflo Plugins
-- **Agentic QE**: 58 QE agents — TDD, coverage, security scanning, chaos engineering
-- **Code Intelligence**: code analysis, pattern detection, refactoring suggestions
-- **Test Intelligence**: test generation, gap analysis, flaky test detection
-- **Perf Optimizer**: performance profiling, bottleneck detection
-- **Teammate Plugin**: bridges Native Agent Teams ↔ Ruflo swarms (21 MCP tools)
-- **Gastown Bridge**: WASM-accelerated orchestration, Beads sync (20 MCP tools)
-- **OpenSpec**: spec-driven development (`os init`, `os`)
+## Isolamento (agentes paralelos)
 
-## Codebase Intelligence (GitNexus)
-- Index repo: `npx gitnexus analyze` (run from repo root, creates knowledge graph)
-- Before editing shared code: check blast radius via GitNexus MCP tools
-- Auto-creates AGENTS.md and CLAUDE.md context files
-- One MCP server serves all indexed repos — no per-project config needed
+- Preferir **git worktree** por agente em trabalhos paralelos:  
+  `git worktree add .worktrees/agent-N -b agent-N/nome-tarefa`  
+- Evitar `--dangerously-skip-permissions` fora de ambientes containerizados  
 
-## Cost Guardrails
-- Hard session cap: $15/hr (configurable)
-- Use Haiku for simple tasks — don't burn Opus on formatting
-- Monitor: `claude-usage` or ruflo statusline
+## Equipas / swarms (Ruflo, opcional)
+
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` pode estar ativo noutros fluxos  
+- Limite sensato de profundidade: lead → sub-agentes, sem recursão infinita  
+- Muitos agentes bloqueados → escalar humano  
+
+## Routing de modelos (referência)
+
+- Tarefas pesadas / arquitetura: **Claude Opus 4.6** (ou equivalente disponível na tua stack)  
+- Implementação padrão: **Claude Sonnet 4.6**  
+- Tarefas leves / formatação: **Claude Haiku 4.5**  
+No **LiteLLM** deste repo os aliases Cursor aparecem como entradas em `config/litellm/config.yaml` (nomes `cursor-*`).  
+
+## Stack de orquestração (opcional / Ruflo)
+
+- Orquestração: `npx ruflo@latest` (quando o projeto usar Ruflo)  
+- Memória: bd (beads), AgentDB conforme tooling instalado  
+- Grafo de código: GitNexus (`npx gitnexus analyze` no root do repo)  
+- OpenSpec / plugins: ver documentação Ruflo se ativo na tua máquina  
+
+## GitNexus
+
+- Indexar: `npx gitnexus analyze` (a partir da raiz de **agl-hostman**)  
+- Útil para impacto antes de refactors grandes  
+
+## Guardrails de custo
+
+- Preferir tier mais barato para edições mecânicas  
+- Monitorizar uso no dashboard do fornecedor / LiteLLM  
+
+## Codebase intelligence
+
+A frase "auto-creates AGENTS.md" nos templates genéricos **não** substitui manutenção manual destes ficheiros — foram atualizados para refletir **agl-hostman** em 2026-03-19.

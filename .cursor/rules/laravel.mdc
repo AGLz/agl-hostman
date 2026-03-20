@@ -6,10 +6,12 @@ globs: **/*.php
 
 # Laravel rules
 
-- Use `php artisan make:{option}` to create models, migrations, controllers, etc.
-- `app\Console\Kernel.php` does not exist in Laravel 11+. If the file is not present, use the the [app.php](mdc:bootstrap/app.php) file for related configurations.
-- In Laravel 11+ commands created in `app\Console\Commands\` are automatically registered and available to use.
-- Add environment variables to config files and avoid using env variables directly in the code. For example `config('app.name')` instead of `env('APP_NAME')`.
+Aplicação Laravel em **`src/`** (Laravel 12): paths relativos à pasta `src/` do monorepo.
+
+- Use `php artisan make:{option}` to create models, migrations, controllers, etc. (executar dentro de `src/`).
+- **`bootstrap/app.php`**: routing, middleware global e exceções—é o ficheiro principal de configuração da aplicação (sem `app/Http/Kernel.php` neste projeto).
+- **`app/Console/Kernel.php`**: neste repositório **existe** e serve para **schedule** e array `$commands`—não o apagar; novos comandos em `app/Console/Commands/` também são auto-registados.
+- Add environment variables to config files under `src/config/` and avoid using `env()` outside config files. Example: `config('app.name')`, not `env('APP_NAME')`.
 - Avoid N+1 queries by using eager loading or batch loading. Examples:
 
 ```php

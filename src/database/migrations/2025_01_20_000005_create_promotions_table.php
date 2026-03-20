@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('target_version')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed', 'failed'])->default('pending');
             $table->foreignId('requested_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->json('approved_by')->nullable();
             $table->timestamp('requested_at');
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('completed_at')->nullable();

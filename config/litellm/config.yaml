@@ -115,6 +115,7 @@ model_list:
     litellm_params:
       model: "anthropic/claude-opus-4-6"
       api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 90
     model_info:
       max_tokens: 8192
       input_cost_per_token: 0.000005
@@ -159,6 +160,7 @@ model_list:
     litellm_params:
       model: "anthropic/claude-haiku-4-5-20251001"
       api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 8192
       input_cost_per_token: 0.000001
@@ -348,9 +350,10 @@ model_list:
       access: direct
 
   # ============================================================
-  # CURSOR AGENT COMPOSER 1.5 (integrado do cursor-agent-config.yaml)
-  # Base URL: http://localhost:4000 ou http://100.94.221.87:4000
-  # Adicionar em Cursor Settings → Models → Custom Models
+  # CURSOR — Composer 2 Fast (via LiteLLM)
+  # O Composer 2 é modelo proprietário Cursor; no proxy usamos GPT-5.3 Instant
+  # como substituto API (rápido, grande contexto). Ref: cursor.com/docs/models/cursor-composer-2
+  # Base URL: http://localhost:4000 — sufixo /cursor no IDE
   # ============================================================
   - model_name: "cursor-claude-sonnet"
     litellm_params:
@@ -409,6 +412,31 @@ model_list:
     model_info:
       description: "GPT-4o - fallback robusto"
       max_tokens: 8192
+      access: direct
+
+  # cursor-composer / cursor-composer-2-fast: nomes públicos no Cursor (custom model)
+  - model_name: "cursor-composer"
+    litellm_params:
+      model: "openai/gpt-5.3-instant"
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      description: "Proxy Composer 2 Fast → GPT-5.3 Instant (OpenAI); Composer 2 real só na Cursor"
+      max_tokens: 16384
+      input_cost_per_token: 0.0000011
+      output_cost_per_token: 0.00001
+      context_window: 400000
+      access: direct
+
+  - model_name: "cursor-composer-2-fast"
+    litellm_params:
+      model: "openai/gpt-5.3-instant"
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      description: "Alias explícito Composer 2 Fast → GPT-5.3 Instant"
+      max_tokens: 16384
+      input_cost_per_token: 0.0000011
+      output_cost_per_token: 0.00001
+      context_window: 400000
       access: direct
 
   # === OpenAI (GPT-5.3 Instant / GPT-4.1) ===
@@ -637,7 +665,7 @@ model_list:
     litellm_params:
       model: "ollama/phi3:mini"
       api_base: "http://192.168.0.200:11434"
-      timeout: 20
+      timeout: 45
     model_info:
       max_tokens: 4096
       access: ollama
@@ -660,7 +688,7 @@ model_list:
     litellm_params:
       model: "ollama/qwen3:4b"
       api_base: "http://192.168.0.200:11434"
-      timeout: 30
+      timeout: 60
     model_info:
       max_tokens: 8192
       access: ollama
@@ -749,7 +777,7 @@ model_list:
 # Configurações LiteLLM (fallbacks nativos)
 litellm_settings:
   num_retries: 2
-  request_timeout: 20  # Timeout para permitir modelos locais
+  request_timeout: 120  # Timeout para Claude/APIs (Ollama pode levar 30-60s)
   allowed_fails: 2
   # IMPORTANTE: Encaminha headers de auth para Claude Code Max subscription
   forward_client_headers_to_llm_api: true
@@ -770,13 +798,14 @@ litellm_settings:
   # - qwen3-local: 21s
   fallbacks:
     # === Claude fallbacks ===
-    # Ordem: cloud rápido > local rápido > local médio > cloud backup
-    - claude-opus: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local, gemini]
-    - claude-opus-4-6: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local, gemini]
-    - claude-sonnet: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local, gemini]
-    - claude-sonnet-4-6: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local, gemini]
-    - claude-haiku: [qwen3.5-plus, deepseek, glm-flash, phi3-local, qwen3-4b, gemini]
-    - claude-haiku-4-5-20251001: [qwen3.5-plus, deepseek, glm-flash, phi3-local, qwen3-4b, gemini]
+    # APENAS cloud APIs (Ollama não suporta "thinking" → erro 500)
+    # Ordem: glm, deepseek, qwen3.5-plus, gemini
+    - claude-opus: [glm, deepseek, qwen3.5-plus, gemini]
+    - claude-opus-4-6: [glm, deepseek, qwen3.5-plus, gemini]
+    - claude-sonnet: [glm, deepseek, qwen3.5-plus, gemini]
+    - claude-sonnet-4-6: [glm, deepseek, qwen3.5-plus, gemini]
+    - claude-haiku: [glm-flash, deepseek, qwen3.5-plus, gemini]
+    - claude-haiku-4-5-20251001: [glm-flash, deepseek, qwen3.5-plus, gemini]
 
     # === GLM fallbacks ===
     - glm: [qwen3.5-plus, deepseek, phi3-local, qwen3-local, kimi, gemini]
@@ -785,8 +814,11 @@ litellm_settings:
     - glm-air: [glm-flash, qwen3.5-plus, deepseek, phi3-local]  # glm-4.5-air pode falhar via /v1/messages
 
     # === Cursor Agent fallbacks (Ask/Plan modes) ===
-    - cursor-claude-sonnet: [cursor-claude-opus, cursor-glm-5, cursor-deepseek]
-    - cursor-claude-opus: [cursor-claude-sonnet, cursor-gpt-4o]
+    # Sem encadear os dois aliases composer (mesmo backend OpenAI)
+    - cursor-composer: [cursor-claude-sonnet, cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+    - cursor-composer-2-fast: [cursor-claude-sonnet, cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+    - cursor-claude-sonnet: [cursor-composer, cursor-composer-2-fast, cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+    - cursor-claude-opus: [cursor-claude-sonnet, cursor-composer, cursor-composer-2-fast, cursor-gpt-4o]
     - cursor-glm-5: [cursor-deepseek, cursor-gpt-4o]
 
     # === DeepSeek fallbacks ===
@@ -804,21 +836,21 @@ litellm_settings:
     # === Gemini fallbacks ===
     - gemini: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local, kimi]
 
-    # === Qwen Cloud fallbacks ===
-    - qwen3.5: [phi3-local, qwen3-4b, qwen3-local, glm, deepseek, qwen3.5-or]
-    - qwen3.5-plus: [phi3-local, qwen3-4b, qwen3-local, glm, deepseek, qwen3.5-or]
-    - qwen3-max: [phi3-local, qwen3-local, glm, deepseek, qwen3-max-or]
-    - qwen-plus: [phi3-local, qwen3-4b, qwen3-local, glm, deepseek, qwen3.5-or]
-    - qwen-coder: [qwen-coder-local, phi3-local, qwen3-local, glm, deepseek, qwen3.5-or]
+    # === Qwen Cloud fallbacks (DashScope/OpenRouter primeiro, Ollama por último) ===
+    - qwen3.5: [qwen3.5-or, glm, deepseek, phi3-local, qwen3-4b, qwen3-local]
+    - qwen3.5-plus: [qwen3.5-or, glm, deepseek, phi3-local, qwen3-4b, qwen3-local]
+    - qwen3-max: [qwen3-max-or, glm, deepseek, phi3-local, qwen3-local]
+    - qwen-plus: [qwen3.5-or, glm, deepseek, phi3-local, qwen3-4b, qwen3-local]
+    - qwen-coder: [qwen3.5-or, glm, deepseek, phi3-local, qwen-coder-local, qwen3-local]
 
-    # === Ollama Local fallbacks ===
+    # === Ollama Local fallbacks (prioriza modelos leves: phi3, llama) ===
     - phi3-local: [qwen3.5-plus, deepseek, glm-flash, llama-local, qwen3-4b]
     - llama-local: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-4b]
     - qwen3-4b: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local]
-    - mistral-local: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local]
-    - gemma2-local: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local]
-    - qwen-coder-local: [qwen3.5-plus, deepseek, glm, phi3-local, qwen3-local]
-    - qwen3-local: [qwen3.5-plus, deepseek, glm, phi3-local, gemma2-local]
+    - mistral-local: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local, qwen3-local]
+    - gemma2-local: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local, qwen3-local]
+    - qwen-coder-local: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local, qwen3-local]
+    - qwen3-local: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local, gemma2-local]
 
   # Fallback por contexto excedido (modelos com mais tokens)
   context_window_fallbacks:
@@ -826,8 +858,8 @@ litellm_settings:
     - glm-5: [kimi, kimi-128k, qwen3.5-plus, qwen3-local]
     - glm-flash: [kimi, deepseek, qwen3.5-plus, qwen3-4b]
     - deepseek: [kimi, qwen3.5-plus, glm, qwen3-local]
-    - claude-opus: [glm, deepseek, qwen3.5-plus, qwen3-local]
-    - claude-opus-4-6: [glm, deepseek, qwen3.5-plus, qwen3-local]
+    - claude-opus: [glm, deepseek, qwen3.5-plus]
+    - claude-opus-4-6: [glm, deepseek, qwen3.5-plus]
     - claude-sonnet: [glm, deepseek, qwen3.5-plus, qwen3-local]
     - claude-sonnet-4-6: [glm, deepseek, qwen3.5-plus, qwen3-local]
     - qwen3.5-plus: [kimi, glm, deepseek, qwen3-local]
