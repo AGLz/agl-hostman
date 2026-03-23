@@ -103,13 +103,14 @@ Resumo — detalhe em `docs/INFRA.md`:
 
 | Host | Tailscale / verificação |
 |------|-------------------------|
-| agldv03 | `100.94.221.87` |
+| agldv03 | `100.94.221.87` — gateway OpenClaw ativo (fonte) |
+| agldv12 | `100.71.217.115` — **OpenClaw desligado** (clone do CT dev; evitar bots duplicados) |
 | fgsrv06 | `100.83.51.9` |
 | aglwk45 | Via `192.168.0.245` / guest exec |
 
 ## LiteLLM + Cursor (Composer)
 
-O modelo **Composer 2** na Cursor é proprietário; no proxy, nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** mapeiam para **`openai/gpt-5.3-instant`** (ver `config/litellm/config.yaml`). Documentação de setup: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
+O modelo **Composer 2** na Cursor é proprietário; no proxy, nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** mapeiam para **`openai/gpt-5.3-chat-latest`** (ver `config/litellm/config.yaml`). Documentação de setup: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
 
 ## Ligações
 

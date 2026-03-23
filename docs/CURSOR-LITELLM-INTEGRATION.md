@@ -1,11 +1,11 @@
 # Cursor Agent Composer 2 Fast + LiteLLM Integration
 
-> **Last Updated**: 2026-03-19
+> **Last Updated**: 2026-03-20
 > **Status**: Beta - Agent mode has known limitations
 
 ## Visão Geral
 
-Integração do Cursor IDE com o gateway LiteLLM. O modelo **Composer 2 / Composer 2 Fast** é [proprietário da Cursor](https://cursor.com/docs/models/cursor-composer-2) (focado em agente, ferramentas e edição); **não existe API pública** para o mesmo modelo fora do produto. Neste repositório, os nomes públicos `cursor-composer` e `cursor-composer-2-fast` encaminham para **`openai/gpt-5.3-instant`** como substituto rápido (~400K contexto), alinhado ao papel do Composer 2 Fast na documentação Cursor (variante *fast* ~\$1.50/M in / \$7.50/M out no pool da Cursor; custos reais no LiteLLM seguem a tabela OpenAI).
+Integração do Cursor IDE com o gateway LiteLLM. O modelo **Composer 2 / Composer 2 Fast** é [proprietário da Cursor](https://cursor.com/docs/models/cursor-composer-2) (focado em agente, ferramentas e edição); **não existe API pública** para o mesmo modelo fora do produto. Neste repositório, os nomes públicos `cursor-composer` e `cursor-composer-2-fast` encaminham para **`openai/gpt-5.3-chat-latest`** (ID oficial na [API OpenAI](https://developers.openai.com/api/docs/models/gpt-5.3-chat-latest) — equivalente ao *Instant* no ChatGPT, **128K** contexto, \$1.75/M in / \$14/M out em mar/2026). O alias `gpt-5.3-instant` no proxy mantém o mesmo backend por compatibilidade.
 
 ## Limitações Conhecidas
 
@@ -57,7 +57,7 @@ curl -X POST http://localhost:4000/key/generate \
 
 1. Clicar em **+ Add Custom Model**
 2. Adicionar os nomes públicos dos modelos:
-   - `cursor-composer` (proxy Composer 2 Fast → GPT-5.3 Instant)
+   - `cursor-composer` (proxy Composer 2 Fast → `gpt-5.3-chat-latest`)
    - `cursor-composer-2-fast` (mesmo backend; nome explícito)
    - `cursor-claude-sonnet`
    - `cursor-claude-opus`
@@ -77,7 +77,7 @@ curl -X POST http://localhost:4000/key/generate \
 
 | Modelo | Descrição | Uso |
 |--------|-----------|-----|
-| `cursor-composer` | Proxy Composer 2 Fast (GPT-5.3 Instant) | Fluxo tipo Composer rápido |
+| `cursor-composer` | Proxy Composer 2 Fast → `gpt-5.3-chat-latest` | Fluxo tipo Composer rápido |
 | `cursor-composer-2-fast` | Idem (alias explícito) | Idem |
 | `cursor-claude-sonnet` | Claude Sonnet 4.6 | Código geral |
 | `cursor-claude-opus` | Claude Opus 4.6 | Raz. complexo |

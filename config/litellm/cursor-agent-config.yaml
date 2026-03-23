@@ -9,18 +9,18 @@
 # GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
 
 model_list:
-  # Proxy “Composer 2 Fast”: usar gpt-5.3-instant no config montado no container
+  # Proxy Composer 2 Fast: ID API OpenAI = gpt-5.3-chat-latest (Instant)
   - model_name: cursor-composer
     litellm_params:
-      model: gpt-5.3-instant
+      model: openai/gpt-5.3-chat-latest
       api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Proxy Composer 2 Fast (OpenAI GPT-5.3 Instant)"
+      description: "Proxy Composer 2 Fast (OpenAI gpt-5.3-chat-latest)"
       max_tokens: 16384
 
   - model_name: cursor-composer-2-fast
     litellm_params:
-      model: gpt-5.3-instant
+      model: openai/gpt-5.3-chat-latest
       api_key: os.environ/OPENAI_API_KEY
     model_info:
       description: "Alias cursor-composer-2-fast"

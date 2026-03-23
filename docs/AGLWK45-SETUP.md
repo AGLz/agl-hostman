@@ -51,6 +51,27 @@ Se `qm agent 104 ping` retornar sem erro, a comunicação está OK.
 | Docker | Não instalado | - |
 | LiteLLM | Usa agldv03 remoto | - |
 
+### Clone do repositório (unidade **U:** ↔ storage **overpower**)
+
+No ambiente AGL, o caminho Linux do repo é tipicamente `/mnt/overpower/apps/dev/agl/agl-hostman`. Na **wk45**, com **U:** mapeada para a raiz do storage overpower (mesma árvore que no NFS), o clone deve estar em:
+
+`U:\apps\dev\agl\agl-hostman`
+
+Daí o patch DEP0040 (PowerShell) corre-se assim numa sessão **interativa** (PowerShell ou `cmd`):
+
+```powershell
+cd U:\apps\dev\agl\agl-hostman
+powershell -ExecutionPolicy Bypass -File .\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1
+```
+
+**`qm guest exec` (Proxmox)** corre comandos **sem** a tua sessão de utilizador: `net use` pode estar vazio e a unidade **U:** pode **não existir** nesse contexto, mesmo que no RDP vejas o drive. Para verificação automática via SSH ao AGLSRV1:
+
+```bash
+bash scripts/openclaw/vm104-verify-overpower-repo.sh
+```
+
+Se falhar só no guest exec mas o ficheiro existir no Explorador, mapeia **U:** como persistente para todos os utilizadores ou define `WK45_REPO_WIN` com um caminho que exista no contexto SYSTEM (ex. clone em `C:\work\agl-hostman`).
+
 ## Atualizações de Modelos (2026-03-07)
 
 | Provider | Modelo | Preço (In/Out) | Context | Destaque |
@@ -60,9 +81,9 @@ Se `qm agent 104 ping` retornar sem erro, a comunicação está OK.
 | **Anthropic** | claude-opus-4-6 | $5/$25 | 1M (beta) | Agent Teams, SOTA coding |
 | **Anthropic** | claude-sonnet-4-6 | $3/$15 | 200K | Opus-level coding |
 | **DeepSeek** | V3.2 unificado | $0.28/$0.42 | 128K | Chat + Reasoner mesmo preço |
-| **OpenAI** | gpt-5.3-instant | $1.10/$10 | 400K | Anti-cringe, less hallucinations |
+| **OpenAI** | gpt-5.3-chat-latest | $1.75/$14 | 128K | Instant (API; mesmo papel que antigo “gpt-5.3-instant”) |
 | **OpenAI** | gpt-4.1 | $2/$8 | 1M | Long context |
-| **Google** | gemini-3.1-pro | $2/$12 | 1M | ARC-AGI-2, native video |
+| **Google** | gemini-3.1-pro-preview | ver Google | 1M | Substituir gemini-3-pro-preview (desligado) |
 | **Google** | gemini-2.5-flash-lite | $0.10/$0.40 | 1M | Cheapest capable |
 | **Moonshot** | kimi-k2.5 | $0.60/$3 | 256K | Agent Swarm (100 agents) |
 | **Moonshot** | kimi-k2-thinking | $0.60/$2.50 | 256K | Deep reasoning |
@@ -312,7 +333,7 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
         "apiKey": "${GEMINI_API_KEY}",
         "models": [
-          { "id": "gemini-3.1-pro", "name": "Gemini 3.1 Pro", "contextWindow": 1048576, "maxTokens": 16384 },
+          { "id": "gemini-3.1-pro-preview", "name": "Gemini 3.1 Pro Preview", "contextWindow": 1048576, "maxTokens": 65536 },
           { "id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro", "contextWindow": 2097152, "maxTokens": 65536 },
           { "id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1048576, "maxTokens": 65536 },
           { "id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash-Lite", "contextWindow": 1048576, "maxTokens": 65536 }
@@ -322,7 +343,7 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "baseUrl": "https://api.openai.com/v1",
         "apiKey": "${OPENAI_API_KEY}",
         "models": [
-          { "id": "gpt-5.3-instant", "name": "GPT-5.3 Instant (400K)", "contextWindow": 400000, "maxTokens": 16384 },
+          { "id": "gpt-5.3-chat-latest", "name": "GPT-5.3 Chat (Instant)", "contextWindow": 128000, "maxTokens": 16384 },
           { "id": "gpt-4.1", "name": "GPT-4.1 (1M)", "contextWindow": 1048576, "maxTokens": 32768 },
           { "id": "gpt-4o", "name": "GPT-4o", "contextWindow": 128000, "maxTokens": 16384 },
           { "id": "gpt-4o-mini", "name": "GPT-4o Mini", "contextWindow": 128000, "maxTokens": 16384 }
@@ -372,7 +393,7 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "anthropic/claude-sonnet-4-6",
         "deepseek/deepseek-chat",
         "moonshot/kimi-k2.5",
-        "google/gemini-3.1-pro",
+        "google/gemini-3.1-pro-preview",
         "openrouter/z-ai/glm-4.5-air:free"
       ],
       "compaction": { "mode": "safeguard" },
@@ -479,8 +500,8 @@ claude --version
 | kimi-thinking | - | $0.60/$2.50 | ~4s | Deep reasoning |
 | claude-opus | - | $5/$25 | ~4s | 1M ctx, Agent Teams |
 | claude-sonnet | - | $3/$15 | ~2s | Opus-level coding |
-| gpt-5.3-instant | gpt | $1.10/$10 | ~1.5s | 400K ctx, anti-cringe |
-| gemini-3.1-pro | gemini | $2/$12 | ~2s | ARC-AGI-2, native video |
+| gpt-5.3-chat-latest | (alias proxy `gpt-5.3-instant`) | $1.75/$14 | ~1.5s | 128K ctx (API OpenAI) |
+| gemini-3.1-pro-preview | gemini | ver Google | ~2s | Gemini 3.1 |
 | gemini-lite | - | $0.10/$0.40 | ~0.5s | Cheapest capable |
 | phi3-local | - | FREE | ~8s | Local (Ollama) |
 | qwen3-local | - | FREE | ~21s | Local (Ollama) |
@@ -498,12 +519,58 @@ tailscale status
 tailscale up
 ```
 
-### Erro: "Authentication Error"
+### Erro: "Authentication Error" / `token_not_found_in_db` (LiteLLM proxy)
+
+O **LiteLLM** no agldv03 usa o valor real de **`LITELLM_MASTER_KEY`** em `/opt/litellm/.env`. Se for **diferente** de `sk-litellm-default`, **todos** os clientes (OpenClaw `models.providers.*.apiKey`, `ANTHROPIC_AUTH_TOKEN`, `curl`) devem usar **essa** chave — caso contrário verás 401 e mensagens com `LiteLLM_VerificationTokenTable`.
+
+**Correção rápida (Git Bash na wk45)** — sincroniza `openclaw.json` e aponta o proxy para o agldv03:
+
 ```bash
-# Verificar se a API key está correta
-echo $ANTHROPIC_AUTH_TOKEN
-# Deve mostrar: sk-litellm-default
+cd /c/caminho/para/agl-hostman   # ou o clone do repo
+bash scripts/openclaw/wk45-sync-openclaw-litellm.sh
+openclaw gateway restart
 ```
+
+O script obtém a chave por SSH (`root@100.94.221.87`) ou usa `LITELLM_MASTER_KEY` se já estiver definida. Requer `jq` e acesso SSH ao agldv03 (ou cola a chave manualmente).
+
+### Via Proxmox (QEMU guest agent, sem RDP)
+
+Na máquina com o repo (ou CI), a partir do host que faz SSH ao **AGLSRV1** (Proxmox onde corre a VM104):
+
+```bash
+bash scripts/openclaw/deploy-aglwk45-wk45-litellm-qemu.sh
+```
+
+Variáveis úteis:
+
+| Variável | Significado |
+|----------|-------------|
+| `AGLSRV1_HOST` | SSH ao Proxmox (default `root@100.107.113.33`) |
+| `AGLWK45_VMID` | VMID (default `104`) |
+| `LITELLM_GATEWAY_SSH` | Host com `/opt/litellm/.env` (default `root@100.94.221.87`) — o script obtém a chave **aqui** antes do SSH ao Proxmox |
+| `LITELLM_MASTER_KEY` | Opcional: se já definida, não faz SSH ao agldv03 |
+| `LITELLM_PROXY_BASE_URL` | Default `http://100.94.221.87:4000` |
+
+**Importante**: o LiteLLM em produção usa `LITELLM_MASTER_KEY` **real** (ex. em `/opt/litellm/.env`). `sk-litellm-default` no `openclaw.json` provoca **401** em todos os modelos. O script de deploy obtém a chave por SSH ao agldv03 **na máquina onde corres o bash** (não no Proxmox).
+
+O fluxo copia `vm104_guest_wk45_litellm_sync.py` e `wk45-sync-openclaw-litellm.cjs` para o Proxmox, corre `qm guest exec` na VM104, grava `litellm-gateway.env`, aplica o merge no `openclaw.json` com **Node** (sem `jq` no Windows) e tenta `openclaw gateway restart` se existir no PATH (falha do restart não invalida o merge). O exit code do passo reflete só o **Node**; esperado: `OK wk45-sync-openclaw-litellm` na saída.
+
+Opcional: copiar `config/openclaw/wk45-litellm-gateway.env.example` → `~/.openclaw/litellm-gateway.env`, preencher **`LITELLM_MASTER_KEY`** com o valor real e **source** antes do `zshrc-openclaw.env` no `.bashrc`.
+
+```bash
+# Obter a chave no gateway (agldv03) e testar
+ssh root@100.94.221.87 'grep ^LITELLM_MASTER_KEY= /opt/litellm/.env'
+export LITELLM_MASTER_KEY='(colar o valor)'
+curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://100.94.221.87:4000/v1/models
+# Esperado: 200
+```
+
+Mais detalhe: `docs/LITELLM-TROUBLESHOOTING.md` (secção *token_not_found_in_db*).
+
+### Avisos na consola do gateway (DEP0040 `punycode`, linhas `[telegram]`)
+
+- **`(node:…) [DEP0040] DeprecationWarning: punycode`**: vem do **Node** (módulo integrado deprecado usado por dependências). Não indica config errada. Na wk45: `cd` à raiz do clone (ex. `U:\apps\dev\agl\agl-hostman` se **U:** for overpower) e `powershell -ExecutionPolicy Bypass -File .\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1`, ou caminho absoluto para o `.ps1`. Altera `%USERPROFILE%\.openclaw\gateway.cmd` (backup `.bak.nodeopts`); reinicia a tarefa **OpenClaw Gateway**.
+- **`[telegram] autoSelectFamily=…` / `dnsResultOrder=…`**: mensagens **informativas** da stack de rede, não são falhas.
 
 ### OpenClaw não carrega variáveis
 ```bash

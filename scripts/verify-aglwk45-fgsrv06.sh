@@ -104,6 +104,15 @@ else
     warn "config issue"
 fi
 
+# 2.5 Repo agl-hostman no guest (U: overpower — pode falhar sem sessão interativa)
+echo -n "Repo patch script (guest U:\\\\apps\\\\... ou WK45_REPO_WIN): "
+REPO_PS1=$(ssh -o ConnectTimeout=5 root@100.107.113.33 'qm guest exec 104 -- cmd /c "if exist U:\apps\dev\agl\agl-hostman\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1 (echo OK) else (echo NO)"' 2>&1)
+if echo "$REPO_PS1" | grep -qE 'out-data.*OK'; then
+    pass "wk45-patch-gateway-nodeopts.ps1 visível no guest exec"
+else
+    warn "ausente no contexto guest (normal se U: só no login) — ver docs/AGLWK45-SETUP.md"
+fi
+
 echo ""
 
 # ========================================

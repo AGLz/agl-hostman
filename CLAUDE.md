@@ -12,7 +12,8 @@ Contexto **TurboFlow / Ruflo** pode coexistir com **Cursor** (regras em `.cursor
 | API Node (Fastify) | `src/api/` — entrada `npm run dev` / `server.js` |
 | Laravel 12 + Pest | árvore em `src/` (`artisan`, `composer.json`, `app/`, `tests/`, etc.) |
 | Gateway LLM | `config/litellm/config.yaml`, `config/litellm/config-remote.yaml` |
-| Cursor + LiteLLM | `docs/CURSOR-LITELLM-INTEGRATION.md`; modelos `cursor-composer` / `cursor-composer-2-fast` → proxy `openai/gpt-5.3-instant` |
+| Cursor + LiteLLM | `docs/CURSOR-LITELLM-INTEGRATION.md`; modelos `cursor-composer` / `cursor-composer-2-fast` → proxy `openai/gpt-5.3-chat-latest` |
+| OpenClaw + Claude Code → LiteLLM local | `scripts/deploy-openclaw-config.sh` copia `config/openclaw/litellm-gateway-local.env` → `~/.openclaw/litellm-gateway.env` e aplica `openclaw-litellm-local.jq`; `.claude/settings.json` define `ANTHROPIC_BASE_URL` / `LITELLM_GATEWAY_URL` = `http://localhost:4000` |
 | Testes Node (raiz) | `tests/api/`, `tests/unit/`, `tests/integration/` — `npm test` |
 | Infra docs | `docs/INFRA.md`, `docs/README.md` |
 | Beads / bd | `.beads/`; fluxo em `AGENTS.md` |

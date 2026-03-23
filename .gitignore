@@ -7,6 +7,10 @@ devpods/
 .gemini-flow/temp/
 *.log
 
+# Python
+**/__pycache__/
+*.py[cod]
+
 # Dependencies
 node_modules/
 src/web/node_modules/

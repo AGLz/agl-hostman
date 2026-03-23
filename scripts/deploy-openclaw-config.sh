@@ -9,6 +9,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PATCH_FILE="$REPO_ROOT/config/openclaw/openclaw-patch.json"
 ZSHRC_ENV="$REPO_ROOT/config/openclaw/zshrc-openclaw.env"
 LITELLM_CLIENT_ENV="$REPO_ROOT/config/openclaw/litellm-gateway-client.env"
+LITELLM_LOCAL_ENV="$REPO_ROOT/config/openclaw/litellm-gateway-local.env"
+LITELLM_LOCAL_JQ="$REPO_ROOT/config/openclaw/openclaw-litellm-local.jq"
 
 HOSTS=(
   "root@100.94.221.87"   # agldv03 (CT179)
@@ -39,12 +41,14 @@ current=$(cat "$OPENCLAW_CONFIG" 2>/dev/null || echo '{}')
 patch=$(cat "$PATCH_FILE")
 merged=$({ echo "$current"; echo "$patch"; } | jq -s '.[0] * .[1]' 2>/dev/null) || true
 if [[ -n "$merged" ]]; then
-  echo "$merged" > "$OPENCLAW_CONFIG"
-  echo "  OK: openclaw.json atualizado"
+  echo "$merged" | jq -f "$LITELLM_LOCAL_JQ" > "$OPENCLAW_CONFIG"
+  echo "  OK: openclaw.json (merge + providers → localhost:4000)"
 else
   echo "  Aviso: merge local falhou (jq instalado?)"
 fi
 cp "$ZSHRC_ENV" "$HOME/.openclaw/zshrc-openclaw.env" 2>/dev/null || true
+cp "$LITELLM_LOCAL_ENV" "$HOME/.openclaw/litellm-gateway.env" 2>/dev/null || true
+echo "  OK: litellm-gateway.env → localhost:4000 (Claude + OpenClaw)"
 if ! grep -q "$ZSHRC_MARKER" "$HOME/.zshrc" 2>/dev/null; then
   echo "" >> "$HOME/.zshrc"
   echo "$ZSHRC_MARKER" >> "$HOME/.zshrc"
@@ -79,9 +83,12 @@ for host in "${HOSTS[@]}"; do
     ssh "$host" "cp $OPENCLAW_REMOTE ${OPENCLAW_REMOTE}.bak 2>/dev/null; jq -s '.[0] * .[1]' $OPENCLAW_REMOTE /tmp/openclaw-patch.json 2>/dev/null | sponge $OPENCLAW_REMOTE 2>/dev/null || (jq -s '.[0] * .[1]' $OPENCLAW_REMOTE /tmp/openclaw-patch.json > ${OPENCLAW_REMOTE}.new && mv ${OPENCLAW_REMOTE}.new $OPENCLAW_REMOTE)" 2>/dev/null || echo "  Falha - verifique jq no host"
   fi
   
-  # 2. Copiar zshrc-openclaw.env para ~/.openclaw/ no host
+  # 2. Copiar zshrc + LiteLLM local (cada host com proxy em :4000 usa localhost)
   scp "$ZSHRC_ENV" "$host:~/.openclaw/zshrc-openclaw.env" 2>/dev/null || true
-  
+  scp "$LITELLM_LOCAL_ENV" "$host:~/.openclaw/litellm-gateway.env" 2>/dev/null || true
+  scp -q "$LITELLM_LOCAL_JQ" "$host:/tmp/openclaw-litellm-local.jq" 2>/dev/null || true
+  ssh "$host" "if [[ -f ~/.openclaw/openclaw.json ]] && [[ -f /tmp/openclaw-litellm-local.jq ]]; then jq -f /tmp/openclaw-litellm-local.jq ~/.openclaw/openclaw.json > /tmp/oc-litellm.json && mv /tmp/oc-litellm.json ~/.openclaw/openclaw.json && echo OK-openclaw-litellm-local; fi" || true
+
   # 3. Adicionar source ao .zshrc (Claude-Flow multi-model)
   echo "  Verificando .zshrc..."
   if ! ssh "$host" "grep -q '$ZSHRC_MARKER' ~/.zshrc 2>/dev/null"; then
@@ -115,10 +122,11 @@ done
 # --- Gerar environment file e reiniciar gateway OpenClaw (agldv03 + fgsrv6) ---
 echo ""
 echo "=== Gerando environment file e reiniciando gateway OpenClaw ==="
+SYNC_ENV_SCRIPT="$REPO_ROOT/scripts/openclaw/sync-systemd-openclaw-env.sh"
 for h in 100.94.221.87 100.83.51.9; do
   echo -n "  $h: "
-  # Gerar environment file a partir do zshrc
-  ssh "root@$h" 'mkdir -p ~/.config/environment.d && grep -h -E "^export (ZAI_API_KEY|GLM_AUTH|GLM_URL|KIMI_AUTH|KIMI_URL|MOONSHOT_API_KEY|DEEPSEEK_API_KEY|DEEPSEEK_AUTH|DEEPSEEK_URL|OPENAI_API_KEY|OPENAI_AUTH|OPENAI_URL|GEMINI_API_KEY|GEMINI_AUTH|GEMINI_URL|OPENROUTER_API_KEY|DASHSCOPE_API_KEY|ANTHROPIC_API_KEY)=" ~/.zshrc ~/.openclaw/zshrc-openclaw.env 2>/dev/null | sed "s/^export //" > ~/.config/environment.d/openclaw.conf; grep -q "ANTHROPIC_API_KEY=" ~/.config/environment.d/openclaw.conf || echo 'ANTHROPIC_API_KEY="sk-optional"' >> ~/.config/environment.d/openclaw.conf; sed -i '\''s/^ANTHROPIC_API_KEY=""$/ANTHROPIC_API_KEY="sk-optional"/'\'' ~/.config/environment.d/openclaw.conf 2>/dev/null; echo "env OK"' && echo -n " -> "
+  scp -q "$SYNC_ENV_SCRIPT" "root@$h:/tmp/sync-systemd-openclaw-env.sh"
+  ssh "root@$h" 'chmod +x /tmp/sync-systemd-openclaw-env.sh && bash /tmp/sync-systemd-openclaw-env.sh' && echo -n " -> "
   # Reiniciar gateway
   ssh "root@$h" 'systemctl --user daemon-reload && systemctl --user restart openclaw-gateway 2>/dev/null' && echo "gateway OK" || echo "skip"
 done

@@ -1,6 +1,6 @@
 # LiteLLM — Troubleshooting
 
-> **Last Updated**: 2026-03-19  
+> **Last Updated**: 2026-03-21  
 > **Host**: agldv03 (100.94.221.87) — porta 4000
 
 ## Diagnóstico rápido
@@ -26,6 +26,32 @@ curl -s -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://localhost:4000/mod
 ---
 
 ## Problemas comuns
+
+### 0. HTTP 401 — `token_not_found_in_db` / `Invalid proxy server token` (OpenClaw / wk45)
+
+**Sintoma** (exemplo): `Received API Key = sk-...ault` · `Unable to find token in cache or LiteLLM_VerificationTokenTable`.
+
+**Causa**: O cliente (OpenClaw na VM Windows) envia **`sk-litellm-default`** como Bearer, mas o LiteLLM em **produção** usa outro valor em **`LITELLM_MASTER_KEY`** (ficheiro **`/opt/litellm/.env`** no agldv03). O placeholder `sk-litellm-default` só é válido se o proxy estiver configurado **explicitamente** com essa string.
+
+**Verificação no gateway**:
+```bash
+# No agldv03 — deve ser 200 e JSON de modelos (substitua pela chave real do .env)
+grep ^LITELLM_MASTER_KEY= /opt/litellm/.env
+curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer COPIE_A_CHAVE_AQUI" http://127.0.0.1:4000/v1/models
+```
+
+**Correção (aglwk45)**:
+1. Obter **`LITELLM_MASTER_KEY`** real (mesma linha que o container `litellm-proxy` usa).
+2. No `openclaw.json`, em **todos** os `models.providers.*` que apontam ao proxy LiteLLM, definir **`apiKey`** igual a essa chave (não usar `sk-litellm-default` se o servidor não a usar).
+3. Se os providers usam **`http://localhost:4000`** mas o LiteLLM corre no **agldv03**, alterar **`baseUrl`** para **`http://100.94.221.87:4000`** (Tailscale/LAN conforme a tua rede).
+
+**Automático (recomendado)**: na wk45, em Git Bash a partir do repo:
+
+`bash scripts/openclaw/wk45-sync-openclaw-litellm.sh` → aplica `config/openclaw/wk45-sync-openclaw-litellm.jq` (substitui `sk-litellm-default` e `localhost`/`127.0.0.1:4000). Depois: `openclaw gateway restart`. Exemplo opcional de env: `config/openclaw/wk45-litellm-gateway.env.example`.
+
+**Variáveis Windows**: alinhar `ANTHROPIC_AUTH_TOKEN` e `LITELLM_MASTER_KEY` com o **mesmo** valor do `/opt/litellm/.env` (ver `docs/AGLWK45-SETUP.md`).
+
+---
 
 ### 1. HTTP 401 — "No api key passed in"
 
@@ -252,6 +278,24 @@ docker compose -f docker/litellm/docker-compose.yml up -d --force-recreate litel
 - **Exceção**: root — o CLI rejeita; use usuário não-root (ex: vscode no devcontainer) ou `--no-auto-permissions`
 
 **Para desabilitar**: `export IS_SANDBOX=0` ou `unset IS_SANDBOX`
+
+---
+
+### 11. `404 No endpoints found for google/gemini-2.5-flash-lite:free` (ex.: Telegram no **fgsrv06**)
+
+**Causa A (mais comum com OpenClaw)**: O modelo **principal** é `zai/glm-5`, mas o LiteLLM só tinha `glm-5` no `model_list`. Pedidos a `zai/glm-5` falhavam (**400 Invalid model name**); o gateway seguia para **fallbacks** e a mensagem de erro podia mostrar **Gemini** (`google/...:free`) em vez do GLM — sintoma confuso. **Correção**: entradas explícitas `zai/glm-5`, `zai/glm-4.7`, `zai/glm-4.7-flash` no `config/litellm/config.yaml` (e sync para hosts). Teste: `curl …/v1/chat/completions` com `"model":"zai/glm-5"`.
+
+**Causa B**: O ID `google/gemini-2.5-flash-lite:free` não está no `model_list` nesse proxy (config em falta ou não reiniciada).
+
+**Solução B**: No `config/litellm/config.yaml` existem aliases (`google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash-lite:free` → `gemini/gemini-2.5-flash-lite`, e `openrouter/google/gemini-2.5-flash-lite:free` para OpenRouter). Replicar (`./scripts/litellm/replicate-all-hosts.sh`) e recriar o container `litellm-proxy`.
+
+**Alternativa no cliente**: usar **`gemini-lite`** ou `openrouter/google/gemini-2.5-flash-lite:free` conforme documentado em `docs/OPENCLAW.md`.
+
+### 12. OpenClaw: `models.providers.kimi.models: expected array, received undefined`
+
+**Causa**: O provider **`kimi`** (ou **`moonshot`**) ficou só com `baseUrl`/`apiKey` (ex.: após patch jq que define campos sem preservar `models`).
+
+**Solução**: `scripts/openclaw/wk45-sync-openclaw-litellm.cjs` repõe `models` em **kimi**, **moonshot** e **google** se faltarem. Correr de novo o deploy QEMU ou, na VM: `node wk45-sync-openclaw-litellm.cjs` com `LITELLM_MASTER_KEY` definido. Ou `openclaw doctor --fix` se o CLI sugerir.
 
 ---
 

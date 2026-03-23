@@ -266,7 +266,7 @@ openclaw health
 - ✅ Legacy clawdbot service removed
 - ✅ Telegram channel working (@Jarvis3b3Bot)
 - ✅ GLM-4.7 (zai/glm-4.7) configured as primary model
-- ✅ ZAI API key configured (896fb1e6...fajAslfx)
+- ✅ ZAI API key configured (host)
 - ✅ Gateway service running (port 18789)
 
 **FGSRV6**:
@@ -274,7 +274,7 @@ openclaw health
 - ✅ Legacy clawdbot config migrated
 - ✅ Telegram channel working (@JarvisSrv6Bot)
 - ✅ GLM-4.7 (zai/glm-4.7) configured as primary model
-- ✅ ZAI API key configured (896fb1e6...fajAslfx)
+- ✅ ZAI API key configured (host)
 - ✅ Gateway service installed and active (systemd)
 
 **aglwk45 (VM104)** - Windows 11:
@@ -286,7 +286,7 @@ openclaw health
 
 ### ZAI API Key Configuration
 
-**Key**: `896fb1e6936a4cd1b61aa2314d6d3728.u2lsAqLNfajAslfx`
+**Key**: *(removido do Git — configurar apenas em `~/.config/environment.d/openclaw.conf` ou gestor de secrets no host; nunca commitar)*
 
 **Status**:
 | Host | ZAI Key Status |
@@ -298,14 +298,14 @@ openclaw health
 **To configure manually on aglwk45 via RDP**:
 1. Connect to 192.168.0.33 or 100.117.146.21
 2. Edit: `C:\windows\system32\config\systemprofile\.clawdbot\agents\main\agent\auth-profiles.json`
-3. Add/Update:
+3. Add/Update (use a chave real apenas localmente, não no repositório):
 ```json
 {
   "profiles": {
     "zai:default": {
       "type": "api_key",
       "provider": "zai",
-      "key": "896fb1e6936a4cd1b61aa2314d6d3728.u2lsAqLNfajAslfx"
+      "key": "<ZAI_API_KEY>"
     }
   }
 }

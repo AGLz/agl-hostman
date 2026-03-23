@@ -1,19 +1,11 @@
-.models.providers.zai.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.zai.apiKey = "sk-litellm-default" |
-.models.providers.zai.api = "openai-completions" |
-.models.providers.anthropic.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.anthropic.apiKey = "sk-litellm-default" |
-.models.providers.deepseek.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.deepseek.apiKey = "sk-litellm-default" |
-.models.providers.google.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.google.apiKey = "sk-litellm-default" |
-.models.providers.openai.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.openai.apiKey = "sk-litellm-default" |
-.models.providers.kimi.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.kimi.apiKey = "sk-litellm-default" |
-.models.providers.moonshot.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.moonshot.apiKey = "sk-litellm-default" |
-.models.providers.qwen.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.qwen.apiKey = "sk-litellm-default" |
-.models.providers.openrouter.baseUrl = "http://100.94.221.87:4000" |
-.models.providers.openrouter.apiKey = "sk-litellm-default"
+# fgsrv06 (ou qualquer host com LiteLLM em localhost:4000):
+# substituir apenas baseUrl que apontam ao gateway central agldv03 — preserva o resto do objeto (ex.: moonshot.models).
+#
+# Uso: jq -f config/openclaw/fgsrv06-litellm.jq ~/.openclaw/openclaw.json > /tmp/oc.json && mv /tmp/oc.json ~/.openclaw/openclaw.json
+# Depois: systemctl --user restart openclaw-gateway
+walk(
+  if type == "object" and (.baseUrl? | type == "string") and (.baseUrl | contains("100.94.221.87:4000"))
+  then .baseUrl = "http://127.0.0.1:4000"
+  else .
+  end
+)

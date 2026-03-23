@@ -2,40 +2,26 @@
   "gateway": {
     "mode": "local"
   },
+  "commands": {
+    "bash": false,
+    "restart": false,
+    "config": false,
+    "debug": false
+  },
+  "channels": {
+    "defaults": {
+      "heartbeat": {
+        "showOk": false,
+        "showAlerts": true,
+        "useIndicator": true
+      }
+    }
+  },
   "auth": {
     "profiles": {
       "anthropic:default": {
         "provider": "anthropic",
         "mode": "api_key"
-      }
-    }
-  },
-  "models": {
-    "providers": {
-      "moonshot": {
-        "baseUrl": "https://api.moonshot.ai/v1",
-        "apiKey": "${MOONSHOT_API_KEY}",
-        "api": "openai-completions",
-        "models": [
-          {
-            "id": "kimi-k2.5",
-            "name": "Kimi K2.5",
-            "contextWindow": 262144,
-            "maxTokens": 16384
-          },
-          {
-            "id": "kimi-k2-thinking",
-            "name": "Kimi K2 Thinking",
-            "contextWindow": 262144,
-            "maxTokens": 16384
-          },
-          {
-            "id": "kimi-k2-thinking-turbo",
-            "name": "Kimi K2 Turbo Preview",
-            "contextWindow": 262144,
-            "maxTokens": 16384
-          }
-        ]
       }
     }
   },
@@ -48,13 +34,23 @@
           "moonshot/kimi-k2.5",
           "kimi/moonshot-v1-128k",
           "deepseek/deepseek-chat",
-          "openai/gpt-5.3-instant",
-          "google/gemini-3.1-pro",
+          "openai/gpt-5.3-chat-latest",
+          "google/gemini-3.1-pro-preview",
           "openrouter/deepseek/deepseek-v3.2",
           "openrouter/z-ai/glm-4.5-air:free",
           "openrouter/google/gemini-2.5-flash-lite:free"
         ]
       },
+      "imageModel": {
+        "primary": "moonshot/kimi-k2.5",
+        "fallbacks": [
+          "google/gemini-3.1-pro-preview",
+          "anthropic/claude-sonnet-4-6",
+          "zai/glm-5"
+        ]
+      },
+      "timeoutSeconds": 600,
+      "maxConcurrent": 3,
       "models": {
         "anthropic/claude-opus-4-6": { "alias": "claude-opus" },
         "anthropic/claude-sonnet-4-6": { "alias": "claude-sonnet" },
@@ -67,12 +63,14 @@
         "moonshot/kimi-k2-thinking-turbo": { "alias": "kimi-turbo" },
         "deepseek/deepseek-chat": { "alias": "deepseek" },
         "deepseek/deepseek-reasoner": { "alias": "r1" },
-        "openai/gpt-5.3-instant": { "alias": "gpt" },
+        "openai/gpt-5.4": { "alias": "gpt" },
+        "openai/gpt-5.3-chat-latest": { "alias": "gpt-5.3" },
         "openai/gpt-4.1": { "alias": "gpt-4.1" },
         "openai/gpt-4o-mini": { "alias": "gpt-mini" },
-        "google/gemini-3.1-pro": { "alias": "gemini" },
+        "google/gemini-3.1-pro-preview": { "alias": "gemini" },
         "google/gemini-2.5-pro": { "alias": "gemini-pro" },
-        "google/gemini-2.5-flash-lite": { "alias": "gemini-lite" }
+        "google/gemini-2.5-flash-lite": { "alias": "gemini-lite" },
+        "google/gemini-2.5-flash-lite:free": { "alias": "gemini-lite" }
       }
     }
   }

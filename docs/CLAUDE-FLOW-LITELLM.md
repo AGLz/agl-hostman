@@ -60,26 +60,32 @@ claude --model kimi "Resuma este documento longo"
 
 ## Modelos disponíveis (config AGL)
 
-> **Última atualização**: 2026-02 — modelos mais recentes por provider
+> **Última atualização**: 2026-03 — alinhado com `config/litellm/config.yaml` e docs oficiais (Anthropic, OpenAI, Google)
 
 | Alias          | Provider   | Modelo                    | Contexto | Uso principal        |
 |----------------|------------|---------------------------|----------|----------------------|
-| `claude-opus`  | Anthropic  | claude-opus-4-6           | 200k/1M  | Premium, agentes     |
-| `claude-sonnet`| Anthropic  | claude-sonnet-4-6         | 200k/1M  | Balanceado, PRO      |
-| `claude-haiku` | Anthropic  | claude-haiku-4-5          | 200k     | Rápido, barato       |
-| `glm`          | ZAI        | glm-4.7                   | 200k     | Primário, uso geral  |
-| `glm-flash`  | ZAI        | glm-4.5-flash             | 128k     | Gratuito, rápido     |
-| `glm-5`      | OpenRouter | z-ai/glm-5                | 205k     | Código, agentes      |
-| `kimi`       | Moonshot   | kimi-k2.5                 | 256k     | Contexto longo       |
-| `kimi-128k`  | Moonshot   | moonshot-v1-128k          | 128k     | Fallback Kimi        |
-| `deepseek`   | DeepSeek   | deepseek-chat (V3.2)      | 128k     | Código               |
-| `r1`         | DeepSeek   | deepseek-reasoner         | 128k     | Raciocínio           |
-| `gpt`        | OpenAI     | gpt-5.2                   | -        | Mais recente OpenAI  |
-| `gpt-4o`     | OpenAI     | gpt-4o                    | 128k     | Fallback robusto     |
-| `gpt-mini`   | OpenAI     | gpt-4o-mini               | 128k     | Rápido               |
-| `gemini`     | Google     | gemini-2.5-flash          | 1M       | Mais recente Gemini  |
-| `gemini-2.0` | Google     | gemini-2.0-flash          | 1M       | Fallback Gemini      |
+| `claude-opus`  | Anthropic  | claude-opus-4-6           | 1M       | Premium, agentes     |
+| `claude-sonnet`| Anthropic  | claude-sonnet-4-6         | 1M       | Balanceado, PRO      |
+| `claude-haiku` | Anthropic  | claude-haiku-4-5-20251001 | 200k     | Rápido, barato       |
+| `glm`          | ZAI        | glm-5 (api z.ai)          | 200k     | Primário, uso geral  |
+| `glm-flash`    | ZAI        | glm-4.7-flash             | 131k     | Gratuito / rápido    |
+| `glm-5`        | ZAI        | glm-5                     | 200k     | Flagship GLM         |
+| `kimi`         | Moonshot   | kimi-k2.5                 | 256k     | Contexto longo       |
+| `kimi-128k`    | Moonshot   | moonshot-v1-128k          | 128k     | Fallback Kimi        |
+| `deepseek`     | DeepSeek   | deepseek-chat (V3.2)      | 128k     | Código               |
+| `r1`           | DeepSeek   | deepseek-reasoner         | 128k     | Raciocínio           |
+| `gpt`          | OpenAI     | gpt-5.4                   | ~1.05M   | Frontier OpenAI      |
+| `gpt-5.3-instant` | OpenAI  | gpt-5.3-chat-latest       | 128K     | Alias Instant / proxy Cursor |
+| `gpt-4o`       | OpenAI     | gpt-4o                    | 128k     | Fallback robusto     |
+| `gpt-mini`     | OpenAI     | gpt-4o-mini               | 128k     | Rápido               |
+| `gemini`       | Google     | gemini-2.5-flash          | 1M       | Default Gemini       |
+| `gemini-3.1-pro` | Google   | gemini-3.1-pro-preview    | 1M       | Gemini 3 (preview)   |
+| `gemini-2.0`   | Google     | gemini-2.0-flash          | 1M       | Deprecado — migrar   |
 | `glm-free`   | OpenRouter | glm-4.5-air:free          | 128k     | Gratuito             |
+| `openrouter-free` | OpenRouter | openrouter/free (router) | 200k | \$0 — limites RPM/dia |
+| `openrouter-llama-3.2-3b-free` | OpenRouter | llama-3.2-3b-instruct:free | 131k | \$0 — variante :free |
+| `groq-llama-33` | Groq    | llama-3.3-70b-versatile   | 131k     | Latência baixa       |
+| `groq-gpt-oss-120b` | Groq | openai/gpt-oss-120b       | 131k     | OSS rápido           |
 | `qwen-coder` | OpenRouter | qwen-3-coder              | 64k      | Código               |
 | `qwen3.5-plus` | OpenRouter | qwen3.5-plus-02-15      | 1M       | Contexto longo       |
 

@@ -3,6 +3,8 @@
 > **Objetivo**: LiteLLM com config e DB locais em agldv03, agldv04, agldv12 e fgsrv06.  
 > **Regra**: OpenClaw e Claude-flow em cada host usam **localhost:4000**, nunca o gateway remoto do agldv03.
 
+**OpenClaw no agldv12**: o CT **agldv12** é clone do ambiente de dev; **não** deve correr o gateway OpenClaw em paralelo ao agldv03 (Telegram/bots duplicados, estado partilhado). Serviço `openclaw-gateway.service` (**systemd --user**) mantido **desativado**; ficheiros da unit renomeados para `*.disabled-on-clone` no host. LiteLLM no agldv12 pode permanecer para testes multi-host se necessário.
+
 ---
 
 ## Visão geral
@@ -13,7 +15,7 @@
 |------|--------------|------|--------|--------|-------|
 | **agldv03** | 100.94.221.87 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
 | **agldv04** | 100.113.9.98 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
-| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
+| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 | OpenClaw **off** (clone) |
 | **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | 100.116.57.111 (TS) | litellm-redis (Docker) |
 
 ---
@@ -133,6 +135,7 @@ O `.claude/settings.json` do projeto já usa `ANTHROPIC_BASE_URL=http://localhos
 - Ollama: `http://100.116.57.111:11434` (CT200 via Tailscale)
 - Redis: `litellm-redis:6379` (container no mesmo compose)
 - Stack: `docker-compose-fgsrv06.yml` inclui PostgreSQL + Redis + LiteLLM
+- **Fallbacks Claude/Haiku**: mesma ordem que `config.yaml` — **GLM (ZAI) primeiro**, depois deepseek, qwen3.5-plus, gemini (Haiku: `glm-flash` primeiro). Evita que qwen/deepseek fiquem à frente do GLM em falhas de Anthropic (ex.: claude-flow hive-mind via `claude-*`).
 
 ---
 
@@ -245,5 +248,9 @@ Edite a config em agldv03 (`/opt/litellm/config.yaml`) e rode o sync.
 
 ---
 
+## IDs de modelo (sync com repo)
+
+As listas de `model_list` seguem os identificadores das APIs (mar/2026): **OpenAI** `gpt-5.3-chat-latest` / `gpt-5.4`; **Google** `gemini-3.1-pro-preview`; **Anthropic** `claude-*-4-6` / haiku snapshot. **Groq** (`groq-llama-33`, `groq-gpt-oss-120b`) requerem `GROQ_API_KEY` no `.env`. **OpenRouter** inclui `openrouter-free` (router `openrouter/free`) e `openrouter-llama-3.2-3b-free`; requerem `OPENROUTER_API_KEY`. Ao atualizar `/opt/litellm/config.yaml` nos hosts, usar o mesmo ficheiro que `config/litellm/config.yaml` no Git.
+
 **Maintainer**: agl-hostman  
-**Relacionado**: [CLAUDE-FLOW-LITELLM.md](CLAUDE-FLOW-LITELLM.md), [OPENCLAW.md](OPENCLAW.md)
+**Relacionado**: [CLAUDE-FLOW-LITELLM.md](CLAUDE-FLOW-LITELLM.md), [OPENCLAW.md](OPENCLAW.md), [CURSOR-LITELLM-INTEGRATION.md](CURSOR-LITELLM-INTEGRATION.md)

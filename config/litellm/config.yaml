@@ -1,19 +1,23 @@
 # LiteLLM Proxy - Claude-Flow Multi-Model & Fallback
 # Integração com agl-hostman (OpenClaw model list)
 # Ref: https://github.com/ruvnet/claude-flow/wiki/litellm-integration
-# Última atualização modelos: 2026-03-13
-# Env vars: ANTHROPIC_API_KEY, ZAI_API_KEY, MOONSHOT_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, DASHSCOPE_API_KEY (Qwen direto)
+# Última atualização modelos: 2026-03-20 (sync com docs oficiais API)
+# Env vars: ANTHROPIC_API_KEY, ZAI_API_KEY, MOONSHOT_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, GROQ_API_KEY, DASHSCOPE_API_KEY (Qwen direto)
 #
-# ATUALIZAÇÕES 2026-03-13:
-# - Claude: Opus 4.6 (1M ctx), Sonnet 4.6, Haiku 4.5 - confirmados
-# - GLM: GLM-5 (744B/40B active), GLM-4.7-FlashX adicionado
-# - DeepSeek: V3.2 unificado ($0.28/$0.42), V4 em breve
-# - OpenAI: GPT-5.3 Instant (400K ctx), GPT-5.4 em Q2 2026
-# - Gemini: 3.1 Pro (Feb 2026), 2.5 Pro/Flash atualizados
-# - Kimi: K2.5, K2 Thinking, K2 Turbo Preview
-# - Qwen: Qwen3.5 Plus (1M ctx), Qwen3-Max-Thinking
+# IDs de referência (2026-03):
+# - Anthropic: docs.anthropic.com — claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5-20251001
+# - OpenAI: developers.openai.com — gpt-5.4 (frontier), gpt-5.3-chat-latest (= Instant no ChatGPT; 128K ctx)
+# - Google AI: ai.google.dev — gemini-3.1-pro-preview (Gemini 3 Pro preview descontinuado 2026-03-09)
+# - DeepSeek: deepseek-chat / deepseek-reasoner (V3.2)
 #
-# NOVIDADES 2026-03-13:
+# ATUALIZAÇÕES 2026-03-20:
+# - Alias proxy Cursor `cursor-composer*` → openai/gpt-5.3-chat-latest (antes gpt-5.3-instant inexistente na API)
+# - Default `gpt` → openai/gpt-5.4; gemini-3.1-pro → gemini-3.1-pro-preview no backend
+# - Custos/context GPT-5.3 alinhados à página de modelo OpenAI ($1.75/$14, 128K)
+# - Groq: llama-3.3-70b-versatile, openai/gpt-oss-120b (baixa latência; GROQ_API_KEY)
+# - OpenRouter: router gratuito openrouter/free + meta-llama/llama-3.2-3b-instruct:free
+#
+# NOVIDADES 2026-03-13 (mantido):
 # - Agentes especializados: claude-code-agent, infra-agent, research-agent
 # - Rate limits por modelo (TPM/RPM)
 # - Fallbacks otimizados por latência
@@ -145,6 +149,18 @@ model_list:
       context_window: 200000
       access: direct
 
+  # Claude Code CLI pede ainda o snapshot Sonnet 4.5; sem alias o LiteLLM repassa e a API devolve 400
+  - model_name: "claude-sonnet-4-5-20250929"
+    litellm_params:
+      model: "anthropic/claude-sonnet-4-6"
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      context_window: 200000
+      access: direct
+
   - model_name: "claude-haiku"
     litellm_params:
       model: "anthropic/claude-haiku-4-5-20251001"
@@ -199,6 +215,47 @@ model_list:
       output_cost_per_token: 0.0000032
       context_window: 200000
       access: direct
+
+  # OpenClaw (agents.defaults + providers zai): IDs com prefixo zai/ — mesmo backend que glm-*
+  - model_name: "zai/glm-5"
+    litellm_params:
+      model: "anthropic/glm-5"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 30
+    model_info:
+      max_tokens: 131072
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.0000032
+      context_window: 200000
+      access: direct
+
+  - model_name: "zai/glm-4.7"
+    litellm_params:
+      model: "anthropic/glm-4.7"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 30
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0.0000006
+      output_cost_per_token: 0.0000022
+      context_window: 203000
+      access: direct
+
+  - model_name: "zai/glm-4.7-flash"
+    litellm_params:
+      model: "anthropic/glm-4.7-flash"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 30
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      context_window: 131072
+      access: direct
+      free_tier: true
 
   - model_name: "glm-4.7"
     litellm_params:
@@ -417,52 +474,63 @@ model_list:
   # cursor-composer / cursor-composer-2-fast: nomes públicos no Cursor (custom model)
   - model_name: "cursor-composer"
     litellm_params:
-      model: "openai/gpt-5.3-instant"
+      model: "openai/gpt-5.3-chat-latest"
       api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Proxy Composer 2 Fast → GPT-5.3 Instant (OpenAI); Composer 2 real só na Cursor"
+      description: "Proxy Composer 2 Fast → gpt-5.3-chat-latest (Instant API OpenAI); Composer 2 real só na Cursor"
       max_tokens: 16384
-      input_cost_per_token: 0.0000011
-      output_cost_per_token: 0.00001
-      context_window: 400000
+      input_cost_per_token: 0.00000175  # $1.75/1M (OpenAI mar/2026)
+      output_cost_per_token: 0.000014  # $14/1M
+      context_window: 128000
       access: direct
 
   - model_name: "cursor-composer-2-fast"
     litellm_params:
-      model: "openai/gpt-5.3-instant"
+      model: "openai/gpt-5.3-chat-latest"
       api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Alias explícito Composer 2 Fast → GPT-5.3 Instant"
+      description: "Alias explícito Composer 2 Fast → gpt-5.3-chat-latest"
       max_tokens: 16384
-      input_cost_per_token: 0.0000011
-      output_cost_per_token: 0.00001
-      context_window: 400000
+      input_cost_per_token: 0.00000175
+      output_cost_per_token: 0.000014
+      context_window: 128000
       access: direct
 
-  # === OpenAI (GPT-5.3 Instant / GPT-4.1) ===
-  # GPT-5.4: Esperado Q2 2026 (reasoning focus)
-  # GPT-5.3 Instant (Mar 2026): 400K ctx, 26.8% less hallucinations, anti-cringe
+  # === OpenAI (GPT-5.4 frontier / GPT-5.3 Chat / GPT-4.1) ===
+  # Ref: developers.openai.com — gpt-5.4 (~1.05M ctx), gpt-5.3-chat-latest (128K, Instant ChatGPT)
   # GPT-4.1: 1M context window
   - model_name: "gpt"
     litellm_params:
-      model: "openai/gpt-5.2"
+      model: "openai/gpt-5.4"
       api_key: os.environ/OPENAI_API_KEY
     model_info:
       max_tokens: 16384
-      input_cost_per_token: 0.00000125  # $1.25/1M
-      output_cost_per_token: 0.00001  # $10/1M
-      context_window: 391000
+      input_cost_per_token: 0.0000025  # $2.50/1M
+      output_cost_per_token: 0.000015  # $15/1M
+      context_window: 1050000
       access: direct
 
+  # Nome amigável; ID oficial na API OpenAI é gpt-5.3-chat-latest
   - model_name: "gpt-5.3-instant"
     litellm_params:
-      model: "openai/gpt-5.3-instant"
+      model: "openai/gpt-5.3-chat-latest"
       api_key: os.environ/OPENAI_API_KEY
     model_info:
       max_tokens: 16384
-      input_cost_per_token: 0.0000011  # $1.10/1M
-      output_cost_per_token: 0.00001  # $10/1M
-      context_window: 400000
+      input_cost_per_token: 0.00000175  # $1.75/1M
+      output_cost_per_token: 0.000014  # $14/1M
+      context_window: 128000
+      access: direct
+
+  - model_name: "gpt-5.3-chat-latest"
+    litellm_params:
+      model: "openai/gpt-5.3-chat-latest"
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      max_tokens: 16384
+      input_cost_per_token: 0.00000175
+      output_cost_per_token: 0.000014
+      context_window: 128000
       access: direct
 
   - model_name: "gpt-4.1"
@@ -498,8 +566,8 @@ model_list:
       context_window: 128000
       access: direct
 
-  # === Google Gemini (3.1 Pro / 2.5 Flash) ===
-  # Gemini 3.1 Pro (Feb 2026): 77.1% ARC-AGI-2, native video, 1M ctx
+  # === Google Gemini (3.1 Pro Preview / 2.5 Flash) ===
+  # gemini-3.1-pro-preview: modelo API atual (Gemini 3 Pro preview descontinuado)
   # Gemini 2.5 Pro: Complex reasoning, 2M ctx
   # Gemini 2.5 Flash-Lite: Cheapest option $0.10/$0.40
   - model_name: "gemini"
@@ -515,12 +583,12 @@ model_list:
 
   - model_name: "gemini-3.1-pro"
     litellm_params:
-      model: "gemini/gemini-3.1-pro"
+      model: "gemini/gemini-3.1-pro-preview"
       api_key: os.environ/GEMINI_API_KEY
     model_info:
-      max_tokens: 16384
-      input_cost_per_token: 0.000002  # $2.00/1M (≤200K)
-      output_cost_per_token: 0.000012  # $12.00/1M
+      max_tokens: 65536
+      input_cost_per_token: 0.000002  # ver pricing Google AI (tier)
+      output_cost_per_token: 0.000012
       context_window: 1048576
       access: direct
 
@@ -545,6 +613,38 @@ model_list:
       output_cost_per_token: 0.0000004  # $0.40/1M
       context_window: 1048576
       access: direct
+      free_tier: true
+
+  # OpenClaw usa IDs "provider/model"; aliases para o mesmo backend Gemini
+  # "google/...:free" é convenção OpenRouter — aqui roteamos para Gemini API (evita 404)
+  - model_name: "google/gemini-2.5-flash-lite"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash-lite"
+      api_key: os.environ/GEMINI_API_KEY
+    model_info:
+      max_tokens: 65536
+      context_window: 1048576
+      access: direct
+
+  - model_name: "google/gemini-2.5-flash-lite:free"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash-lite"
+      api_key: os.environ/GEMINI_API_KEY
+    model_info:
+      max_tokens: 65536
+      context_window: 1048576
+      access: direct
+      note: "Alias malformado google/+:free → mesmo backend que gemini-lite"
+
+  - model_name: "openrouter/google/gemini-2.5-flash-lite:free"
+    litellm_params:
+      model: "openrouter/google/gemini-2.5-flash-lite:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 65536
+      context_window: 1048576
+      access: openrouter
       free_tier: true
 
   - model_name: "gemini-2.0"
@@ -741,6 +841,64 @@ model_list:
       note: "Qwen3 8B - robusto (21s) - usar /no_think para desativar reasoning"
 
   # ============================================================
+  # GROQ (OpenAI-compatible — baixa latência; requer GROQ_API_KEY)
+  # Ref: https://console.groq.com/docs/models
+  # ============================================================
+
+  - model_name: "groq-llama-33"
+    litellm_params:
+      model: "groq/llama-3.3-70b-versatile"
+      api_key: os.environ/GROQ_API_KEY
+      timeout: 60
+    model_info:
+      max_tokens: 32768
+      input_cost_per_token: 0.00000059
+      output_cost_per_token: 0.00000079
+      context_window: 131072
+      access: groq
+
+  - model_name: "groq-gpt-oss-120b"
+    litellm_params:
+      model: "groq/openai/gpt-oss-120b"
+      api_key: os.environ/GROQ_API_KEY
+      timeout: 60
+    model_info:
+      max_tokens: 65536
+      input_cost_per_token: 0.00000015
+      output_cost_per_token: 0.0000006
+      context_window: 131072
+      access: groq
+
+  # ============================================================
+  # OPENROUTER (fallbacks + tier gratuito)
+  # Router free: https://openrouter.ai/openrouter/free — $0 com limites RPM/dia
+  # ============================================================
+
+  - model_name: "openrouter-free"
+    litellm_params:
+      model: "openrouter/openrouter/free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      context_window: 200000
+      access: openrouter
+      free_tier: true
+      note: "Router aleatório entre modelos free OpenRouter; resposta indica modelo usado"
+
+  - model_name: "openrouter-llama-3.2-3b-free"
+    litellm_params:
+      model: "openrouter/meta-llama/llama-3.2-3b-instruct:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
+    model_info:
+      max_tokens: 8192
+      context_window: 131072
+      access: openrouter
+      free_tier: true
+      note: "Variante :free — limites estritos (ver OpenRouter)"
+
+  # ============================================================
   # OPENROUTER (apenas modelos sem acesso direto disponível)
   # ============================================================
 
@@ -804,6 +962,7 @@ litellm_settings:
     - claude-opus-4-6: [glm, deepseek, qwen3.5-plus, gemini]
     - claude-sonnet: [glm, deepseek, qwen3.5-plus, gemini]
     - claude-sonnet-4-6: [glm, deepseek, qwen3.5-plus, gemini]
+    - claude-sonnet-4-5-20250929: [glm, deepseek, qwen3.5-plus, gemini]
     - claude-haiku: [glm-flash, deepseek, qwen3.5-plus, gemini]
     - claude-haiku-4-5-20251001: [glm-flash, deepseek, qwen3.5-plus, gemini]
 
@@ -852,6 +1011,14 @@ litellm_settings:
     - qwen-coder-local: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local, qwen3-local]
     - qwen3-local: [qwen3.5-plus, deepseek, glm, phi3-local, llama-local, gemma2-local]
 
+    # === Groq (latência) ===
+    - groq-llama-33: [groq-gpt-oss-120b, deepseek, glm-flash, qwen3.5-plus]
+    - groq-gpt-oss-120b: [groq-llama-33, deepseek, glm-flash]
+
+    # === OpenRouter free (limites 429 frequentes) ===
+    - openrouter-free: [openrouter-llama-3.2-3b-free, glm-flash, deepseek, qwen3.5-plus]
+    - openrouter-llama-3.2-3b-free: [openrouter-free, glm-flash, deepseek]
+
   # Fallback por contexto excedido (modelos com mais tokens)
   context_window_fallbacks:
     - glm: [kimi, kimi-128k, qwen3.5-plus, qwen3-local]
@@ -862,6 +1029,7 @@ litellm_settings:
     - claude-opus-4-6: [glm, deepseek, qwen3.5-plus]
     - claude-sonnet: [glm, deepseek, qwen3.5-plus, qwen3-local]
     - claude-sonnet-4-6: [glm, deepseek, qwen3.5-plus, qwen3-local]
+    - claude-sonnet-4-5-20250929: [glm, deepseek, qwen3.5-plus, qwen3-local]
     - qwen3.5-plus: [kimi, glm, deepseek, qwen3-local]
     - qwen3-local: [qwen3.5-plus, glm, deepseek, kimi]
 

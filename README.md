@@ -77,7 +77,7 @@ A raiz reúne também compose, configs e ferramentas auxiliares; **novos ficheir
 ## LiteLLM e Cursor
 
 Configuração principal: **`config/litellm/config.yaml`** (e **`config-remote.yaml`** onde aplicável).  
-Os nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** encaminham para **`openai/gpt-5.3-instant`** como proxy do fluxo tipo Composer 2 Fast (o modelo Composer 2 da Cursor é proprietário). Setup passo a passo: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
+Os nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** encaminham para **`openai/gpt-5.3-chat-latest`** (Instant na API OpenAI) como proxy do fluxo tipo Composer 2 Fast (o modelo Composer 2 da Cursor é proprietário). Setup passo a passo: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
 
 ## Contribuição e rastreio
 
