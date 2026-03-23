@@ -15,7 +15,7 @@
 |------|--------------|------|--------|--------|-------|
 | **agldv03** | 100.94.221.87 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
 | **agldv04** | 100.113.9.98 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
-| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 | OpenClaw **off** (clone) |
+| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
 | **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | 100.116.57.111 (TS) | litellm-redis (Docker) |
 
 ---
