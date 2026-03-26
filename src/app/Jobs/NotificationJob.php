@@ -2,26 +2,22 @@
 
 namespace App\Jobs;
 
-use App\Services\NotificationService;
-use App\Services\Notification\NotificationManager;
+use App\Models\Alert;
 use App\Models\NotificationChannel;
 use App\Models\NotificationRule;
-use App\Models\Alert;
+use App\Services\Notification\NotificationManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Notification Job
  *
  * Sends notifications across multiple channels (email, Slack, PagerDuty, etc.)
  * Handles notification delivery, retries, and failure tracking.
- *
- * @package App\Jobs
  */
 class NotificationJob implements ShouldQueue
 {
@@ -114,6 +110,7 @@ class NotificationJob implements ShouldQueue
                 Log::warning('No notification channels configured', [
                     'type' => $this->type,
                 ]);
+
                 return;
             }
 
@@ -138,7 +135,7 @@ class NotificationJob implements ShouldQueue
 
             $duration = round(microtime(true) - $startTime, 2);
 
-            $successCount = count(array_filter($results, fn($r) => $r['success'] ?? false));
+            $successCount = count(array_filter($results, fn ($r) => $r['success'] ?? false));
 
             Log::info('Notification job completed', [
                 'type' => $this->type,
@@ -197,7 +194,7 @@ class NotificationJob implements ShouldQueue
             ->where('is_active', true)
             ->first();
 
-        if (!$channelConfig) {
+        if (! $channelConfig) {
             return [
                 'success' => false,
                 'error' => 'Channel not configured or inactive',

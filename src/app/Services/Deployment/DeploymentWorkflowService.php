@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Deployment;
 
-use App\Models\Environment;
-use App\Models\DokployDeployment;
-use App\Services\DokployService;
 use App\DTOs\Dokploy\ApplicationDTO;
-use App\DTOs\Dokploy\DomainDTO;
 use App\DTOs\Dokploy\EnvironmentDTO;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Cache;
+use App\Models\DokployDeployment;
+use App\Models\Environment;
+use App\Services\DokployService;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Process;
 
 /**
  * Deployment Workflow Service
@@ -30,6 +28,7 @@ use Exception;
 class DeploymentWorkflowService
 {
     private const MAX_WAIT_TIME = 300; // 5 minutes
+
     private const POLL_INTERVAL = 5; // 5 seconds
 
     public function __construct(
@@ -39,8 +38,9 @@ class DeploymentWorkflowService
     /**
      * Deploy to QA environment
      *
-     * @param array $options Deployment options
+     * @param  array  $options  Deployment options
      * @return DokployDeployment Deployment record
+     *
      * @throws Exception If deployment fails
      */
     public function deployToQA(array $options = []): DokployDeployment
@@ -81,7 +81,7 @@ class DeploymentWorkflowService
                 if ($environment->auto_test) {
                     $testResult = $this->runIntegrationTests($deployment->id);
 
-                    if (!$testResult->success) {
+                    if (! $testResult->success) {
                         throw new Exception('Integration tests failed');
                     }
                 }
@@ -140,8 +140,6 @@ class DeploymentWorkflowService
     /**
      * Build Docker image and push to Harbor
      *
-     * @param Environment $environment
-     * @param DokployDeployment $deployment
      * @return string Image tag
      */
     private function buildAndPushImage(Environment $environment, DokployDeployment $deployment): string
@@ -154,7 +152,7 @@ class DeploymentWorkflowService
         $gitCommit = $this->getGitCommit($environment->git_branch);
         $shortCommit = substr($gitCommit, 0, 7);
         $imageTag = "qa-{$shortCommit}";
-        $fullImageName = config('harbor.registry') . "/{$environment->harbor_project}/agl-hostman:{$imageTag}";
+        $fullImageName = config('harbor.registry')."/{$environment->harbor_project}/agl-hostman:{$imageTag}";
 
         // Update deployment record
         $deployment->update([
@@ -171,7 +169,7 @@ class DeploymentWorkflowService
             base_path(),
         ]);
 
-        if (!$buildResult->successful()) {
+        if (! $buildResult->successful()) {
             throw new Exception("Docker build failed: {$buildResult->errorOutput()}");
         }
 
@@ -182,7 +180,7 @@ class DeploymentWorkflowService
             $fullImageName,
         ]);
 
-        if (!$pushResult->successful()) {
+        if (! $pushResult->successful()) {
             throw new Exception("Docker push failed: {$pushResult->errorOutput()}");
         }
 
@@ -219,7 +217,7 @@ class DeploymentWorkflowService
         $result = $this->dokployService->deployApplication(
             $applicationId,
             "QA Deployment - {$imageTag}",
-            "Automated deployment from develop branch"
+            'Automated deployment from develop branch'
         );
 
         $deployment->update([
@@ -243,13 +241,14 @@ class DeploymentWorkflowService
             $elapsed = time() - $startTime;
 
             if ($elapsed >= $maxWaitTime) {
-                throw new Exception('Deployment timeout after ' . $maxWaitTime . ' seconds');
+                throw new Exception('Deployment timeout after '.$maxWaitTime.' seconds');
             }
 
             $status = $this->dokployService->getDeploymentStatus($deployment->dokploy_application_id);
 
             if ($status === 'done') {
                 Log::info('Deployment completed successfully');
+
                 return;
             }
 
@@ -269,8 +268,9 @@ class DeploymentWorkflowService
         Log::info('Running health checks');
 
         $primaryDomain = $environment->getPrimaryDomain();
-        if (!$primaryDomain) {
+        if (! $primaryDomain) {
             Log::warning('No primary domain configured, skipping health check');
+
             return;
         }
 
@@ -291,6 +291,7 @@ class DeploymentWorkflowService
                         'url' => $healthUrl,
                         'status' => $response->status(),
                     ]);
+
                     return;
                 }
             } catch (Exception $e) {
@@ -312,7 +313,6 @@ class DeploymentWorkflowService
     /**
      * Run integration tests
      *
-     * @param string $deploymentId
      * @return object Test result
      */
     public function runIntegrationTests(string $deploymentId): object
@@ -361,7 +361,6 @@ class DeploymentWorkflowService
     /**
      * Validate deployment
      *
-     * @param string $deploymentId
      * @return object Validation result
      */
     public function validateDeployment(string $deploymentId): object
@@ -369,12 +368,12 @@ class DeploymentWorkflowService
         $deployment = DokployDeployment::findOrFail($deploymentId);
 
         $checks = [
-            'deployment_exists' => !is_null($deployment),
+            'deployment_exists' => ! is_null($deployment),
             'deployment_successful' => $deployment->status === 'success',
             'environment_active' => $deployment->environment->status === 'active',
         ];
 
-        $allPassed = !in_array(false, $checks, true);
+        $allPassed = ! in_array(false, $checks, true);
 
         return (object) [
             'valid' => $allPassed,
@@ -384,9 +383,6 @@ class DeploymentWorkflowService
 
     /**
      * Notify deployment status
-     *
-     * @param string $deploymentId
-     * @param string $status
      */
     public function notifyDeploymentStatus(string $deploymentId, string $status): void
     {
@@ -427,9 +423,9 @@ class DeploymentWorkflowService
 
         // Create new application in Dokploy
         $appDTO = new ApplicationDTO([
-            'name' => 'agl-hostman-' . $environment->type,
+            'name' => 'agl-hostman-'.$environment->type,
             'environmentId' => $environment->dokploy_project_id,
-            'appName' => 'agl-hostman-' . $environment->type,
+            'appName' => 'agl-hostman-'.$environment->type,
             'description' => "AGL Hostman - {$environment->type} environment",
         ]);
 
@@ -452,7 +448,7 @@ class DeploymentWorkflowService
     private function buildEnvString(array $envVars): string
     {
         return collect($envVars)
-            ->map(fn($value, $key) => "{$key}={$value}")
+            ->map(fn ($value, $key) => "{$key}={$value}")
             ->implode("\n");
     }
 
@@ -467,7 +463,7 @@ class DeploymentWorkflowService
             $branch,
         ], base_path());
 
-        if (!$result->successful()) {
+        if (! $result->successful()) {
             throw new Exception("Failed to get Git commit: {$result->errorOutput()}");
         }
 
@@ -477,8 +473,9 @@ class DeploymentWorkflowService
     /**
      * Deploy to UAT environment
      *
-     * @param array $options Deployment options
+     * @param  array  $options  Deployment options
      * @return DokployDeployment Deployment record
+     *
      * @throws Exception If deployment fails
      */
     public function deployToUAT(array $options = []): DokployDeployment
@@ -495,7 +492,7 @@ class DeploymentWorkflowService
             // Check if promotion is approved (if promotion_id provided)
             if (isset($options['promotion_id'])) {
                 $promotion = \App\Models\Promotion::findOrFail($options['promotion_id']);
-                if (!$promotion->isApproved()) {
+                if (! $promotion->isApproved()) {
                     throw new Exception('Promotion is not approved for UAT deployment');
                 }
             }
@@ -526,7 +523,7 @@ class DeploymentWorkflowService
                 // Step 5: Run smoke tests (lighter than integration tests)
                 $testResult = $this->runSmokeTests($deployment->id);
 
-                if (!$testResult->success) {
+                if (! $testResult->success) {
                     // Update promotion with failed smoke tests
                     if (isset($options['promotion_id'])) {
                         $promotion = \App\Models\Promotion::findOrFail($options['promotion_id']);
@@ -618,7 +615,7 @@ class DeploymentWorkflowService
         $gitCommit = $this->getGitCommit($environment->git_branch);
         $shortCommit = substr($gitCommit, 0, 7);
         $imageTag = "uat-{$shortCommit}";
-        $fullImageName = config('harbor.registry') . "/{$environment->harbor_project}/agl-hostman:{$imageTag}";
+        $fullImageName = config('harbor.registry')."/{$environment->harbor_project}/agl-hostman:{$imageTag}";
 
         // Update deployment record
         $deployment->update([
@@ -635,7 +632,7 @@ class DeploymentWorkflowService
             base_path(),
         ]);
 
-        if (!$buildResult->successful()) {
+        if (! $buildResult->successful()) {
             throw new Exception("Docker build failed: {$buildResult->errorOutput()}");
         }
 
@@ -646,7 +643,7 @@ class DeploymentWorkflowService
             $fullImageName,
         ]);
 
-        if (!$pushResult->successful()) {
+        if (! $pushResult->successful()) {
             throw new Exception("Docker push failed: {$pushResult->errorOutput()}");
         }
 
@@ -683,7 +680,7 @@ class DeploymentWorkflowService
         $result = $this->dokployService->deployApplication(
             $applicationId,
             "UAT Deployment - {$imageTag}",
-            "Manual deployment from release branch"
+            'Manual deployment from release branch'
         );
 
         $deployment->update([
@@ -698,7 +695,6 @@ class DeploymentWorkflowService
     /**
      * Run smoke tests (lighter than full integration tests)
      *
-     * @param string $deploymentId
      * @return object Test result
      */
     public function runSmokeTests(string $deploymentId): object
@@ -724,8 +720,8 @@ class DeploymentWorkflowService
             preg_match('/Tests:\s+(\d+)\s+passed/', $output, $passedMatches);
             preg_match('/Tests:\s+\d+\s+passed.*?(\d+)\s+failed/', $output, $failedMatches);
 
-            $passed = isset($passedMatches[1]) ? (int)$passedMatches[1] : 0;
-            $failed = isset($failedMatches[1]) ? (int)$failedMatches[1] : 0;
+            $passed = isset($passedMatches[1]) ? (int) $passedMatches[1] : 0;
+            $failed = isset($failedMatches[1]) ? (int) $failedMatches[1] : 0;
             $total = $passed + $failed;
 
             Log::info('Smoke tests completed', [
@@ -765,7 +761,6 @@ class DeploymentWorkflowService
     /**
      * Rollback UAT deployment
      *
-     * @param string $deploymentId
      * @return array Rollback result
      */
     public function rollbackUAT(string $deploymentId): array
@@ -784,7 +779,7 @@ class DeploymentWorkflowService
                 ->orderBy('completed_at', 'desc')
                 ->first();
 
-            if (!$previousDeployment) {
+            if (! $previousDeployment) {
                 throw new Exception('No previous successful deployment found for rollback');
             }
 

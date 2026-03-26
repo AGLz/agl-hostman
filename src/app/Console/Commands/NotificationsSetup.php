@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\NotificationChannel;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Validator;
 
 class NotificationsSetup extends Command
 {
     protected $signature = 'notifications:setup';
+
     protected $description = 'Interactive wizard for setting up notification channels';
 
     public function handle(): int
@@ -16,7 +16,7 @@ class NotificationsSetup extends Command
         $this->info('=== Notification System Setup ===');
         $this->newLine();
 
-        if (!$this->confirm('Do you want to setup a Slack channel?', true)) {
+        if (! $this->confirm('Do you want to setup a Slack channel?', true)) {
             return self::SUCCESS;
         }
 

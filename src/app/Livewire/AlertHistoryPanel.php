@@ -10,19 +10,23 @@ use Livewire\WithPagination;
  * Alert History Panel Component
  *
  * Displays paginated alert history with filtering and search capabilities.
- *
- * @package App\Livewire
  */
 class AlertHistoryPanel extends Component
 {
     use WithPagination;
 
     public int $hours = 24;
+
     public string $severityFilter = 'unhealthy'; // all, healthy, unhealthy, warning, critical
+
     public ?string $nodeFilter = null;
+
     public string $searchTerm = '';
+
     public int $perPage = 20;
+
     public string $sortBy = 'created_at';
+
     public string $sortDirection = 'desc';
 
     protected $queryString = [
@@ -76,8 +80,8 @@ class AlertHistoryPanel extends Component
         if ($this->searchTerm) {
             $query->where(function ($q) {
                 $q->where('container_name', 'like', "%{$this->searchTerm}%")
-                  ->orWhere('vmid', 'like', "%{$this->searchTerm}%")
-                  ->orWhere('node_code', 'like', "%{$this->searchTerm}%");
+                    ->orWhere('vmid', 'like', "%{$this->searchTerm}%")
+                    ->orWhere('node_code', 'like', "%{$this->searchTerm}%");
             });
         }
 
@@ -208,7 +212,7 @@ class AlertHistoryPanel extends Component
     {
         $alerts = $this->getAlerts()->items();
 
-        $filename = "alerts_" . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'alerts_'.now()->format('Y-m-d_His').'.csv';
 
         $csv = "Timestamp,Node,VMID,Container,Health Status,CPU %,Memory %,Disk %,Issues\n";
 

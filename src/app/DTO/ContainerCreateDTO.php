@@ -9,26 +9,24 @@ namespace App\DTO;
  *
  * Immutable data transfer object for container creation parameters.
  * Uses PHP 8.4 readonly classes for type-safe configuration.
- *
- * @package App\DTO
  */
 readonly class ContainerCreateDTO
 {
     /**
-     * @param string $hostname Container hostname (required)
-     * @param string|null $osTemplate OS template (e.g., 'local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst')
-     * @param int $cores CPU cores (default: 2)
-     * @param int $memoryMb Memory in MB (default: 2048)
-     * @param int $diskGb Root disk size in GB (default: 8)
-     * @param string $rootfsStorage Storage for root filesystem (default: 'local-lvm')
-     * @param string $networkInterface Network interface config (default: 'name=eth0,bridge=vmbr0,ip=dhcp')
-     * @param bool $unprivileged Create unprivileged container (default: true)
-     * @param bool $autoStart Auto-start on boot (default: false)
-     * @param bool $startAfterCreate Start container after creation (default: false)
-     * @param string|null $description Container description
-     * @param array<string, mixed> $features Container features (nesting, keyctl, etc.)
-     * @param array<string, mixed> $mountPoints Additional mount points
-     * @param array<string, string> $metadata Custom metadata tags
+     * @param  string  $hostname  Container hostname (required)
+     * @param  string|null  $osTemplate  OS template (e.g., 'local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst')
+     * @param  int  $cores  CPU cores (default: 2)
+     * @param  int  $memoryMb  Memory in MB (default: 2048)
+     * @param  int  $diskGb  Root disk size in GB (default: 8)
+     * @param  string  $rootfsStorage  Storage for root filesystem (default: 'local-lvm')
+     * @param  string  $networkInterface  Network interface config (default: 'name=eth0,bridge=vmbr0,ip=dhcp')
+     * @param  bool  $unprivileged  Create unprivileged container (default: true)
+     * @param  bool  $autoStart  Auto-start on boot (default: false)
+     * @param  bool  $startAfterCreate  Start container after creation (default: false)
+     * @param  string|null  $description  Container description
+     * @param  array<string, mixed>  $features  Container features (nesting, keyctl, etc.)
+     * @param  array<string, mixed>  $mountPoints  Additional mount points
+     * @param  array<string, string>  $metadata  Custom metadata tags
      */
     public function __construct(
         public string $hostname,
@@ -52,22 +50,21 @@ readonly class ContainerCreateDTO
     /**
      * Create from array
      *
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
             hostname: $data['hostname'] ?? throw new \InvalidArgumentException('hostname is required'),
             osTemplate: $data['os_template'] ?? $data['ostemplate'] ?? null,
-            cores: (int)($data['cores'] ?? 2),
-            memoryMb: (int)($data['memory'] ?? $data['memory_mb'] ?? 2048),
-            diskGb: (int)($data['disk'] ?? $data['disk_gb'] ?? 8),
+            cores: (int) ($data['cores'] ?? 2),
+            memoryMb: (int) ($data['memory'] ?? $data['memory_mb'] ?? 2048),
+            diskGb: (int) ($data['disk'] ?? $data['disk_gb'] ?? 8),
             rootfsStorage: $data['storage'] ?? $data['rootfs_storage'] ?? 'local-lvm',
             networkInterface: $data['net0'] ?? $data['network_interface'] ?? 'name=eth0,bridge=vmbr0,ip=dhcp',
-            unprivileged: (bool)($data['unprivileged'] ?? true),
-            autoStart: (bool)($data['auto_start'] ?? $data['onboot'] ?? false),
-            startAfterCreate: (bool)($data['start'] ?? $data['start_after_create'] ?? false),
+            unprivileged: (bool) ($data['unprivileged'] ?? true),
+            autoStart: (bool) ($data['auto_start'] ?? $data['onboot'] ?? false),
+            startAfterCreate: (bool) ($data['start'] ?? $data['start_after_create'] ?? false),
             description: $data['description'] ?? null,
             features: $data['features'] ?? [],
             mountPoints: $data['mount_points'] ?? $data['mountpoints'] ?? [],
@@ -99,7 +96,7 @@ readonly class ContainerCreateDTO
         }
 
         // Add features (nesting, keyctl, fuse, etc.)
-        if (!empty($this->features)) {
+        if (! empty($this->features)) {
             $params['features'] = $this->formatFeatures($this->features);
         }
 
@@ -144,7 +141,7 @@ readonly class ContainerCreateDTO
     private function validate(): void
     {
         // Validate hostname format (RFC 1123)
-        if (!preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/i', $this->hostname)) {
+        if (! preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/i', $this->hostname)) {
             throw new \InvalidArgumentException(
                 "Invalid hostname format: {$this->hostname}. Must be RFC 1123 compliant."
             );
@@ -167,19 +164,19 @@ readonly class ContainerCreateDTO
     /**
      * Format features for Proxmox API
      *
-     * @param array<string, mixed> $features
-     * @return string
+     * @param  array<string, mixed>  $features
      */
     private function formatFeatures(array $features): string
     {
         $formatted = [];
         foreach ($features as $key => $value) {
             if (is_bool($value)) {
-                $formatted[] = $key . '=' . ($value ? '1' : '0');
+                $formatted[] = $key.'='.($value ? '1' : '0');
             } else {
-                $formatted[] = $key . '=' . $value;
+                $formatted[] = $key.'='.$value;
             }
         }
+
         return implode(',', $formatted);
     }
 
@@ -201,8 +198,6 @@ readonly class ContainerCreateDTO
 
     /**
      * Calculate estimated resource cost (arbitrary units)
-     *
-     * @return float
      */
     private function calculateCost(): float
     {

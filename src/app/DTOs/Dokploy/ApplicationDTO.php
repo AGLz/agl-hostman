@@ -88,7 +88,7 @@ readonly class ApplicationDTO
             'autoDeploy' => $this->autoDeploy,
             'domains' => $this->domains?->toArray(),
             'createdAt' => $this->createdAt,
-        ], fn($value) => $value !== null && $value !== '');
+        ], fn ($value) => $value !== null && $value !== '');
     }
 
     public static function forCreate(

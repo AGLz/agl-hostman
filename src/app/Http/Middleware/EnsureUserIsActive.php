@@ -24,25 +24,25 @@ class EnsureUserIsActive
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
         // Check authentication
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Unauthenticated',
-                    'message' => 'Authentication required'
+                    'message' => 'Authentication required',
                 ], 401);
             }
+
             return redirect()->route('login');
         }
 
         $user = auth()->user();
 
         // Check if user is active
-        if (!$user->isActive()) {
+        if (! $user->isActive()) {
             // Log the inactive access attempt
             AuditLog::logSecurityEvent(
                 $user,
@@ -62,7 +62,7 @@ class EnsureUserIsActive
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Account Inactive',
-                    'message' => 'Your account has been deactivated. Please contact an administrator.'
+                    'message' => 'Your account has been deactivated. Please contact an administrator.',
                 ], 403);
             }
 

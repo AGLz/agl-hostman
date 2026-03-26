@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AIService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\StreamedResponse;
 use OpenApi\Annotations as OA;
 
@@ -39,16 +39,21 @@ class AIController extends Controller
      *     description="Generate predictions based on historical data using AI models",
      *     operationId="aiPredict",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"data"},
+     *
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
      *                 description="Historical data for prediction",
+     *
      *                 @OA\Items(type="object")
      *             ),
+     *
      *             @OA\Property(
      *                 property="type",
      *                 type="string",
@@ -64,10 +69,13 @@ class AIController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Predictions generated successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="predictions", type="object"),
      *             @OA\Property(property="model_used", type="string", example="gpt-4-turbo"),
@@ -75,6 +83,7 @@ class AIController extends Controller
      *             @OA\Property(property="timestamp", type="string", example="2024-01-15T10:30:00Z")
      *         )
      *     ),
+     *
      *     @OA\Response(response=400, description="Invalid request"),
      *     @OA\Response(response=401, description="Unauthorized"),
      *     @OA\Response(response=500, description="Server error")
@@ -107,17 +116,22 @@ class AIController extends Controller
      *     description="Analyze logs and metrics using AI to extract insights and detect anomalies",
      *     operationId="aiAnalyze",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"logs", "metrics"},
+     *
      *             @OA\Property(
      *                 property="logs",
      *                 type="array",
      *                 description="Log entries to analyze",
+     *
      *                 @OA\Items(type="object", example={"timestamp": "2024-01-15T10:00:00Z", "level": "error", "message": "Connection timeout"})
      *             )
      *             ),
+     *
      *             @OA\Property(
      *                 property="metrics",
      *                 type="object",
@@ -132,10 +146,13 @@ class AIController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Analysis completed successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(
      *                 property="analysis",
@@ -177,10 +194,13 @@ class AIController extends Controller
      *     description="Interactive chat interface with AI models",
      *     operationId="aiChat",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"message"},
+     *
      *             @OA\Property(
      *                 property="message",
      *                 type="string",
@@ -191,8 +211,10 @@ class AIController extends Controller
      *                 property="history",
      *                 type="array",
      *                 description="Conversation history",
+     *
      *                 @OA\Items(
      *                     type="object",
+     *
      *                     @OA\Property(property="role", type="string", example="user"),
      *                     @OA\Property(property="content", type="string", example="Hello")
      *                 )
@@ -210,10 +232,13 @@ class AIController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Chat response",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string"),
      *             @OA\Property(property="model_used", type="string"),
@@ -245,7 +270,7 @@ class AIController extends Controller
                 );
 
                 foreach ($generator as $chunk) {
-                    echo "data: " . json_encode($chunk) . "\n\n";
+                    echo 'data: '.json_encode($chunk)."\n\n";
                     ob_flush();
                     flush();
                 }
@@ -280,12 +305,16 @@ class AIController extends Controller
      *     description="Get a list of all available AI models and their capabilities",
      *     operationId="aiModels",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="List of available models",
+     *
      *         @OA\JsonContent(
      *             type="array",
+     *
      *             @OA\Items(
+     *
      *                 @OA\Property(property="id", type="string", example="gpt-4-turbo"),
      *                 @OA\Property(property="provider", type="string", example="openai"),
      *                 @OA\Property(property="max_tokens", type="integer", example=128000),
@@ -317,17 +346,22 @@ class AIController extends Controller
      *     description="Get usage statistics for AI models",
      *     operationId="aiUsage",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="period",
      *         in="query",
      *         description="Time period",
      *         required=false,
+     *
      *         @OA\Schema(type="string", enum={"24h", "7d", "30d"}, example="7d")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Usage statistics",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="total_requests", type="integer"),
      *             @OA\Property(property="total_tokens", type="integer"),
      *             @OA\Property(property="by_model", type="object"),
@@ -350,7 +384,7 @@ class AIController extends Controller
 
         $usageQuery = \App\Models\AIModelUsage::where('created_at', '>=', $startDate);
 
-        if (!auth()->user()?->hasRole('admin')) {
+        if (! auth()->user()?->hasRole('admin')) {
             $usageQuery->where('user_id', auth()->id());
         }
 
@@ -361,11 +395,11 @@ class AIController extends Controller
             'period' => $period,
             'total_requests' => $usage->count(),
             'total_tokens' => $usage->sum('total_tokens'),
-            'by_model' => $usage->groupBy('model')->map(fn($group) => [
+            'by_model' => $usage->groupBy('model')->map(fn ($group) => [
                 'requests' => $group->count(),
                 'tokens' => $group->sum('total_tokens'),
             ]),
-            'by_task_type' => $usage->groupBy('task_type')->map(fn($group) => [
+            'by_task_type' => $usage->groupBy('task_type')->map(fn ($group) => [
                 'requests' => $group->count(),
                 'tokens' => $group->sum('total_tokens'),
             ]),

@@ -13,8 +13,6 @@ use Tests\TestCase;
  * Alert Model Test
  *
  * Tests for the Alert model.
- *
- * @package Tests\Unit\Models
  */
 class AlertModelTest extends TestCase
 {
@@ -196,7 +194,7 @@ class AlertModelTest extends TestCase
      */
     public function test_fillable_attributes(): void
     {
-        $alert = new Alert();
+        $alert = new Alert;
 
         $expectedFillable = [
             'severity',
@@ -220,7 +218,7 @@ class AlertModelTest extends TestCase
      */
     public function test_casts_configuration(): void
     {
-        $alert = new Alert();
+        $alert = new Alert;
 
         $expectedCasts = [
             'is_resolved' => 'boolean',

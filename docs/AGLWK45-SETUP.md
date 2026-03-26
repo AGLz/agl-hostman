@@ -72,7 +72,7 @@ bash scripts/openclaw/vm104-verify-overpower-repo.sh
 
 Se falhar só no guest exec mas o ficheiro existir no Explorador, mapeia **U:** como persistente para todos os utilizadores ou define `WK45_REPO_WIN` com um caminho que exista no contexto SYSTEM (ex. clone em `C:\work\agl-hostman`).
 
-## Atualizações de Modelos (2026-03-07)
+## Atualizações de Modelos (2026-03-25)
 
 | Provider | Modelo | Preço (In/Out) | Context | Destaque |
 |----------|--------|----------------|---------|----------|
@@ -81,13 +81,14 @@ Se falhar só no guest exec mas o ficheiro existir no Explorador, mapeia **U:** 
 | **Anthropic** | claude-opus-4-6 | $5/$25 | 1M (beta) | Agent Teams, SOTA coding |
 | **Anthropic** | claude-sonnet-4-6 | $3/$15 | 200K | Opus-level coding |
 | **DeepSeek** | V3.2 unificado | $0.28/$0.42 | 128K | Chat + Reasoner mesmo preço |
-| **OpenAI** | gpt-5.3-chat-latest | $1.75/$14 | 128K | Instant (API; mesmo papel que antigo “gpt-5.3-instant”) |
+| **OpenAI** | openai/gpt-5.3-chat-latest (LiteLLM) / **gpt-5.4-mini** (API) | ~$0.75/$4.50 | ~400K | Aliases antigos (`gpt-5.3-*`) → mesmo backend no proxy |
+| **OpenAI** | gpt-5.4 | $2.50/$15 | ~1M | Flagship |
 | **OpenAI** | gpt-4.1 | $2/$8 | 1M | Long context |
 | **Google** | gemini-3.1-pro-preview | ver Google | 1M | Substituir gemini-3-pro-preview (desligado) |
 | **Google** | gemini-2.5-flash-lite | $0.10/$0.40 | 1M | Cheapest capable |
 | **Moonshot** | kimi-k2.5 | $0.60/$3 | 256K | Agent Swarm (100 agents) |
 | **Moonshot** | kimi-k2-thinking | $0.60/$2.50 | 256K | Deep reasoning |
-| **Qwen** | qwen3.5-plus | $0.26/$1.56 | 1M | MoE + linear attention |
+| **Qwen** | qwen3.5-plus-2026-02-15 (DashScope); alias LiteLLM `qwen3.5-plus` | $0.26/$1.56 | 1M | MoE + linear attention |
 
 ## Arquitetura
 
@@ -343,7 +344,8 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "baseUrl": "https://api.openai.com/v1",
         "apiKey": "${OPENAI_API_KEY}",
         "models": [
-          { "id": "gpt-5.3-chat-latest", "name": "GPT-5.3 Chat (Instant)", "contextWindow": 128000, "maxTokens": 16384 },
+          { "id": "gpt-5.3-chat-latest", "name": "GPT alias LiteLLM (→ gpt-5.4-mini)", "contextWindow": 400000, "maxTokens": 16384 },
+          { "id": "gpt-5.4", "name": "GPT-5.4", "contextWindow": 1000000, "maxTokens": 16384 },
           { "id": "gpt-4.1", "name": "GPT-4.1 (1M)", "contextWindow": 1048576, "maxTokens": 32768 },
           { "id": "gpt-4o", "name": "GPT-4o", "contextWindow": 128000, "maxTokens": 16384 },
           { "id": "gpt-4o-mini", "name": "GPT-4o Mini", "contextWindow": 128000, "maxTokens": 16384 }
@@ -354,9 +356,9 @@ Crie o arquivo `~/.openclaw/openclaw.json` (no Git Bash, isso é `C:\Users\SEU_U
         "apiKey": "${DASHSCOPE_API_KEY}",
         "api": "openai-completions",
         "models": [
-          { "id": "qwen3.5-plus-02-15", "name": "Qwen 3.5 Plus (1M)", "contextWindow": 1048576, "maxTokens": 131072 },
+          { "id": "qwen3.5-plus-2026-02-15", "name": "Qwen 3.5 Plus (1M, DashScope)", "contextWindow": 1048576, "maxTokens": 131072 },
           { "id": "qwen3-max-2026-01-23", "name": "Qwen 3 Max", "contextWindow": 262144, "maxTokens": 131072 },
-          { "id": "qwen3-coder-next", "name": "Qwen 3 Coder", "contextWindow": 1048576, "maxTokens": 131072 },
+          { "id": "qwen3-coder-plus", "name": "Qwen 3 Coder Plus", "contextWindow": 1048576, "maxTokens": 131072 },
           { "id": "qwen-turbo", "name": "Qwen Turbo", "contextWindow": 131072, "maxTokens": 8192 }
         ]
       },
@@ -500,7 +502,8 @@ claude --version
 | kimi-thinking | - | $0.60/$2.50 | ~4s | Deep reasoning |
 | claude-opus | - | $5/$25 | ~4s | 1M ctx, Agent Teams |
 | claude-sonnet | - | $3/$15 | ~2s | Opus-level coding |
-| gpt-5.3-chat-latest | (alias proxy `gpt-5.3-instant`) | $1.75/$14 | ~1.5s | 128K ctx (API OpenAI) |
+| gpt-5.3-chat-latest | alias LiteLLM → **gpt-5.4-mini** | ~$0.75/$4.5 | ~1.5s | ~400K ctx |
+| gpt / gpt-5.4 | openai/gpt-5.4 | $2.50/$15 | variável | ~1M ctx |
 | gemini-3.1-pro-preview | gemini | ver Google | ~2s | Gemini 3.1 |
 | gemini-lite | - | $0.10/$0.40 | ~0.5s | Cheapest capable |
 | phi3-local | - | FREE | ~8s | Local (Ollama) |
@@ -587,6 +590,14 @@ bash scripts/verify-openclaw-aglwk45.sh
 # PowerShell
 powershell -ExecutionPolicy Bypass -File scripts/verify-openclaw-aglwk45.ps1
 ```
+
+### Verificação remota (AGLSRV1 + QEMU guest, sem RDP)
+A partir de uma máquina com SSH ao Proxmox **AGLSRV1** (`BatchMode` à chave):
+```bash
+bash scripts/openclaw/vm104-qemu-verify-all.sh
+# ou: AGLSRV1_HOST=root@192.168.0.245 VMID=104 bash scripts/openclaw/vm104-qemu-verify-all.sh
+```
+Nota: `qm guest exec` corre como **SYSTEM**; `openclaw doctor` na VM continua a ser na sessão **Administrator**.
 
 ---
 

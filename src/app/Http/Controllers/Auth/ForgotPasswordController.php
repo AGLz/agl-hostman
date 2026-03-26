@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 
@@ -19,8 +19,6 @@ class ForgotPasswordController extends Controller
 {
     /**
      * Display the password reset request form
-     *
-     * @return View
      */
     public function showLinkRequestForm(): View
     {
@@ -29,9 +27,6 @@ class ForgotPasswordController extends Controller
 
     /**
      * Handle password reset link request
-     *
-     * @param Request $request
-     * @return RedirectResponse
      */
     public function sendResetLinkEmail(Request $request): RedirectResponse
     {

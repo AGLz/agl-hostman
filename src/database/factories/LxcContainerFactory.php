@@ -25,7 +25,7 @@ class LxcContainerFactory extends Factory
         return [
             'vmid' => fake()->unique()->numberBetween(100, 999),
             'name' => fake()->unique()->slug(2),
-            'hostname' => fake()->domainWord() . '.local',
+            'hostname' => fake()->domainWord().'.local',
             'status' => fake()->randomElement(['running', 'stopped', 'paused']),
             'proxmox_server_id' => ProxmoxServer::factory(),
             'memory' => fake()->randomElement([512, 1024, 2048, 4096, 8192]),

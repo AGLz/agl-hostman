@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -187,6 +187,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $this->command->info('Roles and permissions created successfully!');
         $this->command->info('Created roles: super-admin, admin, operator, analyst, viewer');
-        $this->command->info('Created ' . Permission::count() . ' permissions');
+        $this->command->info('Created '.Permission::count().' permissions');
     }
 }

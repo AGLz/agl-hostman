@@ -23,7 +23,7 @@ return new class extends Migration
             $table->boolean('verified')->default(false);
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-            
+
             $table->index('created_at');
             $table->index('type');
             $table->index('expires_at');

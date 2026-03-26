@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Models\Alert;
 use App\Models\AlertRule;
-use App\Models\ProxmoxServer;
 use App\Models\LxcContainer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 class AlertRuleEngine
 {
     protected AlertService $alertService;
+
     protected MetricsCollector $metricsCollector;
 
     public function __construct(AlertService $alertService, MetricsCollector $metricsCollector)
@@ -62,7 +62,7 @@ class AlertRuleEngine
      */
     public function evaluateRule(AlertRule $rule): ?Alert
     {
-        if (!$rule->enabled) {
+        if (! $rule->enabled) {
             return null;
         }
 
@@ -70,7 +70,7 @@ class AlertRuleEngine
             return null;
         }
 
-        return match($rule->rule_type) {
+        return match ($rule->rule_type) {
             'threshold' => $this->evaluateThresholdRule($rule),
             'pattern' => $this->evaluatePatternRule($rule),
             'anomaly' => $this->evaluateAnomalyRule($rule),
@@ -111,7 +111,7 @@ class AlertRuleEngine
             return null;
         }
 
-        if (!$metrics) {
+        if (! $metrics) {
             return null;
         }
 
@@ -125,7 +125,7 @@ class AlertRuleEngine
         // Evaluate condition
         $triggered = $this->compareValues($currentValue, $operator, $threshold);
 
-        if (!$triggered) {
+        if (! $triggered) {
             return null;
         }
 
@@ -134,7 +134,7 @@ class AlertRuleEngine
             'type' => $actions['alert_type'] ?? 'warning',
             'title' => $actions['title'] ?? "{$rule->name} triggered",
             'message' => sprintf(
-                "%s %s is %s %s (threshold: %s)",
+                '%s %s is %s %s (threshold: %s)',
                 ucfirst($target),
                 $targetId ?? 'unknown',
                 $metric,
@@ -215,7 +215,7 @@ class AlertRuleEngine
     {
         $container = LxcContainer::where('vmid', $vmid)->first();
 
-        if (!$container) {
+        if (! $container) {
             return null;
         }
 
@@ -230,7 +230,7 @@ class AlertRuleEngine
      */
     protected function extractMetricValue(array $metrics, string $metric): ?float
     {
-        return match($metric) {
+        return match ($metric) {
             'cpu' => $metrics['cpu']['usage_percent'] ?? null,
             'memory' => $metrics['memory']['usage_percent'] ?? null,
             'disk' => $metrics['disk']['usage_percent'] ?? null,
@@ -244,7 +244,7 @@ class AlertRuleEngine
      */
     protected function compareValues(float $current, string $operator, float $threshold): bool
     {
-        return match($operator) {
+        return match ($operator) {
             '>' => $current > $threshold,
             '>=' => $current >= $threshold,
             '<' => $current < $threshold,

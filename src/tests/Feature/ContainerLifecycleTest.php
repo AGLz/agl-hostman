@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Services\Broadcasting\WebSocketBroadcastService;
 use App\Services\Container\ContainerLifecycleService;
 use App\Services\ProxmoxApiClient;
-use App\Services\Broadcasting\WebSocketBroadcastService;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Mockery;
 
 uses(RefreshDatabase::class);

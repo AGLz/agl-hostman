@@ -9,15 +9,17 @@ use Livewire\Component;
  * Container Health Card Component
  *
  * Displays health status for a single container with metrics and trends.
- *
- * @package App\Livewire
  */
 class ContainerHealthCard extends Component
 {
     public string $node;
+
     public int $vmid;
+
     public array $containerData = [];
+
     public bool $expanded = false;
+
     public int $historyHours = 24;
 
     protected $listeners = [
@@ -96,7 +98,7 @@ class ContainerHealthCard extends Component
      */
     public function toggleExpanded()
     {
-        $this->expanded = !$this->expanded;
+        $this->expanded = ! $this->expanded;
 
         if ($this->expanded) {
             $this->dispatch('containerExpanded', [
@@ -147,7 +149,7 @@ class ContainerHealthCard extends Component
     public function formatMetric(float $value, string $type = 'percent'): string
     {
         return match ($type) {
-            'percent' => round($value, 1) . '%',
+            'percent' => round($value, 1).'%',
             'bytes' => $this->formatBytes($value),
             default => (string) $value,
         };
@@ -160,6 +162,7 @@ class ContainerHealthCard extends Component
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
-        return round($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
+
+        return round($bytes / pow(1024, $power), 2).' '.$units[$power];
     }
 }

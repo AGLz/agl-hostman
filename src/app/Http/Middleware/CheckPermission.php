@@ -25,26 +25,26 @@ class CheckPermission
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  $permissions Comma-separated permissions, optionally followed by |any or |all
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param  string  $permissions  Comma-separated permissions, optionally followed by |any or |all
      */
     public function handle(Request $request, Closure $next, string $permissions): Response
     {
         // Check authentication
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Unauthenticated',
-                    'message' => 'Authentication required'
+                    'message' => 'Authentication required',
                 ], 401);
             }
+
             return redirect()->route('login');
         }
 
         $user = auth()->user();
 
         // Check if user is active
-        if (!$user->isActive()) {
+        if (! $user->isActive()) {
             AuditLog::logSecurityEvent(
                 $user,
                 'inactive_user_access',
@@ -59,7 +59,7 @@ class CheckPermission
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Account Inactive',
-                    'message' => 'Your account has been deactivated. Please contact an administrator.'
+                    'message' => 'Your account has been deactivated. Please contact an administrator.',
                 ], 403);
             }
 
@@ -74,7 +74,7 @@ class CheckPermission
             ? $user->hasAnyPermission($permissionList)
             : $user->hasAllPermissions($permissionList);
 
-        if (!$hasPermission) {
+        if (! $hasPermission) {
             // Log unauthorized access attempt
             AuditLog::logSecurityEvent(
                 $user,
@@ -107,7 +107,6 @@ class CheckPermission
     /**
      * Parse permission string into array and logic type
      *
-     * @param string $permissions
      * @return array [permissions_array, logic_type]
      */
     private function parsePermissions(string $permissions): array

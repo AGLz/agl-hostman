@@ -47,7 +47,7 @@ readonly class LogDTO
             'source' => $this->source,
             'metadata' => $this->metadata,
             'stream' => $this->stream,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 
     public function isError(): bool

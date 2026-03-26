@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Route;
 use App\Services\MetricsCollector;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Monitoring Dashboard Routes
@@ -45,7 +45,7 @@ Route::middleware(['auth'])->prefix('monitoring')->name('monitoring.')->group(fu
     Route::get('/export', function (MetricsCollector $metricsCollector) {
         $metrics = $metricsCollector->aggregateAllMetrics();
 
-        $filename = 'infrastructure-metrics-' . now()->format('Y-m-d-His') . '.json';
+        $filename = 'infrastructure-metrics-'.now()->format('Y-m-d-His').'.json';
 
         return response()->json($metrics)
             ->header('Content-Disposition', "attachment; filename={$filename}");

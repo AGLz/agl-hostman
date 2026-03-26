@@ -6,7 +6,6 @@ namespace App\Services\Performance;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Collection;
 
 /**
  * Query Performance Monitoring Service
@@ -18,17 +17,24 @@ class QueryPerformanceMonitor
 {
     // Performance thresholds (in milliseconds)
     private const THRESHOLD_FAST = 10;      // Excellent: < 10ms
+
     private const THRESHOLD_NORMAL = 50;    // Good: < 50ms
+
     private const THRESHOLD_SLOW = 200;     // Warning: < 200ms
+
     private const THRESHOLD_CRITICAL = 500;  // Critical: >= 500ms
 
     // N+1 detection threshold
     private const N1_WARNING_THRESHOLD = 10;   // Warn if more than 10 similar queries
+
     private const N1_CRITICAL_THRESHOLD = 50;  // Critical if more than 50 similar queries
 
     private array $queries = [];
+
     private array $queryPatterns = [];
+
     private bool $enabled = true;
+
     private ?int $requestId = null;
 
     public function __construct()
@@ -45,7 +51,7 @@ class QueryPerformanceMonitor
      */
     public function start(): void
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return;
         }
 
@@ -75,7 +81,7 @@ class QueryPerformanceMonitor
 
         // Track query patterns for N+1 detection
         $pattern = $this->extractQueryPattern($sql);
-        if (!isset($this->queryPatterns[$pattern])) {
+        if (! isset($this->queryPatterns[$pattern])) {
             $this->queryPatterns[$pattern] = [
                 'count' => 0,
                 'total_time' => 0,
@@ -94,7 +100,7 @@ class QueryPerformanceMonitor
      */
     public function analyzeQueries(): void
     {
-        if (!$this->enabled || empty($this->queries)) {
+        if (! $this->enabled || empty($this->queries)) {
             return;
         }
 
@@ -141,7 +147,7 @@ class QueryPerformanceMonitor
             'p95_time_ms' => $this->calculatePercentile(array_column($this->queries, 'time'), 95),
             'p99_time_ms' => $this->calculatePercentile(array_column($this->queries, 'time'), 99),
             'categorized' => $categorized,
-            'slow_queries' => array_filter($this->queries, fn($q) => $q['time'] > self::THRESHOLD_NORMAL),
+            'slow_queries' => array_filter($this->queries, fn ($q) => $q['time'] > self::THRESHOLD_NORMAL),
             'n1_candidates' => $this->identifyN1Candidates(),
             'query_patterns' => $this->queryPatterns,
             'timestamp' => now()->toDateTimeString(),
@@ -185,7 +191,7 @@ class QueryPerformanceMonitor
         }
 
         // Sort by count (most frequent first)
-        usort($candidates, fn($a, $b) => $b['count'] - $a['count']);
+        usort($candidates, fn ($a, $b) => $b['count'] - $a['count']);
 
         return $candidates;
     }
@@ -284,7 +290,7 @@ class QueryPerformanceMonitor
      */
     private function logSlowQueries(array $metrics): void
     {
-        $slowQueries = array_filter($this->queries, fn($q) => $q['time'] > self::THRESHOLD_SLOW);
+        $slowQueries = array_filter($this->queries, fn ($q) => $q['time'] > self::THRESHOLD_SLOW);
 
         if (empty($slowQueries)) {
             return;
@@ -294,7 +300,7 @@ class QueryPerformanceMonitor
             'request_id' => $this->requestId,
             'count' => count($slowQueries),
             'total_time_ms' => array_sum(array_column($slowQueries, 'time')),
-            'queries' => array_map(fn($q) => [
+            'queries' => array_map(fn ($q) => [
                 'sql' => substr($q['sql'], 0, 200),
                 'time_ms' => round($q['time'], 2),
             ], $slowQueries),
@@ -352,7 +358,7 @@ class QueryPerformanceMonitor
                     'rows_returned' => 0,
                     'blks_read' => 0,
                     'blks_hit' => 0,
-                    'bind_values' => !empty($query['bindings']) ? json_encode($query['bindings']) : null,
+                    'bind_values' => ! empty($query['bindings']) ? json_encode($query['bindings']) : null,
                     'application_name' => config('app.name'),
                     'user_name' => auth()->id() ?? 'system',
                     'client_ip' => request()->ip() ?? 'cli',
@@ -390,7 +396,7 @@ class QueryPerformanceMonitor
      */
     public function getSlowQueryCount(): int
     {
-        return count(array_filter($this->queries, fn($q) => $q['time'] > self::THRESHOLD_SLOW));
+        return count(array_filter($this->queries, fn ($q) => $q['time'] > self::THRESHOLD_SLOW));
     }
 
     /**

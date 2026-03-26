@@ -27,11 +27,12 @@ class UATEnvironmentSeeder extends Seeder
         $existing = Environment::where('type', 'uat')->first();
 
         if ($existing) {
-            $this->command->warn('UAT Environment already exists (ID: ' . $existing->id . ')');
+            $this->command->warn('UAT Environment already exists (ID: '.$existing->id.')');
             $this->command->warn('Skipping seeding to avoid duplicates');
             Log::warning('UAT Environment already exists, skipping seed', [
                 'id' => $existing->id,
             ]);
+
             return;
         }
 
@@ -93,14 +94,14 @@ class UATEnvironmentSeeder extends Seeder
             ],
         ]);
 
-        $this->command->info('✅ Created UAT Environment (ID: ' . $uatEnvironment->id . ')');
-        $this->command->info('   Name: ' . $uatEnvironment->name);
-        $this->command->info('   Type: ' . $uatEnvironment->type);
-        $this->command->info('   Branch: ' . $uatEnvironment->git_branch);
-        $this->command->info('   Auto-deploy: ' . ($uatEnvironment->auto_deploy ? 'Yes' : 'No (Manual Only)'));
-        $this->command->info('   Auto-test: ' . ($uatEnvironment->auto_test ? 'Yes (Smoke Tests)' : 'No'));
+        $this->command->info('✅ Created UAT Environment (ID: '.$uatEnvironment->id.')');
+        $this->command->info('   Name: '.$uatEnvironment->name);
+        $this->command->info('   Type: '.$uatEnvironment->type);
+        $this->command->info('   Branch: '.$uatEnvironment->git_branch);
+        $this->command->info('   Auto-deploy: '.($uatEnvironment->auto_deploy ? 'Yes' : 'No (Manual Only)'));
+        $this->command->info('   Auto-test: '.($uatEnvironment->auto_test ? 'Yes (Smoke Tests)' : 'No'));
         $this->command->info('   Approval Required: Yes');
-        $this->command->info('   Domains: ' . implode(', ', $uatEnvironment->domains));
+        $this->command->info('   Domains: '.implode(', ', $uatEnvironment->domains));
 
         Log::info('UAT Environment seeded successfully', [
             'id' => $uatEnvironment->id,

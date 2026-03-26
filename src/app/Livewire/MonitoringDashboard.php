@@ -2,31 +2,35 @@
 
 namespace App\Livewire;
 
-use App\Services\ContainerHealthMonitor;
 use App\Models\ProxmoxServer;
-use Livewire\Component;
+use App\Services\ContainerHealthMonitor;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Component;
 
 /**
  * Monitoring Dashboard Component
  *
  * Main dashboard component that orchestrates real-time monitoring display.
  * Listens to broadcast events and updates UI automatically.
- *
- * @package App\Livewire
  */
 class MonitoringDashboard extends Component
 {
     // Dashboard state
     public array $clusterStats = [];
+
     public array $nodes = [];
+
     public string $selectedNode = '';
+
     public int $refreshInterval = 30; // seconds
+
     public string $lastUpdated = '';
 
     // Filters
     public string $healthFilter = 'all'; // all, healthy, warning, critical
+
     public string $viewMode = 'grid'; // grid, list
+
     public bool $autoRefresh = true;
 
     // Real-time event listeners
@@ -63,12 +67,12 @@ class MonitoringDashboard extends Component
             $this->clusterStats = Cache::remember(
                 'dashboard:cluster_stats',
                 now()->addSeconds(30),
-                fn() => $this->getClusterStatistics()
+                fn () => $this->getClusterStatistics()
             );
 
             // Get online nodes
             $servers = ProxmoxServer::online()->get();
-            $this->nodes = $servers->map(fn($server) => [
+            $this->nodes = $servers->map(fn ($server) => [
                 'code' => $server->code,
                 'name' => $server->name,
                 'status' => $server->status,
@@ -76,7 +80,7 @@ class MonitoringDashboard extends Component
             ])->toArray();
 
             // Set default selected node if none selected
-            if (empty($this->selectedNode) && !empty($this->nodes)) {
+            if (empty($this->selectedNode) && ! empty($this->nodes)) {
                 $this->selectedNode = $this->nodes[0]['code'];
             }
 
@@ -89,7 +93,7 @@ class MonitoringDashboard extends Component
 
         } catch (\Exception $e) {
             $this->dispatch('dashboardError', [
-                'message' => 'Failed to load dashboard data: ' . $e->getMessage(),
+                'message' => 'Failed to load dashboard data: '.$e->getMessage(),
             ]);
         }
     }
@@ -188,7 +192,7 @@ class MonitoringDashboard extends Component
      */
     public function toggleAutoRefresh()
     {
-        $this->autoRefresh = !$this->autoRefresh;
+        $this->autoRefresh = ! $this->autoRefresh;
 
         $this->dispatch('autoRefreshToggled', [
             'enabled' => $this->autoRefresh,
@@ -251,9 +255,16 @@ class MonitoringDashboard extends Component
      */
     public function getHealthScoreColor(int $score): string
     {
-        if ($score >= 90) return 'green';
-        if ($score >= 70) return 'yellow';
-        if ($score >= 50) return 'orange';
+        if ($score >= 90) {
+            return 'green';
+        }
+        if ($score >= 70) {
+            return 'yellow';
+        }
+        if ($score >= 50) {
+            return 'orange';
+        }
+
         return 'red';
     }
 }

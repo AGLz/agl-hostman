@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Redis;
 class CacheStrategyService
 {
     private array $strategies = [];
+
     private string $prefix;
 
     public function __construct()
@@ -179,6 +180,7 @@ class CacheStrategyService
     public function get(string $key): mixed
     {
         $fullKey = $this->getFullKey($key);
+
         return Cache::get($fullKey);
     }
 
@@ -188,6 +190,7 @@ class CacheStrategyService
     public function has(string $key): bool
     {
         $fullKey = $this->getFullKey($key);
+
         return Cache::has($fullKey);
     }
 
@@ -197,6 +200,7 @@ class CacheStrategyService
     public function forget(string $key): bool
     {
         $fullKey = $this->getFullKey($key);
+
         return Cache::forget($fullKey);
     }
 
@@ -206,6 +210,7 @@ class CacheStrategyService
     public function forgetByTags(array $tags): bool
     {
         Cache::tags($tags)->flush();
+
         return true;
     }
 
@@ -216,7 +221,7 @@ class CacheStrategyService
     {
         $strategy = $this->strategies[$strategyKey] ?? null;
 
-        if (!$strategy || !$strategy['warm_on_boot']) {
+        if (! $strategy || ! $strategy['warm_on_boot']) {
             return;
         }
 
@@ -273,7 +278,7 @@ class CacheStrategyService
 
             // Replace {param} placeholders
             foreach ($params as $param => $value) {
-                $parsedTag = str_replace("{{$param}}", (string)$value, $parsedTag);
+                $parsedTag = str_replace("{{$param}}", (string) $value, $parsedTag);
             }
 
             $parsed[] = $parsedTag;
@@ -290,7 +295,7 @@ class CacheStrategyService
         preg_match_all('/\.([a-z_]+)\.([a-f0-9-]+|[^.]+)/i', $key, $matches);
 
         $params = [];
-        if (!empty($matches[1])) {
+        if (! empty($matches[1])) {
             foreach ($matches[1] as $index => $param) {
                 $params[$param] = $matches[2][$index] ?? null;
             }

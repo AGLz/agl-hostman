@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
 use App\Models\PhysicalLocation;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 describe('User Model', function () {

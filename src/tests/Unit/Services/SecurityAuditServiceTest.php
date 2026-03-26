@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\SecurityAuditService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Process;
@@ -15,8 +14,6 @@ use Tests\TestCase;
  * Security Audit Service Test
  *
  * Tests for the SecurityAuditService class.
- *
- * @package Tests\Unit\Services
  */
 class SecurityAuditServiceTest extends TestCase
 {
@@ -26,7 +23,7 @@ class SecurityAuditServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->auditService = new SecurityAuditService();
+        $this->auditService = new SecurityAuditService;
     }
 
     /**
@@ -35,7 +32,7 @@ class SecurityAuditServiceTest extends TestCase
     public function test_run_full_audit(): void
     {
         Config::set('app.debug', false);
-        Config::set('app.key', 'base64:' . str_repeat('a', 44));
+        Config::set('app.key', 'base64:'.str_repeat('a', 44));
 
         $results = $this->auditService->runFullAudit();
 
@@ -156,7 +153,7 @@ class SecurityAuditServiceTest extends TestCase
     public function test_audit_configuration_security(): void
     {
         Config::set('app.debug', false);
-        Config::set('app.key', 'base64:' . str_repeat('a', 44));
+        Config::set('app.key', 'base64:'.str_repeat('a', 44));
 
         $result = $this->auditService->auditConfigurationSecurity();
 
@@ -235,7 +232,7 @@ class SecurityAuditServiceTest extends TestCase
     public function test_check_insecure_configurations(): void
     {
         Config::set('app.debug', false);
-        Config::set('app.key', 'base64:' . str_repeat('a', 44));
+        Config::set('app.key', 'base64:'.str_repeat('a', 44));
 
         $result = $this->auditService->checkInsecureConfigurations();
 

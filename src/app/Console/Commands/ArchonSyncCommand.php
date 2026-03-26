@@ -24,16 +24,18 @@ class ArchonSyncCommand extends Command
 
     public function handle(ArchonMcpService $archon): int
     {
-        if (!config('archon.enabled')) {
+        if (! config('archon.enabled')) {
             $this->error('Archon integration is disabled. Enable it in config/archon.php');
+
             return self::FAILURE;
         }
 
         // Test connection first
         $this->info('Testing Archon MCP connection...');
-        if (!$archon->ping()) {
+        if (! $archon->ping()) {
             $this->error('Failed to connect to Archon MCP server');
-            $this->error('URL: ' . config('archon.mcp_url'));
+            $this->error('URL: '.config('archon.mcp_url'));
+
             return self::FAILURE;
         }
         $this->info('✓ Connected to Archon MCP');
@@ -65,6 +67,7 @@ class ArchonSyncCommand extends Command
         }
 
         $this->info('Jobs dispatched. Check queue workers for progress.');
+
         return self::SUCCESS;
     }
 

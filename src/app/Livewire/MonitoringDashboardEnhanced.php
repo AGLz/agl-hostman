@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Services\MetricsCollector;
-use App\Models\ProxmoxServer;
 use Illuminate\Support\Facades\Log;
+use Livewire\Component;
 
 /**
  * MonitoringDashboardEnhanced - Main real-time monitoring dashboard
@@ -31,12 +30,19 @@ use Illuminate\Support\Facades\Log;
 class MonitoringDashboardEnhanced extends Component
 {
     public array $summary = [];
+
     public array $servers = [];
+
     public ?string $selectedServer = null;
+
     public bool $autoRefresh = true;
+
     public int $refreshInterval;
+
     public bool $loading = true;
+
     public ?string $error = null;
+
     public string $lastUpdated = '';
 
     protected MetricsCollector $metricsCollector;
@@ -81,10 +87,10 @@ class MonitoringDashboardEnhanced extends Component
             }
 
         } catch (\Exception $e) {
-            Log::error("MonitoringDashboard failed to load", [
+            Log::error('MonitoringDashboard failed to load', [
                 'error' => $e->getMessage(),
             ]);
-            $this->error = 'Dashboard error: ' . $e->getMessage();
+            $this->error = 'Dashboard error: '.$e->getMessage();
         } finally {
             $this->loading = false;
         }
@@ -108,7 +114,7 @@ class MonitoringDashboardEnhanced extends Component
      */
     public function toggleAutoRefresh(): void
     {
-        $this->autoRefresh = !$this->autoRefresh;
+        $this->autoRefresh = ! $this->autoRefresh;
 
         $this->dispatch('auto-refresh-toggled', [
             'enabled' => $this->autoRefresh,
@@ -167,7 +173,7 @@ class MonitoringDashboardEnhanced extends Component
             $metrics = $this->metricsCollector->aggregateAllMetrics();
 
             $json = json_encode($metrics, JSON_PRETTY_PRINT);
-            $filename = 'infrastructure-metrics-' . now()->format('Y-m-d-His') . '.json';
+            $filename = 'infrastructure-metrics-'.now()->format('Y-m-d-His').'.json';
 
             $this->dispatch('download-json', [
                 'filename' => $filename,
@@ -177,7 +183,7 @@ class MonitoringDashboardEnhanced extends Component
         } catch (\Exception $e) {
             $this->dispatch('alert-toast', [
                 'type' => 'error',
-                'message' => 'Failed to export metrics: ' . $e->getMessage(),
+                'message' => 'Failed to export metrics: '.$e->getMessage(),
             ]);
         }
     }
@@ -202,7 +208,7 @@ class MonitoringDashboardEnhanced extends Component
      */
     public function getOverallHealthColor(): string
     {
-        if (!isset($this->summary['overall_health'])) {
+        if (! isset($this->summary['overall_health'])) {
             return 'gray';
         }
 

@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\N8NWorkflowExecution;
 use App\Models\N8NWorkflow;
+use App\Models\N8NWorkflowExecution;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * N8N Workflow Execution Factory
- *
- * @package Database\Factories
  */
 class N8NWorkflowExecutionFactory extends Factory
 {
@@ -24,8 +22,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
     public function definition(): array
     {
@@ -61,8 +57,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution is successful
-     *
-     * @return static
      */
     public function successful(): static
     {
@@ -78,8 +72,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution failed
-     *
-     * @return static
      */
     public function failed(): static
     {
@@ -88,8 +80,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution is running
-     *
-     * @return static
      */
     public function running(): static
     {
@@ -104,8 +94,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution is pending
-     *
-     * @return static
      */
     public function pending(): static
     {
@@ -120,8 +108,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution was triggered by API
-     *
-     * @return static
      */
     public function triggeredByApi(): static
     {
@@ -136,8 +122,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution was triggered by webhook
-     *
-     * @return static
      */
     public function triggeredByWebhook(): static
     {
@@ -151,8 +135,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution was triggered manually
-     *
-     * @return static
      */
     public function triggeredManually(): static
     {
@@ -166,8 +148,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution was triggered by schedule
-     *
-     * @return static
      */
     public function triggeredBySchedule(): static
     {
@@ -181,8 +161,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution has a long duration
-     *
-     * @return static
      */
     public function slow(): static
     {
@@ -193,8 +171,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution has a short duration (fast)
-     *
-     * @return static
      */
     public function fast(): static
     {
@@ -205,8 +181,6 @@ class N8NWorkflowExecutionFactory extends Factory
 
     /**
      * Indicate that the execution was recently started
-     *
-     * @return static
      */
     public function recent(): static
     {

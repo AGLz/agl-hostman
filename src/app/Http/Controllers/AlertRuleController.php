@@ -23,9 +23,6 @@ class AlertRuleController extends Controller
 
     /**
      * List all alert rules
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,9 +50,6 @@ class AlertRuleController extends Controller
 
     /**
      * Create a new alert rule
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function store(Request $request): JsonResponse
     {
@@ -89,15 +83,12 @@ class AlertRuleController extends Controller
 
     /**
      * Get a specific alert rule
-     *
-     * @param string $id
-     * @return JsonResponse
      */
     public function show(string $id): JsonResponse
     {
         $rule = AlertRule::find($id);
 
-        if (!$rule) {
+        if (! $rule) {
             return response()->json([
                 'success' => false,
                 'message' => 'Alert rule not found',
@@ -112,16 +103,12 @@ class AlertRuleController extends Controller
 
     /**
      * Update an alert rule
-     *
-     * @param Request $request
-     * @param string $id
-     * @return JsonResponse
      */
     public function update(Request $request, string $id): JsonResponse
     {
         $rule = AlertRule::find($id);
 
-        if (!$rule) {
+        if (! $rule) {
             return response()->json([
                 'success' => false,
                 'message' => 'Alert rule not found',
@@ -149,15 +136,12 @@ class AlertRuleController extends Controller
 
     /**
      * Delete an alert rule
-     *
-     * @param string $id
-     * @return JsonResponse
      */
     public function destroy(string $id): JsonResponse
     {
         $rule = AlertRule::find($id);
 
-        if (!$rule) {
+        if (! $rule) {
             return response()->json([
                 'success' => false,
                 'message' => 'Alert rule not found',
@@ -174,22 +158,19 @@ class AlertRuleController extends Controller
 
     /**
      * Toggle alert rule enabled status
-     *
-     * @param string $id
-     * @return JsonResponse
      */
     public function toggle(string $id): JsonResponse
     {
         $rule = AlertRule::find($id);
 
-        if (!$rule) {
+        if (! $rule) {
             return response()->json([
                 'success' => false,
                 'message' => 'Alert rule not found',
             ], 404);
         }
 
-        $newStatus = !$rule->enabled;
+        $newStatus = ! $rule->enabled;
         $rule->update(['enabled' => $newStatus]);
 
         return response()->json([
@@ -201,15 +182,12 @@ class AlertRuleController extends Controller
 
     /**
      * Test an alert rule evaluation
-     *
-     * @param string $id
-     * @return JsonResponse
      */
     public function test(string $id): JsonResponse
     {
         $rule = AlertRule::find($id);
 
-        if (!$rule) {
+        if (! $rule) {
             return response()->json([
                 'success' => false,
                 'message' => 'Alert rule not found',

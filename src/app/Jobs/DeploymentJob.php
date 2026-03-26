@@ -2,19 +2,19 @@
 
 namespace App\Jobs;
 
-use App\Services\DeploymentWorkflowService;
-use App\Services\PromotionWorkflowService;
-use App\Services\DokployService;
+use App\Models\DokployApplication;
 use App\Models\ProductionDeployment;
 use App\Models\Promotion;
-use App\Models\DokployApplication;
+use App\Services\DeploymentWorkflowService;
+use App\Services\DokployService;
+use App\Services\PromotionWorkflowService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -22,8 +22,6 @@ use Illuminate\Support\Str;
  *
  * Handles application deployments across environments.
  * Supports Dokploy deployments and production promotions.
- *
- * @package App\Jobs
  */
 class DeploymentJob implements ShouldQueue
 {
@@ -92,7 +90,7 @@ class DeploymentJob implements ShouldQueue
         $this->config = $config;
         $this->userId = $userId;
 
-        $this->deploymentId = 'deploy_' . now()->format('Ymd_His') . '_' . Str::random(8);
+        $this->deploymentId = 'deploy_'.now()->format('Ymd_His').'_'.Str::random(8);
 
         // Deployments go on high-priority queue
         $this->onQueue('deployments');

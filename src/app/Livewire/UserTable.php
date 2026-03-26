@@ -23,14 +23,20 @@ class UserTable extends Component
 
     // Filters
     public string $search = '';
+
     public string $roleFilter = '';
+
     public string $statusFilter = '';
+
     public string $sortBy = 'created_at';
+
     public string $sortOrder = 'desc';
+
     public int $perPage = 15;
 
     // Bulk actions
     public array $selectedUsers = [];
+
     public bool $selectAll = false;
 
     protected $queryString = [
@@ -116,7 +122,7 @@ class UserTable extends Component
 
         foreach ($this->selectedUsers as $userId) {
             $user = User::find($userId);
-            if ($user && !$user->is_active) {
+            if ($user && ! $user->is_active) {
                 $this->userRepository->activateUser($user, auth()->user());
             }
         }
@@ -138,6 +144,7 @@ class UserTable extends Component
                     $this->userRepository->deactivateUser($user, auth()->user());
                 } catch (\Exception $e) {
                     session()->flash('error', $e->getMessage());
+
                     return;
                 }
             }

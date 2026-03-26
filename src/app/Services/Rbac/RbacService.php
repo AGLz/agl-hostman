@@ -39,7 +39,7 @@ class RbacService
                 'email' => $user->email,
                 'is_active' => $user->isActive(),
             ],
-            'roles' => $user->roles->map(fn($role) => [
+            'roles' => $user->roles->map(fn ($role) => [
                 'name' => $role->name,
                 'description' => $role->description,
                 'is_system' => $role->is_system,
@@ -64,6 +64,7 @@ class RbacService
     public function grantRoleToUser(string $roleName, User $user): User
     {
         $role = \Spatie\Permission\Models\Role::findByName($roleName);
+
         return $this->roleService->assignRoleToUser($role, $user);
     }
 
@@ -73,6 +74,7 @@ class RbacService
     public function revokeRoleFromUser(string $roleName, User $user): User
     {
         $role = \Spatie\Permission\Models\Role::findByName($roleName);
+
         return $this->roleService->revokeRoleFromUser($role, $user);
     }
 
@@ -82,6 +84,7 @@ class RbacService
     public function grantPermissionToUser(string $permissionName, User $user): User
     {
         $permission = \Spatie\Permission\Models\Permission::findByName($permissionName);
+
         return $this->permissionService->assignPermissionToUser($permission, $user);
     }
 
@@ -91,6 +94,7 @@ class RbacService
     public function revokePermissionFromUser(string $permissionName, User $user): User
     {
         $permission = \Spatie\Permission\Models\Permission::findByName($permissionName);
+
         return $this->permissionService->revokePermissionFromUser($permission, $user);
     }
 

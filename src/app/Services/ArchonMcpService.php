@@ -36,10 +36,10 @@ class ArchonMcpService
     /**
      * Search knowledge base using semantic search
      *
-     * @param string $query Search query (2-5 keywords recommended)
-     * @param string|null $sourceId Optional source ID filter
-     * @param int $matchCount Maximum results (default: 5)
-     * @param string $returnMode 'pages' or 'chunks' (default: 'pages')
+     * @param  string  $query  Search query (2-5 keywords recommended)
+     * @param  string|null  $sourceId  Optional source ID filter
+     * @param  int  $matchCount  Maximum results (default: 5)
+     * @param  string  $returnMode  'pages' or 'chunks' (default: 'pages')
      * @return Collection<KnowledgeSearchResultDTO>
      */
     public function searchKnowledgeBase(
@@ -56,11 +56,11 @@ class ArchonMcpService
                 'return_mode' => $returnMode,
             ], useCache: true);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['error'] ?? 'Search failed');
             }
 
-            return collect($result['results'])->map(fn($r) => KnowledgeSearchResultDTO::fromArray($r));
+            return collect($result['results'])->map(fn ($r) => KnowledgeSearchResultDTO::fromArray($r));
 
         } catch (ArchonMcpException $e) {
             Log::error('Knowledge base search failed', [
@@ -74,9 +74,9 @@ class ArchonMcpService
     /**
      * Search for code examples in knowledge base
      *
-     * @param string $query Search query
-     * @param string|null $sourceId Optional source ID filter
-     * @param int $matchCount Maximum results (default: 3)
+     * @param  string  $query  Search query
+     * @param  string|null  $sourceId  Optional source ID filter
+     * @param  int  $matchCount  Maximum results (default: 3)
      * @return Collection<KnowledgeSearchResultDTO>
      */
     public function searchCodeExamples(
@@ -91,11 +91,11 @@ class ArchonMcpService
                 'match_count' => $matchCount,
             ], useCache: true);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['error'] ?? 'Code search failed');
             }
 
-            return collect($result['results'])->map(fn($r) => KnowledgeSearchResultDTO::fromArray($r));
+            return collect($result['results'])->map(fn ($r) => KnowledgeSearchResultDTO::fromArray($r));
 
         } catch (ArchonMcpException $e) {
             Log::error('Code examples search failed', [
@@ -108,15 +108,13 @@ class ArchonMcpService
 
     /**
      * Get available knowledge sources
-     *
-     * @return array
      */
     public function getAvailableSources(): array
     {
         try {
             $result = $this->client->call('rag_get_available_sources', [], useCache: true);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['error'] ?? 'Failed to get sources');
             }
 
@@ -131,8 +129,7 @@ class ArchonMcpService
     /**
      * Read full page content from knowledge base
      *
-     * @param string $pageId Page UUID from search results
-     * @return array
+     * @param  string  $pageId  Page UUID from search results
      */
     public function readFullPage(string $pageId): array
     {
@@ -141,7 +138,7 @@ class ArchonMcpService
                 'page_id' => $pageId,
             ], useCache: true);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['error'] ?? 'Failed to read page');
             }
 
@@ -159,8 +156,8 @@ class ArchonMcpService
     /**
      * Add a new knowledge source (crawl website)
      *
-     * @param string $url URL to crawl
-     * @param array $options Optional parameters (name, description, tags, max_depth)
+     * @param  string  $url  URL to crawl
+     * @param  array  $options  Optional parameters (name, description, tags, max_depth)
      * @return array Progress information
      */
     public function addKnowledgeSource(string $url, array $options = []): array
@@ -196,7 +193,7 @@ class ArchonMcpService
     /**
      * Get projects with optional filtering
      *
-     * @param array $filters Optional filters (query, page, per_page)
+     * @param  array  $filters  Optional filters (query, page, per_page)
      * @return Collection<ProjectDTO>
      */
     public function getProjects(array $filters = []): Collection
@@ -207,7 +204,7 @@ class ArchonMcpService
             // Handle both single project and array of projects
             $projects = isset($result['projects']) ? $result['projects'] : [$result];
 
-            return collect($projects)->map(fn($p) => ProjectDTO::fromArray($p));
+            return collect($projects)->map(fn ($p) => ProjectDTO::fromArray($p));
 
         } catch (ArchonMcpException $e) {
             Log::error('Get projects failed', ['error' => $e->getMessage()]);
@@ -218,8 +215,7 @@ class ArchonMcpService
     /**
      * Get a specific project by ID
      *
-     * @param string $projectId Project UUID
-     * @return ProjectDTO
+     * @param  string  $projectId  Project UUID
      */
     public function getProject(string $projectId): ProjectDTO
     {
@@ -242,10 +238,9 @@ class ArchonMcpService
     /**
      * Create a new project
      *
-     * @param string $title Project title
-     * @param string|null $description Project description
-     * @param string|null $githubRepo GitHub repository URL
-     * @return ProjectDTO
+     * @param  string  $title  Project title
+     * @param  string|null  $description  Project description
+     * @param  string|null  $githubRepo  GitHub repository URL
      */
     public function createProject(
         string $title,
@@ -260,7 +255,7 @@ class ArchonMcpService
                 'github_repo' => $githubRepo,
             ]);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to create project');
             }
 
@@ -283,9 +278,8 @@ class ArchonMcpService
     /**
      * Update an existing project
      *
-     * @param string $projectId Project UUID
-     * @param array $data Fields to update (title, description, github_repo)
-     * @return ProjectDTO
+     * @param  string  $projectId  Project UUID
+     * @param  array  $data  Fields to update (title, description, github_repo)
      */
     public function updateProject(string $projectId, array $data): ProjectDTO
     {
@@ -295,7 +289,7 @@ class ArchonMcpService
                 'project_id' => $projectId,
             ], $data));
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to update project');
             }
 
@@ -315,8 +309,7 @@ class ArchonMcpService
     /**
      * Delete a project
      *
-     * @param string $projectId Project UUID
-     * @return bool
+     * @param  string  $projectId  Project UUID
      */
     public function deleteProject(string $projectId): bool
     {
@@ -326,7 +319,7 @@ class ArchonMcpService
                 'project_id' => $projectId,
             ]);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to delete project');
             }
 
@@ -346,8 +339,7 @@ class ArchonMcpService
     /**
      * Get project features
      *
-     * @param string $projectId Project UUID
-     * @return array
+     * @param  string  $projectId  Project UUID
      */
     public function getProjectFeatures(string $projectId): array
     {
@@ -356,7 +348,7 @@ class ArchonMcpService
                 'project_id' => $projectId,
             ], useCache: true);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['error'] ?? 'Failed to get features');
             }
 
@@ -378,7 +370,7 @@ class ArchonMcpService
     /**
      * Get tasks with optional filtering
      *
-     * @param array $filters Optional filters (query, filter_by, filter_value, project_id, etc.)
+     * @param  array  $filters  Optional filters (query, filter_by, filter_value, project_id, etc.)
      * @return Collection<TaskDTO>
      */
     public function getTasks(array $filters = []): Collection
@@ -389,7 +381,7 @@ class ArchonMcpService
             // Handle both single task and array of tasks
             $tasks = isset($result['tasks']) ? $result['tasks'] : [$result];
 
-            return collect($tasks)->map(fn($t) => TaskDTO::fromArray($t));
+            return collect($tasks)->map(fn ($t) => TaskDTO::fromArray($t));
 
         } catch (ArchonMcpException $e) {
             Log::error('Get tasks failed', ['error' => $e->getMessage()]);
@@ -400,8 +392,7 @@ class ArchonMcpService
     /**
      * Get a specific task by ID
      *
-     * @param string $taskId Task UUID
-     * @return TaskDTO
+     * @param  string  $taskId  Task UUID
      */
     public function getTask(string $taskId): TaskDTO
     {
@@ -424,10 +415,9 @@ class ArchonMcpService
     /**
      * Create a new task
      *
-     * @param string $projectId Project UUID
-     * @param string $title Task title
-     * @param array $data Optional fields (description, status, assignee, task_order, feature)
-     * @return TaskDTO
+     * @param  string  $projectId  Project UUID
+     * @param  string  $title  Task title
+     * @param  array  $data  Optional fields (description, status, assignee, task_order, feature)
      */
     public function createTask(string $projectId, string $title, array $data = []): TaskDTO
     {
@@ -440,7 +430,7 @@ class ArchonMcpService
                 'assignee' => 'User',
             ], $data));
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to create task');
             }
 
@@ -463,9 +453,8 @@ class ArchonMcpService
     /**
      * Update task status
      *
-     * @param string $taskId Task UUID
-     * @param string $status New status (todo, doing, review, done)
-     * @return TaskDTO
+     * @param  string  $taskId  Task UUID
+     * @param  string  $status  New status (todo, doing, review, done)
      */
     public function updateTaskStatus(string $taskId, string $status): TaskDTO
     {
@@ -476,7 +465,7 @@ class ArchonMcpService
                 'status' => $status,
             ]);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to update task status');
             }
 
@@ -499,8 +488,7 @@ class ArchonMcpService
     /**
      * Delete a task
      *
-     * @param string $taskId Task UUID
-     * @return bool
+     * @param  string  $taskId  Task UUID
      */
     public function deleteTask(string $taskId): bool
     {
@@ -510,7 +498,7 @@ class ArchonMcpService
                 'task_id' => $taskId,
             ]);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to delete task');
             }
 
@@ -534,8 +522,8 @@ class ArchonMcpService
     /**
      * Get documents for a project
      *
-     * @param string $projectId Project UUID
-     * @param array $filters Optional filters (query, document_type, page, per_page)
+     * @param  string  $projectId  Project UUID
+     * @param  array  $filters  Optional filters (query, document_type, page, per_page)
      * @return Collection<DocumentDTO>
      */
     public function getDocuments(string $projectId, array $filters = []): Collection
@@ -547,7 +535,7 @@ class ArchonMcpService
 
             $documents = isset($result['documents']) ? $result['documents'] : [$result];
 
-            return collect($documents)->map(fn($d) => DocumentDTO::fromArray($d));
+            return collect($documents)->map(fn ($d) => DocumentDTO::fromArray($d));
 
         } catch (ArchonMcpException $e) {
             Log::error('Get documents failed', [
@@ -561,12 +549,11 @@ class ArchonMcpService
     /**
      * Create a new document
      *
-     * @param string $projectId Project UUID
-     * @param string $title Document title
-     * @param string $type Document type (spec, design, note, prp, api, guide)
-     * @param mixed $content Document content (array or string)
-     * @param array $options Optional (tags, author)
-     * @return DocumentDTO
+     * @param  string  $projectId  Project UUID
+     * @param  string  $title  Document title
+     * @param  string  $type  Document type (spec, design, note, prp, api, guide)
+     * @param  mixed  $content  Document content (array or string)
+     * @param  array  $options  Optional (tags, author)
      */
     public function createDocument(
         string $projectId,
@@ -584,7 +571,7 @@ class ArchonMcpService
                 'content' => $content,
             ], $options));
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new ArchonMcpException($result['message'] ?? 'Failed to create document');
             }
 
@@ -640,8 +627,6 @@ class ArchonMcpService
 
     /**
      * Test MCP connection
-     *
-     * @return bool
      */
     public function ping(): bool
     {

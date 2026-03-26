@@ -14,8 +14,6 @@ use Tests\TestCase;
  *
  * Tests for input validation, sanitization, and prevention
  * of malicious input.
- *
- * @package Tests\Unit\Security
  */
 class InputValidationTest extends TestCase
 {
@@ -316,7 +314,8 @@ class InputValidationTest extends TestCase
      */
     public function test_base_form_request_sanitization(): void
     {
-        $request = new class () extends BaseFormRequest {
+        $request = new class extends BaseFormRequest
+        {
             public function rules(): array
             {
                 return [

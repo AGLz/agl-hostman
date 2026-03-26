@@ -2,10 +2,9 @@
 
 namespace Tests\Feature\Production;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Environment;
 use App\Models\ProductionDeployment;
+use Tests\TestCase;
 
 class ProductionSmokeTests extends TestCase
 {
@@ -19,7 +18,7 @@ class ProductionSmokeTests extends TestCase
         $response = $this->get('/health');
 
         $response->assertStatus(200)
-                 ->assertJson(['status' => 'healthy']);
+            ->assertJson(['status' => 'healthy']);
     }
 
     /**
@@ -46,7 +45,7 @@ class ProductionSmokeTests extends TestCase
      */
     public function redis_cache_is_accessible(): void
     {
-        $key = 'smoke_test_' . time();
+        $key = 'smoke_test_'.time();
         $value = 'test_value';
 
         \Cache::put($key, $value, 60);
@@ -144,7 +143,7 @@ class ProductionSmokeTests extends TestCase
                     $this->markTestSkipped("Could not connect to {$domain}: {$errstr}");
                 }
             } catch (\Exception $e) {
-                $this->markTestSkipped("SSL check skipped for {$domain}: " . $e->getMessage());
+                $this->markTestSkipped("SSL check skipped for {$domain}: ".$e->getMessage());
             }
         }
 
@@ -160,8 +159,9 @@ class ProductionSmokeTests extends TestCase
     {
         $lbUrl = config('deployment.production_lb_url');
 
-        if (!$lbUrl) {
+        if (! $lbUrl) {
             $this->markTestSkipped('Load balancer URL not configured');
+
             return;
         }
 
@@ -230,7 +230,7 @@ class ProductionSmokeTests extends TestCase
                     'Proxmox API should be reachable'
                 );
             } catch (\Exception $e) {
-                $this->markTestSkipped('Proxmox API unreachable: ' . $e->getMessage());
+                $this->markTestSkipped('Proxmox API unreachable: '.$e->getMessage());
             }
         }
     }

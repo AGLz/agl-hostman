@@ -16,52 +16,52 @@ use Psr\Log\LoggerInterface;
  *
  * Repository pattern for Proxmox LXC container operations.
  * Provides data layer abstraction with caching and error handling.
- *
- * @package App\Repositories
  */
 class ProxmoxContainerRepository
 {
     private const CACHE_TTL = 60; // 1 minute
+
     private const CACHE_PREFIX = 'proxmox_containers_';
 
     public function __construct(
         private readonly ProxmoxApiClient $client,
         private readonly LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
     /**
      * Get all containers on a node
      *
-     * @param string $node Node name
-     * @param bool $withMetrics Include real-time metrics
+     * @param  string  $node  Node name
+     * @param  bool  $withMetrics  Include real-time metrics
      * @return Collection<int, ContainerMetrics>
      */
     public function getAllContainers(string $node, bool $withMetrics = true): Collection
     {
-        $cacheKey = self::CACHE_PREFIX . "{$node}_all";
+        $cacheKey = self::CACHE_PREFIX."{$node}_all";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($node, $withMetrics) {
             $response = $this->client->get("/nodes/{$node}/lxc");
 
-            if (!$response->success) {
+            if (! $response->success) {
                 $this->logger->error('Failed to fetch containers', [
                     'node' => $node,
                     'error' => $response->error,
                 ]);
+
                 return collect();
             }
 
             $containers = collect($response->data);
 
-            if (!$withMetrics) {
-                return $containers->map(fn($container) => ContainerMetrics::fromProxmoxData($container));
+            if (! $withMetrics) {
+                return $containers->map(fn ($container) => ContainerMetrics::fromProxmoxData($container));
             }
 
             // Fetch detailed metrics for each container
             return $containers->map(function ($container) use ($node) {
                 $vmid = $container['vmid'];
-                $metrics = $this->getContainerMetrics($node, (string)$vmid);
+                $metrics = $this->getContainerMetrics($node, (string) $vmid);
+
                 return $metrics ?? ContainerMetrics::fromProxmoxData($container);
             })->filter();
         });
@@ -70,23 +70,23 @@ class ProxmoxContainerRepository
     /**
      * Get container by VMID
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ContainerMetrics|null
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function getContainer(string $node, string $vmid): ?ContainerMetrics
     {
-        $cacheKey = self::CACHE_PREFIX . "{$node}_{$vmid}";
+        $cacheKey = self::CACHE_PREFIX."{$node}_{$vmid}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($node, $vmid) {
             $response = $this->client->get("/nodes/{$node}/lxc/{$vmid}/status/current");
 
-            if (!$response->success) {
+            if (! $response->success) {
                 $this->logger->warning('Failed to fetch container', [
                     'node' => $node,
                     'vmid' => $vmid,
                     'error' => $response->error,
                 ]);
+
                 return null;
             }
 
@@ -97,9 +97,8 @@ class ProxmoxContainerRepository
     /**
      * Get real-time metrics for container
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ContainerMetrics|null
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function getContainerMetrics(string $node, string $vmid): ?ContainerMetrics
     {
@@ -109,9 +108,8 @@ class ProxmoxContainerRepository
     /**
      * Start container
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function startContainer(string $node, string $vmid): ProxmoxApiResponse
     {
@@ -128,9 +126,8 @@ class ProxmoxContainerRepository
     /**
      * Stop container
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function stopContainer(string $node, string $vmid): ProxmoxApiResponse
     {
@@ -147,9 +144,8 @@ class ProxmoxContainerRepository
     /**
      * Restart container
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function restartContainer(string $node, string $vmid): ProxmoxApiResponse
     {
@@ -166,10 +162,9 @@ class ProxmoxContainerRepository
     /**
      * Shutdown container gracefully
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @param int $timeout Shutdown timeout in seconds
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
+     * @param  int  $timeout  Shutdown timeout in seconds
      */
     public function shutdownContainer(string $node, string $vmid, int $timeout = 60): ProxmoxApiResponse
     {
@@ -192,9 +187,8 @@ class ProxmoxContainerRepository
     /**
      * Get container configuration
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function getContainerConfig(string $node, string $vmid): ProxmoxApiResponse
     {
@@ -204,10 +198,9 @@ class ProxmoxContainerRepository
     /**
      * Update container configuration
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @param array<string, mixed> $config
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
+     * @param  array<string, mixed>  $config
      */
     public function updateContainerConfig(string $node, string $vmid, array $config): ProxmoxApiResponse
     {
@@ -228,9 +221,8 @@ class ProxmoxContainerRepository
     /**
      * Get container snapshots
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
      */
     public function getContainerSnapshots(string $node, string $vmid): ProxmoxApiResponse
     {
@@ -240,11 +232,10 @@ class ProxmoxContainerRepository
     /**
      * Create container snapshot
      *
-     * @param string $node Node name
-     * @param string $vmid Container VMID
-     * @param string $snapname Snapshot name
-     * @param string|null $description Snapshot description
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Container VMID
+     * @param  string  $snapname  Snapshot name
+     * @param  string|null  $description  Snapshot description
      */
     public function createSnapshot(
         string $node,
@@ -274,11 +265,10 @@ class ProxmoxContainerRepository
     /**
      * Clone container
      *
-     * @param string $node Node name
-     * @param string $vmid Source container VMID
-     * @param string $newid New container VMID
-     * @param array<string, mixed> $options Clone options
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  string  $vmid  Source container VMID
+     * @param  string  $newid  New container VMID
+     * @param  array<string, mixed>  $options  Clone options
      */
     public function cloneContainer(
         string $node,
@@ -305,62 +295,61 @@ class ProxmoxContainerRepository
     /**
      * Get containers by status
      *
-     * @param string $node Node name
-     * @param string $status Status filter (running, stopped)
+     * @param  string  $node  Node name
+     * @param  string  $status  Status filter (running, stopped)
      * @return Collection<int, ContainerMetrics>
      */
     public function getContainersByStatus(string $node, string $status): Collection
     {
         return $this->getAllContainers($node)
-            ->filter(fn(ContainerMetrics $container) => $container->status === $status);
+            ->filter(fn (ContainerMetrics $container) => $container->status === $status);
     }
 
     /**
      * Get unhealthy containers
      *
-     * @param string $node Node name
+     * @param  string  $node  Node name
      * @return Collection<int, ContainerMetrics>
      */
     public function getUnhealthyContainers(string $node): Collection
     {
         return $this->getAllContainers($node)
-            ->filter(fn(ContainerMetrics $container) => !$container->isHealthy());
+            ->filter(fn (ContainerMetrics $container) => ! $container->isHealthy());
     }
 
     /**
      * Search containers by name
      *
-     * @param string $node Node name
-     * @param string $search Search term
+     * @param  string  $node  Node name
+     * @param  string  $search  Search term
      * @return Collection<int, ContainerMetrics>
      */
     public function searchContainers(string $node, string $search): Collection
     {
         return $this->getAllContainers($node)
-            ->filter(fn(ContainerMetrics $container) =>
-                str_contains(strtolower($container->name), strtolower($search))
+            ->filter(fn (ContainerMetrics $container) => str_contains(strtolower($container->name), strtolower($search))
             );
     }
 
     /**
      * Get aggregate statistics
      *
-     * @param string $node Node name
+     * @param  string  $node  Node name
      * @return array<string, mixed>
      */
     public function getAggregateStats(string $node): array
     {
         $containers = $this->getAllContainers($node);
 
-        $running = $containers->filter(fn($c) => $c->status === 'running')->count();
-        $stopped = $containers->filter(fn($c) => $c->status === 'stopped')->count();
-        $healthy = $containers->filter(fn($c) => $c->isHealthy())->count();
+        $running = $containers->filter(fn ($c) => $c->status === 'running')->count();
+        $stopped = $containers->filter(fn ($c) => $c->status === 'stopped')->count();
+        $healthy = $containers->filter(fn ($c) => $c->isHealthy())->count();
 
-        $totalCpu = $containers->sum(fn($c) => $c->cpuUsage);
-        $totalMemUsed = $containers->sum(fn($c) => $c->memoryUsed);
-        $totalMemTotal = $containers->sum(fn($c) => $c->memoryTotal);
-        $totalDiskUsed = $containers->sum(fn($c) => $c->diskUsed);
-        $totalDiskTotal = $containers->sum(fn($c) => $c->diskTotal);
+        $totalCpu = $containers->sum(fn ($c) => $c->cpuUsage);
+        $totalMemUsed = $containers->sum(fn ($c) => $c->memoryUsed);
+        $totalMemTotal = $containers->sum(fn ($c) => $c->memoryTotal);
+        $totalDiskUsed = $containers->sum(fn ($c) => $c->diskUsed);
+        $totalDiskTotal = $containers->sum(fn ($c) => $c->diskTotal);
 
         return [
             'total_containers' => $containers->count(),
@@ -383,10 +372,10 @@ class ProxmoxContainerRepository
      */
     private function invalidateCache(string $node, ?string $vmid = null): void
     {
-        Cache::forget(self::CACHE_PREFIX . "{$node}_all");
+        Cache::forget(self::CACHE_PREFIX."{$node}_all");
 
         if ($vmid) {
-            Cache::forget(self::CACHE_PREFIX . "{$node}_{$vmid}");
+            Cache::forget(self::CACHE_PREFIX."{$node}_{$vmid}");
         }
     }
 

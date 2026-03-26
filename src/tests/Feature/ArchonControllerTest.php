@@ -21,20 +21,20 @@ describe('Archon Dashboard', function () {
             ->once()
             ->andReturn([
                 ['id' => '1', 'title' => 'Project 1'],
-                ['id' => '2', 'title' => 'Project 2']
+                ['id' => '2', 'title' => 'Project 2'],
             ]);
 
         $this->archonService->shouldReceive('findTasks')
             ->once()
             ->andReturn([
                 ['id' => '1', 'status' => 'todo'],
-                ['id' => '2', 'status' => 'doing']
+                ['id' => '2', 'status' => 'doing'],
             ]);
 
         $this->archonService->shouldReceive('getAvailableSources')
             ->once()
             ->andReturn([
-                ['id' => 'src1', 'name' => 'Source 1']
+                ['id' => 'src1', 'name' => 'Source 1'],
             ]);
 
         $this->archonService->shouldReceive('checkHealth')
@@ -44,14 +44,12 @@ describe('Archon Dashboard', function () {
         $response = $this->get('/archon');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/Index')
-                ->has('stats', fn ($stats) =>
-                    $stats->where('total_projects', 2)
-                        ->where('active_tasks', 2)
-                        ->where('knowledge_sources', 1)
-                        ->where('mcp_status', 'connected')
-                )
+        $response->assertInertia(fn ($page) => $page->component('Archon/Index')
+            ->has('stats', fn ($stats) => $stats->where('total_projects', 2)
+                ->where('active_tasks', 2)
+                ->where('knowledge_sources', 1)
+                ->where('mcp_status', 'connected')
+            )
         );
     });
 
@@ -66,11 +64,9 @@ describe('Archon Dashboard', function () {
         $response = $this->get('/archon');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/Index')
-                ->has('stats', fn ($stats) =>
-                    $stats->where('mcp_status', 'error')
-                )
+        $response->assertInertia(fn ($page) => $page->component('Archon/Index')
+            ->has('stats', fn ($stats) => $stats->where('mcp_status', 'error')
+            )
         );
     });
 });
@@ -81,15 +77,14 @@ describe('Knowledge Base', function () {
             ->once()
             ->andReturn([
                 ['id' => 'src1', 'name' => 'Documentation'],
-                ['id' => 'src2', 'name' => 'Code Examples']
+                ['id' => 'src2', 'name' => 'Code Examples'],
             ]);
 
         $response = $this->get('/archon/knowledge');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/KnowledgeBase')
-                ->has('sources', 2)
+        $response->assertInertia(fn ($page) => $page->component('Archon/KnowledgeBase')
+            ->has('sources', 2)
         );
     });
 
@@ -98,30 +93,30 @@ describe('Knowledge Base', function () {
             ->once()
             ->with('WireGuard', null, 10, 'pages')
             ->andReturn([
-                ['title' => 'WireGuard Setup', 'content' => 'Setup guide...']
+                ['title' => 'WireGuard Setup', 'content' => 'Setup guide...'],
             ]);
 
         $response = $this->postJson('/archon/knowledge/search', [
             'query' => 'WireGuard',
             'match_count' => 10,
-            'return_mode' => 'pages'
+            'return_mode' => 'pages',
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
             'success' => true,
-            'query' => 'WireGuard'
+            'query' => 'WireGuard',
         ]);
         $response->assertJsonStructure([
             'success',
             'results',
-            'query'
+            'query',
         ]);
     });
 
     it('validates search parameters', function () {
         $response = $this->postJson('/archon/knowledge/search', [
-            'query' => str_repeat('a', 501) // Too long
+            'query' => str_repeat('a', 501), // Too long
         ]);
 
         $response->assertStatus(422);
@@ -134,25 +129,25 @@ describe('Knowledge Base', function () {
             ->andThrow(new Exception('Search failed'));
 
         $response = $this->postJson('/archon/knowledge/search', [
-            'query' => 'test'
+            'query' => 'test',
         ]);
 
         $response->assertStatus(500);
         $response->assertJson([
-            'success' => false
+            'success' => false,
         ]);
     });
 
     it('returns autocomplete suggestions', function () {
         $response = $this->postJson('/archon/knowledge/suggestions', [
             'query' => 'wire',
-            'limit' => 5
+            'limit' => 5,
         ]);
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'success',
-            'suggestions'
+            'suggestions',
         ]);
     });
 
@@ -163,16 +158,16 @@ describe('Knowledge Base', function () {
             ->andReturn([
                 'id' => 'page-123',
                 'title' => 'Full Page',
-                'content' => 'Complete content...'
+                'content' => 'Complete content...',
             ]);
 
         $response = $this->postJson('/archon/knowledge/page', [
-            'page_id' => 'page-123'
+            'page_id' => 'page-123',
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true
+            'success' => true,
         ]);
     });
 
@@ -181,17 +176,17 @@ describe('Knowledge Base', function () {
             ->once()
             ->with('React hooks', null, 10)
             ->andReturn([
-                ['language' => 'javascript', 'content' => 'const [state, setState] = useState();']
+                ['language' => 'javascript', 'content' => 'const [state, setState] = useState();'],
             ]);
 
         $response = $this->postJson('/archon/knowledge/code', [
             'query' => 'React hooks',
-            'match_count' => 10
+            'match_count' => 10,
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true
+            'success' => true,
         ]);
     });
 });

@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
-
 /**
  * Store Container Request
  *
  * Validation rules for creating new LXC containers.
- *
- * @package App\Http\Requests
  */
 class StoreContainerRequest extends BaseFormRequest
 {
     /**
      * Get validation rules
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -44,8 +38,6 @@ class StoreContainerRequest extends BaseFormRequest
 
     /**
      * Get custom messages for container validation
-     *
-     * @return array
      */
     public function messages(): array
     {

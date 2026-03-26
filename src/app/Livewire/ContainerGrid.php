@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use App\Services\MetricsCollector;
 use App\Models\ProxmoxServer;
+use App\Services\MetricsCollector;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * ContainerGrid - Grid display of all containers with filtering and sorting
@@ -34,15 +34,23 @@ class ContainerGrid extends Component
     use WithPagination;
 
     public ?string $filterServer = null;
+
     public ?string $filterStatus = null;
+
     public ?string $filterUsage = null;
+
     public string $search = '';
+
     public string $sortBy = 'vmid';
+
     public string $sortDirection = 'asc';
+
     public int $perPage = 50;
 
     protected Collection $containers;
+
     protected MetricsCollector $metricsCollector;
+
     protected string $queryString = 'page';
 
     protected $listeners = [
@@ -184,7 +192,7 @@ class ContainerGrid extends Component
             return $allContainers->values();
 
         } catch (\Exception $e) {
-            Log::error("Failed to load containers", [
+            Log::error('Failed to load containers', [
                 'error' => $e->getMessage(),
             ]);
 
@@ -250,7 +258,7 @@ class ContainerGrid extends Component
             'containers' => $containers->toArray(),
         ], JSON_PRETTY_PRINT);
 
-        $filename = 'container-metrics-' . now()->format('Y-m-d-His') . '.json';
+        $filename = 'container-metrics-'.now()->format('Y-m-d-His').'.json';
 
         $this->dispatch('download-json', [
             'filename' => $filename,

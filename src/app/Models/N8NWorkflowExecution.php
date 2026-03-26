@@ -129,16 +129,16 @@ class N8NWorkflowExecution extends Model
         $seconds = $this->duration_ms / 1000;
 
         if ($seconds < 1) {
-            return $this->duration_ms . 'ms';
+            return $this->duration_ms.'ms';
         }
 
         if ($seconds < 60) {
-            return round($seconds, 2) . 's';
+            return round($seconds, 2).'s';
         }
 
         $minutes = floor($seconds / 60);
         $remainingSeconds = $seconds % 60;
 
-        return $minutes . 'm ' . round($remainingSeconds, 0) . 's';
+        return $minutes.'m '.round($remainingSeconds, 0).'s';
     }
 }

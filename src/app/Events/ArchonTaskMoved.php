@@ -32,7 +32,7 @@ class ArchonTaskMoved implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'task' => $this->task
+            'task' => $this->task,
         ];
     }
 }

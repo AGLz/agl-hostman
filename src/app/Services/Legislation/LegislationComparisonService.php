@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Legislation;
 
-use Illuminate\Support\Collection;
-
 /**
  * LegislationComparisonService - Comparison engine for legislation differences
  *
@@ -44,8 +42,8 @@ class LegislationComparisonService
     /**
      * Compare two legislation documents
      *
-     * @param array $doc1 First legislation document
-     * @param array $doc2 Second legislation document
+     * @param  array  $doc1  First legislation document
+     * @param  array  $doc2  Second legislation document
      * @return array Comparison results
      */
     public function compare(array $doc1, array $doc2): array
@@ -73,8 +71,8 @@ class LegislationComparisonService
     /**
      * Compare CMN resolutions specifically
      *
-     * @param array $cmn4963 CMN 4.963 resolution data
-     * @param array $cmn5272 CMN 5.272 resolution data
+     * @param  array  $cmn4963  CMN 4.963 resolution data
+     * @param  array  $cmn5272  CMN 5.272 resolution data
      * @return array Detailed CMN comparison results
      */
     public function compareCMN(array $cmn4963, array $cmn5272): array
@@ -98,7 +96,7 @@ class LegislationComparisonService
         $ref1 = $doc1['metadata']['full_reference'] ?? 'doc1';
         $ref2 = $doc2['metadata']['full_reference'] ?? 'doc2';
 
-        return 'comp-' . strtolower(str_replace([' ', '.'], '-', $ref1 . '-' . $ref2));
+        return 'comp-'.strtolower(str_replace([' ', '.'], '-', $ref1.'-'.$ref2));
     }
 
     /**
@@ -159,6 +157,7 @@ class LegislationComparisonService
         // Add significance scores
         $differences = collect($differences)->map(function ($diff) {
             $diff['significance'] = $this->calculateSignificance($diff);
+
             return $diff;
         })->toArray();
 
@@ -301,7 +300,7 @@ class LegislationComparisonService
                         'field' => 'limit',
                         'old_value' => $limit1,
                         'new_value' => $limit2,
-                        'description' => "Modified investment limit",
+                        'description' => 'Modified investment limit',
                     ];
                 }
             }
@@ -320,7 +319,7 @@ class LegislationComparisonService
                         'field' => 'deadline',
                         'old_value' => $deadline1,
                         'new_value' => $deadline2,
-                        'description' => "Modified compliance deadline",
+                        'description' => 'Modified compliance deadline',
                     ];
                 }
             }
@@ -510,13 +509,14 @@ class LegislationComparisonService
         foreach ($arr1 as $key => $value1) {
             $field = $prefix ? "{$prefix}.{$key}" : $key;
 
-            if (!array_key_exists($key, $arr2)) {
+            if (! array_key_exists($key, $arr2)) {
                 $differences[] = [
                     'field' => $field,
                     'status' => 'removed',
                     'doc1_value' => is_array($value1) ? json_encode($value1) : $value1,
                     'doc2_value' => null,
                 ];
+
                 continue;
             }
 
@@ -540,7 +540,7 @@ class LegislationComparisonService
         foreach ($arr2 as $key => $value2) {
             $field = $prefix ? "{$prefix}.{$key}" : $key;
 
-            if (!array_key_exists($key, $arr1)) {
+            if (! array_key_exists($key, $arr1)) {
                 $differences[] = [
                     'field' => $field,
                     'status' => 'added',
@@ -609,6 +609,7 @@ class LegislationComparisonService
         if ($score >= 0.5) {
             return 'moderate';
         }
+
         return 'low';
     }
 
@@ -634,6 +635,7 @@ class LegislationComparisonService
         if ($significantChanges > 2) {
             return 'moderate';
         }
+
         return 'low';
     }
 
@@ -663,6 +665,7 @@ class LegislationComparisonService
         if ($complexityScore > 5) {
             return 'moderate';
         }
+
         return 'low';
     }
 

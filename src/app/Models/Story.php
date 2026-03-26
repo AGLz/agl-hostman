@@ -91,6 +91,7 @@ class Story extends Model
         if ($activeSprint) {
             return $query->where('sprint_id', $activeSprint->id);
         }
+
         return $query->whereNull('sprint_id');
     }
 
@@ -129,11 +130,11 @@ class Story extends Model
     {
         $this->status = $status;
 
-        if ($status === 'in_progress' && !$this->started_at) {
+        if ($status === 'in_progress' && ! $this->started_at) {
             $this->started_at = now();
         }
 
-        if ($status === 'done' && !$this->completed_at) {
+        if ($status === 'done' && ! $this->completed_at) {
             $this->completed_at = now();
         }
 

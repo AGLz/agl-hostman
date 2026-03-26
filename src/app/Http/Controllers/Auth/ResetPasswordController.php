@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -24,9 +24,6 @@ class ResetPasswordController extends Controller
 {
     /**
      * Display the password reset form
-     *
-     * @param Request $request
-     * @return View
      */
     public function showResetForm(Request $request): View
     {
@@ -39,8 +36,6 @@ class ResetPasswordController extends Controller
     /**
      * Handle password reset request
      *
-     * @param Request $request
-     * @return RedirectResponse
      * @throws ValidationException
      */
     public function reset(Request $request): RedirectResponse

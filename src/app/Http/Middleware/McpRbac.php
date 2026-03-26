@@ -15,8 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Role-Based Access Control middleware for Model Context Protocol (MCP) servers.
  * Enforces fine-grained access control based on user roles and permissions.
- *
- * @package App\Http\Middleware
  */
 class McpRbac
 {
@@ -43,7 +41,6 @@ class McpRbac
      * Handle an incoming request to MCP server.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -58,7 +55,7 @@ class McpRbac
 
         // Check tool-specific access
         $tool = $this->extractToolName($request);
-        if (!$this->hasToolAccess($role['name'], $tool)) {
+        if (! $this->hasToolAccess($role['name'], $tool)) {
             return $this->denyAccess($request, $identity, 'tool_not_allowed', [
                 'tool' => $tool,
                 'role' => $role['name'],
@@ -66,7 +63,7 @@ class McpRbac
         }
 
         // Enforce rate limits based on role
-        if (!$this->checkRateLimit($request, $role['name'])) {
+        if (! $this->checkRateLimit($request, $role['name'])) {
             return $this->denyAccess($request, $identity, 'rate_limit_exceeded', [
                 'role' => $role['name'],
             ]);
@@ -88,7 +85,6 @@ class McpRbac
     /**
      * Resolve the authenticated identity (user or API key).
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return array{type: 'user'|'api_key', id: string|int, name: string}
      */
     protected function resolveIdentity(Request $request): array
@@ -96,6 +92,7 @@ class McpRbac
         // Check for authenticated user
         if (auth()->check()) {
             $user = auth()->user();
+
             return [
                 'type' => 'user',
                 'id' => $user->id,
@@ -126,7 +123,6 @@ class McpRbac
     /**
      * Get user's primary role with permissions.
      *
-     * @param  array  $identity
      * @return array{name: string, level: int, permissions: array}
      */
     protected function getUserRole(array $identity): array
@@ -150,7 +146,7 @@ class McpRbac
             return [
                 'name' => $primaryRole,
                 'level' => $this->rbacConfig['roles'][$primaryRole]['level'] ?? 0,
-                'permissions' => $this->rbacConfig['api_key_permissions'][$primaryRole . '_key']['permissions'] ?? [],
+                'permissions' => $this->rbacConfig['api_key_permissions'][$primaryRole.'_key']['permissions'] ?? [],
             ];
         }
 
@@ -164,15 +160,11 @@ class McpRbac
 
     /**
      * Check if role has access to specific MCP tool.
-     *
-     * @param  string  $role
-     * @param  string  $tool
-     * @return bool
      */
     protected function hasToolAccess(string $role, string $tool): bool
     {
         $roleConfig = $this->rbacConfig['mcp_role_mapping'][$role] ?? null;
-        if (!$roleConfig) {
+        if (! $roleConfig) {
             return false;
         }
 
@@ -195,10 +187,6 @@ class McpRbac
 
     /**
      * Match tool name against pattern.
-     *
-     * @param  string  $pattern
-     * @param  string  $tool
-     * @return bool
      */
     protected function matchToolPattern(string $pattern, string $tool): bool
     {
@@ -208,7 +196,8 @@ class McpRbac
 
         if (str_ends_with($pattern, '.*')) {
             $prefix = str_replace('.*', '', $pattern);
-            return str_starts_with($tool, $prefix . '.');
+
+            return str_starts_with($tool, $prefix.'.');
         }
 
         return $pattern === $tool;
@@ -216,9 +205,6 @@ class McpRbac
 
     /**
      * Extract tool name from MCP request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return string
      */
     protected function extractToolName(Request $request): string
     {
@@ -239,22 +225,18 @@ class McpRbac
 
     /**
      * Check rate limit for role.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $role
-     * @return bool
      */
     protected function checkRateLimit(Request $request, string $role): bool
     {
         $roleConfig = $this->rbacConfig['mcp_role_mapping'][$role] ?? null;
-        if (!$roleConfig) {
+        if (! $roleConfig) {
             return false;
         }
 
         $rateLimit = $roleConfig['rate_limit'] ?? 100;
 
         // Use Laravel's rate limiter
-        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
+        $key = 'mcp:rbac:'.$role.':'.$request->ip();
         $attempts = \Illuminate\Support\Facades\RateLimiter::attempts($key);
 
         return $attempts < $rateLimit;
@@ -262,12 +244,6 @@ class McpRbac
 
     /**
      * Deny access with appropriate response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  array  $identity
-     * @param  string  $reason
-     * @param  array  $context
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function denyAccess(Request $request, array $identity, string $reason, array $context = []): Response
     {
@@ -292,17 +268,10 @@ class McpRbac
 
     /**
      * Log successful access.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Symfony\Component\HttpFoundation\Response  $response
-     * @param  array  $identity
-     * @param  array  $role
-     * @param  float  $duration
-     * @return void
      */
     protected function logAccess(Request $request, Response $response, array $identity, array $role, float $duration): void
     {
-        if (!config('mcp.audit_logging.enabled', true)) {
+        if (! config('mcp.audit_logging.enabled', true)) {
             return;
         }
 
@@ -324,15 +293,13 @@ class McpRbac
 
     /**
      * Extract API key from request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|null
      */
     protected function extractApiKey(Request $request): ?array
     {
         // Check X-API-Key header
         if ($request->hasHeader('X-API-Key')) {
             $key = $request->header('X-API-Key');
+
             return $this->validateApiKey($key);
         }
 
@@ -341,6 +308,7 @@ class McpRbac
             $auth = $request->header('Authorization');
             if (str_starts_with($auth, 'Bearer ')) {
                 $key = substr($auth, 7);
+
                 return $this->validateApiKey($key);
             }
         }
@@ -350,9 +318,6 @@ class McpRbac
 
     /**
      * Validate API key and return metadata.
-     *
-     * @param  string  $key
-     * @return array|null
      */
     protected function validateApiKey(string $key): ?array
     {
@@ -374,9 +339,6 @@ class McpRbac
 
     /**
      * Get role for API key service.
-     *
-     * @param  string  $service
-     * @return string
      */
     protected function getRoleForApiKey(string $service): string
     {
@@ -392,14 +354,12 @@ class McpRbac
 
     /**
      * Load RBAC configuration from YAML file.
-     *
-     * @return array
      */
     protected function loadRbacConfig(): array
     {
         $configPath = base_path('config/rbac.yaml');
 
-        if (!file_exists($configPath)) {
+        if (! file_exists($configPath)) {
             return $this->getDefaultConfig();
         }
 
@@ -411,9 +371,6 @@ class McpRbac
 
     /**
      * Parse YAML to array (simple implementation).
-     *
-     * @param  string  $yaml
-     * @return array
      */
     protected function parseYaml(string $yaml): array
     {
@@ -424,8 +381,6 @@ class McpRbac
 
     /**
      * Get default RBAC configuration.
-     *
-     * @return array
      */
     protected function getDefaultConfig(): array
     {

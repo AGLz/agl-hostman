@@ -8,13 +8,15 @@ use App\Models\NotificationChannel;
 use App\Models\NotificationHistory;
 use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class NotificationManager
 {
     protected NotificationRulesEngine $rulesEngine;
+
     protected SlackNotificationService $slack;
+
     protected PagerDutyService $pagerduty;
 
     public function __construct(
@@ -38,12 +40,12 @@ class NotificationManager
         if ($this->shouldSuppress($type, $data)) {
             Log::info('Notification suppressed by noise reduction', [
                 'type' => $type,
-                'data_id' => $data->id ?? null
+                'data_id' => $data->id ?? null,
             ]);
 
             return [
                 'suppressed' => true,
-                'reason' => 'noise_reduction'
+                'reason' => 'noise_reduction',
             ];
         }
 
@@ -51,14 +53,14 @@ class NotificationManager
         if ($this->shouldGroup($type, $data)) {
             Log::info('Notification grouped', [
                 'type' => $type,
-                'data_id' => $data->id ?? null
+                'data_id' => $data->id ?? null,
             ]);
 
             $this->addToGroup($type, $data);
 
             return [
                 'grouped' => true,
-                'group_id' => $this->getGroupId($type, $data)
+                'group_id' => $this->getGroupId($type, $data),
             ];
         }
 
@@ -73,12 +75,12 @@ class NotificationManager
             } catch (\Exception $e) {
                 Log::error('Failed to send notification to channel', [
                     'channel' => $channel->type,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
 
                 $results[$channel->type] = [
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
@@ -118,7 +120,7 @@ class NotificationManager
         return $this->notify('custom', (object) [
             'title' => $title,
             'message' => $message,
-            'metadata' => $metadata
+            'metadata' => $metadata,
         ]);
     }
 
@@ -129,21 +131,21 @@ class NotificationManager
     {
         $service = $this->getServiceForChannel($channel);
 
-        if (!$service) {
+        if (! $service) {
             return [
                 'success' => false,
-                'error' => 'Service not available for channel type: ' . $channel->type
+                'error' => 'Service not available for channel type: '.$channel->type,
             ];
         }
 
-        return match($channel->type) {
+        return match ($channel->type) {
             'slack' => $this->sendToSlack($service, $type, $data, $options),
             'pagerduty' => $this->sendToPagerDuty($service, $type, $data, $options),
             'email' => $this->sendToEmail($type, $data, $options),
             'webhook' => $this->sendToWebhook($channel, $type, $data, $options),
             default => [
                 'success' => false,
-                'error' => 'Unknown channel type: ' . $channel->type
+                'error' => 'Unknown channel type: '.$channel->type,
             ]
         };
     }
@@ -153,7 +155,7 @@ class NotificationManager
      */
     protected function sendToSlack(SlackNotificationService $slack, string $type, mixed $data, array $options): array
     {
-        $success = match($type) {
+        $success = match ($type) {
             'deployment' => $slack->sendDeploymentNotification($data),
             'alert' => $slack->sendAlertNotification($data),
             'pr' => $slack->sendPRNotification($data->pr_action, (array) $data),
@@ -167,7 +169,7 @@ class NotificationManager
 
         return [
             'success' => $success,
-            'channel' => 'slack'
+            'channel' => 'slack',
         ];
     }
 
@@ -181,7 +183,7 @@ class NotificationManager
             return [
                 'success' => false,
                 'skipped' => true,
-                'reason' => 'PagerDuty only supports alert notifications'
+                'reason' => 'PagerDuty only supports alert notifications',
             ];
         }
 
@@ -190,7 +192,7 @@ class NotificationManager
         return [
             'success' => $incident !== null,
             'channel' => 'pagerduty',
-            'incident_id' => $incident['id'] ?? null
+            'incident_id' => $incident['id'] ?? null,
         ];
     }
 
@@ -205,7 +207,7 @@ class NotificationManager
             if (empty($recipients)) {
                 return [
                     'success' => false,
-                    'error' => 'No email recipients specified'
+                    'error' => 'No email recipients specified',
                 ];
             }
 
@@ -218,7 +220,7 @@ class NotificationManager
             if (class_exists(\Illuminate\Support\Facades\Mail::class)) {
 
                 // Determine if this is a critical notification that should use queue
-                $shouldQueue = $options['queue'] ?? !($type === 'alert' && ($data->type ?? 'info') === 'critical');
+                $shouldQueue = $options['queue'] ?? ! ($type === 'alert' && ($data->type ?? 'info') === 'critical');
 
                 if (method_exists(\Illuminate\Support\Facades\Mail::class, 'to')) {
                     if ($shouldQueue && class_exists(\Illuminate\Support\Facades\Queue::class)) {
@@ -228,8 +230,8 @@ class NotificationManager
                                 try {
                                     \Illuminate\Support\Facades\Mail::send($view, $mailData, function ($message) use ($subject, $recipient) {
                                         $message->to($recipient)
-                                                ->subject($subject)
-                                                ->from(config('mail.from.address'), config('mail.from.name'));
+                                            ->subject($subject)
+                                            ->from(config('mail.from.address'), config('mail.from.name'));
                                     });
                                     $job->delete();
                                 } catch (\Exception $e) {
@@ -245,12 +247,13 @@ class NotificationManager
                             try {
                                 \Illuminate\Support\Facades\Mail::send($view, $mailData, function ($message) use ($subject, $recipient) {
                                     $message->to($recipient)
-                                            ->subject($subject)
-                                            ->from(config('mail.from.address'), config('mail.from.name'));
+                                        ->subject($subject)
+                                        ->from(config('mail.from.address'), config('mail.from.name'));
                                 });
                                 $mailSent = true;
                             } catch (\Exception $e) {
                                 Log::error('Failed to send immediate email', ['recipient' => $recipient, 'error' => $e->getMessage()]);
+
                                 continue;
                             }
                         }
@@ -260,7 +263,7 @@ class NotificationManager
                     foreach ($recipients as $recipient) {
                         $headers = "MIME-Version: 1.0\r\n";
                         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-                        $headers .= "From: " . config('mail.from.address') . "\r\n";
+                        $headers .= 'From: '.config('mail.from.address')."\r\n";
 
                         $messageBody = view($view, $mailData)->render();
                         $mailSent = mail($recipient, $subject, $messageBody, $headers);
@@ -271,19 +274,19 @@ class NotificationManager
             return [
                 'success' => $mailSent,
                 'channel' => 'email',
-                'recipients_count' => count($recipients)
+                'recipients_count' => count($recipients),
             ];
 
         } catch (\Exception $e) {
             Log::error('Email notification failed', [
                 'type' => $type,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -295,7 +298,7 @@ class NotificationManager
     {
         $recipients = [];
 
-        $roles = match($type) {
+        $roles = match ($type) {
             'alert' => ['admin'],
             'deployment' => ['admin', 'devops'],
             'pr' => ['admin', 'developer'],
@@ -328,7 +331,7 @@ class NotificationManager
      */
     protected function generateEmailSubject(string $type, mixed $data): string
     {
-        return match($type) {
+        return match ($type) {
             'deployment' => sprintf('[Deployment %s] %s', strtoupper($data->status), $data->project_name ?? 'Unknown'),
             'alert' => sprintf('[%s] %s', strtoupper($data->type ?? 'Alert'), $data->title ?? 'Alert Notification'),
             'pr' => sprintf('[PR %s] %s by %s', strtoupper($data->pr_action ?? 'Updated'), $data->title ?? 'Unknown', $data->author ?? 'Unknown'),
@@ -342,7 +345,7 @@ class NotificationManager
      */
     protected function getEmailView(string $type): string
     {
-        return match($type) {
+        return match ($type) {
             'deployment' => 'emails.default.deployment',
             'alert' => 'emails.default.alert',
             'pr' => 'emails.default.pull-request',
@@ -374,10 +377,10 @@ class NotificationManager
     {
         $webhookUrl = $channel->config['webhook_url'] ?? null;
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             return [
                 'success' => false,
-                'error' => 'Webhook URL not configured'
+                'error' => 'Webhook URL not configured',
             ];
         }
 
@@ -386,7 +389,7 @@ class NotificationManager
                 'type' => $type,
                 'data' => $data,
                 'timestamp' => now()->toIso8601String(),
-                'metadata' => $options['metadata'] ?? []
+                'metadata' => $options['metadata'] ?? [],
             ];
 
             $response = \Illuminate\Support\Facades\Http::timeout(10)
@@ -396,18 +399,18 @@ class NotificationManager
             return [
                 'success' => $response->successful(),
                 'channel' => 'webhook',
-                'status' => $response->status()
+                'status' => $response->status(),
             ];
 
         } catch (\Exception $e) {
             Log::error('Webhook notification failed', [
                 'url' => $webhookUrl,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -417,7 +420,7 @@ class NotificationManager
      */
     protected function getServiceForChannel(NotificationChannel $channel): mixed
     {
-        $service = match($channel->type) {
+        $service = match ($channel->type) {
             'slack' => $this->slack,
             'pagerduty' => $this->pagerduty,
             default => null
@@ -515,7 +518,7 @@ class NotificationManager
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -531,27 +534,27 @@ class NotificationManager
     {
         $query = NotificationHistory::query();
 
-        if (!empty($filters['channel_type'])) {
+        if (! empty($filters['channel_type'])) {
             $query->where('channel_type', $filters['channel_type']);
         }
 
-        if (!empty($filters['notification_type'])) {
+        if (! empty($filters['notification_type'])) {
             $query->where('notification_type', $filters['notification_type']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['source_id'])) {
+        if (! empty($filters['source_id'])) {
             $query->where('source_id', $filters['source_id']);
         }
 
-        if (!empty($filters['from_date'])) {
+        if (! empty($filters['from_date'])) {
             $query->where('created_at', '>=', $filters['from_date']);
         }
 
-        if (!empty($filters['to_date'])) {
+        if (! empty($filters['to_date'])) {
             $query->where('created_at', '<=', $filters['to_date']);
         }
 
@@ -565,7 +568,7 @@ class NotificationManager
      */
     public function getStatistics(string $period = '24h'): array
     {
-        $since = match($period) {
+        $since = match ($period) {
             '1h' => now()->subHour(),
             '24h' => now()->subDay(),
             '7d' => now()->subWeek(),
@@ -595,8 +598,8 @@ class NotificationManager
     protected function calculateAverageDeliveryTime(Collection $history): ?float
     {
         $deliveryTimes = $history
-            ->filter(fn($item) => $item->sent_at && $item->created_at)
-            ->map(fn($item) => $item->created_at->diffInSeconds($item->sent_at));
+            ->filter(fn ($item) => $item->sent_at && $item->created_at)
+            ->map(fn ($item) => $item->created_at->diffInSeconds($item->sent_at));
 
         if ($deliveryTimes->isEmpty()) {
             return null;
@@ -615,7 +618,7 @@ class NotificationManager
 
         return [
             'success' => true,
-            'groups_flushed' => 0
+            'groups_flushed' => 0,
         ];
     }
 }

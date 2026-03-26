@@ -14,12 +14,11 @@ use Tests\TestCase;
  * Cache API Response Middleware Test
  *
  * Tests for the CacheApiResponse middleware.
- *
- * @package Tests\Unit\Middleware
  */
 class CacheApiResponseMiddlewareTest extends TestCase
 {
     private CacheApiResponse $middleware;
+
     private RedisCacheStrategy $cacheStrategy;
 
     protected function setUp(): void
@@ -36,7 +35,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
     public function test_non_get_requests_pass_through(): void
     {
         $request = Request::create('/api/test', 'POST');
-        $response = $this->middleware->handle($request, fn($req) => response('success'));
+        $response = $this->middleware->handle($request, fn ($req) => response('success'));
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertFalse($response->headers->has('X-Cache'));
@@ -49,7 +48,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
     {
         $request = Request::create('/api/auth/login', 'GET');
 
-        $response = $this->middleware->handle($request, fn($req) => response('success'));
+        $response = $this->middleware->handle($request, fn ($req) => response('success'));
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertFalse($response->headers->has('X-Cache'));
@@ -62,7 +61,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
     {
         $request = Request::create('/api/webhooks/n8n', 'GET');
 
-        $response = $this->middleware->handle($request, fn($req) => response('success'));
+        $response = $this->middleware->handle($request, fn ($req) => response('success'));
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertFalse($response->headers->has('X-Cache'));
@@ -75,7 +74,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
     {
         $request = Request::create('/api/containers/logs', 'GET');
 
-        $response = $this->middleware->handle($request, fn($req) => response('success'));
+        $response = $this->middleware->handle($request, fn ($req) => response('success'));
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertFalse($response->hasHeader('X-Cache'));
@@ -100,7 +99,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
                 1800
             );
 
-        $response = $this->middleware->handle($request, fn($req) => response('success', 200));
+        $response = $this->middleware->handle($request, fn ($req) => response('success', 200));
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('success', $response->getContent());
@@ -120,7 +119,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
         Cache::shouldReceive('put')
             ->never();
 
-        $response = $this->middleware->handle($request, fn($req) => response('error', 500));
+        $response = $this->middleware->handle($request, fn ($req) => response('error', 500));
 
         $this->assertEquals(500, $response->getStatusCode());
         $this->assertFalse($response->headers->has('X-Cache'));
@@ -147,7 +146,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
         Cache::shouldReceive('put')
             ->never();
 
-        $response = $this->middleware->handle($request, fn($req) => response('fresh'));
+        $response = $this->middleware->handle($request, fn ($req) => response('fresh'));
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('cached content', $response->getContent());
@@ -177,7 +176,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
     public function test_cache_key_includes_user_id(): void
     {
         $request = Request::create('/api/containers', 'GET');
-        $request->setUserResolver(fn() => (object) ['id' => 123]);
+        $request->setUserResolver(fn () => (object) ['id' => 123]);
 
         $reflection = new \ReflectionClass($this->middleware);
         $method = $reflection->getMethod('generateCacheKey');
@@ -288,7 +287,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
 
         $response = $this->middleware->handle(
             $request,
-            fn($req) => response('success')->header('Cache-Control', 'max-age=60')
+            fn ($req) => response('success')->header('Cache-Control', 'max-age=60')
         );
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -309,11 +308,11 @@ class CacheApiResponseMiddlewareTest extends TestCase
             ->never();
 
         // Test 404
-        $response = $this->middleware->handle($request, fn($req) => response('not found', 404));
+        $response = $this->middleware->handle($request, fn ($req) => response('not found', 404));
         $this->assertEquals(404, $response->getStatusCode());
 
         // Test 301 redirect
-        $response = $this->middleware->handle($request, fn($req) => response('redirect', 301));
+        $response = $this->middleware->handle($request, fn ($req) => response('redirect', 301));
         $this->assertEquals(301, $response->getStatusCode());
     }
 
@@ -335,7 +334,7 @@ class CacheApiResponseMiddlewareTest extends TestCase
             ->once()
             ->andReturn($cachedData);
 
-        $response = $this->middleware->handle($request, fn($req) => response('fresh'));
+        $response = $this->middleware->handle($request, fn ($req) => response('fresh'));
 
         $this->assertEquals('HIT', $response->headers->get('X-Cache'));
     }

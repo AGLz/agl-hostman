@@ -23,7 +23,7 @@ class PerformanceMonitoringService
      */
     public function recordResponseTime(string $endpoint, float $timeMs, string $method = 'GET'): void
     {
-        $key = $this->prefix . 'response_time:' . $endpoint . ':' . $method;
+        $key = $this->prefix.'response_time:'.$endpoint.':'.$method;
 
         // Store in Redis sorted set for time-series analysis
         Redis::zadd($key, now()->timestamp, $timeMs);
@@ -43,7 +43,7 @@ class PerformanceMonitoringService
             ]);
 
             // Increment SLA violation counter
-            Redis::incr($this->prefix . 'sla_violations:' . $endpoint);
+            Redis::incr($this->prefix.'sla_violations:'.$endpoint);
         }
 
         // Update histogram for P50, P95, P99 calculation
@@ -55,7 +55,7 @@ class PerformanceMonitoringService
      */
     public function recordQueryCount(string $endpoint, int $count): void
     {
-        $key = $this->prefix . 'queries:' . $endpoint;
+        $key = $this->prefix.'queries:'.$endpoint;
 
         Redis::incrby($key, $count);
         Redis::expire($key, 3600); // 1 hour
@@ -77,7 +77,7 @@ class PerformanceMonitoringService
      */
     public function recordMemoryUsage(string $endpoint, float $memoryMb): void
     {
-        $key = $this->prefix . 'memory:' . $endpoint;
+        $key = $this->prefix.'memory:'.$endpoint;
 
         Redis::zadd($key, now()->timestamp, $memoryMb);
         Redis::expire($key, 3600);
@@ -88,7 +88,7 @@ class PerformanceMonitoringService
      */
     public function recordCacheHit(string $key, bool $hit): void
     {
-        $counterKey = $this->prefix . 'cache:' . ($hit ? 'hits' : 'misses');
+        $counterKey = $this->prefix.'cache:'.($hit ? 'hits' : 'misses');
 
         Redis::incr($counterKey);
         Redis::expire($counterKey, 3600);
@@ -99,9 +99,9 @@ class PerformanceMonitoringService
      */
     public function getEndpointMetrics(string $endpoint, string $method = 'GET'): array
     {
-        $responseTimeKey = $this->prefix . 'response_time:' . $endpoint . ':' . $method;
-        $queryKey = $this->prefix . 'queries:' . $endpoint;
-        $memoryKey = $this->prefix . 'memory:' . $endpoint;
+        $responseTimeKey = $this->prefix.'response_time:'.$endpoint.':'.$method;
+        $queryKey = $this->prefix.'queries:'.$endpoint;
+        $memoryKey = $this->prefix.'memory:'.$endpoint;
 
         return [
             'endpoint' => $endpoint,
@@ -109,7 +109,7 @@ class PerformanceMonitoringService
             'response_times' => $this->getResponseTimePercentiles($responseTimeKey),
             'query_count' => Redis::get($queryKey) ?? 0,
             'memory_usage_mb' => $this->getAverageMemory($memoryKey),
-            'sla_violations' => Redis::get($this->prefix . 'sla_violations:' . $endpoint) ?? 0,
+            'sla_violations' => Redis::get($this->prefix.'sla_violations:'.$endpoint) ?? 0,
         ];
     }
 
@@ -139,8 +139,8 @@ class PerformanceMonitoringService
      */
     protected function getSummaryMetrics(): array
     {
-        $hits = (int)Redis::get($this->prefix . 'cache:hits') ?? 0;
-        $misses = (int)Redis::get($this->prefix . 'cache:misses') ?? 0;
+        $hits = (int) Redis::get($this->prefix.'cache:hits') ?? 0;
+        $misses = (int) Redis::get($this->prefix.'cache:misses') ?? 0;
         $total = $hits + $misses;
 
         return [
@@ -175,8 +175,8 @@ class PerformanceMonitoringService
             $slowQueries = DB::select("SHOW STATUS LIKE 'Slow_queries'")[0]->Value ?? 0;
 
             return [
-                'active_connections' => (int)$connectionCount,
-                'slow_queries' => (int)$slowQueries,
+                'active_connections' => (int) $connectionCount,
+                'slow_queries' => (int) $slowQueries,
             ];
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
@@ -188,7 +188,7 @@ class PerformanceMonitoringService
      */
     protected function getTrackedEndpoints(): array
     {
-        $keys = Redis::keys($this->prefix . 'response_time:*');
+        $keys = Redis::keys($this->prefix.'response_time:*');
         $endpoints = [];
 
         foreach ($keys as $key) {
@@ -221,9 +221,9 @@ class PerformanceMonitoringService
         $count = count($values);
 
         return [
-            'p50' => $values[(int)($count * 0.5)] ?? 0,
-            'p95' => $values[(int)($count * 0.95)] ?? 0,
-            'p99' => $values[(int)($count * 0.99)] ?? 0,
+            'p50' => $values[(int) ($count * 0.5)] ?? 0,
+            'p95' => $values[(int) ($count * 0.95)] ?? 0,
+            'p99' => $values[(int) ($count * 0.99)] ?? 0,
             'avg' => array_sum($values) / $count,
             'min' => min($values),
             'max' => max($values),
@@ -252,10 +252,10 @@ class PerformanceMonitoringService
     protected function updateHistogram(string $endpoint, string $method, float $timeMs): void
     {
         // Store in buckets for efficient percentile calculation
-        $bucket = (int)floor($timeMs / 10) * 10; // 10ms buckets
-        $key = $this->prefix . 'histogram:' . $endpoint . ':' . $method;
+        $bucket = (int) floor($timeMs / 10) * 10; // 10ms buckets
+        $key = $this->prefix.'histogram:'.$endpoint.':'.$method;
 
-        Redis::hincrby($key, (string)$bucket, 1);
+        Redis::hincrby($key, (string) $bucket, 1);
         Redis::expire($key, 86400);
     }
 
@@ -264,7 +264,7 @@ class PerformanceMonitoringService
      */
     public function clearOldData(int $hours = 24): void
     {
-        $keys = Redis::keys($this->prefix . '*');
+        $keys = Redis::keys($this->prefix.'*');
 
         foreach ($keys as $key) {
             $ttl = Redis::ttl($key);
@@ -328,7 +328,7 @@ class PerformanceMonitoringService
                 'type' => 'caching',
                 'priority' => 'high',
                 'message' => 'Cache hit rate is below 70%. Consider increasing cache TTL or implementing caching for more endpoints.',
-                'current_value' => $metrics['summary']['cache_hit_rate'] . '%',
+                'current_value' => $metrics['summary']['cache_hit_rate'].'%',
             ];
         }
 

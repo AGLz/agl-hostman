@@ -45,16 +45,16 @@ class PerformanceMiddleware
         $metrics = $this->profiler->stop();
 
         // Add performance headers
-        if (!empty($metrics)) {
-            $response->headers->set('X-Response-Time', ($metrics['duration_ms'] ?? 0) . 'ms');
-            $response->headers->set('X-Memory-Usage', ($metrics['memory_mb'] ?? 0) . 'MB');
-            $response->headers->set('X-Query-Count', (string)($metrics['query_count'] ?? 0));
+        if (! empty($metrics)) {
+            $response->headers->set('X-Response-Time', ($metrics['duration_ms'] ?? 0).'ms');
+            $response->headers->set('X-Memory-Usage', ($metrics['memory_mb'] ?? 0).'MB');
+            $response->headers->set('X-Query-Count', (string) ($metrics['query_count'] ?? 0));
             $response->headers->set('X-Request-ID', $metrics['request_id'] ?? uniqid());
         }
 
         // Check for N+1 problems
         $nPlusOneWarnings = $this->profiler->detectNPlusOne();
-        if (!empty($nPlusOneWarnings)) {
+        if (! empty($nPlusOneWarnings)) {
             Log::warning('Performance: N+1 query problems detected', [
                 'request_id' => $metrics['request_id'] ?? null,
                 'path' => $request->path(),
@@ -85,7 +85,7 @@ class PerformanceMiddleware
         }
 
         // Skip if profiler is disabled
-        if (!$this->profiler->isEnabled()) {
+        if (! $this->profiler->isEnabled()) {
             return true;
         }
 

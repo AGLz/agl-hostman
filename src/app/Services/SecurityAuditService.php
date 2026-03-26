@@ -15,8 +15,6 @@ use Illuminate\Support\Str;
  *
  * Performs comprehensive security audits including vulnerability scans,
  * dependency checks, and security compliance verification.
- *
- * @package App\Services
  */
 class SecurityAuditService
 {
@@ -32,8 +30,6 @@ class SecurityAuditService
 
     /**
      * Run complete security audit
-     *
-     * @return array
      */
     public function runFullAudit(): array
     {
@@ -73,8 +69,6 @@ class SecurityAuditService
 
     /**
      * Check for dependency vulnerabilities
-     *
-     * @return array
      */
     public function checkDependencyVulnerabilities(): array
     {
@@ -90,7 +84,7 @@ class SecurityAuditService
         $composerAudit = $this->runComposerAudit();
         $result['details']['composer'] = $composerAudit;
 
-        if (!$composerAudit['pass']) {
+        if (! $composerAudit['pass']) {
             $result['status'] = 'fail';
             foreach ($composerAudit['vulnerabilities'] as $vuln) {
                 $this->addFinding('critical', 'Dependency Vulnerability', $vuln['message']);
@@ -102,7 +96,7 @@ class SecurityAuditService
         $npmAudit = $this->runNpmAudit();
         $result['details']['npm'] = $npmAudit;
 
-        if (!$npmAudit['pass']) {
+        if (! $npmAudit['pass']) {
             $result['status'] = 'fail';
             foreach ($npmAudit['vulnerabilities'] as $vuln) {
                 $severity = $vuln['severity'] === 'critical' ? 'critical' : 'high';
@@ -116,8 +110,6 @@ class SecurityAuditService
 
     /**
      * Run composer audit
-     *
-     * @return array
      */
     private function runComposerAudit(): array
     {
@@ -148,7 +140,7 @@ class SecurityAuditService
 
             return [
                 'pass' => false,
-                'message' => 'Composer audit failed: ' . $e->getMessage(),
+                'message' => 'Composer audit failed: '.$e->getMessage(),
                 'vulnerabilities' => [],
             ];
         }
@@ -156,9 +148,6 @@ class SecurityAuditService
 
     /**
      * Parse composer audit output
-     *
-     * @param string $output
-     * @return array
      */
     private function parseComposerAuditOutput(string $output): array
     {
@@ -179,19 +168,17 @@ class SecurityAuditService
 
     /**
      * Run npm audit
-     *
-     * @return array
      */
     private function runNpmAudit(): array
     {
         try {
             $process = Process::timeout(120)->run('npm audit --json');
 
-            if (!$process->successful()) {
+            if (! $process->successful()) {
                 $output = $process->output();
                 $data = json_decode($output, true);
 
-                if (!$data) {
+                if (! $data) {
                     return [
                         'pass' => false,
                         'message' => 'Failed to parse npm audit output',
@@ -239,7 +226,7 @@ class SecurityAuditService
 
             return [
                 'pass' => false,
-                'message' => 'NPM audit failed: ' . $e->getMessage(),
+                'message' => 'NPM audit failed: '.$e->getMessage(),
                 'vulnerabilities' => [],
             ];
         }
@@ -247,8 +234,6 @@ class SecurityAuditService
 
     /**
      * Audit code security
-     *
-     * @return array
      */
     public function auditCodeSecurity(): array
     {
@@ -290,8 +275,6 @@ class SecurityAuditService
 
     /**
      * Check for hardcoded secrets
-     *
-     * @return array
      */
     private function checkHardcodedSecrets(): array
     {
@@ -336,8 +319,6 @@ class SecurityAuditService
 
     /**
      * Check for SQL injection risks
-     *
-     * @return array
      */
     private function checkSqlInjectionRisks(): array
     {
@@ -370,8 +351,6 @@ class SecurityAuditService
 
     /**
      * Check for XSS vulnerabilities
-     *
-     * @return array
      */
     private function checkXssVulnerabilities(): array
     {
@@ -409,8 +388,6 @@ class SecurityAuditService
 
     /**
      * Check file handling security
-     *
-     * @return array
      */
     private function checkFileHandlingSecurity(): array
     {
@@ -450,8 +427,6 @@ class SecurityAuditService
 
     /**
      * Check for insecure configurations
-     *
-     * @return array
      */
     private function checkInsecureConfigurations(): array
     {
@@ -494,8 +469,6 @@ class SecurityAuditService
 
     /**
      * Audit authentication security
-     *
-     * @return array
      */
     public function auditAuthenticationSecurity(): array
     {
@@ -534,8 +507,6 @@ class SecurityAuditService
 
     /**
      * Check password policy
-     *
-     * @return array
      */
     private function checkPasswordPolicy(): array
     {
@@ -556,7 +527,7 @@ class SecurityAuditService
             }
         }
 
-        if (!$hasStrongPassword) {
+        if (! $hasStrongPassword) {
             $result['status'] = 'fail';
             $result['findings'][] = [
                 'severity' => 'medium',
@@ -570,8 +541,6 @@ class SecurityAuditService
 
     /**
      * Check session configuration
-     *
-     * @return array
      */
     private function checkSessionConfiguration(): array
     {
@@ -583,7 +552,7 @@ class SecurityAuditService
         $lifetime = config('session.lifetime');
         $expireOnClose = config('session.expire_on_close');
 
-        if ($lifetime > 120 && !$expireOnClose) {
+        if ($lifetime > 120 && ! $expireOnClose) {
             $result['findings'][] = [
                 'severity' => 'medium',
                 'message' => "Session lifetime is {$lifetime} minutes - consider reducing to 120 minutes",
@@ -623,8 +592,6 @@ class SecurityAuditService
 
     /**
      * Check 2FA availability
-     *
-     * @return array
      */
     private function checkTwoFactorAvailability(): array
     {
@@ -644,7 +611,7 @@ class SecurityAuditService
             }
         }
 
-        if (!$hasTwoFactor) {
+        if (! $hasTwoFactor) {
             $result['findings'][] = [
                 'severity' => 'medium',
                 'message' => 'Two-factor authentication not implemented for sensitive operations',
@@ -657,8 +624,6 @@ class SecurityAuditService
 
     /**
      * Check auth rate limiting
-     *
-     * @return array
      */
     private function checkAuthRateLimiting(): array
     {
@@ -672,7 +637,7 @@ class SecurityAuditService
         if (file_exists($routesFile)) {
             $content = file_get_contents($routesFile);
 
-            if (!str_contains($content, 'throttle:auth')) {
+            if (! str_contains($content, 'throttle:auth')) {
                 $result['status'] = 'fail';
                 $result['findings'][] = [
                     'severity' => 'high',
@@ -687,8 +652,6 @@ class SecurityAuditService
 
     /**
      * Audit authorization security
-     *
-     * @return array
      */
     public function auditAuthorizationSecurity(): array
     {
@@ -724,8 +687,6 @@ class SecurityAuditService
 
     /**
      * Check RBAC implementation
-     *
-     * @return array
      */
     private function checkRBACImplementation(): array
     {
@@ -735,13 +696,14 @@ class SecurityAuditService
         ];
 
         // Check if Spatie Permission is installed
-        if (!class_exists(\Spatie\Permission\PermissionServiceProvider::class)) {
+        if (! class_exists(\Spatie\Permission\PermissionServiceProvider::class)) {
             $result['status'] = 'fail';
             $result['findings'][] = [
                 'severity' => 'high',
                 'message' => 'Spatie Permission not installed - no RBAC implementation',
             ];
             $this->addFinding('high', 'RBAC', 'Install and configure Spatie Permission');
+
             return $result;
         }
 
@@ -761,8 +723,6 @@ class SecurityAuditService
 
     /**
      * Check policy usage
-     *
-     * @return array
      */
     private function checkPolicyUsage(): array
     {
@@ -787,8 +747,6 @@ class SecurityAuditService
 
     /**
      * Check middleware protection
-     *
-     * @return array
      */
     private function checkMiddlewareProtection(): array
     {
@@ -805,7 +763,7 @@ class SecurityAuditService
             // Look for unprotected routes
             $hasAuthMiddleware = str_contains($content, 'auth:api') || str_contains($content, 'auth:sanctum');
 
-            if (!$hasAuthMiddleware) {
+            if (! $hasAuthMiddleware) {
                 $result['status'] = 'fail';
                 $result['findings'][] = [
                     'severity' => 'critical',
@@ -820,8 +778,6 @@ class SecurityAuditService
 
     /**
      * Audit data protection
-     *
-     * @return array
      */
     public function auditDataProtection(): array
     {
@@ -857,8 +813,6 @@ class SecurityAuditService
 
     /**
      * Check encryption at rest
-     *
-     * @return array
      */
     private function checkEncryptionAtRest(): array
     {
@@ -870,9 +824,9 @@ class SecurityAuditService
         // Check database encryption
         if (config('database.default') === 'mysql' || config('database.default') === 'pgsql') {
             // Check for SSL requirements
-            $sslEnabled = config('database.connections.' . config('database.default') . '.options.' . PDO::MYSQL_ATTR_SSL_CA);
+            $sslEnabled = config('database.connections.'.config('database.default').'.options.'.PDO::MYSQL_ATTR_SSL_CA);
 
-            if (!$sslEnabled && config('app.env') === 'production') {
+            if (! $sslEnabled && config('app.env') === 'production') {
                 $result['findings'][] = [
                     'severity' => 'medium',
                     'message' => 'Database SSL not enabled - data not encrypted in transit',
@@ -886,8 +840,6 @@ class SecurityAuditService
 
     /**
      * Check TLS configuration
-     *
-     * @return array
      */
     private function checkTLSConfiguration(): array
     {
@@ -898,7 +850,7 @@ class SecurityAuditService
 
         // Check if URL is forced to HTTPS
         if (config('app.env') === 'production') {
-            if (!str_starts_with(config('app.url'), 'https://')) {
+            if (! str_starts_with(config('app.url'), 'https://')) {
                 $result['status'] = 'fail';
                 $result['findings'][] = [
                     'severity' => 'critical',
@@ -913,8 +865,6 @@ class SecurityAuditService
 
     /**
      * Check logging security
-     *
-     * @return array
      */
     private function checkLoggingSecurity(): array
     {
@@ -954,8 +904,6 @@ class SecurityAuditService
 
     /**
      * Audit API security
-     *
-     * @return array
      */
     public function auditApiSecurity(): array
     {
@@ -994,8 +942,6 @@ class SecurityAuditService
 
     /**
      * Check API rate limiting
-     *
-     * @return array
      */
     private function checkAPIRateLimiting(): array
     {
@@ -1009,7 +955,7 @@ class SecurityAuditService
         if (file_exists($appFile)) {
             $content = file_get_contents($appFile);
 
-            if (!str_contains($content, 'RateLimiting')) {
+            if (! str_contains($content, 'RateLimiting')) {
                 $result['status'] = 'fail';
                 $result['findings'][] = [
                     'severity' => 'high',
@@ -1024,8 +970,6 @@ class SecurityAuditService
 
     /**
      * Check API authentication
-     *
-     * @return array
      */
     private function checkAPIAuthentication(): array
     {
@@ -1039,7 +983,7 @@ class SecurityAuditService
         if (file_exists($apiRoutesFile)) {
             $content = file_get_contents($apiRoutesFile);
 
-            if (!str_contains($content, 'auth:api') && !str_contains($content, 'auth:sanctum')) {
+            if (! str_contains($content, 'auth:api') && ! str_contains($content, 'auth:sanctum')) {
                 $result['status'] = 'fail';
                 $result['findings'][] = [
                     'severity' => 'critical',
@@ -1054,8 +998,6 @@ class SecurityAuditService
 
     /**
      * Check API validation
-     *
-     * @return array
      */
     private function checkAPIValidation(): array
     {
@@ -1081,8 +1023,6 @@ class SecurityAuditService
 
     /**
      * Check CORS configuration
-     *
-     * @return array
      */
     private function checkCORSConfiguration(): array
     {
@@ -1115,8 +1055,6 @@ class SecurityAuditService
 
     /**
      * Audit configuration security
-     *
-     * @return array
      */
     public function auditConfigurationSecurity(): array
     {
@@ -1149,8 +1087,6 @@ class SecurityAuditService
 
     /**
      * Check environment variables
-     *
-     * @return array
      */
     private function checkEnvironmentVariables(): array
     {
@@ -1183,8 +1119,6 @@ class SecurityAuditService
 
     /**
      * Check sensitive configs
-     *
-     * @return array
      */
     private function checkSensitiveConfigs(): array
     {
@@ -1201,10 +1135,10 @@ class SecurityAuditService
         ];
 
         foreach ($sensitiveFiles as $file) {
-            if (file_exists(base_path($file . '.git')) || file_exists(base_path($file))) {
+            if (file_exists(base_path($file.'.git')) || file_exists(base_path($file))) {
                 // Check gitignore
                 $gitignore = file_get_contents(base_path('.gitignore'));
-                if (!str_contains($gitignore, $file)) {
+                if (! str_contains($gitignore, $file)) {
                     $result['findings'][] = [
                         'severity' => 'high',
                         'message' => "Sensitive file {$file} not in .gitignore",
@@ -1219,8 +1153,6 @@ class SecurityAuditService
 
     /**
      * Audit logging security
-     *
-     * @return array
      */
     public function auditLoggingSecurity(): array
     {
@@ -1253,8 +1185,6 @@ class SecurityAuditService
 
     /**
      * Check log channels
-     *
-     * @return array
      */
     private function checkLogChannels(): array
     {
@@ -1278,8 +1208,6 @@ class SecurityAuditService
 
     /**
      * Check audit logging
-     *
-     * @return array
      */
     private function checkAuditLogging(): array
     {
@@ -1291,7 +1219,7 @@ class SecurityAuditService
         // Check if audit log table exists
         $hasAuditLog = Schema::hasTable('audit_logs');
 
-        if (!$hasAuditLog) {
+        if (! $hasAuditLog) {
             $result['findings'][] = [
                 'severity' => 'medium',
                 'message' => 'Audit logging not implemented',
@@ -1304,11 +1232,6 @@ class SecurityAuditService
 
     /**
      * Add finding
-     *
-     * @param string $severity
-     * @param string $category
-     * @param string $message
-     * @return void
      */
     private function addFinding(string $severity, string $category, string $message): void
     {
@@ -1324,8 +1247,6 @@ class SecurityAuditService
 
     /**
      * Calculate summary
-     *
-     * @return array
      */
     private function calculateSummary(): array
     {
@@ -1371,14 +1292,11 @@ class SecurityAuditService
 
     /**
      * Save audit report
-     *
-     * @param array $results
-     * @return void
      */
     private function saveAuditReport(array $results): void
     {
-        $filename = 'security-audit-' . now()->format('Y-m-d-His') . '.json';
-        $path = 'security-audits/' . $filename;
+        $filename = 'security-audit-'.now()->format('Y-m-d-His').'.json';
+        $path = 'security-audits/'.$filename;
 
         Storage::disk('local')->put($path, json_encode($results, JSON_PRETTY_PRINT));
 
@@ -1387,16 +1305,13 @@ class SecurityAuditService
 
     /**
      * Get PHP files from directory
-     *
-     * @param string $directory
-     * @return array
      */
     private function getPhpFiles(string $directory): array
     {
         $files = [];
         $dir = base_path($directory);
 
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return $files;
         }
 

@@ -33,7 +33,7 @@ return new class extends Migration
                 'migrating',
                 'completing',
                 'completed',
-                'failed'
+                'failed',
             ])->default('pending')
                 ->comment('Migration status');
 

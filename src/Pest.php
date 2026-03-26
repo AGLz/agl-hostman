@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -98,7 +98,7 @@ function createTestUser(array $attributes = [], array $roles = []): \App\Models\
 {
     $user = \App\Models\User::factory()->create($attributes);
 
-    if (!empty($roles)) {
+    if (! empty($roles)) {
         foreach ($roles as $role) {
             $user->assignRole($role);
         }
@@ -110,7 +110,7 @@ function createTestUser(array $attributes = [], array $roles = []): \App\Models\
 /**
  * Create authenticated user and return bearer token
  */
-function authenticateUser(\App\Models\User $user = null): string
+function authenticateUser(?\App\Models\User $user = null): string
 {
     $user = $user ?? \App\Models\User::factory()->create();
 
@@ -161,7 +161,7 @@ function n8nWebhookPayload(array $data = []): array
 /**
  * Assert that a job was dispatched with specific data
  */
-function assertJobDispatched(string $jobClass, callable $callback = null): void
+function assertJobDispatched(string $jobClass, ?callable $callback = null): void
 {
     \Illuminate\Support\Facades\Queue::assertPushed($jobClass, $callback);
 }

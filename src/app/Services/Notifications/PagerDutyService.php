@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 class PagerDutyService
 {
     protected array $config;
+
     protected ?NotificationChannel $channel = null;
 
     public function __construct()
@@ -24,6 +25,7 @@ class PagerDutyService
     public function setChannel(NotificationChannel $channel): self
     {
         $this->channel = $channel;
+
         return $this;
     }
 
@@ -32,7 +34,7 @@ class PagerDutyService
      */
     public function createIncident(Alert $alert): ?array
     {
-        $severity = match($alert->type) {
+        $severity = match ($alert->type) {
             'critical' => 'critical',
             'warning' => 'warning',
             'info' => 'info',
@@ -47,15 +49,15 @@ class PagerDutyService
                 'title' => $alert->title,
                 'service' => [
                     'id' => $this->getServiceId(),
-                    'type' => 'service_reference'
+                    'type' => 'service_reference',
                 ],
                 'urgency' => $urgency,
                 'body' => [
                     'type' => 'incident_body',
-                    'details' => $this->formatIncidentDetails($alert)
+                    'details' => $this->formatIncidentDetails($alert),
                 ],
                 'incident_key' => "alert-{$alert->id}",
-            ]
+            ],
         ];
 
         // Add escalation policy if configured
@@ -63,7 +65,7 @@ class PagerDutyService
         if ($escalationPolicyId) {
             $payload['incident']['escalation_policy'] = [
                 'id' => $escalationPolicyId,
-                'type' => 'escalation_policy_reference'
+                'type' => 'escalation_policy_reference',
             ];
         }
 
@@ -72,10 +74,10 @@ class PagerDutyService
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Token token=' . $this->getApiKey(),
+                    'Authorization' => 'Token token='.$this->getApiKey(),
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/vnd.pagerduty+json;version=2',
-                    'From' => $this->config['from_email'] ?? 'alerts@aglz.io'
+                    'From' => $this->config['from_email'] ?? 'alerts@aglz.io',
                 ])
                 ->retry(3, 1000)
                 ->post($this->getApiUrl('/incidents'), $payload);
@@ -88,15 +90,15 @@ class PagerDutyService
                     'metadata' => array_merge($alert->metadata ?? [], [
                         'pagerduty_incident_id' => $incident['id'],
                         'pagerduty_incident_number' => $incident['incident_number'],
-                        'pagerduty_html_url' => $incident['html_url']
-                    ])
+                        'pagerduty_html_url' => $incident['html_url'],
+                    ]),
                 ]);
 
                 $this->updateHistory($historyId, true, $response->json());
 
                 Log::info('PagerDuty incident created', [
                     'alert_id' => $alert->id,
-                    'incident_id' => $incident['id']
+                    'incident_id' => $incident['id'],
                 ]);
 
                 return $incident;
@@ -106,7 +108,7 @@ class PagerDutyService
 
             Log::error('Failed to create PagerDuty incident', [
                 'status' => $response->status(),
-                'response' => $response->json()
+                'response' => $response->json(),
             ]);
 
             return null;
@@ -116,7 +118,7 @@ class PagerDutyService
 
             Log::error('PagerDuty incident creation exception', [
                 'error' => $e->getMessage(),
-                'alert_id' => $alert->id
+                'alert_id' => $alert->id,
             ]);
 
             return null;
@@ -130,8 +132,9 @@ class PagerDutyService
     {
         $incidentId = $alert->metadata['pagerduty_incident_id'] ?? null;
 
-        if (!$incidentId) {
+        if (! $incidentId) {
             Log::warning('No PagerDuty incident ID found for alert', ['alert_id' => $alert->id]);
+
             return false;
         }
 
@@ -140,27 +143,27 @@ class PagerDutyService
                 [
                     'id' => $incidentId,
                     'type' => 'incident_reference',
-                    'status' => 'acknowledged'
-                ]
-            ]
+                    'status' => 'acknowledged',
+                ],
+            ],
         ];
 
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Token token=' . $this->getApiKey(),
+                    'Authorization' => 'Token token='.$this->getApiKey(),
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/vnd.pagerduty+json;version=2',
-                    'From' => $userId
+                    'From' => $userId,
                 ])
                 ->put($this->getApiUrl('/incidents'), $payload);
 
             $success = $response->successful();
 
-            if (!$success) {
+            if (! $success) {
                 Log::error('Failed to acknowledge PagerDuty incident', [
                     'status' => $response->status(),
-                    'response' => $response->json()
+                    'response' => $response->json(),
                 ]);
             }
 
@@ -169,7 +172,7 @@ class PagerDutyService
         } catch (\Exception $e) {
             Log::error('PagerDuty acknowledgment exception', [
                 'error' => $e->getMessage(),
-                'incident_id' => $incidentId
+                'incident_id' => $incidentId,
             ]);
 
             return false;
@@ -183,8 +186,9 @@ class PagerDutyService
     {
         $incidentId = $alert->metadata['pagerduty_incident_id'] ?? null;
 
-        if (!$incidentId) {
+        if (! $incidentId) {
             Log::warning('No PagerDuty incident ID found for alert', ['alert_id' => $alert->id]);
+
             return false;
         }
 
@@ -193,27 +197,27 @@ class PagerDutyService
                 [
                     'id' => $incidentId,
                     'type' => 'incident_reference',
-                    'status' => 'resolved'
-                ]
-            ]
+                    'status' => 'resolved',
+                ],
+            ],
         ];
 
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Token token=' . $this->getApiKey(),
+                    'Authorization' => 'Token token='.$this->getApiKey(),
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/vnd.pagerduty+json;version=2',
-                    'From' => $userId
+                    'From' => $userId,
                 ])
                 ->put($this->getApiUrl('/incidents'), $payload);
 
             $success = $response->successful();
 
-            if (!$success) {
+            if (! $success) {
                 Log::error('Failed to resolve PagerDuty incident', [
                     'status' => $response->status(),
-                    'response' => $response->json()
+                    'response' => $response->json(),
                 ]);
             }
 
@@ -222,7 +226,7 @@ class PagerDutyService
         } catch (\Exception $e) {
             Log::error('PagerDuty resolution exception', [
                 'error' => $e->getMessage(),
-                'incident_id' => $incidentId
+                'incident_id' => $incidentId,
             ]);
 
             return false;
@@ -237,8 +241,8 @@ class PagerDutyService
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Token token=' . $this->getApiKey(),
-                    'Accept' => 'application/vnd.pagerduty+json;version=2'
+                    'Authorization' => 'Token token='.$this->getApiKey(),
+                    'Accept' => 'application/vnd.pagerduty+json;version=2',
                 ])
                 ->get($this->getApiUrl("/incidents/{$incidentId}"));
 
@@ -248,7 +252,7 @@ class PagerDutyService
 
             Log::error('Failed to get PagerDuty incident', [
                 'status' => $response->status(),
-                'incident_id' => $incidentId
+                'incident_id' => $incidentId,
             ]);
 
             return null;
@@ -256,7 +260,7 @@ class PagerDutyService
         } catch (\Exception $e) {
             Log::error('PagerDuty get incident exception', [
                 'error' => $e->getMessage(),
-                'incident_id' => $incidentId
+                'incident_id' => $incidentId,
             ]);
 
             return null;
@@ -270,18 +274,18 @@ class PagerDutyService
     {
         $policyId = $escalationPolicyId ?? $this->getEscalationPolicyId();
 
-        if (!$policyId) {
+        if (! $policyId) {
             return [];
         }
 
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Token token=' . $this->getApiKey(),
-                    'Accept' => 'application/vnd.pagerduty+json;version=2'
+                    'Authorization' => 'Token token='.$this->getApiKey(),
+                    'Accept' => 'application/vnd.pagerduty+json;version=2',
                 ])
                 ->get($this->getApiUrl('/oncalls'), [
-                    'escalation_policy_ids[]' => $policyId
+                    'escalation_policy_ids[]' => $policyId,
                 ]);
 
             if ($response->successful()) {
@@ -292,7 +296,7 @@ class PagerDutyService
 
         } catch (\Exception $e) {
             Log::error('PagerDuty get on-call users exception', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [];
@@ -304,20 +308,20 @@ class PagerDutyService
      */
     protected function formatIncidentDetails(Alert $alert): string
     {
-        $details = "Source: " . ucfirst($alert->source) . "\n";
-        $details .= "Severity: " . ucfirst($alert->type) . "\n";
+        $details = 'Source: '.ucfirst($alert->source)."\n";
+        $details .= 'Severity: '.ucfirst($alert->type)."\n";
         $details .= "Message: {$alert->message}\n\n";
 
-        if (!empty($alert->metadata)) {
+        if (! empty($alert->metadata)) {
             $details .= "Additional Information:\n";
             foreach ($alert->metadata as $key => $value) {
-                if (!in_array($key, ['pagerduty_incident_id', 'pagerduty_incident_number', 'pagerduty_html_url'])) {
-                    $details .= "- " . ucfirst(str_replace('_', ' ', $key)) . ": " . (is_array($value) ? json_encode($value) : $value) . "\n";
+                if (! in_array($key, ['pagerduty_incident_id', 'pagerduty_incident_number', 'pagerduty_html_url'])) {
+                    $details .= '- '.ucfirst(str_replace('_', ' ', $key)).': '.(is_array($value) ? json_encode($value) : $value)."\n";
                 }
             }
         }
 
-        $details .= "\nView in AGL-HOSTMAN: " . route('alerts.show', $alert->id);
+        $details .= "\nView in AGL-HOSTMAN: ".route('alerts.show', $alert->id);
 
         return $details;
     }
@@ -328,7 +332,8 @@ class PagerDutyService
     protected function getApiUrl(string $endpoint): string
     {
         $baseUrl = $this->config['api_url'] ?? 'https://api.pagerduty.com';
-        return rtrim($baseUrl, '/') . $endpoint;
+
+        return rtrim($baseUrl, '/').$endpoint;
     }
 
     /**
@@ -385,8 +390,9 @@ class PagerDutyService
             return $history->id;
         } catch (\Exception $e) {
             Log::error('Failed to create notification history', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -396,7 +402,7 @@ class PagerDutyService
      */
     protected function updateHistory(?int $historyId, bool $success, mixed $response): void
     {
-        if (!$historyId) {
+        if (! $historyId) {
             return;
         }
 
@@ -405,12 +411,12 @@ class PagerDutyService
                 'status' => $success ? 'sent' : 'failed',
                 'response' => is_array($response) ? $response : ['error' => $response],
                 'sent_at' => $success ? now() : null,
-                'failed_at' => !$success ? now() : null,
+                'failed_at' => ! $success ? now() : null,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to update notification history', [
                 'error' => $e->getMessage(),
-                'history_id' => $historyId
+                'history_id' => $historyId,
             ]);
         }
     }
@@ -422,18 +428,18 @@ class PagerDutyService
     {
         $apiKey = $this->getApiKey();
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return [
                 'success' => false,
-                'message' => 'API key not configured'
+                'message' => 'API key not configured',
             ];
         }
 
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Token token=' . $apiKey,
-                    'Accept' => 'application/vnd.pagerduty+json;version=2'
+                    'Authorization' => 'Token token='.$apiKey,
+                    'Accept' => 'application/vnd.pagerduty+json;version=2',
                 ])
                 ->get($this->getApiUrl('/abilities'));
 
@@ -443,13 +449,13 @@ class PagerDutyService
                     ? 'PagerDuty connection successful'
                     : 'Failed to connect to PagerDuty',
                 'status' => $response->status(),
-                'abilities' => $response->json('abilities', [])
+                'abilities' => $response->json('abilities', []),
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'message' => 'Exception occurred',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }

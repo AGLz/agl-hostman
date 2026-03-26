@@ -10,10 +10,9 @@
 
 require __DIR__.'/vendor/autoload.php';
 
-use App\Events\ServerMetricsUpdated;
-use App\Events\ContainerStatusChanged;
 use App\Events\AlertTriggered;
-use Illuminate\Support\Facades\Artisan;
+use App\Events\ContainerStatusChanged;
+use App\Events\ServerMetricsUpdated;
 
 $app = require_once __DIR__.'/bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();

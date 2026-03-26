@@ -32,13 +32,13 @@ class RunScheduledBackup extends Command
         $type = $this->argument('type');
         $notify = $this->option('notify');
         $email = $this->option('email');
-        
+
         $this->info("Starting {$type} backup...");
-        
+
         dispatch(new PerformBackup($type, $notify, $email));
-        
-        $this->info("Backup job queued successfully.");
-        
+
+        $this->info('Backup job queued successfully.');
+
         return Command::SUCCESS;
     }
 }

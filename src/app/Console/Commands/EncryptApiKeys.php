@@ -34,8 +34,6 @@ class EncryptApiKeys extends Command
 
     /**
      * API keys to encrypt
-     *
-     * @var array
      */
     protected array $keysToEncrypt = [
         'CLAUDE_API_KEY' => 'services.claude.api_key',
@@ -63,6 +61,7 @@ class EncryptApiKeys extends Command
         // Check if APP_KEY is set
         if (empty(config('app.key'))) {
             $this->error('❌ APP_KEY not set. Run: php artisan key:generate');
+
             return self::FAILURE;
         }
 
@@ -79,15 +78,17 @@ class EncryptApiKeys extends Command
             if (empty($value)) {
                 $this->warn("⚠️  {$envKey}: Not set in .env (skipped)");
                 $skippedCount++;
+
                 continue;
             }
 
             // Check if already encrypted
-            $existingEncrypted = env($envKey . '_ENCRYPTED');
+            $existingEncrypted = env($envKey.'_ENCRYPTED');
 
-            if ($existingEncrypted && !$this->option('force')) {
+            if ($existingEncrypted && ! $this->option('force')) {
                 $this->info("✓ {$envKey}: Already encrypted (use --force to re-encrypt)");
                 $skippedCount++;
+
                 continue;
             }
 
@@ -96,7 +97,7 @@ class EncryptApiKeys extends Command
                 $encrypted = Crypt::encryptString($value);
 
                 // Store in .env with _ENCRYPTED suffix
-                $this->updateEnvFile($envKey . '_ENCRYPTED', $encrypted);
+                $this->updateEnvFile($envKey.'_ENCRYPTED', $encrypted);
 
                 $this->info("✓ {$envKey}: Encrypted successfully");
                 $encryptedCount++;
@@ -108,7 +109,7 @@ class EncryptApiKeys extends Command
         }
 
         $this->newLine();
-        $this->info("📊 Summary:");
+        $this->info('📊 Summary:');
         $this->line("  Encrypted: {$encryptedCount}");
         $this->line("  Skipped: {$skippedCount}");
         $this->line("  Errors: {$errorCount}");
@@ -137,18 +138,19 @@ class EncryptApiKeys extends Command
         $invalidCount = 0;
 
         foreach ($this->keysToEncrypt as $envKey => $configPath) {
-            $encrypted = env($envKey . '_ENCRYPTED');
+            $encrypted = env($envKey.'_ENCRYPTED');
 
             if (empty($encrypted)) {
                 $this->warn("⚠️  {$envKey}: No encrypted version found");
+
                 continue;
             }
 
             try {
                 $decrypted = Crypt::decryptString($encrypted);
 
-                if (!empty($decrypted)) {
-                    $this->info("✓ {$envKey}: Valid (length: " . strlen($decrypted) . ")");
+                if (! empty($decrypted)) {
+                    $this->info("✓ {$envKey}: Valid (length: ".strlen($decrypted).')');
                     $validCount++;
                 } else {
                     $this->error("❌ {$envKey}: Decrypted to empty string");
@@ -162,7 +164,7 @@ class EncryptApiKeys extends Command
         }
 
         $this->newLine();
-        $this->info("📊 Verification Summary:");
+        $this->info('📊 Verification Summary:');
         $this->line("  Valid: {$validCount}");
         $this->line("  Invalid: {$invalidCount}");
 
@@ -176,7 +178,7 @@ class EncryptApiKeys extends Command
     {
         $envPath = base_path('.env');
 
-        if (!file_exists($envPath)) {
+        if (! file_exists($envPath)) {
             throw new \RuntimeException('.env file not found');
         }
 

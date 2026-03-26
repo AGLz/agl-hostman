@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\PhysicalLocation;
+use Illuminate\Database\Seeder;
 
 class PhysicalLocationSeeder extends Seeder
 {
@@ -24,8 +24,8 @@ class PhysicalLocationSeeder extends Seeder
                 'ip_range' => '192.168.0.0/24',
                 'metadata' => [
                     'main_server' => 'AGLSRV1',
-                    'backup_server' => 'AGLSRV6'
-                ]
+                    'backup_server' => 'AGLSRV6',
+                ],
             ],
             [
                 'code' => 'AGLSRV1',
@@ -36,36 +36,36 @@ class PhysicalLocationSeeder extends Seeder
                 'metadata' => [
                     'containers' => 68,
                     'ram' => '128GB',
-                    'storage' => '4TB'
-                ]
+                    'storage' => '4TB',
+                ],
             ],
             [
                 'code' => 'AGLSRV2',
                 'name' => 'AGL Server 2',
                 'description' => 'Servidor secundário',
                 'type' => 'datacenter',
-                'ip_range' => '192.168.0.246/32'
+                'ip_range' => '192.168.0.246/32',
             ],
             [
                 'code' => 'AGLSRV3',
                 'name' => 'AGL Server 3',
                 'description' => 'Servidor de desenvolvimento',
                 'type' => 'datacenter',
-                'ip_range' => '192.168.0.247/32'
+                'ip_range' => '192.168.0.247/32',
             ],
             [
                 'code' => 'AGLSRV4',
                 'name' => 'AGL Server 4',
                 'description' => 'Servidor de testes',
                 'type' => 'datacenter',
-                'ip_range' => '192.168.0.248/32'
+                'ip_range' => '192.168.0.248/32',
             ],
             [
                 'code' => 'AGLSRV5',
                 'name' => 'AGL Server 5',
                 'description' => 'Servidor de backup',
                 'type' => 'datacenter',
-                'ip_range' => '192.168.0.249/32'
+                'ip_range' => '192.168.0.249/32',
             ],
             [
                 'code' => 'AGLSRV6',
@@ -75,8 +75,8 @@ class PhysicalLocationSeeder extends Seeder
                 'ip_range' => '10.6.0.12/32',
                 'metadata' => [
                     'wireguard' => true,
-                    'location' => 'remote'
-                ]
+                    'location' => 'remote',
+                ],
             ],
             [
                 'code' => 'CT179',
@@ -87,8 +87,8 @@ class PhysicalLocationSeeder extends Seeder
                 'metadata' => [
                     'ram' => '48GB',
                     'docker' => true,
-                    'networks' => ['LAN', 'WireGuard', 'Tailscale']
-                ]
+                    'networks' => ['LAN', 'WireGuard', 'Tailscale'],
+                ],
             ],
             [
                 'code' => 'CT180',
@@ -97,8 +97,8 @@ class PhysicalLocationSeeder extends Seeder
                 'type' => 'container',
                 'ip_range' => '192.168.0.180/32',
                 'metadata' => [
-                    'url' => 'https://dok.aglz.io'
-                ]
+                    'url' => 'https://dok.aglz.io',
+                ],
             ],
             [
                 'code' => 'CT183',
@@ -109,8 +109,8 @@ class PhysicalLocationSeeder extends Seeder
                 'metadata' => [
                     'wireguard' => '10.6.0.21',
                     'tailscale' => '100.80.30.59',
-                    'url' => 'https://archon.aglz.io'
-                ]
+                    'url' => 'https://archon.aglz.io',
+                ],
             ],
             [
                 'code' => 'REMOTE',
@@ -119,9 +119,9 @@ class PhysicalLocationSeeder extends Seeder
                 'type' => 'remote',
                 'ip_range' => '100.0.0.0/8',
                 'metadata' => [
-                    'vpn' => ['WireGuard', 'Tailscale']
-                ]
-            ]
+                    'vpn' => ['WireGuard', 'Tailscale'],
+                ],
+            ],
         ];
 
         foreach ($locations as $location) {

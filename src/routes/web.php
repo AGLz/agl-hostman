@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\WorkOSController;
-use App\Http\Controllers\DashboardController;
+use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
@@ -32,6 +31,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('dokploy');
 
     Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
+
+    Route::resource('daily-memory', \App\Http\Controllers\DailyMemoryController::class);
 
     // Monitoring Dashboard Routes
     Route::prefix('monitoring')->name('monitoring.')->group(function () {
@@ -73,7 +74,6 @@ if (app()->environment('local')) {
 Route::get('/horizon', function () {
     return redirect('/horizon/dashboard');
 })->middleware(['auth']);
-
 
 // Archon AI Command Center Routes
 Route::middleware(['auth'])->prefix('archon')->name('archon.')->group(function () {

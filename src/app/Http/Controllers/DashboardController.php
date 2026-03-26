@@ -2,27 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ContainerHealthMonitor;
-use App\Services\PredictiveMaintenanceService;
 use App\Models\ContainerHealthLog;
 use App\Models\PerformanceTrend;
 use App\Models\ProxmoxServer;
-use Illuminate\Http\Request;
+use App\Services\ContainerHealthMonitor;
+use App\Services\PredictiveMaintenanceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
 
 /**
  * Dashboard Controller
  *
  * Provides API endpoints for the monitoring dashboard,
  * serving real-time health data, trends, and predictions.
- *
- * @package App\Http\Controllers
  */
 class DashboardController extends Controller
 {
     protected ContainerHealthMonitor $healthMonitor;
+
     protected PredictiveMaintenanceService $predictiveService;
 
     public function __construct(
@@ -101,7 +99,7 @@ class DashboardController extends Controller
                         'critical' => $results['critical'],
                     ],
                     'container_details' => collect($results['containers'])
-                        ->map(fn($container) => [
+                        ->map(fn ($container) => [
                             'vmid' => $container['vmid'],
                             'name' => $container['name'],
                             'health_status' => $container['health_status'],
@@ -141,7 +139,7 @@ class DashboardController extends Controller
             'hours' => $hours,
             'container_name' => $history->first()->container_name ?? 'Unknown',
             'data_points' => $history->count(),
-            'history' => $history->map(fn($log) => [
+            'history' => $history->map(fn ($log) => [
                 'timestamp' => $log->created_at->toIso8601String(),
                 'health_status' => $log->health_status,
                 'cpu_percent' => $log->cpu_usage_percent,
@@ -200,7 +198,7 @@ class DashboardController extends Controller
             $query->where('vmid', $vmid);
         }
 
-        $dataPoints = $query->get()->map(fn($trend) => [
+        $dataPoints = $query->get()->map(fn ($trend) => [
             'timestamp' => $trend->recorded_at->toIso8601String(),
             'value' => $trend->value,
             'metadata' => $trend->metadata,
@@ -259,7 +257,7 @@ class DashboardController extends Controller
             'severity' => $severity,
             'node' => $node,
             'total_alerts' => $alerts->count(),
-            'alerts' => $alerts->map(fn($alert) => [
+            'alerts' => $alerts->map(fn ($alert) => [
                 'timestamp' => $alert->created_at->toIso8601String(),
                 'node' => $alert->node_code,
                 'vmid' => $alert->vmid,
@@ -284,7 +282,7 @@ class DashboardController extends Controller
         $resourceType = $request->input('resource_type', 'memory');
         $horizon = $request->input('horizon', 'medium_term');
 
-        if (!$node || !$vmid) {
+        if (! $node || ! $vmid) {
             return response()->json([
                 'error' => 'Node and VMID are required for predictive maintenance',
             ], 400);
@@ -343,7 +341,7 @@ class DashboardController extends Controller
     {
         $snapshot = $this->healthMonitor->getLatestSnapshot();
 
-        if (!$snapshot) {
+        if (! $snapshot) {
             return response()->json([
                 'error' => 'No monitoring snapshot available. Please wait for the monitoring job to run.',
             ], 404);

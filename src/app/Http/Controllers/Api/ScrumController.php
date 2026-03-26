@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sprint;
-use App\Models\Task;
-use App\Models\Story;
 use App\Models\Bug;
+use App\Models\Sprint;
 use App\Models\SprintMember;
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\Story;
+use App\Models\Task;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -29,8 +28,8 @@ class ScrumController extends Controller
         }
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('goal', 'like', '%' . $request->input('search') . '%');
+            $query->where('name', 'like', '%'.$request->input('search').'%')
+                ->orWhere('goal', 'like', '%'.$request->input('search').'%');
         }
 
         $sprints = $query->orderBy('start_date', 'desc')
@@ -167,7 +166,7 @@ class ScrumController extends Controller
                 'total_tasks' => $tasks->count(),
                 'completed_tasks' => $tasks->where('status', 'done')->count(),
                 'total_stories' => $stories->count(),
-                'completed_stories' => $stories->filter(fn($s) => $s->isCompleted())->count(),
+                'completed_stories' => $stories->filter(fn ($s) => $s->isCompleted())->count(),
                 'open_bugs' => $bugs->whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
             ],
         ];

@@ -2,16 +2,16 @@
 
 namespace App\Services\Health;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
 
 class HealthCheckService
 {
     private array $results = [];
+
     private bool $allHealthy = true;
 
     /**
@@ -43,7 +43,7 @@ class HealthCheckService
             DB::connection()->getPdo();
             $this->recordCheck('database', 'healthy', 'PostgreSQL connection OK');
         } catch (\Exception $e) {
-            $this->recordCheck('database', 'unhealthy', 'PostgreSQL connection failed: ' . $e->getMessage(), 'critical');
+            $this->recordCheck('database', 'unhealthy', 'PostgreSQL connection failed: '.$e->getMessage(), 'critical');
         }
     }
 
@@ -56,7 +56,7 @@ class HealthCheckService
             Redis::ping();
             $this->recordCheck('redis', 'healthy', 'Redis connection OK');
         } catch (\Exception $e) {
-            $this->recordCheck('redis', 'unhealthy', 'Redis connection failed: ' . $e->getMessage(), 'critical');
+            $this->recordCheck('redis', 'unhealthy', 'Redis connection failed: '.$e->getMessage(), 'critical');
         }
     }
 
@@ -67,7 +67,7 @@ class HealthCheckService
     {
         try {
             $disk = Storage::disk('local');
-            $testFile = 'health_check_' . time() . '.txt';
+            $testFile = 'health_check_'.time().'.txt';
 
             $disk->put($testFile, 'health check');
             $disk->delete($testFile);
@@ -84,7 +84,7 @@ class HealthCheckService
                 $this->recordCheck('storage', 'healthy', "Disk usage at {$usedPercent}%");
             }
         } catch (\Exception $e) {
-            $this->recordCheck('storage', 'unhealthy', 'Storage check failed: ' . $e->getMessage(), 'critical');
+            $this->recordCheck('storage', 'unhealthy', 'Storage check failed: '.$e->getMessage(), 'critical');
         }
     }
 
@@ -101,7 +101,7 @@ class HealthCheckService
         ];
 
         foreach ($services as $name => $url) {
-            if (!$url) {
+            if (! $url) {
                 continue;
             }
 
@@ -142,7 +142,7 @@ class HealthCheckService
                 $this->recordCheck('queue_workers', 'healthy', "Queue healthy ({$queueSize} jobs)");
             }
         } catch (\Exception $e) {
-            $this->recordCheck('queue_workers', 'unhealthy', 'Queue check failed: ' . $e->getMessage(), 'important');
+            $this->recordCheck('queue_workers', 'unhealthy', 'Queue check failed: '.$e->getMessage(), 'important');
         }
     }
 
@@ -155,8 +155,9 @@ class HealthCheckService
             $wsUrl = config('broadcasting.connections.reverb.host');
             $wsPort = config('broadcasting.connections.reverb.port');
 
-            if (!$wsUrl || !$wsPort) {
+            if (! $wsUrl || ! $wsPort) {
                 $this->recordCheck('websocket', 'warning', 'WebSocket not configured', 'optional');
+
                 return;
             }
 
@@ -185,18 +186,18 @@ class HealthCheckService
         ];
 
         foreach ($domains as $url) {
-            if (!$url || !str_starts_with($url, 'https://')) {
+            if (! $url || ! str_starts_with($url, 'https://')) {
                 continue;
             }
 
             try {
                 $host = parse_url($url, PHP_URL_HOST);
                 $get = stream_context_create([
-                    "ssl" => [
-                        "capture_peer_cert" => true,
-                        "verify_peer" => false,
-                        "verify_peer_name" => false,
-                    ]
+                    'ssl' => [
+                        'capture_peer_cert' => true,
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
                 ]);
 
                 $read = @stream_socket_client("ssl://{$host}:443", $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $get);
@@ -263,8 +264,7 @@ class HealthCheckService
             'overall_status' => $results['healthy'] ? 'healthy' : 'unhealthy',
             'total_checks' => count($results['checks']),
             'status_breakdown' => $statusCounts,
-            'critical_issues' => array_filter($results['checks'], fn($c) =>
-                $c['status'] === 'unhealthy' && $c['severity'] === 'critical'
+            'critical_issues' => array_filter($results['checks'], fn ($c) => $c['status'] === 'unhealthy' && $c['severity'] === 'critical'
             ),
             'timestamp' => $results['timestamp'],
         ];

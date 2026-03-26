@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\DTOs\Dokploy\ApplicationDTO;
+use App\DTOs\Dokploy\DomainDTO;
+use App\DTOs\Dokploy\ProjectDTO;
 use App\Models\Environment;
 use App\Services\Deployment\EnvironmentConfigService;
 use App\Services\DokployService;
-use App\DTOs\Dokploy\ProjectDTO;
-use App\DTOs\Dokploy\ApplicationDTO;
-use App\DTOs\Dokploy\DomainDTO;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 /**
  * Setup UAT Environment Command
@@ -44,6 +44,7 @@ class SetupUATEnvironment extends Command
     protected $description = 'Setup UAT environment on CT181 with manual promotion workflow';
 
     private EnvironmentConfigService $configService;
+
     private DokployService $dokployService;
 
     public function __construct(
@@ -67,9 +68,10 @@ class SetupUATEnvironment extends Command
             // Step 1: Check if UAT environment exists
             $environment = Environment::where('type', 'uat')->first();
 
-            if ($environment && !$this->option('force')) {
-                $this->error('❌ UAT Environment already exists (ID: ' . $environment->id . ')');
+            if ($environment && ! $this->option('force')) {
+                $this->error('❌ UAT Environment already exists (ID: '.$environment->id.')');
                 $this->warn('Use --force to recreate');
+
                 return self::FAILURE;
             }
 
@@ -79,13 +81,14 @@ class SetupUATEnvironment extends Command
             }
 
             // Step 2: Verify Dokploy connectivity (CT181)
-            if (!$this->option('skip-dokploy')) {
+            if (! $this->option('skip-dokploy')) {
                 $this->task('Verifying Dokploy connectivity (CT181)', function () {
                     // Note: This uses DOKPLOY_API_URL from .env
                     // For UAT, should point to CT181: http://192.168.0.181:3000
-                    if (!$this->dokployService->testConnection()) {
+                    if (! $this->dokployService->testConnection()) {
                         throw new Exception('Cannot connect to Dokploy API on CT181');
                     }
+
                     return true;
                 });
             }
@@ -98,11 +101,11 @@ class SetupUATEnvironment extends Command
             $this->info("   ✅ Environment created (ID: {$environment->id})");
             $this->info("   ✅ Branch: {$environment->git_branch} (release)");
             $this->info("   ✅ Harbor: {$environment->harbor_project}");
-            $this->info("   ✅ Auto-deploy: " . ($environment->auto_deploy ? 'Yes' : 'No (Manual)'));
-            $this->info("   ✅ Approval: Required");
+            $this->info('   ✅ Auto-deploy: '.($environment->auto_deploy ? 'Yes' : 'No (Manual)'));
+            $this->info('   ✅ Approval: Required');
 
             // Step 4: Create Dokploy project on CT181
-            if (!$this->option('skip-dokploy')) {
+            if (! $this->option('skip-dokploy')) {
                 $project = $this->task('Creating Dokploy project on CT181', function () use ($environment) {
                     $projectDTO = new ProjectDTO([
                         'name' => 'AGL-HOSTMAN UAT',
@@ -121,7 +124,7 @@ class SetupUATEnvironment extends Command
                 $this->info("   ✅ Project created (ID: {$project->projectId})");
 
                 // Step 5: Create application
-                $application = $this->task('Creating Dokploy application', function () use ($environment, $project) {
+                $application = $this->task('Creating Dokploy application', function () use ($project) {
                     $appDTO = new ApplicationDTO([
                         'name' => 'agl-hostman-uat',
                         'environmentId' => $project->projectId,
@@ -151,12 +154,12 @@ class SetupUATEnvironment extends Command
                     }
                 });
 
-                $this->info('   ✅ Domains configured: ' . implode(', ', $environment->domains));
+                $this->info('   ✅ Domains configured: '.implode(', ', $environment->domains));
 
                 // Step 7: Set environment variables
                 $this->task('Setting environment variables', function () use ($environment, $application) {
                     $envString = collect($environment->env_vars)
-                        ->map(fn($value, $key) => "{$key}={$value}")
+                        ->map(fn ($value, $key) => "{$key}={$value}")
                         ->implode("\n");
 
                     $envDTO = new \App\DTOs\Dokploy\EnvironmentDTO([
@@ -167,7 +170,7 @@ class SetupUATEnvironment extends Command
                     $this->dokployService->setEnvironmentVariables($envDTO);
                 });
 
-                $this->info('   ✅ Environment variables set (' . count($environment->env_vars) . ' vars)');
+                $this->info('   ✅ Environment variables set ('.count($environment->env_vars).' vars)');
 
                 // Step 8: Configure resource limits
                 $this->task('Setting resource limits', function () use ($environment, $application) {
@@ -183,8 +186,8 @@ class SetupUATEnvironment extends Command
                 });
 
                 $this->info('   ✅ Resource limits configured');
-                $this->info('      CPU: ' . $environment->getResource('cpu_limit'));
-                $this->info('      Memory: ' . $environment->getResource('memory_limit'));
+                $this->info('      CPU: '.$environment->getResource('cpu_limit'));
+                $this->info('      Memory: '.$environment->getResource('memory_limit'));
             }
 
             // Summary
@@ -198,7 +201,7 @@ class SetupUATEnvironment extends Command
                     ['ID', $environment->id],
                     ['Type', $environment->type],
                     ['Target', 'CT181 (192.168.0.181)'],
-                    ['Branch', $environment->git_branch . ' (release)'],
+                    ['Branch', $environment->git_branch.' (release)'],
                     ['Harbor Project', $environment->harbor_project],
                     ['Auto Deploy', 'No (Manual Only)'],
                     ['Auto Test', 'Yes (Smoke Tests)'],
@@ -209,7 +212,7 @@ class SetupUATEnvironment extends Command
 
             $this->newLine();
             $this->line('🔗 Next Steps:');
-            $this->line('1. Configure Harbor project: ' . $environment->harbor_project);
+            $this->line('1. Configure Harbor project: '.$environment->harbor_project);
             $this->line('2. Configure approval roles in .env:');
             $this->line('   UAT_APPROVER_ROLES=admin,lead-developer');
             $this->line('3. Promote from QA using API:');
@@ -226,11 +229,12 @@ class SetupUATEnvironment extends Command
             return self::SUCCESS;
 
         } catch (Exception $e) {
-            $this->error('❌ Setup failed: ' . $e->getMessage());
+            $this->error('❌ Setup failed: '.$e->getMessage());
             Log::error('UAT Environment setup failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return self::FAILURE;
         }
     }

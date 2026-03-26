@@ -93,6 +93,7 @@ class OnCallSchedule extends Model
     public function isActive(): bool
     {
         $now = now();
+
         return $this->start_time <= $now && $this->end_time >= $now;
     }
 
@@ -146,7 +147,7 @@ class OnCallSchedule extends Model
     public static function createRotation(User $user, string $rotationType = 'weekly', ?User $createdBy = null): self
     {
         $startTime = now();
-        $endTime = match($rotationType) {
+        $endTime = match ($rotationType) {
             'daily' => $startTime->copy()->addDay(),
             'weekly' => $startTime->copy()->addWeek(),
             default => $startTime->copy()->addWeek()

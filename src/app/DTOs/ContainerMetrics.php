@@ -15,17 +15,17 @@ class ContainerMetrics
     /**
      * Create container metrics DTO
      *
-     * @param int $vmid Container ID
-     * @param string $name Container name
-     * @param string $status Container status (running, stopped)
-     * @param float $cpuUsagePercent CPU usage percentage (0-100)
-     * @param int $memoryUsedBytes Memory used in bytes
-     * @param int $memoryTotalBytes Total memory in bytes
-     * @param int $diskUsedBytes Disk used in bytes
-     * @param int $diskTotalBytes Total disk in bytes
-     * @param int $uptimeSeconds Uptime in seconds
-     * @param array $networkInterfaces Network interfaces data
-     * @param Carbon|null $timestamp Timestamp of metrics collection
+     * @param  int  $vmid  Container ID
+     * @param  string  $name  Container name
+     * @param  string  $status  Container status (running, stopped)
+     * @param  float  $cpuUsagePercent  CPU usage percentage (0-100)
+     * @param  int  $memoryUsedBytes  Memory used in bytes
+     * @param  int  $memoryTotalBytes  Total memory in bytes
+     * @param  int  $diskUsedBytes  Disk used in bytes
+     * @param  int  $diskTotalBytes  Total disk in bytes
+     * @param  int  $uptimeSeconds  Uptime in seconds
+     * @param  array  $networkInterfaces  Network interfaces data
+     * @param  Carbon|null  $timestamp  Timestamp of metrics collection
      */
     public function __construct(
         public readonly int $vmid,
@@ -47,15 +47,15 @@ class ContainerMetrics
     public static function fromProxmoxResponse(array $data): self
     {
         return new self(
-            vmid: (int)($data['vmid'] ?? 0),
+            vmid: (int) ($data['vmid'] ?? 0),
             name: $data['name'] ?? 'unknown',
             status: $data['status'] ?? 'unknown',
-            cpuUsagePercent: ((float)($data['cpu'] ?? 0)) * 100,
-            memoryUsedBytes: (int)($data['mem'] ?? 0),
-            memoryTotalBytes: (int)($data['maxmem'] ?? 0),
-            diskUsedBytes: (int)($data['disk'] ?? 0),
-            diskTotalBytes: (int)($data['maxdisk'] ?? 0),
-            uptimeSeconds: (int)($data['uptime'] ?? 0),
+            cpuUsagePercent: ((float) ($data['cpu'] ?? 0)) * 100,
+            memoryUsedBytes: (int) ($data['mem'] ?? 0),
+            memoryTotalBytes: (int) ($data['maxmem'] ?? 0),
+            diskUsedBytes: (int) ($data['disk'] ?? 0),
+            diskTotalBytes: (int) ($data['maxdisk'] ?? 0),
+            uptimeSeconds: (int) ($data['uptime'] ?? 0),
             networkInterfaces: $data['network'] ?? [],
             timestamp: now()
         );
@@ -184,7 +184,7 @@ class ContainerMetrics
      */
     public function getHealthStatus(): string
     {
-        if (!$this->isRunning()) {
+        if (! $this->isRunning()) {
             return 'stopped';
         }
 
@@ -246,6 +246,6 @@ class ContainerMetrics
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 }

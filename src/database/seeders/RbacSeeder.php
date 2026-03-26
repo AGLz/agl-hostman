@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RbacSeeder extends Seeder
 {
@@ -197,7 +197,7 @@ class RbacSeeder extends Seeder
         // Advanced: Containers, Deployments, Monitoring (all actions)
         $advancedPermissions = array_filter(
             $createdPermissions,
-            fn($key) => str_starts_with($key, 'containers.') ||
+            fn ($key) => str_starts_with($key, 'containers.') ||
                           str_starts_with($key, 'deployments.') ||
                           str_starts_with($key, 'monitoring.') ||
                           $key === 'servers.view' ||
@@ -209,7 +209,7 @@ class RbacSeeder extends Seeder
         // Operator: Infrastructure management and deployments
         $operatorPermissions = array_filter(
             $createdPermissions,
-            fn($key) => str_starts_with($key, 'containers.') ||
+            fn ($key) => str_starts_with($key, 'containers.') ||
                           str_starts_with($key, 'deployments.') ||
                           str_starts_with($key, 'infrastructure.backup') ||
                           str_starts_with($key, 'servers.') ||
@@ -225,7 +225,7 @@ class RbacSeeder extends Seeder
         // Viewer: Read-only access
         $viewerPermissions = array_filter(
             $createdPermissions,
-            fn($key) => str_ends_with($key, '.view') ||
+            fn ($key) => str_ends_with($key, '.view') ||
                           str_ends_with($key, '.monitor') ||
                           str_ends_with($key, '.logs'),
             ARRAY_FILTER_USE_KEY
@@ -235,7 +235,7 @@ class RbacSeeder extends Seeder
         // Auditor: Full read access to logs and audit trails
         $auditorPermissions = array_filter(
             $createdPermissions,
-            fn($key) => str_ends_with($key, '.view') ||
+            fn ($key) => str_ends_with($key, '.view') ||
                           str_ends_with($key, '.logs') ||
                           str_ends_with($key, '.reports') ||
                           str_ends_with($key, '.audit_logs') ||
@@ -248,7 +248,7 @@ class RbacSeeder extends Seeder
         // Common: Read-only (.view) permissions only
         $commonPermissions = array_filter(
             $createdPermissions,
-            fn($key) => str_ends_with($key, '.view'),
+            fn ($key) => str_ends_with($key, '.view'),
             ARRAY_FILTER_USE_KEY
         );
         $createdRoles['common']->syncPermissions($commonPermissions);
@@ -259,12 +259,12 @@ class RbacSeeder extends Seeder
         $this->command->info('========================================');
         $this->command->info('RBAC Seeder Completed Successfully');
         $this->command->info('========================================');
-        $this->command->info('Roles created: ' . count($createdRoles));
+        $this->command->info('Roles created: '.count($createdRoles));
         foreach ($createdRoles as $name => $role) {
             $permCount = $role->permissions()->count();
             $this->command->info("  - {$name}: {$permCount} permissions");
         }
-        $this->command->info('Total permissions created: ' . count($createdPermissions));
+        $this->command->info('Total permissions created: '.count($createdPermissions));
         $this->command->info('========================================');
     }
 }

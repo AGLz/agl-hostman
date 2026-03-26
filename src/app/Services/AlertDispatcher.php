@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Mail\CriticalAlertMail;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Alert Dispatcher Service
@@ -20,8 +20,6 @@ use App\Mail\CriticalAlertMail;
  * - Rate limiting to prevent spam
  * - Retry logic for failed dispatches
  * - Alert aggregation
- *
- * @package App\Services
  */
 class AlertDispatcher
 {
@@ -56,9 +54,9 @@ class AlertDispatcher
     /**
      * Dispatch alert to configured channels
      *
-     * @param string $alertType Alert type identifier
-     * @param array $data Alert data
-     * @param string $severity Severity level (critical, warning, info)
+     * @param  string  $alertType  Alert type identifier
+     * @param  array  $data  Alert data
+     * @param  string  $severity  Severity level (critical, warning, info)
      * @return array Dispatch results
      */
     public function dispatch(string $alertType, array $data, string $severity = 'info'): array
@@ -70,6 +68,7 @@ class AlertDispatcher
             if ($this->isRateLimited($channel)) {
                 Log::warning("Rate limit exceeded for channel: {$channel}");
                 $results[$channel] = ['success' => false, 'reason' => 'rate_limited'];
+
                 continue;
             }
 
@@ -92,10 +91,10 @@ class AlertDispatcher
     /**
      * Dispatch alert to specific channel
      *
-     * @param string $channel Channel name
-     * @param string $alertType Alert type
-     * @param array $data Alert data
-     * @param string $severity Severity level
+     * @param  string  $channel  Channel name
+     * @param  string  $alertType  Alert type
+     * @param  array  $data  Alert data
+     * @param  string  $severity  Severity level
      * @return bool Success status
      */
     protected function dispatchToChannel(string $channel, string $alertType, array $data, string $severity): bool
@@ -111,17 +110,18 @@ class AlertDispatcher
     /**
      * Dispatch alert to Slack
      *
-     * @param string $alertType Alert type
-     * @param array $data Alert data
-     * @param string $severity Severity level
+     * @param  string  $alertType  Alert type
+     * @param  array  $data  Alert data
+     * @param  string  $severity  Severity level
      * @return bool Success status
      */
     protected function dispatchToSlack(string $alertType, array $data, string $severity): bool
     {
         $webhookUrl = $this->channels['slack']['webhook_url'] ?? null;
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             Log::warning('Slack webhook URL not configured');
+
             return false;
         }
 
@@ -151,17 +151,18 @@ class AlertDispatcher
     /**
      * Dispatch alert to Discord
      *
-     * @param string $alertType Alert type
-     * @param array $data Alert data
-     * @param string $severity Severity level
+     * @param  string  $alertType  Alert type
+     * @param  array  $data  Alert data
+     * @param  string  $severity  Severity level
      * @return bool Success status
      */
     protected function dispatchToDiscord(string $alertType, array $data, string $severity): bool
     {
         $webhookUrl = $this->channels['discord']['webhook_url'] ?? null;
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             Log::warning('Discord webhook URL not configured');
+
             return false;
         }
 
@@ -193,9 +194,9 @@ class AlertDispatcher
     /**
      * Dispatch alert to Email
      *
-     * @param string $alertType Alert type
-     * @param array $data Alert data
-     * @param string $severity Severity level
+     * @param  string  $alertType  Alert type
+     * @param  array  $data  Alert data
+     * @param  string  $severity  Severity level
      * @return bool Success status
      */
     protected function dispatchToEmail(string $alertType, array $data, string $severity): bool
@@ -204,6 +205,7 @@ class AlertDispatcher
 
         if (empty($recipients)) {
             Log::warning('No email recipients configured');
+
             return false;
         }
 
@@ -211,9 +213,11 @@ class AlertDispatcher
             foreach ($recipients as $recipient) {
                 Mail::to($recipient)->send(new CriticalAlertMail($alertType, $data, $severity));
             }
+
             return true;
         } catch (\Exception $e) {
             Log::error("Failed to send email: {$e->getMessage()}");
+
             return false;
         }
     }
@@ -221,7 +225,7 @@ class AlertDispatcher
     /**
      * Get channels for severity level
      *
-     * @param string $severity Severity level
+     * @param  string  $severity  Severity level
      * @return array Channels
      */
     protected function getChannelsForSeverity(string $severity): array
@@ -232,7 +236,7 @@ class AlertDispatcher
     /**
      * Check if channel is rate limited
      *
-     * @param string $channel Channel name
+     * @param  string  $channel  Channel name
      * @return bool Is rate limited
      */
     protected function isRateLimited(string $channel): bool
@@ -247,8 +251,7 @@ class AlertDispatcher
     /**
      * Increment rate limit counter
      *
-     * @param string $channel Channel name
-     * @return void
+     * @param  string  $channel  Channel name
      */
     protected function incrementRateLimit(string $channel): void
     {
@@ -260,8 +263,8 @@ class AlertDispatcher
     /**
      * Format alert title
      *
-     * @param string $alertType Alert type
-     * @param string $severity Severity level
+     * @param  string  $alertType  Alert type
+     * @param  string  $severity  Severity level
      * @return string Formatted title
      */
     protected function formatAlertTitle(string $alertType, string $severity): string
@@ -274,13 +277,14 @@ class AlertDispatcher
         ];
 
         $title = $titles[$alertType] ?? 'Infrastructure Alert';
-        return "{$title} - " . strtoupper($severity);
+
+        return "{$title} - ".strtoupper($severity);
     }
 
     /**
      * Format alert message
      *
-     * @param array $data Alert data
+     * @param  array  $data  Alert data
      * @return string Formatted message
      */
     protected function formatAlertMessage(array $data): string
@@ -308,7 +312,7 @@ class AlertDispatcher
     /**
      * Format alert fields for Slack
      *
-     * @param array $data Alert data
+     * @param  array  $data  Alert data
      * @return array Formatted fields
      */
     protected function formatAlertFields(array $data): array
@@ -331,7 +335,7 @@ class AlertDispatcher
     /**
      * Format alert fields for Discord
      *
-     * @param array $data Alert data
+     * @param  array  $data  Alert data
      * @return array Formatted fields
      */
     protected function formatDiscordFields(array $data): array
@@ -354,7 +358,7 @@ class AlertDispatcher
     /**
      * Get severity color
      *
-     * @param string $severity Severity level
+     * @param  string  $severity  Severity level
      * @return string Hex color code
      */
     protected function getSeverityColor(string $severity): string
@@ -370,7 +374,7 @@ class AlertDispatcher
     /**
      * Get severity emoji
      *
-     * @param string $severity Severity level
+     * @param  string  $severity  Severity level
      * @return string Emoji
      */
     protected function getSeverityEmoji(string $severity): string
@@ -385,8 +389,6 @@ class AlertDispatcher
 
     /**
      * Load channel configurations
-     *
-     * @return void
      */
     protected function loadChannelConfigurations(): void
     {
@@ -409,8 +411,8 @@ class AlertDispatcher
     /**
      * Send aggregated alerts (batch multiple alerts)
      *
-     * @param array $alerts Array of alerts
-     * @param string $channel Channel name
+     * @param  array  $alerts  Array of alerts
+     * @param  string  $channel  Channel name
      * @return bool Success status
      */
     public function sendAggregatedAlerts(array $alerts, string $channel): bool
@@ -431,7 +433,7 @@ class AlertDispatcher
     /**
      * Test alert configuration
      *
-     * @param string $channel Channel to test
+     * @param  string  $channel  Channel to test
      * @return array Test results
      */
     public function testChannel(string $channel): array
@@ -449,6 +451,7 @@ class AlertDispatcher
 
         try {
             $success = $this->dispatchToChannel($channel, 'test_alert', $testData, 'info');
+
             return [
                 'success' => $success,
                 'message' => $success ? "Test alert sent to {$channel}" : "Failed to send to {$channel}",

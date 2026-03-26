@@ -19,7 +19,9 @@ use Spatie\Permission\Models\Role;
 class RolePermissionManager extends Component
 {
     public Role $role;
+
     public array $selectedPermissions = [];
+
     public bool $showModal = false;
 
     protected $listeners = ['refreshPermissions' => '$refresh'];
@@ -38,6 +40,7 @@ class RolePermissionManager extends Component
         // Group permissions by prefix
         $groupedPermissions = $permissions->groupBy(function ($permission) {
             $parts = explode('-', $permission->name);
+
             return $parts[0] ?? 'other';
         });
 
@@ -61,6 +64,7 @@ class RolePermissionManager extends Component
 
         $groupPermissions = $permissions->filter(function ($permission) use ($group) {
             $parts = explode('-', $permission->name);
+
             return ($parts[0] ?? 'other') === $group;
         })->pluck('name')->toArray();
 
@@ -73,6 +77,7 @@ class RolePermissionManager extends Component
 
         $groupPermissions = $permissions->filter(function ($permission) use ($group) {
             $parts = explode('-', $permission->name);
+
             return ($parts[0] ?? 'other') === $group;
         })->pluck('name')->toArray();
 
@@ -84,6 +89,7 @@ class RolePermissionManager extends Component
         // Prevent modification of system roles
         if (in_array($this->role->name, ['super-admin', 'admin'])) {
             session()->flash('error', __('Cannot modify permissions for system roles.'));
+
             return;
         }
 

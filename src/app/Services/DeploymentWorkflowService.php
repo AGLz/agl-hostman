@@ -3,19 +3,14 @@
 namespace App\Services;
 
 use App\Models\Environment;
-use App\Models\ProductionDeployment;
 use App\Models\ProductionApproval;
-use Illuminate\Support\Facades\Http;
+use App\Models\ProductionDeployment;
 use Illuminate\Support\Facades\Log;
 
 class DeploymentWorkflowService
 {
     /**
      * Deploy to production using blue-green deployment strategy.
-     *
-     * @param Environment $environment
-     * @param array $options
-     * @return array
      */
     public function deployToProduction(Environment $environment, array $options = []): array
     {
@@ -23,7 +18,7 @@ class DeploymentWorkflowService
             // Verify all approvals are complete
             $approvalsComplete = $this->verifyApprovals($environment, $options['version'] ?? 'latest');
 
-            if (!$approvalsComplete) {
+            if (! $approvalsComplete) {
                 return [
                     'success' => false,
                     'message' => 'All required approvals must be obtained before production deployment',
@@ -60,11 +55,6 @@ class DeploymentWorkflowService
 
     /**
      * Execute blue-green deployment strategy.
-     *
-     * @param Environment $environment
-     * @param ProductionDeployment $deployment
-     * @param array $options
-     * @return array
      */
     public function executeBlueGreenDeployment(
         Environment $environment,
@@ -86,7 +76,7 @@ class DeploymentWorkflowService
             Log::info("Deploying to {$inactiveSlot} environment");
             $deployResult = $this->deployToSlot($environment, $inactiveSlot, $version, $deployment);
 
-            if (!$deployResult['success']) {
+            if (! $deployResult['success']) {
                 return $deployResult;
             }
 
@@ -94,7 +84,7 @@ class DeploymentWorkflowService
             Log::info("Running health checks on {$inactiveSlot}");
             $healthCheck = $this->runHealthChecks($environment, $inactiveSlot);
 
-            if (!$healthCheck['healthy']) {
+            if (! $healthCheck['healthy']) {
                 // Rollback on health check failure
                 $this->stopSlot($environment, $inactiveSlot);
 
@@ -109,7 +99,7 @@ class DeploymentWorkflowService
             Log::info("Running production smoke tests on {$inactiveSlot}");
             $smokeTests = $this->runProductionSmokeTests($environment, $inactiveSlot);
 
-            if (!$smokeTests['success']) {
+            if (! $smokeTests['success']) {
                 // Rollback on test failure
                 $this->stopSlot($environment, $inactiveSlot);
 
@@ -129,7 +119,7 @@ class DeploymentWorkflowService
                 $deployment
             );
 
-            if (!$trafficSwitch['success']) {
+            if (! $trafficSwitch['success']) {
                 // Rollback on traffic switch failure
                 $this->rollbackTraffic($environment, $deployment->active_slot, $inactiveSlot);
                 $this->stopSlot($environment, $inactiveSlot);
@@ -138,12 +128,13 @@ class DeploymentWorkflowService
             }
 
             // Step 5: Monitor for issues (5-10 min window)
-            Log::info("Monitoring new deployment for issues");
+            Log::info('Monitoring new deployment for issues');
             $monitorResult = $this->monitorDeployment($environment, $inactiveSlot, 600); // 10 minutes
 
-            if (!$monitorResult['healthy']) {
+            if (! $monitorResult['healthy']) {
                 // Auto-rollback if errors detected
-                Log::warning("Issues detected, initiating automatic rollback");
+                Log::warning('Issues detected, initiating automatic rollback');
+
                 return $this->rollbackProduction($environment, $deployment);
             }
 
@@ -153,13 +144,13 @@ class DeploymentWorkflowService
 
             $deployment->update([
                 'active_slot' => $inactiveSlot,
-                $inactiveSlot . '_version' => $version,
+                $inactiveSlot.'_version' => $version,
                 'last_deployment_at' => now(),
                 'last_traffic_switch_at' => now(),
                 'health_status' => $healthCheck,
             ]);
 
-            Log::info("Blue-green deployment completed successfully", [
+            Log::info('Blue-green deployment completed successfully', [
                 'old_slot' => $oldSlot,
                 'new_slot' => $inactiveSlot,
                 'old_version' => $oldVersion,
@@ -202,10 +193,6 @@ class DeploymentWorkflowService
      * Rollback production deployment to previous version.
      *
      * Target: < 2 minutes MTTR
-     *
-     * @param Environment $environment
-     * @param ProductionDeployment|null $deployment
-     * @return array
      */
     public function rollbackProduction(Environment $environment, ?ProductionDeployment $deployment = null): array
     {
@@ -214,7 +201,7 @@ class DeploymentWorkflowService
         try {
             $deployment = $deployment ?? ProductionDeployment::where('environment_id', $environment->id)->firstOrFail();
 
-            if (!$deployment->canRollback()) {
+            if (! $deployment->canRollback()) {
                 return [
                     'success' => false,
                     'message' => 'Rollback not available (no previous version or too old)',
@@ -235,7 +222,7 @@ class DeploymentWorkflowService
             // Quick health check on rollback target
             $healthCheck = $this->runHealthChecks($environment, $rollbackSlot);
 
-            if (!$healthCheck['healthy']) {
+            if (! $healthCheck['healthy']) {
                 return [
                     'success' => false,
                     'message' => 'Rollback target is unhealthy',
@@ -291,16 +278,13 @@ class DeploymentWorkflowService
 
     /**
      * Get production deployment status.
-     *
-     * @param Environment $environment
-     * @return array
      */
     public function getProductionStatus(Environment $environment): array
     {
         try {
             $deployment = ProductionDeployment::where('environment_id', $environment->id)->first();
 
-            if (!$deployment) {
+            if (! $deployment) {
                 return [
                     'success' => true,
                     'message' => 'No production deployment configured',
@@ -422,7 +406,7 @@ class DeploymentWorkflowService
             // Monitor for errors
             $healthy = $this->monitorDeployment($environment, $toSlot, 60);
 
-            if (!$healthy['healthy']) {
+            if (! $healthy['healthy']) {
                 return [
                     'success' => false,
                     'message' => "Issues detected at {$percentage}% traffic",

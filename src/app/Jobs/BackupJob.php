@@ -2,19 +2,17 @@
 
 namespace App\Jobs;
 
+use App\Models\LxcContainer;
+use App\Models\ProductionBackupLog;
+use App\Models\ProxmoxServer;
 use App\Services\BackupService;
 use App\Services\NotificationService;
-use App\Models\ContainerBackup;
-use App\Models\ProductionBackupLog;
-use App\Models\LxcContainer;
-use App\Models\ProxmoxServer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -22,8 +20,6 @@ use Illuminate\Support\Str;
  *
  * Executes backup operations for containers and servers.
  * Supports full, incremental, and snapshot-based backups.
- *
- * @package App\Jobs
  */
 class BackupJob implements ShouldQueue
 {
@@ -104,7 +100,7 @@ class BackupJob implements ShouldQueue
         NotificationService $notificationService
     ): void {
         $startTime = microtime(true);
-        $backupId = 'backup_' . now()->format('Ymd_His') . '_' . Str::random(8);
+        $backupId = 'backup_'.now()->format('Ymd_His').'_'.Str::random(8);
 
         Log::info('Starting backup job', [
             'backup_id' => $backupId,
@@ -137,7 +133,7 @@ class BackupJob implements ShouldQueue
 
             // Check for errors
             foreach ($results as $result) {
-                if (!$result['success']) {
+                if (! $result['success']) {
                     $success = false;
                     $errors[] = $result;
                 }
@@ -253,7 +249,7 @@ class BackupJob implements ShouldQueue
      */
     protected function createBackupLog(string $backupId, array $results, bool $success, float $duration): void
     {
-        $totalSize = collect($results)->sum(fn($r) => $r['size'] ?? 0);
+        $totalSize = collect($results)->sum(fn ($r) => $r['size'] ?? 0);
 
         ProductionBackupLog::create([
             'backup_id' => $backupId,
@@ -265,7 +261,7 @@ class BackupJob implements ShouldQueue
             'total_size' => $totalSize,
             'duration' => $duration,
             'initiated_by' => $this->userId,
-            'started_at' => now()->subSeconds((int)$duration),
+            'started_at' => now()->subSeconds((int) $duration),
             'completed_at' => now(),
         ]);
     }
@@ -285,7 +281,7 @@ class BackupJob implements ShouldQueue
             'success' => $success,
             'backups_count' => count($results),
             'duration' => $duration,
-            'size' => collect($results)->sum(fn($r) => $r['size'] ?? 0),
+            'size' => collect($results)->sum(fn ($r) => $r['size'] ?? 0),
         ];
 
         if ($success) {
@@ -302,7 +298,7 @@ class BackupJob implements ShouldQueue
     {
         Log::critical('Backup job failed permanently', [
             'type' => $this->backupType,
-            'target' => $this->targetType . ':' . $this->targetId,
+            'target' => $this->targetType.':'.$this->targetId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
         ]);

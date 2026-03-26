@@ -14,8 +14,6 @@ use Tests\TestCase;
  *
  * Tests for SQL injection prevention including parameterized queries,
  * Eloquent ORM safety, and raw query protection.
- *
- * @package Tests\Feature\Security
  */
 class SqlInjectionTest extends TestCase
 {
@@ -264,7 +262,7 @@ class SqlInjectionTest extends TestCase
      */
     public function test_hexadecimal_injection_prevention(): void
     {
-        $maliciousInput = "0x74657374";
+        $maliciousInput = '0x74657374';
 
         $users = User::where('email', $maliciousInput)->get();
 
@@ -276,7 +274,7 @@ class SqlInjectionTest extends TestCase
      */
     public function test_char_function_injection_prevention(): void
     {
-        $maliciousInput = "CHAR(116,101,115,116)";
+        $maliciousInput = 'CHAR(116,101,115,116)';
 
         $users = User::where('email', $maliciousInput)->get();
 
@@ -327,7 +325,7 @@ class SqlInjectionTest extends TestCase
      */
     public function test_limit_offset_injection_prevention(): void
     {
-        $maliciousLimit = "1 UNION SELECT password FROM users";
+        $maliciousLimit = '1 UNION SELECT password FROM users';
 
         $response = $this->actingAs($this->admin)
             ->get("/api/users?limit={$maliciousLimit}");

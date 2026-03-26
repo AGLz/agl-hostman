@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             $table->index('key');
             $table->index('user_id');
             $table->index('is_active');

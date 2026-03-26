@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 class MeshCoordinator implements CoordinatorInterface
 {
     protected array $sessions = [];
+
     protected array $config;
 
     public function __construct()
@@ -89,7 +90,7 @@ class MeshCoordinator implements CoordinatorInterface
      */
     public function status(string $sessionId): array
     {
-        if (!isset($this->sessions[$sessionId])) {
+        if (! isset($this->sessions[$sessionId])) {
             return ['error' => 'Session not found'];
         }
 
@@ -113,6 +114,7 @@ class MeshCoordinator implements CoordinatorInterface
     public function terminate(string $sessionId): bool
     {
         unset($this->sessions[$sessionId]);
+
         return true;
     }
 
@@ -242,7 +244,7 @@ class MeshCoordinator implements CoordinatorInterface
      */
     protected function calculateInfluence(int $agentIndex, array $session): float
     {
-        if (!isset($session['connections'][$agentIndex])) {
+        if (! isset($session['connections'][$agentIndex])) {
             return 0;
         }
 
@@ -274,7 +276,7 @@ class MeshCoordinator implements CoordinatorInterface
 
         // Block-based computation for memory efficiency
         $blockSize = 64;
-        $numBlocks = (int)ceil(count($outputs) / $blockSize);
+        $numBlocks = (int) ceil(count($outputs) / $blockSize);
         $attention = [];
 
         for ($blockI = 0; $blockI < $numBlocks; $blockI++) {
@@ -312,7 +314,7 @@ class MeshCoordinator implements CoordinatorInterface
     {
         $startTime = microtime(true);
         $numHeads = 8;
-        $headDim = (int)(count($outputs[0] ?? []) / $numHeads);
+        $headDim = (int) (count($outputs[0] ?? []) / $numHeads);
         $heads = [];
 
         for ($h = 0; $h < $numHeads; $h++) {
@@ -363,7 +365,7 @@ class MeshCoordinator implements CoordinatorInterface
         foreach ($attention as &$row) {
             $sum = array_sum($row);
             if ($sum > 0) {
-                $row = array_map(fn($x) => $x / $sum, $row);
+                $row = array_map(fn ($x) => $x / $sum, $row);
             }
         }
 
@@ -423,7 +425,7 @@ class MeshCoordinator implements CoordinatorInterface
         foreach ($attention as &$row) {
             $exp = array_map('exp', $row);
             $sum = array_sum($exp);
-            $row = array_map(fn($x) => $x / $sum, $exp);
+            $row = array_map(fn ($x) => $x / $sum, $exp);
         }
 
         return $attention;
@@ -439,7 +441,7 @@ class MeshCoordinator implements CoordinatorInterface
         foreach ($heads as $head) {
             foreach ($head as $i => $row) {
                 foreach ($row as $j => $value) {
-                    if (!isset($concatenated[$i][$j])) {
+                    if (! isset($concatenated[$i][$j])) {
                         $concatenated[$i][$j] = 0;
                     }
                     $concatenated[$i][$j] += $value / count($heads);

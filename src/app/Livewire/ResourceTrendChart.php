@@ -10,18 +10,23 @@ use Livewire\Component;
  *
  * Displays interactive charts for resource usage trends over time.
  * Supports CPU, memory, disk, and custom metrics.
- *
- * @package App\Livewire
  */
 class ResourceTrendChart extends Component
 {
     public string $metricType = 'container_performance';
+
     public string $metricName = 'cpu_usage';
+
     public string $chartType = 'line'; // line, area, bar
+
     public int $hours = 24;
+
     public ?string $node = null;
+
     public ?int $vmid = null;
+
     public array $chartData = [];
+
     public array $statistics = [];
 
     protected $listeners = [
@@ -85,7 +90,7 @@ class ResourceTrendChart extends Component
             $trends = $query->get();
 
             $this->chartData = [
-                'labels' => $trends->map(fn($trend) => $trend->recorded_at->format('H:i'))->toArray(),
+                'labels' => $trends->map(fn ($trend) => $trend->recorded_at->format('H:i'))->toArray(),
                 'datasets' => [[
                     'label' => $this->getMetricLabel(),
                     'data' => $trends->pluck('value')->toArray(),
@@ -99,7 +104,7 @@ class ResourceTrendChart extends Component
 
         } catch (\Exception $e) {
             $this->chartData = [
-                'error' => 'Failed to load chart data: ' . $e->getMessage(),
+                'error' => 'Failed to load chart data: '.$e->getMessage(),
             ];
         }
     }
@@ -235,7 +240,7 @@ class ResourceTrendChart extends Component
      */
     public function exportCsv()
     {
-        $filename = "{$this->metricType}_{$this->metricName}_" . now()->format('Y-m-d_His') . '.csv';
+        $filename = "{$this->metricType}_{$this->metricName}_".now()->format('Y-m-d_His').'.csv';
 
         $csv = "Timestamp,{$this->getMetricLabel()}\n";
 

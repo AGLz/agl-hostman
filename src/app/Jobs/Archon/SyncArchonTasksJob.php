@@ -23,6 +23,7 @@ class SyncArchonTasksJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -32,8 +33,9 @@ class SyncArchonTasksJob implements ShouldQueue
 
     public function handle(ArchonMcpService $archon): void
     {
-        if (!config('archon.sync_enabled')) {
+        if (! config('archon.sync_enabled')) {
             Log::info('Archon sync disabled, skipping task sync');
+
             return;
         }
 
@@ -112,10 +114,11 @@ class SyncArchonTasksJob implements ShouldQueue
         // Find Sprint by Archon project ID
         $sprint = Sprint::where('archon_project_id', $taskDto->projectId)->first();
 
-        if (!$sprint) {
+        if (! $sprint) {
             Log::warning('Sprint not found for Archon project', [
                 'archon_project_id' => $taskDto->projectId,
             ]);
+
             return;
         }
 

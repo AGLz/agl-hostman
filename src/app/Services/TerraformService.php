@@ -3,20 +3,20 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class TerraformService
 {
     protected string $workspacePath;
+
     protected string $terraformPath;
+
     protected array $providers;
-    
+
     public function __construct()
     {
         $this->workspacePath = storage_path('terraform');
         $this->terraformPath = config('terraform.binary_path', '/usr/local/bin/terraform');
-        
+
         $this->providers = [
             'proxmox' => [
                 'source' => 'telmate/proxmox',
@@ -31,7 +31,7 @@ class TerraformService
                 'version' => '~> 5.0',
             ],
         ];
-        
+
         $this->ensureWorkspace();
     }
 
@@ -40,7 +40,7 @@ class TerraformService
      */
     protected function ensureWorkspace(): void
     {
-        if (!is_dir($this->workspacePath)) {
+        if (! is_dir($this->workspacePath)) {
             mkdir($this->workspacePath, 0755, true);
         }
     }
@@ -51,18 +51,18 @@ class TerraformService
     public function init(string $environment = 'production'): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
-        if (!is_dir($envPath)) {
+
+        if (! is_dir($envPath)) {
             mkdir($envPath, 0755, true);
         }
-        
+
         // Generate main.tf
         $this->generateMainConfig($environment);
-        
+
         // Run terraform init
         $result = Process::path($envPath)
             ->run("{$this->terraformPath} init -backend=true");
-        
+
         return [
             'success' => $result->successful(),
             'output' => $result->output(),
@@ -76,26 +76,26 @@ class TerraformService
     public function plan(string $environment = 'production', array $variables = []): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         // Generate variable file
         $this->generateVariables($environment, $variables);
-        
+
         // Run terraform plan
         $result = Process::path($envPath)
             ->timeout(300)
             ->run("{$this->terraformPath} plan -var-file=variables.tfvars -out=tfplan");
-        
+
         if ($result->successful()) {
             // Parse plan output
             $plan = $this->parsePlanOutput($result->output());
-            
+
             return [
                 'success' => true,
                 'plan' => $plan,
                 'output' => $result->output(),
             ];
         }
-        
+
         return [
             'success' => false,
             'error' => $result->errorOutput(),
@@ -108,35 +108,35 @@ class TerraformService
     public function apply(string $environment = 'production', bool $autoApprove = false): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $command = "{$this->terraformPath} apply";
-        
+
         if ($autoApprove) {
-            $command .= " -auto-approve";
+            $command .= ' -auto-approve';
         }
-        
+
         if (file_exists("{$envPath}/tfplan")) {
-            $command .= " tfplan";
+            $command .= ' tfplan';
         }
-        
+
         $result = Process::path($envPath)
             ->timeout(600)
             ->run($command);
-        
+
         if ($result->successful()) {
             // Get outputs
             $outputs = $this->getOutputs($environment);
-            
+
             // Store state backup
             $this->backupState($environment);
-            
+
             return [
                 'success' => true,
                 'outputs' => $outputs,
                 'output' => $result->output(),
             ];
         }
-        
+
         return [
             'success' => false,
             'error' => $result->errorOutput(),
@@ -149,17 +149,17 @@ class TerraformService
     public function destroy(string $environment = 'production', bool $force = false): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $command = "{$this->terraformPath} destroy";
-        
+
         if ($force) {
-            $command .= " -auto-approve";
+            $command .= ' -auto-approve';
         }
-        
+
         $result = Process::path($envPath)
             ->timeout(600)
             ->run($command);
-        
+
         return [
             'success' => $result->successful(),
             'output' => $result->output(),
@@ -173,14 +173,14 @@ class TerraformService
     public function getOutputs(string $environment = 'production'): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $result = Process::path($envPath)
             ->run("{$this->terraformPath} output -json");
-        
+
         if ($result->successful()) {
             return json_decode($result->output(), true);
         }
-        
+
         return [];
     }
 
@@ -190,14 +190,14 @@ class TerraformService
     public function getState(string $environment = 'production'): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $result = Process::path($envPath)
             ->run("{$this->terraformPath} show -json");
-        
+
         if ($result->successful()) {
             return json_decode($result->output(), true);
         }
-        
+
         return [];
     }
 
@@ -207,10 +207,10 @@ class TerraformService
     public function import(string $environment, string $resource, string $id): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $result = Process::path($envPath)
             ->run("{$this->terraformPath} import {$resource} {$id}");
-        
+
         return [
             'success' => $result->successful(),
             'output' => $result->output(),
@@ -263,7 +263,7 @@ SSHKEYS
   }
 }
 TERRAFORM;
-        
+
         // Replace placeholders
         foreach ($config as $key => $value) {
             if (is_bool($value)) {
@@ -271,10 +271,10 @@ TERRAFORM;
             }
             $template = str_replace("{{$key}}", $value, $template);
         }
-        
+
         // Clean up optional blocks
         $template = preg_replace('/{{#.*?}}.*?{{\/.*?}}/s', '', $template);
-        
+
         return $template;
     }
 
@@ -324,7 +324,7 @@ resource "docker_image" "{{name}}" {
   keep_locally = false
 }
 EOF;
-        
+
         return $this->renderTemplate($template, $config);
     }
 
@@ -366,7 +366,7 @@ provider "docker" {
   host = var.docker_host
 }
 EOF;
-        
+
         file_put_contents("{$this->workspacePath}/{$environment}/main.tf", $config);
     }
 
@@ -376,19 +376,19 @@ EOF;
     protected function generateVariables(string $environment, array $variables): void
     {
         $content = '';
-        
+
         foreach ($variables as $key => $value) {
             if (is_array($value)) {
                 $value = json_encode($value);
             } elseif (is_bool($value)) {
                 $value = $value ? 'true' : 'false';
             } else {
-                $value = '"' . addslashes($value) . '"';
+                $value = '"'.addslashes($value).'"';
             }
-            
+
             $content .= "{$key} = {$value}\n";
         }
-        
+
         file_put_contents("{$this->workspacePath}/{$environment}/variables.tfvars", $content);
     }
 
@@ -403,14 +403,14 @@ EOF;
             'destroy' => 0,
             'resources' => [],
         ];
-        
+
         // Parse the output for resource changes
         if (preg_match('/Plan: (\d+) to add, (\d+) to change, (\d+) to destroy/', $output, $matches)) {
             $plan['add'] = (int) $matches[1];
             $plan['change'] = (int) $matches[2];
             $plan['destroy'] = (int) $matches[3];
         }
-        
+
         // Extract resource details
         if (preg_match_all('/# (.*?) will be (.*)/', $output, $matches)) {
             foreach ($matches[1] as $index => $resource) {
@@ -420,7 +420,7 @@ EOF;
                 ];
             }
         }
-        
+
         return $plan;
     }
 
@@ -430,17 +430,17 @@ EOF;
     protected function backupState(string $environment): void
     {
         $statePath = "{$this->workspacePath}/{$environment}/terraform.tfstate";
-        
+
         if (file_exists($statePath)) {
             $backupPath = "{$this->workspacePath}/{$environment}/backups";
-            
-            if (!is_dir($backupPath)) {
+
+            if (! is_dir($backupPath)) {
                 mkdir($backupPath, 0755, true);
             }
-            
+
             $timestamp = now()->format('Y-m-d_H-i-s');
             copy($statePath, "{$backupPath}/terraform_{$timestamp}.tfstate");
-            
+
             // Keep only last 10 backups
             $this->cleanOldBackups($backupPath, 10);
         }
@@ -452,14 +452,14 @@ EOF;
     protected function cleanOldBackups(string $path, int $keep = 10): void
     {
         $files = glob("{$path}/*.tfstate");
-        
+
         if (count($files) > $keep) {
-            usort($files, function($a, $b) {
+            usort($files, function ($a, $b) {
                 return filemtime($b) - filemtime($a);
             });
-            
+
             $toDelete = array_slice($files, $keep);
-            
+
             foreach ($toDelete as $file) {
                 unlink($file);
             }
@@ -476,11 +476,11 @@ EOF;
             if (is_array($value)) {
                 // Handle array blocks
                 $pattern = "/{{#{$key}}}(.*?){{\\/{$key}}}/s";
-                
+
                 if (preg_match($pattern, $template, $matches)) {
                     $blockTemplate = $matches[1];
                     $rendered = '';
-                    
+
                     foreach ($value as $item) {
                         $block = $blockTemplate;
                         foreach ($item as $k => $v) {
@@ -488,17 +488,17 @@ EOF;
                         }
                         $rendered .= $block;
                     }
-                    
+
                     $template = preg_replace($pattern, $rendered, $template);
                 }
             } else {
                 $template = str_replace("{{$key}}", $value, $template);
             }
         }
-        
+
         // Remove unused placeholders
         $template = preg_replace('/{{.*?}}/', '', $template);
-        
+
         return $template;
     }
 
@@ -508,10 +508,10 @@ EOF;
     public function validate(string $environment = 'production'): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $result = Process::path($envPath)
             ->run("{$this->terraformPath} validate");
-        
+
         return [
             'success' => $result->successful(),
             'output' => $result->output(),
@@ -525,10 +525,10 @@ EOF;
     public function format(string $environment = 'production'): array
     {
         $envPath = "{$this->workspacePath}/{$environment}";
-        
+
         $result = Process::path($envPath)
             ->run("{$this->terraformPath} fmt -recursive");
-        
+
         return [
             'success' => $result->successful(),
             'output' => $result->output(),

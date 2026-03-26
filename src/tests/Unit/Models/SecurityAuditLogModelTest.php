@@ -13,8 +13,6 @@ use Tests\TestCase;
  * Security Audit Log Model Test
  *
  * Tests for the SecurityAuditLog model.
- *
- * @package Tests\Unit\Models
  */
 class SecurityAuditLogModelTest extends TestCase
 {
@@ -379,7 +377,7 @@ class SecurityAuditLogModelTest extends TestCase
      */
     public function test_fillable_attributes(): void
     {
-        $log = new SecurityAuditLog();
+        $log = new SecurityAuditLog;
 
         $this->assertEquals([
             'event_type',
@@ -402,7 +400,7 @@ class SecurityAuditLogModelTest extends TestCase
      */
     public function test_casts_configuration(): void
     {
-        $log = new SecurityAuditLog();
+        $log = new SecurityAuditLog;
 
         $this->assertEquals([
             'old_values' => 'array',

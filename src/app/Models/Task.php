@@ -93,6 +93,7 @@ class Task extends Model
         if ($activeSprint) {
             return $query->where('sprint_id', $activeSprint->id);
         }
+
         return $query->whereNull('sprint_id');
     }
 
@@ -102,17 +103,17 @@ class Task extends Model
     public function moveToStatus(string $status): self
     {
         $this->status = $status;
-        
-        if ($status === 'in_progress' && !$this->started_at) {
+
+        if ($status === 'in_progress' && ! $this->started_at) {
             $this->started_at = now();
         }
-        
-        if ($status === 'done' && !$this->completed_at) {
+
+        if ($status === 'done' && ! $this->completed_at) {
             $this->completed_at = now();
         }
-        
+
         $this->save();
-        
+
         return $this;
     }
 
@@ -123,7 +124,7 @@ class Task extends Model
     {
         $this->assigned_to = $user->id;
         $this->save();
-        
+
         return $this;
     }
 
@@ -135,7 +136,7 @@ class Task extends Model
         $currentTags = $this->tags ?? [];
         $this->tags = array_unique(array_merge($currentTags, $tags));
         $this->save();
-        
+
         return $this;
     }
 
@@ -144,10 +145,10 @@ class Task extends Model
      */
     public function getDurationInHours(): ?float
     {
-        if (!$this->started_at || !$this->completed_at) {
+        if (! $this->started_at || ! $this->completed_at) {
             return null;
         }
-        
+
         return round($this->completed_at->diffInHours($this->started_at), 2);
     }
 
@@ -156,10 +157,10 @@ class Task extends Model
      */
     public function isOverdue(): bool
     {
-        if ($this->status === 'done' || !$this->sprint) {
+        if ($this->status === 'done' || ! $this->sprint) {
             return false;
         }
-        
+
         return $this->sprint->end_date < now() && $this->status !== 'done';
     }
 }

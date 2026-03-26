@@ -39,9 +39,6 @@ class AlertController extends Controller
 
     /**
      * Get active alerts (API)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getActive(Request $request): JsonResponse
     {
@@ -57,9 +54,6 @@ class AlertController extends Controller
 
     /**
      * Get alert history (API)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getHistory(Request $request): JsonResponse
     {
@@ -76,8 +70,6 @@ class AlertController extends Controller
 
     /**
      * Get alert statistics (API)
-     *
-     * @return JsonResponse
      */
     public function stats(): JsonResponse
     {
@@ -91,10 +83,6 @@ class AlertController extends Controller
 
     /**
      * Acknowledge an alert (API)
-     *
-     * @param Request $request
-     * @param string $id
-     * @return JsonResponse
      */
     public function acknowledge(Request $request, string $id): JsonResponse
     {
@@ -102,7 +90,7 @@ class AlertController extends Controller
 
         $success = $this->alertService->acknowledgeAlert($id, $userId);
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to acknowledge alert. Alert may not exist or is already acknowledged.',
@@ -118,10 +106,6 @@ class AlertController extends Controller
 
     /**
      * Resolve an alert (API)
-     *
-     * @param Request $request
-     * @param string $id
-     * @return JsonResponse
      */
     public function resolve(Request $request, string $id): JsonResponse
     {
@@ -129,7 +113,7 @@ class AlertController extends Controller
 
         $success = $this->alertService->resolveAlert($id, $userId);
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to resolve alert. Alert may not exist.',
@@ -145,10 +129,6 @@ class AlertController extends Controller
 
     /**
      * Mute an alert (API)
-     *
-     * @param Request $request
-     * @param string $id
-     * @return JsonResponse
      */
     public function mute(Request $request, string $id): JsonResponse
     {
@@ -158,7 +138,7 @@ class AlertController extends Controller
 
         $success = $this->alertService->muteAlert($id, $validated['minutes']);
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to mute alert. Alert may not exist.',
@@ -175,9 +155,6 @@ class AlertController extends Controller
 
     /**
      * Bulk acknowledge alerts (API)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function bulkAcknowledge(Request $request): JsonResponse
     {
@@ -198,9 +175,6 @@ class AlertController extends Controller
 
     /**
      * Bulk resolve alerts (API)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function bulkResolve(Request $request): JsonResponse
     {

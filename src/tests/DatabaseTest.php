@@ -2,10 +2,8 @@
 
 namespace Tests;
 
-use Tests\TestCase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 
 class DatabaseTest extends TestCase

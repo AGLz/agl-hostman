@@ -11,25 +11,23 @@ use JsonSerializable;
  *
  * Represents real-time metrics for a Proxmox LXC container.
  * Immutable value object for type-safe metric handling.
- *
- * @package App\DTO
  */
 final readonly class ContainerMetrics implements JsonSerializable
 {
     /**
-     * @param string $vmid Container ID
-     * @param string $name Container name
-     * @param string $status Container status (running, stopped, etc)
-     * @param float $cpuUsage CPU usage percentage (0-100)
-     * @param int $memoryUsed Memory used in bytes
-     * @param int $memoryTotal Total memory in bytes
-     * @param int $diskUsed Disk space used in bytes
-     * @param int $diskTotal Total disk space in bytes
-     * @param int|null $networkRx Network received in bytes
-     * @param int|null $networkTx Network transmitted in bytes
-     * @param int $uptime Uptime in seconds
-     * @param array<string, mixed> $additionalMetrics Additional custom metrics
-     * @param \DateTimeImmutable $timestamp Metric collection timestamp
+     * @param  string  $vmid  Container ID
+     * @param  string  $name  Container name
+     * @param  string  $status  Container status (running, stopped, etc)
+     * @param  float  $cpuUsage  CPU usage percentage (0-100)
+     * @param  int  $memoryUsed  Memory used in bytes
+     * @param  int  $memoryTotal  Total memory in bytes
+     * @param  int  $diskUsed  Disk space used in bytes
+     * @param  int  $diskTotal  Total disk space in bytes
+     * @param  int|null  $networkRx  Network received in bytes
+     * @param  int|null  $networkTx  Network transmitted in bytes
+     * @param  int  $uptime  Uptime in seconds
+     * @param  array<string, mixed>  $additionalMetrics  Additional custom metrics
+     * @param  \DateTimeImmutable  $timestamp  Metric collection timestamp
      */
     public function __construct(
         public string $vmid,
@@ -44,35 +42,33 @@ final readonly class ContainerMetrics implements JsonSerializable
         public ?int $networkTx = null,
         public int $uptime = 0,
         public array $additionalMetrics = [],
-        public \DateTimeImmutable $timestamp = new \DateTimeImmutable(),
-    ) {
-    }
+        public \DateTimeImmutable $timestamp = new \DateTimeImmutable,
+    ) {}
 
     /**
      * Create from Proxmox API response
      *
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromProxmoxData(array $data): self
     {
         return new self(
-            vmid: (string)($data['vmid'] ?? ''),
-            name: (string)($data['name'] ?? ''),
-            status: (string)($data['status'] ?? 'unknown'),
-            cpuUsage: (float)($data['cpu'] ?? 0) * 100,
-            memoryUsed: (int)($data['mem'] ?? 0),
-            memoryTotal: (int)($data['maxmem'] ?? 0),
-            diskUsed: (int)($data['disk'] ?? 0),
-            diskTotal: (int)($data['maxdisk'] ?? 0),
-            networkRx: isset($data['netin']) ? (int)$data['netin'] : null,
-            networkTx: isset($data['netout']) ? (int)$data['netout'] : null,
-            uptime: (int)($data['uptime'] ?? 0),
+            vmid: (string) ($data['vmid'] ?? ''),
+            name: (string) ($data['name'] ?? ''),
+            status: (string) ($data['status'] ?? 'unknown'),
+            cpuUsage: (float) ($data['cpu'] ?? 0) * 100,
+            memoryUsed: (int) ($data['mem'] ?? 0),
+            memoryTotal: (int) ($data['maxmem'] ?? 0),
+            diskUsed: (int) ($data['disk'] ?? 0),
+            diskTotal: (int) ($data['maxdisk'] ?? 0),
+            networkRx: isset($data['netin']) ? (int) $data['netin'] : null,
+            networkTx: isset($data['netout']) ? (int) $data['netout'] : null,
+            uptime: (int) ($data['uptime'] ?? 0),
             additionalMetrics: array_diff_key($data, array_flip([
                 'vmid', 'name', 'status', 'cpu', 'mem', 'maxmem',
-                'disk', 'maxdisk', 'netin', 'netout', 'uptime'
+                'disk', 'maxdisk', 'netin', 'netout', 'uptime',
             ])),
-            timestamp: new \DateTimeImmutable(),
+            timestamp: new \DateTimeImmutable,
         );
     }
 
@@ -116,13 +112,14 @@ final readonly class ContainerMetrics implements JsonSerializable
      */
     public function getHealthStatus(): string
     {
-        if (!$this->isHealthy()) {
+        if (! $this->isHealthy()) {
             if ($this->status !== 'running') {
                 return 'critical';
             }
             if ($this->cpuUsage > 95 || $this->getMemoryUsagePercent() > 95) {
                 return 'critical';
             }
+
             return 'warning';
         }
 
@@ -166,7 +163,7 @@ final readonly class ContainerMetrics implements JsonSerializable
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 
     /**

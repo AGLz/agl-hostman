@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\DokployService;
 use App\Models\DokployDeployment;
-use App\Models\DokployApplication;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use App\Services\DokployService;
 use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Dokploy Deployment Controller
@@ -54,7 +53,7 @@ class DokployDeploymentController extends Controller
             $newDeployment = $this->dokployService->redeployApplication(
                 $deployment->application->dokploy_id,
                 "Rollback to deployment #{$id}",
-                "Automated rollback to previous version"
+                'Automated rollback to previous version'
             );
 
             // Create rollback deployment record
@@ -81,7 +80,7 @@ class DokployDeploymentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Rollback failed: ' . $e->getMessage(),
+                'message' => 'Rollback failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -120,7 +119,7 @@ class DokployDeploymentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Cancel failed: ' . $e->getMessage(),
+                'message' => 'Cancel failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -158,7 +157,7 @@ class DokployDeploymentController extends Controller
         try {
             $applicationId = $request->input('application_id');
 
-            if (!$applicationId) {
+            if (! $applicationId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Application ID is required',

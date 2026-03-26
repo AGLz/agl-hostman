@@ -5,7 +5,6 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use Carbon\Carbon;
 
 /**
  * Deployment Service
@@ -16,8 +15,6 @@ use Carbon\Carbon;
  * - Rollback capabilities
  * - Health checks and monitoring
  * - Deployment notifications
- *
- * @package App\Services
  */
 class DeploymentService
 {
@@ -25,6 +22,7 @@ class DeploymentService
      * Deployment slots for blue-green strategy
      */
     const SLOT_BLUE = 'blue';
+
     const SLOT_GREEN = 'green';
 
     /**
@@ -36,6 +34,7 @@ class DeploymentService
      * Health check retry configuration
      */
     const HEALTH_CHECK_RETRIES = 30;
+
     const HEALTH_CHECK_INTERVAL = 10; // seconds
 
     /**
@@ -60,35 +59,26 @@ class DeploymentService
 
     /**
      * Get the current active deployment slot.
-     *
-     * @param string $environment
-     * @return string
      */
     public function getActiveSlot(string $environment = 'production'): string
     {
         $key = "deployment:{$environment}:active_slot";
+
         return Redis::get($key, self::SLOT_BLUE);
     }
 
     /**
      * Get the inactive deployment slot.
-     *
-     * @param string $environment
-     * @return string
      */
     public function getInactiveSlot(string $environment = 'production'): string
     {
         $active = $this->getActiveSlot($environment);
+
         return $active === self::SLOT_BLUE ? self::SLOT_GREEN : self::SLOT_BLUE;
     }
 
     /**
      * Deploy to a specific slot.
-     *
-     * @param string $slot
-     * @param string $version
-     * @param string $environment
-     * @return array
      */
     public function deployToSlot(string $slot, string $version, string $environment = 'production'): array
     {
@@ -147,11 +137,6 @@ class DeploymentService
 
     /**
      * Wait for deployment to complete.
-     *
-     * @param string $deploymentId
-     * @param string $environment
-     * @param int $timeout
-     * @return array
      */
     public function waitForDeployment(string $deploymentId, string $environment = 'production', int $timeout = 600): array
     {
@@ -185,10 +170,6 @@ class DeploymentService
 
     /**
      * Run health checks on a specific slot.
-     *
-     * @param string $slot
-     * @param string $environment
-     * @return array
      */
     public function runHealthChecks(string $slot, string $environment = 'production'): array
     {
@@ -234,10 +215,6 @@ class DeploymentService
 
     /**
      * Run smoke tests on a specific slot.
-     *
-     * @param string $slot
-     * @param string $environment
-     * @return array
      */
     public function runSmokeTests(string $slot, string $environment = 'production'): array
     {
@@ -256,7 +233,7 @@ class DeploymentService
         $failed = 0;
 
         foreach ($endpoints as $endpoint) {
-            $url = $baseUrl . $endpoint;
+            $url = $baseUrl.$endpoint;
             $response = Http::timeout(10)->get($url);
 
             $results[$endpoint] = [
@@ -281,18 +258,13 @@ class DeploymentService
 
     /**
      * Switch traffic between slots gradually.
-     *
-     * @param string $fromSlot
-     * @param string $toSlot
-     * @param string $environment
-     * @return array
      */
     public function gradualTrafficSwitch(string $fromSlot, string $toSlot, string $environment = 'production'): array
     {
         $lbApiUrl = config("deployment.{$environment}.lb_api_url");
         $lbToken = config("deployment.{$environment}.lb_token");
 
-        Log::info("Starting gradual traffic switch", [
+        Log::info('Starting gradual traffic switch', [
             'from' => $fromSlot,
             'to' => $toSlot,
             'environment' => $environment,
@@ -309,7 +281,7 @@ class DeploymentService
                 'Authorization' => "Bearer {$lbToken}",
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [
                     'success' => false,
                     'message' => "Failed to switch traffic to {$percentage}%",
@@ -320,7 +292,7 @@ class DeploymentService
             // Monitor for issues before next switch
             $monitorResult = $this->monitorDeployment($toSlot, $environment, 60);
 
-            if (!$monitorResult['healthy']) {
+            if (! $monitorResult['healthy']) {
                 return [
                     'success' => false,
                     'message' => "Issues detected at {$percentage}% traffic",
@@ -336,11 +308,6 @@ class DeploymentService
 
     /**
      * Monitor deployment for issues.
-     *
-     * @param string $slot
-     * @param string $environment
-     * @param int $duration
-     * @return array
      */
     public function monitorDeployment(string $slot, string $environment = 'production', int $duration = self::MONITOR_DURATION): array
     {
@@ -395,10 +362,6 @@ class DeploymentService
 
     /**
      * Activate a slot as the primary.
-     *
-     * @param string $slot
-     * @param string $environment
-     * @return bool
      */
     public function activateSlot(string $slot, string $environment = 'production'): bool
     {
@@ -421,16 +384,13 @@ class DeploymentService
 
     /**
      * Rollback to the previous slot.
-     *
-     * @param string $environment
-     * @return array
      */
     public function rollback(string $environment = 'production'): array
     {
         $previousSlot = Redis::get("deployment:{$environment}:previous_slot");
         $rollbackExpires = Redis::get("deployment:{$environment}:rollback_expires");
 
-        if (!$previousSlot || !$rollbackExpires) {
+        if (! $previousSlot || ! $rollbackExpires) {
             return [
                 'success' => false,
                 'message' => 'No rollback target available',
@@ -452,7 +412,7 @@ class DeploymentService
         $activeSlot = $this->getActiveSlot($environment);
         $result = $this->gradualTrafficSwitch($activeSlot, $previousSlot, $environment);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return [
                 'success' => false,
                 'message' => 'Rollback traffic switch failed',
@@ -463,7 +423,7 @@ class DeploymentService
         // Verify health
         $healthCheck = $this->runHealthChecks($previousSlot, $environment);
 
-        if (!$healthCheck['healthy']) {
+        if (! $healthCheck['healthy']) {
             return [
                 'success' => false,
                 'message' => 'Rollback target is unhealthy',
@@ -483,16 +443,12 @@ class DeploymentService
 
     /**
      * Send deployment notification.
-     *
-     * @param string $status
-     * @param array $data
-     * @return bool
      */
     public function sendNotification(string $status, array $data = []): bool
     {
         $webhookUrl = config('deployment.slack_webhook_url');
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             return false;
         }
 
@@ -522,21 +478,17 @@ class DeploymentService
 
         try {
             Http::post($webhookUrl, $payload);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to send deployment notification', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
 
     /**
      * Store deployment information.
-     *
-     * @param string $environment
-     * @param string $slot
-     * @param string $version
-     * @param string $deploymentId
-     * @return void
      */
     protected function storeDeploymentInfo(string $environment, string $slot, string $version, string $deploymentId): void
     {
@@ -551,9 +503,6 @@ class DeploymentService
 
     /**
      * Get domain for environment.
-     *
-     * @param string $environment
-     * @return string
      */
     protected function getDomain(string $environment): string
     {
@@ -566,9 +515,6 @@ class DeploymentService
 
     /**
      * Get Dokploy URL for environment.
-     *
-     * @param string $environment
-     * @return string
      */
     protected function getDokployUrl(string $environment): string
     {
@@ -577,9 +523,6 @@ class DeploymentService
 
     /**
      * Get Dokploy token for environment.
-     *
-     * @param string $environment
-     * @return string
      */
     protected function getDokployToken(string $environment): string
     {

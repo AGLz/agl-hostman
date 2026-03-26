@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Repositories\UserRepository;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -39,9 +39,6 @@ class UserController extends Controller
 
     /**
      * Display a listing of users
-     *
-     * @param Request $request
-     * @return View
      */
     public function index(Request $request): View
     {
@@ -60,8 +57,6 @@ class UserController extends Controller
 
     /**
      * Show the form for creating a new user
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -74,9 +69,6 @@ class UserController extends Controller
 
     /**
      * Store a newly created user
-     *
-     * @param Request $request
-     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
@@ -106,9 +98,6 @@ class UserController extends Controller
 
     /**
      * Display the specified user
-     *
-     * @param User $user
-     * @return View
      */
     public function show(User $user): View
     {
@@ -125,9 +114,6 @@ class UserController extends Controller
 
     /**
      * Show the form for editing the specified user
-     *
-     * @param User $user
-     * @return View
      */
     public function edit(User $user): View
     {
@@ -142,16 +128,12 @@ class UserController extends Controller
 
     /**
      * Update the specified user
-     *
-     * @param Request $request
-     * @param User $user
-     * @return RedirectResponse
      */
     public function update(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'password' => ['sometimes', 'nullable', 'confirmed', Password::defaults()],
         ]);
 
@@ -179,9 +161,6 @@ class UserController extends Controller
 
     /**
      * Remove the specified user
-     *
-     * @param User $user
-     * @return RedirectResponse
      */
     public function destroy(User $user): RedirectResponse
     {
@@ -199,9 +178,6 @@ class UserController extends Controller
 
     /**
      * Activate a user account
-     *
-     * @param User $user
-     * @return RedirectResponse
      */
     public function activate(User $user): RedirectResponse
     {
@@ -219,9 +195,6 @@ class UserController extends Controller
 
     /**
      * Deactivate a user account
-     *
-     * @param User $user
-     * @return RedirectResponse
      */
     public function deactivate(User $user): RedirectResponse
     {
@@ -239,10 +212,6 @@ class UserController extends Controller
 
     /**
      * Assign a role to a user
-     *
-     * @param Request $request
-     * @param User $user
-     * @return RedirectResponse
      */
     public function assignRole(Request $request, User $user): RedirectResponse
     {
@@ -268,10 +237,6 @@ class UserController extends Controller
 
     /**
      * Remove a role from a user
-     *
-     * @param Request $request
-     * @param User $user
-     * @return RedirectResponse
      */
     public function removeRole(Request $request, User $user): RedirectResponse
     {
@@ -297,9 +262,6 @@ class UserController extends Controller
 
     /**
      * Display user's audit log
-     *
-     * @param User $user
-     * @return View
      */
     public function auditLog(User $user): View
     {

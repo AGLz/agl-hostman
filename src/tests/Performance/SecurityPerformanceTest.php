@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Performance;
 
-use App\Models\User;
 use App\Models\SecurityAuditLog;
+use App\Models\User;
 use App\Services\SecurityAuditService;
 use App\Services\SecurityComplianceService;
 use Illuminate\Support\Facades\Process;
@@ -15,18 +15,15 @@ use Tests\TestCase;
  * Security Performance Test
  *
  * Performance tests for security operations.
- *
- * @package Tests\Performance
  */
 class SecurityPerformanceTest extends TestCase
 {
-
     /**
      * Test security audit service performance
      */
     public function test_security_audit_performance(): void
     {
-        $service = new SecurityAuditService();
+        $service = new SecurityAuditService;
 
         Process::fake([
             'composer audit --no-dev' => Process::result(exitCode: 0, output: 'No vulnerabilities.'),
@@ -49,7 +46,7 @@ class SecurityPerformanceTest extends TestCase
      */
     public function test_compliance_check_performance(): void
     {
-        $service = new SecurityComplianceService();
+        $service = new SecurityComplianceService;
 
         $startTime = microtime(true);
         $result = $service->runComplianceCheck();
@@ -209,7 +206,7 @@ class SecurityPerformanceTest extends TestCase
      */
     public function test_memory_usage_during_security_audit(): void
     {
-        $service = new SecurityAuditService();
+        $service = new SecurityAuditService;
 
         Process::fake([
             'composer audit --no-dev' => Process::result(exitCode: 0),

@@ -15,8 +15,6 @@ use Tests\TestCase;
  *
  * Tests for Role-Based Access Control enforcement including
  * role checks, permission checks, and authorization bypass prevention.
- *
- * @package Tests\Unit\Security
  */
 class RbacEnforcementTest extends TestCase
 {

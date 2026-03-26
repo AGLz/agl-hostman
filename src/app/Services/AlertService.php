@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Alert;
-use App\Models\AlertRule;
-use App\Events\AlertCreated;
 use App\Events\AlertAcknowledged;
+use App\Events\AlertCreated;
 use App\Events\AlertResolved;
+use App\Models\Alert;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * AlertService - Manages alert lifecycle and operations
@@ -22,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 class AlertService
 {
     protected int $maxAlertsPerRuleHourly;
+
     protected int $deduplicationWindowMinutes;
 
     public function __construct()
@@ -53,12 +53,14 @@ class AlertService
         // Check for duplicate alerts in deduplication window
         if ($this->isDuplicate($data)) {
             Log::info('Duplicate alert suppressed', $data);
+
             return null;
         }
 
         // Check rate limit for rule-based alerts
         if (isset($data['rule_id']) && $this->isRateLimited($data['rule_id'])) {
             Log::warning('Alert rate limit exceeded for rule', ['rule_id' => $data['rule_id']]);
+
             return null;
         }
 
@@ -96,7 +98,7 @@ class AlertService
     {
         $alert = Alert::find($alertId);
 
-        if (!$alert) {
+        if (! $alert) {
             return false;
         }
 
@@ -125,7 +127,7 @@ class AlertService
     {
         $alert = Alert::find($alertId);
 
-        if (!$alert) {
+        if (! $alert) {
             return false;
         }
 
@@ -150,7 +152,7 @@ class AlertService
     {
         $alert = Alert::find($alertId);
 
-        if (!$alert) {
+        if (! $alert) {
             return false;
         }
 

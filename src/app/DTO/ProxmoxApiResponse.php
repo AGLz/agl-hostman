@@ -11,18 +11,16 @@ use JsonSerializable;
  *
  * Standardized response wrapper for all Proxmox API interactions.
  * Provides consistent error handling and data extraction.
- *
- * @package App\DTO
  */
 final readonly class ProxmoxApiResponse implements JsonSerializable
 {
     /**
-     * @param bool $success Request success status
-     * @param mixed $data Response data
-     * @param string|null $error Error message if failed
-     * @param int $statusCode HTTP status code
-     * @param array<string, mixed> $metadata Additional response metadata
-     * @param \DateTimeImmutable $timestamp Response timestamp
+     * @param  bool  $success  Request success status
+     * @param  mixed  $data  Response data
+     * @param  string|null  $error  Error message if failed
+     * @param  int  $statusCode  HTTP status code
+     * @param  array<string, mixed>  $metadata  Additional response metadata
+     * @param  \DateTimeImmutable  $timestamp  Response timestamp
      */
     public function __construct(
         public bool $success,
@@ -30,16 +28,13 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
         public ?string $error = null,
         public int $statusCode = 200,
         public array $metadata = [],
-        public \DateTimeImmutable $timestamp = new \DateTimeImmutable(),
-    ) {
-    }
+        public \DateTimeImmutable $timestamp = new \DateTimeImmutable,
+    ) {}
 
     /**
      * Create success response
      *
-     * @param mixed $data
-     * @param array<string, mixed> $metadata
-     * @return self
+     * @param  array<string, mixed>  $metadata
      */
     public static function success(mixed $data, array $metadata = []): self
     {
@@ -54,10 +49,7 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
     /**
      * Create error response
      *
-     * @param string $error
-     * @param int $statusCode
-     * @param array<string, mixed> $metadata
-     * @return self
+     * @param  array<string, mixed>  $metadata
      */
     public static function error(string $error, int $statusCode = 500, array $metadata = []): self
     {
@@ -71,9 +63,6 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
 
     /**
      * Create from HTTP response
-     *
-     * @param \Illuminate\Http\Client\Response $response
-     * @return self
      */
     public static function fromHttpResponse(\Illuminate\Http\Client\Response $response): self
     {
@@ -114,11 +103,11 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
      */
     public function getDataOrFail(): mixed
     {
-        if (!$this->success) {
+        if (! $this->success) {
             throw new \RuntimeException($this->error ?? 'Request failed');
         }
 
-        if (!$this->hasData()) {
+        if (! $this->hasData()) {
             throw new \RuntimeException('No data in response');
         }
 
@@ -127,9 +116,6 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
 
     /**
      * Get data with default
-     *
-     * @param mixed $default
-     * @return mixed
      */
     public function getDataOrDefault(mixed $default = null): mixed
     {
@@ -162,10 +148,6 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
 
     /**
      * Get metadata value
-     *
-     * @param string $key
-     * @param mixed $default
-     * @return mixed
      */
     public function getMetadata(string $key, mixed $default = null): mixed
     {
@@ -202,7 +184,7 @@ final readonly class ProxmoxApiResponse implements JsonSerializable
             'timestamp' => $this->timestamp->format(\DateTimeInterface::ATOM),
         ];
 
-        if (!$this->success) {
+        if (! $this->success) {
             $result['error'] = $this->error;
             $result['status_code'] = $this->statusCode;
         }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\NotificationChannel;
-use App\Services\Notifications\SlackNotificationService;
 use App\Services\Notifications\PagerDutyService;
+use App\Services\Notifications\SlackNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,10 +19,10 @@ class NotificationChannelController extends Controller
     public function index(Request $request): JsonResponse
     {
         $channels = NotificationChannel::query()
-            ->when($request->type, fn($q, $type) => $q->where('type', $type))
-            ->when($request->enabled !== null, fn($q) => $q->where('enabled', $request->boolean('enabled')))
-            ->withCount(['notifications as total_sent' => fn($q) => $q->where('status', 'sent')])
-            ->withCount(['notifications as failed' => fn($q) => $q->where('status', 'failed')])
+            ->when($request->type, fn ($q, $type) => $q->where('type', $type))
+            ->when($request->enabled !== null, fn ($q) => $q->where('enabled', $request->boolean('enabled')))
+            ->withCount(['notifications as total_sent' => fn ($q) => $q->where('status', 'sent')])
+            ->withCount(['notifications as failed' => fn ($q) => $q->where('status', 'failed')])
             ->get();
 
         $statistics = [
@@ -86,7 +86,7 @@ class NotificationChannelController extends Controller
     public function update(Request $request, NotificationChannel $channel): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255|unique:notification_channels,name,' . $channel->id,
+            'name' => 'sometimes|string|max:255|unique:notification_channels,name,'.$channel->id,
             'config' => 'sometimes|array',
             'enabled' => 'boolean',
         ]);
@@ -234,6 +234,7 @@ class NotificationChannelController extends Controller
         }
 
         $sent = $channel->notifications()->where('status', 'sent')->count();
+
         return round(($sent / $total) * 100, 2);
     }
 

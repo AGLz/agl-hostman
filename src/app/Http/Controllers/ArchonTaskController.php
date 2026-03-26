@@ -24,7 +24,7 @@ class ArchonTaskController extends Controller
             'assignee' => 'nullable|string|max:100',
             'priority' => 'nullable|in:low,medium,high',
             'feature' => 'nullable|string|max:100',
-            'task_order' => 'nullable|integer|min:0|max:100'
+            'task_order' => 'nullable|integer|min:0|max:100',
         ]);
 
         try {
@@ -45,11 +45,11 @@ class ArchonTaskController extends Controller
         } catch (\Exception $e) {
             logger()->error('Task creation error', [
                 'error' => $e->getMessage(),
-                'data' => $validated
+                'data' => $validated,
             ]);
 
             return back()
-                ->withErrors(['error' => 'Failed to create task: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Failed to create task: '.$e->getMessage()])
                 ->withInput();
         }
     }
@@ -66,7 +66,7 @@ class ArchonTaskController extends Controller
             'assignee' => 'nullable|string|max:100',
             'priority' => 'nullable|in:low,medium,high',
             'feature' => 'nullable|string|max:100',
-            'task_order' => 'nullable|integer|min:0|max:100'
+            'task_order' => 'nullable|integer|min:0|max:100',
         ]);
 
         try {
@@ -82,7 +82,7 @@ class ArchonTaskController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'task' => $task
+                    'task' => $task,
                 ]);
             }
 
@@ -91,18 +91,18 @@ class ArchonTaskController extends Controller
             logger()->error('Task update error', [
                 'error' => $e->getMessage(),
                 'task_id' => $id,
-                'data' => $validated
+                'data' => $validated,
             ]);
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to update task: ' . $e->getMessage()
+                    'message' => 'Failed to update task: '.$e->getMessage(),
                 ], 500);
             }
 
             return back()
-                ->withErrors(['error' => 'Failed to update task: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Failed to update task: '.$e->getMessage()])
                 ->withInput();
         }
     }
@@ -122,11 +122,11 @@ class ArchonTaskController extends Controller
         } catch (\Exception $e) {
             logger()->error('Task delete error', [
                 'error' => $e->getMessage(),
-                'task_id' => $id
+                'task_id' => $id,
             ]);
 
             return back()
-                ->withErrors(['error' => 'Failed to delete task: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Failed to delete task: '.$e->getMessage()]);
         }
     }
 
@@ -139,7 +139,7 @@ class ArchonTaskController extends Controller
             'tasks' => 'required|array',
             'tasks.*.id' => 'required|string',
             'tasks.*.status' => 'required|in:todo,doing,review,done',
-            'tasks.*.task_order' => 'nullable|integer|min:0|max:100'
+            'tasks.*.task_order' => 'nullable|integer|min:0|max:100',
         ]);
 
         try {
@@ -148,7 +148,7 @@ class ArchonTaskController extends Controller
             foreach ($validated['tasks'] as $taskData) {
                 $task = $this->archonService->updateTask($taskData['id'], [
                     'status' => $taskData['status'],
-                    'task_order' => $taskData['task_order'] ?? null
+                    'task_order' => $taskData['task_order'] ?? null,
                 ]);
 
                 $updatedTasks[] = $task;
@@ -159,17 +159,17 @@ class ArchonTaskController extends Controller
 
             return response()->json([
                 'success' => true,
-                'tasks' => $updatedTasks
+                'tasks' => $updatedTasks,
             ]);
         } catch (\Exception $e) {
             logger()->error('Bulk task update error', [
                 'error' => $e->getMessage(),
-                'data' => $validated
+                'data' => $validated,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update tasks: ' . $e->getMessage()
+                'message' => 'Failed to update tasks: '.$e->getMessage(),
             ], 500);
         }
     }

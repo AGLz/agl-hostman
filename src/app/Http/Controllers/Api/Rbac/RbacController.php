@@ -33,7 +33,7 @@ class RbacController extends Controller
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated',
@@ -51,7 +51,7 @@ class RbacController extends Controller
      */
     public function userSummary(Request $request, User $user): JsonResponse
     {
-        if (!$request->user()->can('users.view')) {
+        if (! $request->user()->can('users.view')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Forbidden',
@@ -81,7 +81,7 @@ class RbacController extends Controller
             ], 422);
         }
 
-        if (!$request->user()->can('users.assign_roles')) {
+        if (! $request->user()->can('users.assign_roles')) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to assign roles',
@@ -123,7 +123,7 @@ class RbacController extends Controller
             ], 422);
         }
 
-        if (!$request->user()->can('users.assign_roles')) {
+        if (! $request->user()->can('users.assign_roles')) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to revoke roles',
@@ -165,7 +165,7 @@ class RbacController extends Controller
             ], 422);
         }
 
-        if (!$request->user()->can('users.manage_permissions')) {
+        if (! $request->user()->can('users.manage_permissions')) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to manage user permissions',
@@ -207,7 +207,7 @@ class RbacController extends Controller
             ], 422);
         }
 
-        if (!$request->user()->can('users.manage_permissions')) {
+        if (! $request->user()->can('users.manage_permissions')) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to manage user permissions',
@@ -237,7 +237,7 @@ class RbacController extends Controller
      */
     public function usersWithRole(Request $request, string $role): JsonResponse
     {
-        if (!$request->user()->can('users.view')) {
+        if (! $request->user()->can('users.view')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Forbidden',
@@ -257,7 +257,7 @@ class RbacController extends Controller
      */
     public function usersWithPermission(Request $request, string $permission): JsonResponse
     {
-        if (!$request->user()->can('users.view')) {
+        if (! $request->user()->can('users.view')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Forbidden',

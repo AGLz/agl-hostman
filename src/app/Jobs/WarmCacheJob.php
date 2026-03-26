@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Services\DokployService;
+use App\Services\HarborService;
+use App\Services\ProxmoxService;
 use App\Services\RedisCacheStrategy;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,17 +14,12 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use App\Services\ProxmoxService;
-use App\Services\DokployService;
-use App\Services\HarborService;
 
 /**
  * Cache Warming Job
  *
  * Warms up Redis cache with frequently accessed data from external services.
  * Runs on schedule to ensure cache is fresh and ready for peak usage.
- *
- * @package App\Jobs
  */
 class WarmCacheJob implements ShouldQueue
 {
@@ -70,8 +68,6 @@ class WarmCacheJob implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(): void
     {
@@ -124,7 +120,7 @@ class WarmCacheJob implements ShouldQueue
             $servers = $this->cacheStrategy->cacheProxmoxResponse(
                 'nodes',
                 null,
-                fn() => $this->proxmox->getNodes(),
+                fn () => $this->proxmox->getNodes(),
                 'short'
             );
             $count++;
@@ -133,7 +129,7 @@ class WarmCacheJob implements ShouldQueue
             $containers = $this->cacheStrategy->cacheProxmoxResponse(
                 'containers',
                 null,
-                fn() => $this->proxmox->getContainers(),
+                fn () => $this->proxmox->getContainers(),
                 'short'
             );
             $count++;
@@ -147,7 +143,7 @@ class WarmCacheJob implements ShouldQueue
                         $this->cacheStrategy->cacheProxmoxResponse(
                             'container',
                             $container['vmid'],
-                            fn() => $this->proxmox->getContainer($container['vmid']),
+                            fn () => $this->proxmox->getContainer($container['vmid']),
                             'short'
                         );
                         $count++;
@@ -180,7 +176,7 @@ class WarmCacheJob implements ShouldQueue
             $applications = $this->cacheStrategy->cacheDokployResponse(
                 'applications',
                 null,
-                fn() => $this->dokploy->getApplications(),
+                fn () => $this->dokploy->getApplications(),
                 'medium'
             );
             $count++;
@@ -192,7 +188,7 @@ class WarmCacheJob implements ShouldQueue
                         $deployments = $this->cacheStrategy->cacheDokployResponse(
                             'deployments',
                             $app['id'],
-                            fn() => $this->dokploy->getApplicationDeployments($app['id']),
+                            fn () => $this->dokploy->getApplicationDeployments($app['id']),
                             'medium'
                         );
                         $count++;
@@ -225,7 +221,7 @@ class WarmCacheJob implements ShouldQueue
             $projects = $this->cacheStrategy->cacheHarborResponse(
                 'projects',
                 null,
-                fn() => $this->harbor->getProjects(),
+                fn () => $this->harbor->getProjects(),
                 'long'
             );
             $count++;
@@ -237,7 +233,7 @@ class WarmCacheJob implements ShouldQueue
                         $repositories = $this->cacheStrategy->cacheHarborResponse(
                             'repositories',
                             $project['name'],
-                            fn() => $this->harbor->getRepositories($project['name']),
+                            fn () => $this->harbor->getRepositories($project['name']),
                             'long'
                         );
                         $count++;
@@ -276,7 +272,7 @@ class WarmCacheJob implements ShouldQueue
                 $this->cacheStrategy->cacheUserData(
                     $user->id,
                     'permissions',
-                    fn() => $user->getAllPermissions(),
+                    fn () => $user->getAllPermissions(),
                     'long'
                 );
                 $count++;
@@ -303,9 +299,6 @@ class WarmCacheJob implements ShouldQueue
 
     /**
      * Handle a job failure.
-     *
-     * @param  \Exception  $exception
-     * @return void
      */
     public function failed(\Exception $exception): void
     {

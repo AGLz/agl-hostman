@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Alert;
-use App\Models\User;
 use App\Models\LxcContainer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Alert Factory
- *
- * @package Database\Factories
  */
 class AlertFactory extends Factory
 {
@@ -25,8 +23,6 @@ class AlertFactory extends Factory
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
     public function definition(): array
     {
@@ -52,8 +48,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is critical
-     *
-     * @return static
      */
     public function critical(): static
     {
@@ -66,8 +60,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is a warning
-     *
-     * @return static
      */
     public function warning(): static
     {
@@ -80,8 +72,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is info
-     *
-     * @return static
      */
     public function info(): static
     {
@@ -93,8 +83,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is active
-     *
-     * @return static
      */
     public function active(): static
     {
@@ -105,8 +93,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is acknowledged
-     *
-     * @return static
      */
     public function acknowledged(): static
     {
@@ -119,8 +105,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is resolved
-     *
-     * @return static
      */
     public function resolved(): static
     {
@@ -133,8 +117,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is for a container
-     *
-     * @return static
      */
     public function forContainer(LxcContainer $container): static
     {
@@ -146,8 +128,6 @@ class AlertFactory extends Factory
 
     /**
      * Indicate that the alert is muted
-     *
-     * @return static
      */
     public function muted(int $minutes = 60): static
     {

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Cache;
 describe('Build Performance', function () {
     beforeEach(function () {
         Cache::flush();
-        $this->service = new BuildPerformanceService();
+        $this->service = new BuildPerformanceService;
     });
 
     test('build completes within performance target', function () {
@@ -141,7 +141,7 @@ describe('Build Performance', function () {
     });
 
     test('validates required metrics fields', function () {
-        expect(fn() => $this->service->recordBuildMetrics([
+        expect(fn () => $this->service->recordBuildMetrics([
             'environment' => 'qa',
             // Missing build_time_seconds
         ]))->toThrow(\InvalidArgumentException::class);
@@ -163,7 +163,7 @@ describe('Build Performance', function () {
 
 describe('Build Metrics API', function () {
     test('can get latest metrics via API', function () {
-        $service = new BuildPerformanceService();
+        $service = new BuildPerformanceService;
         $service->recordBuildMetrics([
             'build_time_seconds' => 150,
             'environment' => 'qa',
@@ -184,7 +184,7 @@ describe('Build Metrics API', function () {
     });
 
     test('can get build history via API', function () {
-        $service = new BuildPerformanceService();
+        $service = new BuildPerformanceService;
 
         for ($i = 0; $i < 5; $i++) {
             $service->recordBuildMetrics([
@@ -203,7 +203,7 @@ describe('Build Metrics API', function () {
     });
 
     test('can get build trends via API', function () {
-        $service = new BuildPerformanceService();
+        $service = new BuildPerformanceService;
 
         for ($i = 0; $i < 10; $i++) {
             $service->recordBuildMetrics([

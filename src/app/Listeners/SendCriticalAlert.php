@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\Log;
  *
  * Listens for critical infrastructure events and dispatches alerts
  * to configured notification channels.
- *
- * @package App\Listeners
  */
 class SendCriticalAlert
 {

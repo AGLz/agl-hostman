@@ -2,9 +2,9 @@
 
 namespace App\Listeners\Notifications;
 
-use App\Events\Notifications\PROpened;
-use App\Events\Notifications\PRMerged;
 use App\Events\Notifications\PRCommented;
+use App\Events\Notifications\PRMerged;
+use App\Events\Notifications\PROpened;
 use App\Services\Notifications\NotificationManager;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;

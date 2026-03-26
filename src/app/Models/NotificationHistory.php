@@ -147,7 +147,7 @@ class NotificationHistory extends Model
      */
     public function getDeliveryTime(): ?float
     {
-        if (!$this->sent_at || !$this->created_at) {
+        if (! $this->sent_at || ! $this->created_at) {
             return null;
         }
 

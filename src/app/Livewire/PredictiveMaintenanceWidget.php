@@ -2,28 +2,33 @@
 
 namespace App\Livewire;
 
-use App\Services\PredictiveMaintenanceService;
 use App\Models\ProxmoxServer;
-use Livewire\Component;
+use App\Services\PredictiveMaintenanceService;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Component;
 
 /**
  * Predictive Maintenance Widget Component
  *
  * Displays AI-powered resource exhaustion predictions and
  * maintenance recommendations for containers.
- *
- * @package App\Livewire
  */
 class PredictiveMaintenanceWidget extends Component
 {
     public ?string $node = null;
+
     public ?int $vmid = null;
+
     public string $resourceType = 'memory';
+
     public string $horizon = 'medium_term';
+
     public array $prediction = [];
+
     public array $clusterForecasts = [];
+
     public bool $showClusterView = true;
+
     public bool $loading = false;
 
     protected $listeners = [
@@ -65,7 +70,7 @@ class PredictiveMaintenanceWidget extends Component
 
         } catch (\Exception $e) {
             $this->dispatch('predictionError', [
-                'message' => 'Failed to load predictions: ' . $e->getMessage(),
+                'message' => 'Failed to load predictions: '.$e->getMessage(),
             ]);
         } finally {
             $this->loading = false;
@@ -101,10 +106,11 @@ class PredictiveMaintenanceWidget extends Component
      */
     protected function loadContainerPrediction()
     {
-        if (!$this->node || !$this->vmid) {
+        if (! $this->node || ! $this->vmid) {
             $this->prediction = [
                 'error' => 'Node and VMID required for container predictions',
             ];
+
             return;
         }
 
@@ -131,7 +137,7 @@ class PredictiveMaintenanceWidget extends Component
      */
     public function toggleView()
     {
-        $this->showClusterView = !$this->showClusterView;
+        $this->showClusterView = ! $this->showClusterView;
         $this->loadPredictions();
     }
 
@@ -191,7 +197,7 @@ class PredictiveMaintenanceWidget extends Component
     {
         // If this update is for our container, refresh
         if (
-            !$this->showClusterView &&
+            ! $this->showClusterView &&
             $event['node'] === $this->node &&
             $event['vmid'] == $this->vmid
         ) {
@@ -215,9 +221,16 @@ class PredictiveMaintenanceWidget extends Component
      */
     public function getConfidenceColor(float $confidence): string
     {
-        if ($confidence >= 0.8) return 'green';
-        if ($confidence >= 0.6) return 'yellow';
-        if ($confidence >= 0.4) return 'orange';
+        if ($confidence >= 0.8) {
+            return 'green';
+        }
+        if ($confidence >= 0.6) {
+            return 'yellow';
+        }
+        if ($confidence >= 0.4) {
+            return 'orange';
+        }
+
         return 'red';
     }
 
@@ -226,9 +239,16 @@ class PredictiveMaintenanceWidget extends Component
      */
     public function getConfidenceText(float $confidence): string
     {
-        if ($confidence >= 0.8) return 'High Confidence';
-        if ($confidence >= 0.6) return 'Medium Confidence';
-        if ($confidence >= 0.4) return 'Low Confidence';
+        if ($confidence >= 0.8) {
+            return 'High Confidence';
+        }
+        if ($confidence >= 0.6) {
+            return 'Medium Confidence';
+        }
+        if ($confidence >= 0.4) {
+            return 'Low Confidence';
+        }
+
         return 'Very Low Confidence';
     }
 
@@ -237,8 +257,13 @@ class PredictiveMaintenanceWidget extends Component
      */
     public function getPredictionSeverity(float $predictedValue): string
     {
-        if ($predictedValue >= 90) return 'critical';
-        if ($predictedValue >= 70) return 'warning';
+        if ($predictedValue >= 90) {
+            return 'critical';
+        }
+        if ($predictedValue >= 70) {
+            return 'warning';
+        }
+
         return 'info';
     }
 
@@ -273,7 +298,7 @@ class PredictiveMaintenanceWidget extends Component
      */
     public function getRecommendation(array $prediction): string
     {
-        if (!isset($prediction['predicted_value'])) {
+        if (! isset($prediction['predicted_value'])) {
             return 'Insufficient data for recommendation';
         }
 
@@ -310,7 +335,7 @@ class PredictiveMaintenanceWidget extends Component
         $data['resource_type'] = $this->resourceType;
         $data['horizon'] = $this->horizon;
 
-        $filename = "prediction_" . now()->format('Y-m-d_His') . '.json';
+        $filename = 'prediction_'.now()->format('Y-m-d_His').'.json';
 
         return response()->streamDownload(function () use ($data) {
             echo json_encode($data, JSON_PRETTY_PRINT);

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -33,8 +33,6 @@ class RoleController extends Controller
 
     /**
      * Display a listing of roles
-     *
-     * @return View
      */
     public function index(): View
     {
@@ -49,8 +47,6 @@ class RoleController extends Controller
 
     /**
      * Show the form for creating a new role
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -66,9 +62,6 @@ class RoleController extends Controller
 
     /**
      * Store a newly created role
-     *
-     * @param Request $request
-     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
@@ -119,9 +112,6 @@ class RoleController extends Controller
 
     /**
      * Display the specified role
-     *
-     * @param Role $role
-     * @return View
      */
     public function show(Role $role): View
     {
@@ -139,9 +129,6 @@ class RoleController extends Controller
 
     /**
      * Show the form for editing the specified role
-     *
-     * @param Role $role
-     * @return View
      */
     public function edit(Role $role): View
     {
@@ -164,10 +151,6 @@ class RoleController extends Controller
 
     /**
      * Update the specified role
-     *
-     * @param Request $request
-     * @param Role $role
-     * @return RedirectResponse
      */
     public function update(Request $request, Role $role): RedirectResponse
     {
@@ -177,7 +160,7 @@ class RoleController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255', 'unique:roles,name,' . $role->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:roles,name,'.$role->id],
             'permissions' => ['sometimes', 'array'],
             'permissions.*' => ['exists:permissions,name'],
         ]);
@@ -230,9 +213,6 @@ class RoleController extends Controller
 
     /**
      * Remove the specified role
-     *
-     * @param Role $role
-     * @return RedirectResponse
      */
     public function destroy(Role $role): RedirectResponse
     {

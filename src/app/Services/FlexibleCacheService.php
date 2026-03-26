@@ -19,7 +19,7 @@ class FlexibleCacheService
      * Cache Infrastructure Analytics
      * TTL: [fresh: 10min, stale: 15min]
      *
-     * @param array $metrics Infrastructure metrics data
+     * @param  array  $metrics  Infrastructure metrics data
      * @return array Cached or fresh analysis
      */
     public function cacheInfrastructureAnalysis(array $metrics): array
@@ -49,8 +49,8 @@ class FlexibleCacheService
      * Cache Proxmox Server Status
      * TTL: [fresh: 30s, stale: 60s]
      *
-     * @param string $serverCode Server identifier (e.g., 'AGLSRV1')
-     * @param callable $callback Function to fetch fresh data
+     * @param  string  $serverCode  Server identifier (e.g., 'AGLSRV1')
+     * @param  callable  $callback  Function to fetch fresh data
      * @return array Server status data
      */
     public function cacheServerStatus(string $serverCode, callable $callback): array
@@ -60,6 +60,7 @@ class FlexibleCacheService
             ttl: [30, 60], // [fresh: 30s, stale: 60s]
             callback: function () use ($serverCode, $callback) {
                 Log::info("Server status cache miss for {$serverCode}");
+
                 return $callback($serverCode);
             }
         );
@@ -69,8 +70,8 @@ class FlexibleCacheService
      * Cache Container List
      * TTL: [fresh: 2min, stale: 5min]
      *
-     * @param string $serverCode Server identifier
-     * @param callable $callback Function to fetch container list
+     * @param  string  $serverCode  Server identifier
+     * @param  callable  $callback  Function to fetch container list
      * @return array Container list
      */
     public function cacheContainerList(string $serverCode, callable $callback): array
@@ -80,6 +81,7 @@ class FlexibleCacheService
             ttl: [120, 300], // [fresh: 2min, stale: 5min]
             callback: function () use ($serverCode, $callback) {
                 Log::info("Container list cache miss for {$serverCode}");
+
                 return $callback($serverCode);
             }
         );
@@ -89,7 +91,7 @@ class FlexibleCacheService
      * Cache Network Topology
      * TTL: [fresh: 5min, stale: 10min]
      *
-     * @param callable $callback Function to build topology
+     * @param  callable  $callback  Function to build topology
      * @return array Network topology data
      */
     public function cacheNetworkTopology(callable $callback): array
@@ -99,6 +101,7 @@ class FlexibleCacheService
             ttl: [300, 600], // [fresh: 5min, stale: 10min]
             callback: function () use ($callback) {
                 Log::info('Network topology cache miss - rebuilding');
+
                 return $callback();
             }
         );
@@ -108,8 +111,8 @@ class FlexibleCacheService
      * Cache User Permissions
      * TTL: [fresh: 15min, stale: 30min]
      *
-     * @param int $userId User ID
-     * @param callable $callback Function to fetch permissions
+     * @param  int  $userId  User ID
+     * @param  callable  $callback  Function to fetch permissions
      * @return array User permissions
      */
     public function cacheUserPermissions(int $userId, callable $callback): array
@@ -119,6 +122,7 @@ class FlexibleCacheService
             ttl: [900, 1800], // [fresh: 15min, stale: 30min]
             callback: function () use ($userId, $callback) {
                 Log::info("User permissions cache miss for user {$userId}");
+
                 return $callback($userId);
             }
         );
@@ -128,8 +132,8 @@ class FlexibleCacheService
      * Cache AI Model Response
      * TTL: [fresh: 1min, stale: 3min]
      *
-     * @param string $cacheKey Unique cache key
-     * @param callable $callback Function to get AI response
+     * @param  string  $cacheKey  Unique cache key
+     * @param  callable  $callback  Function to get AI response
      * @return array AI response
      */
     public function cacheAIResponse(string $cacheKey, callable $callback): array
@@ -139,6 +143,7 @@ class FlexibleCacheService
             ttl: [60, 180], // [fresh: 1min, stale: 3min]
             callback: function () use ($cacheKey, $callback) {
                 Log::info("AI response cache miss for key {$cacheKey}");
+
                 return $callback();
             }
         );
@@ -147,8 +152,7 @@ class FlexibleCacheService
     /**
      * Invalidate specific cache keys
      *
-     * @param array|string $keys Cache key(s) to invalidate
-     * @return void
+     * @param  array|string  $keys  Cache key(s) to invalidate
      */
     public function invalidate(array|string $keys): void
     {
@@ -162,8 +166,6 @@ class FlexibleCacheService
 
     /**
      * Invalidate all infrastructure-related caches
-     *
-     * @return void
      */
     public function invalidateInfrastructure(): void
     {

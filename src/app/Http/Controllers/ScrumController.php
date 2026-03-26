@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Sprint;
 use App\Models\Task;
-use App\Services\N8NService;
 use App\Services\AIModelService;
+use App\Services\N8NService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 class ScrumController extends Controller
 {
     protected N8NService $n8nService;
+
     protected AIModelService $aiService;
 
     public function __construct(N8NService $n8nService, AIModelService $aiService)
@@ -28,7 +29,7 @@ class ScrumController extends Controller
     public function dashboard()
     {
         $activeSprint = Sprint::active();
-        
+
         $stats = [
             'active_sprint' => $activeSprint ? [
                 'id' => $activeSprint->id,
@@ -109,7 +110,7 @@ class ScrumController extends Controller
     {
         // Only one sprint can be active at a time
         Sprint::where('status', 'active')->update(['status' => 'review']);
-        
+
         $sprint->update(['status' => 'active']);
 
         // Trigger N8N workflow for sprint start
@@ -224,7 +225,7 @@ class ScrumController extends Controller
         ]);
 
         $task->moveToStatus($request->status);
-        
+
         if ($request->has('sprint_id')) {
             $task->sprint_id = $request->sprint_id;
             $task->save();
@@ -239,7 +240,7 @@ class ScrumController extends Controller
     public function board(Request $request)
     {
         $sprintId = $request->sprint_id ?? Sprint::active()?->id;
-        
+
         $columns = [
             'backlog' => [],
             'todo' => [],
@@ -284,6 +285,7 @@ class ScrumController extends Controller
         if ($result['success']) {
             try {
                 $tasks = json_decode($result['content'], true);
+
                 return response()->json([
                     'success' => true,
                     'suggested_tasks' => $tasks,
@@ -315,10 +317,11 @@ class ScrumController extends Controller
 
         if ($result['success']) {
             $points = (int) trim($result['content']);
+
             return response()->json([
                 'success' => true,
                 'story_points' => $points,
-                'reasoning' => "Estimated based on complexity and effort",
+                'reasoning' => 'Estimated based on complexity and effort',
             ]);
         }
 

@@ -13,18 +13,21 @@ use Illuminate\Queue\SerializesModels;
  *
  * Fired when a container enters critical health status.
  * Broadcasts to real-time dashboard and triggers alert listeners.
- *
- * @package App\Events
  */
 class ContainerCritical implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public string $node;
+
     public int $vmid;
+
     public string $containerName;
+
     public string $severity;
+
     public array $issues;
+
     public array $metrics;
 
     /**

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Closure;
 
 /**
  * Redis Cache Strategy Service
@@ -21,32 +21,44 @@ use Closure;
  * - Cache tagging and hierarchical invalidation
  * - Rate limiting and throttling
  * - Cache stampede prevention
- *
- * @package App\Services
  */
 class RedisCacheStrategy
 {
     // Cache key prefixes
     private const PREFIX_API = 'api';
+
     private const PREFIX_PROXMOX = 'proxmox';
+
     private const PREFIX_DOKPLOY = 'dokploy';
+
     private const PREFIX_HARBOR = 'harbor';
+
     private const PREFIX_DB = 'db';
+
     private const PREFIX_METRICS = 'metrics';
 
     // Cache TTLs (in seconds)
     private const TTL_SHORT = 300;        // 5 minutes - Real-time data
+
     private const TTL_MEDIUM = 1800;      // 30 minutes - Semi-static data
+
     private const TTL_LONG = 3600;        // 1 hour - Static data
+
     private const TTL_DAILY = 86400;      // 24 hours - Rarely changing data
+
     private const TTL_WEEKLY = 604800;    // 7 days - Reference data
 
     // Cache tags for hierarchical invalidation
     private const TAG_CONTAINERS = 'containers';
+
     private const TAG_DEPLOYMENTS = 'deployments';
+
     private const TAG_SERVERS = 'servers';
+
     private const TAG_IMAGES = 'images';
+
     private const TAG_USERS = 'users';
+
     private const TAG_METRICS = 'metrics';
 
     private CacheService $cacheService;
@@ -59,11 +71,10 @@ class RedisCacheStrategy
     /**
      * Cache API response with headers
      *
-     * @param string $endpoint API endpoint path
-     * @param array $parameters Request parameters
-     * @param Closure $callback Data fetcher callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  string  $endpoint  API endpoint path
+     * @param  array  $parameters  Request parameters
+     * @param  Closure  $callback  Data fetcher callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheApiResponse(
         string $endpoint,
@@ -86,11 +97,10 @@ class RedisCacheStrategy
     /**
      * Cache Proxmox API response
      *
-     * @param string $resource Resource type (containers, vms, nodes, etc.)
-     * @param string|null $identifier Resource ID
-     * @param Closure $callback Proxmox API callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  string  $resource  Resource type (containers, vms, nodes, etc.)
+     * @param  string|null  $identifier  Resource ID
+     * @param  Closure  $callback  Proxmox API callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheProxmoxResponse(
         string $resource,
@@ -114,11 +124,10 @@ class RedisCacheStrategy
     /**
      * Cache Dokploy API response
      *
-     * @param string $resource Resource type (applications, deployments, etc.)
-     * @param string|null $identifier Resource ID
-     * @param Closure $callback Dokploy API callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  string  $resource  Resource type (applications, deployments, etc.)
+     * @param  string|null  $identifier  Resource ID
+     * @param  Closure  $callback  Dokploy API callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheDokployResponse(
         string $resource,
@@ -141,11 +150,10 @@ class RedisCacheStrategy
     /**
      * Cache Harbor API response
      *
-     * @param string $resource Resource type (projects, repositories, artifacts, etc.)
-     * @param string|null $identifier Resource ID
-     * @param Closure $callback Harbor API callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  string  $resource  Resource type (projects, repositories, artifacts, etc.)
+     * @param  string|null  $identifier  Resource ID
+     * @param  Closure  $callback  Harbor API callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheHarborResponse(
         string $resource,
@@ -168,11 +176,10 @@ class RedisCacheStrategy
     /**
      * Cache database query result
      *
-     * @param string $table Database table name
-     * @param array $conditions Query conditions
-     * @param Closure $callback Query callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  string  $table  Database table name
+     * @param  array  $conditions  Query conditions
+     * @param  Closure  $callback  Query callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheDbQuery(
         string $table,
@@ -195,11 +202,10 @@ class RedisCacheStrategy
     /**
      * Cache user-specific data
      *
-     * @param int $userId User ID
-     * @param string $dataType Data type (permissions, preferences, etc.)
-     * @param Closure $callback Data fetcher callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  int  $userId  User ID
+     * @param  string  $dataType  Data type (permissions, preferences, etc.)
+     * @param  Closure  $callback  Data fetcher callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheUserData(
         int $userId,
@@ -222,11 +228,10 @@ class RedisCacheStrategy
     /**
      * Cache system metrics
      *
-     * @param string $metricType Metric type (cpu, memory, disk, etc.)
-     * @param string|null $resource Resource identifier
-     * @param Closure $callback Metrics fetcher callback
-     * @param string|null $ttl TTL strategy
-     * @return mixed
+     * @param  string  $metricType  Metric type (cpu, memory, disk, etc.)
+     * @param  string|null  $resource  Resource identifier
+     * @param  Closure  $callback  Metrics fetcher callback
+     * @param  string|null  $ttl  TTL strategy
      */
     public function cacheMetrics(
         string $metricType,
@@ -249,8 +254,8 @@ class RedisCacheStrategy
     /**
      * Invalidate cache by resource type
      *
-     * @param string $resourceType Resource type to invalidate
-     * @param string|null $identifier Specific resource ID (optional)
+     * @param  string  $resourceType  Resource type to invalidate
+     * @param  string|null  $identifier  Specific resource ID (optional)
      * @return int Number of keys invalidated
      */
     public function invalidateResource(string $resourceType, ?string $identifier = null): int
@@ -276,8 +281,7 @@ class RedisCacheStrategy
     /**
      * Invalidate container cache
      *
-     * @param string|null $vmid Container VMID (null for all containers)
-     * @return bool
+     * @param  string|null  $vmid  Container VMID (null for all containers)
      */
     public function invalidateContainers(?string $vmid = null): bool
     {
@@ -295,8 +299,7 @@ class RedisCacheStrategy
     /**
      * Invalidate deployment cache
      *
-     * @param string|null $deploymentId Deployment ID (null for all deployments)
-     * @return bool
+     * @param  string|null  $deploymentId  Deployment ID (null for all deployments)
      */
     public function invalidateDeployments(?string $deploymentId = null): bool
     {
@@ -312,8 +315,7 @@ class RedisCacheStrategy
     /**
      * Invalidate image cache
      *
-     * @param string|null $imageId Image ID (null for all images)
-     * @return bool
+     * @param  string|null  $imageId  Image ID (null for all images)
      */
     public function invalidateImages(?string $imageId = null): bool
     {
@@ -329,8 +331,7 @@ class RedisCacheStrategy
     /**
      * Invalidate user cache
      *
-     * @param int $userId User ID
-     * @return bool
+     * @param  int  $userId  User ID
      */
     public function invalidateUser(int $userId): bool
     {
@@ -340,8 +341,8 @@ class RedisCacheStrategy
     /**
      * Warm cache with critical data
      *
-     * @param array<string, mixed> $data Data to warm
-     * @param string $category Cache category
+     * @param  array<string, mixed>  $data  Data to warm
+     * @param  string  $category  Cache category
      * @return int Number of items warmed
      */
     public function warmCache(array $data, string $category = 'general'): int
@@ -376,129 +377,106 @@ class RedisCacheStrategy
 
     /**
      * Clear all application cache
-     *
-     * @return bool
      */
     public function clearAll(): bool
     {
         try {
             Cache::flush();
             Log::info('All cache cleared');
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to clear cache', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Generate cache key for API endpoints
-     *
-     * @param string $endpoint
-     * @param array $parameters
-     * @return string
      */
     private function makeApiKey(string $endpoint, array $parameters): string
     {
-        $params = empty($parameters) ? '' : '_' . md5(json_encode($parameters));
-        return self::PREFIX_API . '_' . str_replace('/', '_', $endpoint) . $params;
+        $params = empty($parameters) ? '' : '_'.md5(json_encode($parameters));
+
+        return self::PREFIX_API.'_'.str_replace('/', '_', $endpoint).$params;
     }
 
     /**
      * Generate cache key for Proxmox resources
-     *
-     * @param string $resource
-     * @param string|null $identifier
-     * @return string
      */
     private function makeProxmoxKey(string $resource, ?string $identifier): string
     {
-        $key = self::PREFIX_PROXMOX . '_' . $resource;
+        $key = self::PREFIX_PROXMOX.'_'.$resource;
         if ($identifier) {
-            $key .= '_' . $identifier;
+            $key .= '_'.$identifier;
         }
+
         return $key;
     }
 
     /**
      * Generate cache key for Dokploy resources
-     *
-     * @param string $resource
-     * @param string|null $identifier
-     * @return string
      */
     private function makeDokployKey(string $resource, ?string $identifier): string
     {
-        $key = self::PREFIX_DOKPLOY . '_' . $resource;
+        $key = self::PREFIX_DOKPLOY.'_'.$resource;
         if ($identifier) {
-            $key .= '_' . $identifier;
+            $key .= '_'.$identifier;
         }
+
         return $key;
     }
 
     /**
      * Generate cache key for Harbor resources
-     *
-     * @param string $resource
-     * @param string|null $identifier
-     * @return string
      */
     private function makeHarborKey(string $resource, ?string $identifier): string
     {
-        $key = self::PREFIX_HARBOR . '_' . $resource;
+        $key = self::PREFIX_HARBOR.'_'.$resource;
         if ($identifier) {
-            $key .= '_' . $identifier;
+            $key .= '_'.$identifier;
         }
+
         return $key;
     }
 
     /**
      * Generate cache key for database queries
-     *
-     * @param string $table
-     * @param array $conditions
-     * @return string
      */
     private function makeDbKey(string $table, array $conditions): string
     {
-        $params = empty($conditions) ? '' : '_' . md5(json_encode($conditions));
-        return self::PREFIX_DB . '_' . $table . $params;
+        $params = empty($conditions) ? '' : '_'.md5(json_encode($conditions));
+
+        return self::PREFIX_DB.'_'.$table.$params;
     }
 
     /**
      * Generate cache key for user data
-     *
-     * @param int $userId
-     * @param string $dataType
-     * @return string
      */
     private function makeUserKey(int $userId, string $dataType): string
     {
-        return 'user_' . $userId . '_' . $dataType;
+        return 'user_'.$userId.'_'.$dataType;
     }
 
     /**
      * Generate cache key for metrics
-     *
-     * @param string $metricType
-     * @param string|null $resource
-     * @return string
      */
     private function makeMetricsKey(string $metricType, ?string $resource): string
     {
-        $key = self::PREFIX_METRICS . '_' . $metricType;
+        $key = self::PREFIX_METRICS.'_'.$metricType;
         if ($resource) {
-            $key .= '_' . $resource;
+            $key .= '_'.$resource;
         }
+
         return $key;
     }
 
     /**
      * Extract tags from API endpoint
      *
-     * @param string $endpoint
      * @return array<string>
      */
     private function extractTagsFromEndpoint(string $endpoint): array
@@ -531,7 +509,6 @@ class RedisCacheStrategy
     /**
      * Get resource-specific tags
      *
-     * @param string $resource
      * @return array<string>
      */
     private function getResourceTags(string $resource): array
@@ -565,7 +542,6 @@ class RedisCacheStrategy
     /**
      * Get table-specific tags
      *
-     * @param string $table
      * @return array<string>
      */
     private function getTableTags(string $table): array
@@ -590,12 +566,11 @@ class RedisCacheStrategy
     /**
      * Get category-specific tags
      *
-     * @param string $category
      * @return array<string>
      */
     private function getCategoryTags(string $category): array
     {
-        return match($category) {
+        return match ($category) {
             'containers' => [self::TAG_CONTAINERS],
             'deployments' => [self::TAG_DEPLOYMENTS],
             'infrastructure' => [self::TAG_SERVERS, self::TAG_CONTAINERS],
@@ -608,13 +583,10 @@ class RedisCacheStrategy
 
     /**
      * Resolve TTL strategy to seconds
-     *
-     * @param string|null $ttl
-     * @return int
      */
     private function resolveTtl(?string $ttl): int
     {
-        return match($ttl) {
+        return match ($ttl) {
             'short' => self::TTL_SHORT,
             'medium' => self::TTL_MEDIUM,
             'long' => self::TTL_LONG,
@@ -632,7 +604,7 @@ class RedisCacheStrategy
     private function getRedisInfo(): array
     {
         try {
-            if (!Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
+            if (! Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
                 return ['error' => 'Redis not configured'];
             }
 
@@ -661,7 +633,7 @@ class RedisCacheStrategy
     private function getRedisMemoryUsage(): array
     {
         try {
-            if (!Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
+            if (! Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
                 return ['error' => 'Redis not configured'];
             }
 
@@ -681,13 +653,11 @@ class RedisCacheStrategy
 
     /**
      * Get Redis key count
-     *
-     * @return int
      */
     private function getRedisKeyCount(): int
     {
         try {
-            if (!Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
+            if (! Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
                 return 0;
             }
 

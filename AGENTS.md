@@ -37,6 +37,7 @@ Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan
 | `tests/api`, `tests/unit`, `tests/integration/` | Testes Node |
 | `ai-docs/`, `agent-os/` | Planeamento e specs quando existirem |
 | `.cursor/rules/` | Regras Cursor (Laravel Boost, guia primário PT) |
+| `/mnt/overpower/apps/dev/agl/agl-hostman` (agldv03) | Clone do mesmo repo via NFS overpower (espelho de `U:\…` na wk45) |
 
 **Nota:** A raiz contém muitos artefactos de projeto (compose, config, Python pontual). **Não** adicionar ficheiros soltos sem propósito; preferir `docs/`, `scripts/`, `config/` ou o módulo `src/` adequado.
 
@@ -110,7 +111,7 @@ Resumo — detalhe em `docs/INFRA.md`:
 
 ## LiteLLM + Cursor (Composer)
 
-O modelo **Composer 2** na Cursor é proprietário; no proxy, nomes públicos **`cursor-composer`** e **`cursor-composer-2-fast`** mapeiam para **`openai/gpt-5.3-chat-latest`** (ver `config/litellm/config.yaml`). Documentação de setup: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
+O modelo **Composer 2** na Cursor é proprietário; no proxy, **`cursor-composer`** / **`cursor-composer-2-fast`** usam **`gpt-5.4-mini`**; aliases **`openai/gpt-5.3-chat-latest`** (e `gpt-5.3-instant`) apontam para o mesmo backend (ver `config/litellm/config.yaml`). Documentação: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.
 
 ## Ligações
 

@@ -4,7 +4,6 @@ namespace App\Services\Monitoring;
 
 use App\Models\Environment;
 use App\Models\ProductionDeployment;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ProductionMonitoringService
@@ -16,7 +15,7 @@ class ProductionMonitoringService
     {
         $deployment = ProductionDeployment::where('environment_id', $environment->id)->first();
 
-        if (!$deployment) {
+        if (! $deployment) {
             return [];
         }
 

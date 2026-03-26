@@ -11,9 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 /**
@@ -21,8 +19,6 @@ use Tests\TestCase;
  *
  * Tests for security middleware including authentication,
  * authorization, rate limiting, and request validation.
- *
- * @package Tests\Unit\Security
  */
 class MiddlewareSecurityTest extends TestCase
 {
@@ -50,10 +46,10 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_check_role_denies_unauthenticated(): void
     {
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
 
-        $response = $middleware->handle($request, fn () => new Response(), 'admin');
+        $response = $middleware->handle($request, fn () => new Response, 'admin');
 
         $this->assertEquals(401, $response->getStatusCode());
     }
@@ -63,11 +59,11 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_check_role_denies_unauthorized_role(): void
     {
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
         $request->setUserResolver(fn () => $this->user);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'admin');
+        $response = $middleware->handle($request, fn () => new Response, 'admin');
 
         $this->assertEquals(403, $response->getStatusCode());
     }
@@ -79,11 +75,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         $this->admin->assignRole('admin');
 
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
         $request->setUserResolver(fn () => $this->admin);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'admin');
+        $response = $middleware->handle($request, fn () => new Response, 'admin');
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -95,11 +91,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         $this->admin->assignRole(['admin', 'super-admin']);
 
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
         $request->setUserResolver(fn () => $this->admin);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'super-admin,manager|any');
+        $response = $middleware->handle($request, fn () => new Response, 'super-admin,manager|any');
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -112,11 +108,11 @@ class MiddlewareSecurityTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole(['admin', 'operator']);
 
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
         $request->setUserResolver(fn () => $user);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'admin,operator|all');
+        $response = $middleware->handle($request, fn () => new Response, 'admin,operator|all');
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -129,11 +125,11 @@ class MiddlewareSecurityTest extends TestCase
         $inactiveUser = User::factory()->inactive()->create();
         $inactiveUser->assignRole('admin');
 
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
         $request->setUserResolver(fn () => $inactiveUser);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'admin');
+        $response = $middleware->handle($request, fn () => new Response, 'admin');
 
         $this->assertEquals(403, $response->getStatusCode());
     }
@@ -143,10 +139,10 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_check_permission_denies_unauthenticated(): void
     {
-        $middleware = new CheckPermission();
+        $middleware = new CheckPermission;
         $request = Request::create('/users', 'GET');
 
-        $response = $middleware->handle($request, fn () => new Response(), 'manage users');
+        $response = $middleware->handle($request, fn () => new Response, 'manage users');
 
         $this->assertEquals(401, $response->getStatusCode());
     }
@@ -156,11 +152,11 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_check_permission_denies_unauthorized(): void
     {
-        $middleware = new CheckPermission();
+        $middleware = new CheckPermission;
         $request = Request::create('/users', 'GET');
         $request->setUserResolver(fn () => $this->user);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'manage users');
+        $response = $middleware->handle($request, fn () => new Response, 'manage users');
 
         $this->assertEquals(403, $response->getStatusCode());
     }
@@ -172,11 +168,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         $this->admin->givePermissionTo('manage users');
 
-        $middleware = new CheckPermission();
+        $middleware = new CheckPermission;
         $request = Request::create('/users', 'GET');
         $request->setUserResolver(fn () => $this->admin);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'manage users');
+        $response = $middleware->handle($request, fn () => new Response, 'manage users');
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -188,11 +184,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         $this->admin->givePermissionTo(['view dashboard', 'edit profile']);
 
-        $middleware = new CheckPermission();
+        $middleware = new CheckPermission;
         $request = Request::create('/dashboard', 'GET');
         $request->setUserResolver(fn () => $this->admin);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'view dashboard,manage users|any');
+        $response = $middleware->handle($request, fn () => new Response, 'view dashboard,manage users|any');
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -205,11 +201,11 @@ class MiddlewareSecurityTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo(['view dashboard', 'edit profile']);
 
-        $middleware = new CheckPermission();
+        $middleware = new CheckPermission;
         $request = Request::create('/dashboard', 'GET');
         $request->setUserResolver(fn () => $user);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'view dashboard,edit profile|all');
+        $response = $middleware->handle($request, fn () => new Response, 'view dashboard,edit profile|all');
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -222,11 +218,11 @@ class MiddlewareSecurityTest extends TestCase
         $inactiveUser = User::factory()->inactive()->create();
         $inactiveUser->givePermissionTo('manage users');
 
-        $middleware = new CheckPermission();
+        $middleware = new CheckPermission;
         $request = Request::create('/users', 'GET');
         $request->setUserResolver(fn () => $inactiveUser);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'manage users');
+        $response = $middleware->handle($request, fn () => new Response, 'manage users');
 
         $this->assertEquals(403, $response->getStatusCode());
     }
@@ -238,12 +234,12 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.validation.allowed_content_types', ['application/json']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('Content-Type', 'text/html');
         $request->headers->set('X-API-Key', config('mcp.api_keys.test', 'test-key'));
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(415, $response->getStatusCode());
     }
@@ -255,12 +251,12 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.validation.max_request_size', 1);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('Content-Length', '2048');
         $request->headers->set('X-API-Key', config('mcp.api_keys.test', 'test-key'));
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(413, $response->getStatusCode());
     }
@@ -273,11 +269,11 @@ class MiddlewareSecurityTest extends TestCase
         Config::set('mcp.ip_whitelist.enabled', true);
         Config::set('mcp.ip_whitelist.allowed_ips', ['192.168.1.1']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST', [], [], [], ['REMOTE_ADDR' => '192.168.1.100']);
         $request->headers->set('X-API-Key', config('mcp.api_keys.test', 'test-key'));
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(403, $response->getStatusCode());
     }
@@ -287,10 +283,10 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_mcp_security_authenticates_api_key(): void
     {
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(401, $response->getStatusCode());
     }
@@ -302,11 +298,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('X-API-Key', 'valid-api-key-12345');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -319,13 +315,13 @@ class MiddlewareSecurityTest extends TestCase
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
         Config::set('mcp.rate_limiting.max_attempts', 2);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
 
         for ($i = 0; $i < 3; $i++) {
             $request = Request::create('/mcp', 'POST', [], [], [], ['REMOTE_ADDR' => '192.168.1.1']);
             $request->headers->set('X-API-Key', 'valid-api-key-12345');
 
-            $response = $middleware->handle($request, fn () => new Response());
+            $response = $middleware->handle($request, fn () => new Response);
 
             if ($i === 2) {
                 $this->assertEquals(429, $response->getStatusCode());
@@ -346,11 +342,11 @@ class MiddlewareSecurityTest extends TestCase
             'X-Frame-Options' => 'DENY',
         ]);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('X-API-Key', 'valid-api-key-12345');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals('nosniff', $response->headers->get('X-Content-Type-Options'));
         $this->assertEquals('DENY', $response->headers->get('X-Frame-Options'));
@@ -363,11 +359,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('X-API-Key', 'valid-api-key-12345');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -379,11 +375,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('Authorization', 'Bearer valid-api-key-12345');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -395,10 +391,10 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp?api_key=valid-api-key-12345', 'POST');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -408,11 +404,11 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_middleware_logs_unauthorized_access(): void
     {
-        $middleware = new CheckRole();
+        $middleware = new CheckRole;
         $request = Request::create('/admin', 'GET');
         $request->setUserResolver(fn () => $this->user);
 
-        $response = $middleware->handle($request, fn () => new Response(), 'admin');
+        $response = $middleware->handle($request, fn () => new Response, 'admin');
 
         $this->assertEquals(403, $response->getStatusCode());
     }
@@ -424,11 +420,11 @@ class MiddlewareSecurityTest extends TestCase
     {
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
 
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
         $request = Request::create('/mcp', 'POST');
         $request->headers->set('X-API-Key', 'valid-api-key-12345');
 
-        $response = $middleware->handle($request, fn () => new Response());
+        $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -438,7 +434,7 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_ip_in_range_cidr(): void
     {
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
 
         $method = new \ReflectionMethod($middleware, 'ipInRange');
         $method->setAccessible(true);
@@ -453,7 +449,7 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_ip_exact_match(): void
     {
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
 
         $method = new \ReflectionMethod($middleware, 'ipInRange');
         $method->setAccessible(true);
@@ -468,7 +464,7 @@ class MiddlewareSecurityTest extends TestCase
      */
     public function test_ip_not_in_range(): void
     {
-        $middleware = new McpSecurity();
+        $middleware = new McpSecurity;
 
         $method = new \ReflectionMethod($middleware, 'ipInRange');
         $method->setAccessible(true);

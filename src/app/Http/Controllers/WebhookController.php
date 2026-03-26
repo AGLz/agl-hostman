@@ -6,11 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Environment;
 use App\Services\Deployment\DeploymentWorkflowService;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Webhook Controller
@@ -29,15 +28,12 @@ class WebhookController extends Controller
      *
      * Triggered when code is pushed to GitHub
      * Deploys to appropriate environment based on branch
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function handleGitHubPush(Request $request): JsonResponse
     {
         try {
             // Validate webhook signature
-            if (!$this->validateGitHubSignature($request)) {
+            if (! $this->validateGitHubSignature($request)) {
                 Log::warning('Invalid GitHub webhook signature', [
                     'ip' => $request->ip(),
                 ]);
@@ -69,7 +65,7 @@ class WebhookController extends Controller
 
             // Extract branch name
             $ref = $payload['ref'] ?? null;
-            if (!$ref || !str_starts_with($ref, 'refs/heads/')) {
+            if (! $ref || ! str_starts_with($ref, 'refs/heads/')) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Not a branch push, ignoring',
@@ -84,7 +80,7 @@ class WebhookController extends Controller
                 ->where('status', 'active')
                 ->first();
 
-            if (!$environment) {
+            if (! $environment) {
                 Log::info('No auto-deploy environment for branch', [
                     'branch' => $branch,
                 ]);
@@ -147,27 +143,27 @@ class WebhookController extends Controller
      *
      * Uses HMAC-SHA256 to validate webhook authenticity
      *
-     * @param Request $request
      * @return bool True if signature is valid
      */
     private function validateGitHubSignature(Request $request): bool
     {
         // Skip validation if webhook secret is not configured
         $secret = config('services.github.webhook_secret');
-        if (!$secret) {
+        if (! $secret) {
             Log::warning('GitHub webhook secret not configured, skipping signature validation');
+
             return true;
         }
 
         // Get signature from header
         $signature = $request->header('X-Hub-Signature-256');
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
         // Compute expected signature
         $payload = $request->getContent();
-        $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, $secret);
+        $expectedSignature = 'sha256='.hash_hmac('sha256', $payload, $secret);
 
         // Compare signatures (timing-safe)
         return hash_equals($expectedSignature, $signature);
@@ -177,9 +173,6 @@ class WebhookController extends Controller
      * Handle Harbor webhook
      *
      * Triggered when Docker image is pushed to Harbor
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function handleHarborPush(Request $request): JsonResponse
     {
@@ -215,9 +208,6 @@ class WebhookController extends Controller
      * Handle Dokploy webhook
      *
      * Status updates from Dokploy deployments
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function handleDokployStatus(Request $request): JsonResponse
     {

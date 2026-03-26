@@ -2,9 +2,7 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,7 +13,9 @@ class InfrastructureStatusUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public array $status;
+
     public string $serverCode;
+
     public string $statusLevel;
 
     public function __construct(string $serverCode, array $status, string $statusLevel = 'info')
@@ -29,7 +29,7 @@ class InfrastructureStatusUpdated implements ShouldBroadcast
     {
         return [
             new PrivateChannel('infrastructure'),
-            new PrivateChannel('server.' . $this->serverCode),
+            new PrivateChannel('server.'.$this->serverCode),
         ];
     }
 

@@ -7,8 +7,8 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Rbac\PermissionService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class PermissionController extends Controller
@@ -25,9 +25,9 @@ class PermissionController extends Controller
         $query = Permission::query();
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('description', 'like', '%' . $request->search . '%')
-                ->orWhere('module', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('description', 'like', '%'.$request->search.'%')
+                ->orWhere('module', 'like', '%'.$request->search.'%');
         }
 
         if ($request->has('module')) {
@@ -124,7 +124,7 @@ class PermissionController extends Controller
     public function update(Request $request, Permission $permission): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255|unique:permissions,name,' . $permission->id,
+            'name' => 'string|max:255|unique:permissions,name,'.$permission->id,
             'guard_name' => 'string|max:255',
             'module' => 'nullable|string|max:255',
             'description' => 'nullable|string',

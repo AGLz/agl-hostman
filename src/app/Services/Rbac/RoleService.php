@@ -4,8 +4,8 @@ namespace App\Services\Rbac;
 
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class RoleService
 {
@@ -55,7 +55,7 @@ class RoleService
             ]);
 
             // Sync permissions if provided
-            if (!empty($data['permissions'])) {
+            if (! empty($data['permissions'])) {
                 $this->permissionService->syncPermissionsToRole($role, $data['permissions']);
             }
 
@@ -106,6 +106,7 @@ class RoleService
                 ->delete();
 
             $role->delete();
+
             return true;
         });
     }
@@ -116,7 +117,7 @@ class RoleService
     public function assignRoleToUser(Role $role, User $user): User
     {
         return DB::transaction(function () use ($role, $user) {
-            if (!$user->hasRole($role->name)) {
+            if (! $user->hasRole($role->name)) {
                 $user->assignRole($role);
             }
 
@@ -131,6 +132,7 @@ class RoleService
     {
         return DB::transaction(function () use ($role, $user) {
             $user->removeRole($role);
+
             return $user->fresh();
         });
     }
@@ -143,6 +145,7 @@ class RoleService
         return DB::transaction(function () use ($user, $roleIds) {
             $roles = Role::whereIn('id', $roleIds)->get();
             $user->syncRoles($roles);
+
             return $user->fresh();
         });
     }
@@ -214,7 +217,7 @@ class RoleService
      */
     public function canModifyRole(Role $role): bool
     {
-        return !$role->is_system;
+        return ! $role->is_system;
     }
 
     /**

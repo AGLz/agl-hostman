@@ -62,7 +62,7 @@ class AuthController extends Controller
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $profile->email],
                 [
-                    'name' => $profile->firstName . ' ' . $profile->lastName,
+                    'name' => $profile->firstName.' '.$profile->lastName,
                     'workos_id' => $profile->id,
                     'email_verified_at' => now(),
                 ]
@@ -78,11 +78,11 @@ class AuthController extends Controller
             $request->session()->forget('workos_state');
 
             return redirect()->intended(route('dashboard'))
-                ->with('success', 'Welcome back, ' . $user->name . '!');
+                ->with('success', 'Welcome back, '.$user->name.'!');
 
         } catch (\Exception $e) {
             return redirect()->route('login')
-                ->with('error', 'Authentication failed: ' . $e->getMessage());
+                ->with('error', 'Authentication failed: '.$e->getMessage());
         }
     }
 

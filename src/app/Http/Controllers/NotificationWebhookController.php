@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\Notifications\DeploymentStarted;
 use App\Events\Notifications\DeploymentCompleted;
 use App\Events\Notifications\DeploymentFailed;
-use App\Events\Notifications\PROpened;
+use App\Events\Notifications\DeploymentStarted;
 use App\Events\Notifications\PRMerged;
-use App\Events\Notifications\PRCommented;
+use App\Events\Notifications\PROpened;
 use App\Models\Deployment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,20 +20,20 @@ class NotificationWebhookController extends Controller
     public function slackInteraction(Request $request): JsonResponse
     {
         // Verify Slack signature
-        if (!$this->verifySlackSignature($request)) {
+        if (! $this->verifySlackSignature($request)) {
             return response()->json(['error' => 'Invalid signature'], 401);
         }
 
         $payload = json_decode($request->input('payload'), true);
 
-        if (!$payload) {
+        if (! $payload) {
             return response()->json(['error' => 'Invalid payload'], 400);
         }
 
         try {
             $action = $payload['actions'][0] ?? null;
 
-            if (!$action) {
+            if (! $action) {
                 return response()->json(['error' => 'No action found'], 400);
             }
 
@@ -61,7 +60,7 @@ class NotificationWebhookController extends Controller
     public function pagerdutyWebhook(Request $request): JsonResponse
     {
         // Verify PagerDuty signature
-        if (!$this->verifyPagerDutySignature($request)) {
+        if (! $this->verifyPagerDutySignature($request)) {
             return response()->json(['error' => 'Invalid signature'], 401);
         }
 
@@ -148,7 +147,7 @@ class NotificationWebhookController extends Controller
     {
         $signingSecret = config('notifications.slack.signing_secret');
 
-        if (!$signingSecret) {
+        if (! $signingSecret) {
             return true; // Skip verification if not configured
         }
 
@@ -160,8 +159,8 @@ class NotificationWebhookController extends Controller
             return false;
         }
 
-        $baseString = "v0:{$timestamp}:" . $request->getContent();
-        $expectedSignature = 'v0=' . hash_hmac('sha256', $baseString, $signingSecret);
+        $baseString = "v0:{$timestamp}:".$request->getContent();
+        $expectedSignature = 'v0='.hash_hmac('sha256', $baseString, $signingSecret);
 
         return hash_equals($expectedSignature, $signature);
     }
@@ -173,7 +172,7 @@ class NotificationWebhookController extends Controller
     {
         $signature = $request->header('X-PagerDuty-Signature');
 
-        if (!$signature) {
+        if (! $signature) {
             return true; // Skip verification if not present
         }
 

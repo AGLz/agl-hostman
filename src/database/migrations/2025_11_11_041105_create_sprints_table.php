@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('velocity')->default(0);
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
-            
+
             $table->index(['status', 'start_date']);
         });
     }

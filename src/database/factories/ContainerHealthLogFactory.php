@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Container Health Log Factory
- *
- * @package Database\Factories
  */
 class ContainerHealthLogFactory extends Factory
 {
@@ -24,8 +22,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
     public function definition(): array
     {
@@ -49,8 +45,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Indicate that the health log is healthy
-     *
-     * @return static
      */
     public function healthy(): static
     {
@@ -65,8 +59,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Indicate that the health log is unhealthy
-     *
-     * @return static
      */
     public function unhealthy(): static
     {
@@ -80,8 +72,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Indicate that the health log is degraded
-     *
-     * @return static
      */
     public function degraded(): static
     {
@@ -94,8 +84,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Indicate that the health log is for a specific container
-     *
-     * @return static
      */
     public function forContainer(LxcContainer $container): static
     {
@@ -106,8 +94,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Indicate that the health log is recent (last N hours)
-     *
-     * @return static
      */
     public function recent(int $hours = 24): static
     {
@@ -118,8 +104,6 @@ class ContainerHealthLogFactory extends Factory
 
     /**
      * Indicate that the health log has high resource usage
-     *
-     * @return static
      */
     public function highResourceUsage(): static
     {

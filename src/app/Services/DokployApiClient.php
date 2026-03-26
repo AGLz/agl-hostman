@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
+use App\DTOs\ApiResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use App\DTOs\ApiResponse;
 
 /**
  * DokployApiClient - API abstraction layer for Dokploy platform
@@ -18,9 +17,13 @@ use App\DTOs\ApiResponse;
 class DokployApiClient
 {
     protected string $baseUrl;
+
     protected ?string $apiKey = null;
+
     protected int $timeout = 30;
+
     protected int $maxRetries = 3;
+
     protected array $circuitBreaker = [
         'failures' => 0,
         'last_failure' => null,
@@ -31,8 +34,8 @@ class DokployApiClient
     /**
      * Create Dokploy API client instance
      *
-     * @param string $baseUrl Dokploy base URL (e.g., 'https://dok.aglz.io')
-     * @param string $apiKey JWT API token from /settings/profile
+     * @param  string  $baseUrl  Dokploy base URL (e.g., 'https://dok.aglz.io')
+     * @param  string  $apiKey  JWT API token from /settings/profile
      */
     public function __construct(
         ?string $baseUrl = null,
@@ -48,8 +51,6 @@ class DokployApiClient
 
     /**
      * Get all applications
-     *
-     * @return ApiResponse
      */
     public function getApplications(): ApiResponse
     {
@@ -59,8 +60,7 @@ class DokployApiClient
     /**
      * Get single application by ID
      *
-     * @param string $applicationId Application ID
-     * @return ApiResponse
+     * @param  string  $applicationId  Application ID
      */
     public function getApplication(string $applicationId): ApiResponse
     {
@@ -72,8 +72,7 @@ class DokployApiClient
     /**
      * Create new application
      *
-     * @param array $data Application configuration
-     * @return ApiResponse
+     * @param  array  $data  Application configuration
      */
     public function createApplication(array $data): ApiResponse
     {
@@ -83,8 +82,7 @@ class DokployApiClient
     /**
      * Start application
      *
-     * @param string $applicationId Application ID
-     * @return ApiResponse
+     * @param  string  $applicationId  Application ID
      */
     public function startApplication(string $applicationId): ApiResponse
     {
@@ -96,8 +94,7 @@ class DokployApiClient
     /**
      * Stop application
      *
-     * @param string $applicationId Application ID
-     * @return ApiResponse
+     * @param  string  $applicationId  Application ID
      */
     public function stopApplication(string $applicationId): ApiResponse
     {
@@ -109,8 +106,7 @@ class DokployApiClient
     /**
      * Redeploy application (trigger new deployment)
      *
-     * @param string $applicationId Application ID
-     * @return ApiResponse
+     * @param  string  $applicationId  Application ID
      */
     public function redeployApplication(string $applicationId): ApiResponse
     {
@@ -122,8 +118,7 @@ class DokployApiClient
     /**
      * Delete application
      *
-     * @param string $applicationId Application ID
-     * @return ApiResponse
+     * @param  string  $applicationId  Application ID
      */
     public function deleteApplication(string $applicationId): ApiResponse
     {
@@ -134,8 +129,6 @@ class DokployApiClient
 
     /**
      * Get all projects
-     *
-     * @return ApiResponse
      */
     public function getProjects(): ApiResponse
     {
@@ -145,8 +138,7 @@ class DokployApiClient
     /**
      * Get single project by ID
      *
-     * @param string $projectId Project ID
-     * @return ApiResponse
+     * @param  string  $projectId  Project ID
      */
     public function getProject(string $projectId): ApiResponse
     {
@@ -158,8 +150,7 @@ class DokployApiClient
     /**
      * Create new project
      *
-     * @param array $data Project configuration
-     * @return ApiResponse
+     * @param  array  $data  Project configuration
      */
     public function createProject(array $data): ApiResponse
     {
@@ -169,10 +160,9 @@ class DokployApiClient
     /**
      * Execute generic API request with retry logic
      *
-     * @param string $method HTTP method
-     * @param string $endpoint API endpoint
-     * @param array $params Request parameters
-     * @return ApiResponse
+     * @param  string  $method  HTTP method
+     * @param  string  $endpoint  API endpoint
+     * @param  array  $params  Request parameters
      */
     protected function request(string $method, string $endpoint, array $params = []): ApiResponse
     {
@@ -249,7 +239,7 @@ class DokployApiClient
      */
     protected function executeRequest(string $method, string $endpoint, array $params = [])
     {
-        $url = $this->baseUrl . $endpoint;
+        $url = $this->baseUrl.$endpoint;
 
         $headers = [
             'x-api-key' => $this->apiKey,
@@ -261,7 +251,7 @@ class DokployApiClient
             ->timeout($this->timeout);
 
         // GET requests use query parameters, POST/PUT/DELETE use body
-        if (strtoupper($method) === 'GET' && !empty($params)) {
+        if (strtoupper($method) === 'GET' && ! empty($params)) {
             return $http->get($url, $params);
         }
 
@@ -278,11 +268,12 @@ class DokployApiClient
         }
 
         $lastFailure = $this->circuitBreaker['last_failure'];
-        if (!$lastFailure) {
+        if (! $lastFailure) {
             return false;
         }
 
         $elapsed = now()->diffInSeconds($lastFailure);
+
         return $elapsed < $this->circuitBreaker['timeout'];
     }
 
@@ -326,16 +317,17 @@ class DokployApiClient
     /**
      * Convenience method for GET requests
      *
-     * @param string $endpoint API endpoint
-     * @param array $params Query parameters
+     * @param  string  $endpoint  API endpoint
+     * @param  array  $params  Query parameters
      * @return array Response data ['data' => mixed, 'status' => int]
+     *
      * @throws \Exception When the request fails
      */
     public function get(string $endpoint, array $params = []): array
     {
         $response = $this->request('GET', $endpoint, $params);
 
-        if (!$response->success) {
+        if (! $response->success) {
             throw new \Exception($response->error ?? 'Request failed');
         }
 
@@ -348,16 +340,17 @@ class DokployApiClient
     /**
      * Convenience method for POST requests
      *
-     * @param string $endpoint API endpoint
-     * @param array $params Request body parameters
+     * @param  string  $endpoint  API endpoint
+     * @param  array  $params  Request body parameters
      * @return array Response data ['data' => mixed, 'status' => int]
+     *
      * @throws \Exception When the request fails
      */
     public function post(string $endpoint, array $params = []): array
     {
         $response = $this->request('POST', $endpoint, $params);
 
-        if (!$response->success) {
+        if (! $response->success) {
             throw new \Exception($response->error ?? 'Request failed');
         }
 
@@ -376,11 +369,13 @@ class DokployApiClient
     {
         try {
             $response = $this->getProjects();
+
             return $response->isSuccess();
         } catch (\Exception $e) {
             Log::error('Dokploy API connection test failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

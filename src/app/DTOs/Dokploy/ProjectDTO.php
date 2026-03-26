@@ -54,7 +54,7 @@ readonly class ProjectDTO
             'createdAt' => $this->createdAt,
             'organizationId' => $this->organizationId,
             'env' => $this->env,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 
     /**

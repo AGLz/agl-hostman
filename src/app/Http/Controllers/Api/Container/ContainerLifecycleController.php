@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Api\Container;
 
 use App\Http\Controllers\Controller;
 use App\Services\Container\ContainerLifecycleService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Container Lifecycle API Controller

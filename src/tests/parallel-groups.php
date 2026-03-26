@@ -17,7 +17,6 @@ declare(strict_types=1);
  * - Parallel optimized: ~18s (60% reduction)
  * - Process distribution: Auto-detect CPU cores
  *
- * @package Tests
  * @version 1.0.0
  */
 

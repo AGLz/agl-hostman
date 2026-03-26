@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\N8NService;
 use App\Models\N8NWorkflow;
-use Illuminate\Http\Request;
+use App\Services\N8NService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -63,7 +62,7 @@ class N8NController extends Controller
             ->orWhere('n8n_id', $workflow)
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -71,7 +70,7 @@ class N8NController extends Controller
             ], 404);
         }
 
-        if (!$workflowModel->active) {
+        if (! $workflowModel->active) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow is not active',
@@ -187,7 +186,7 @@ class N8NController extends Controller
             ->orWhere('n8n_id', $workflow)
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -221,7 +220,7 @@ class N8NController extends Controller
             ->orWhere('n8n_id', $workflow)
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -243,7 +242,7 @@ class N8NController extends Controller
             ->orWhere('n8n_id', $workflow)
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -265,7 +264,7 @@ class N8NController extends Controller
             ->orWhere('n8n_id', $workflow)
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -312,7 +311,7 @@ class N8NController extends Controller
             ->orWhere('n8n_id', $workflow)
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -350,7 +349,7 @@ class N8NController extends Controller
             ->with('executions')
             ->first();
 
-        if (!$workflowModel) {
+        if (! $workflowModel) {
             return response()->json([
                 'success' => false,
                 'error' => 'Workflow not found',
@@ -405,7 +404,7 @@ class N8NController extends Controller
     {
         $result = $this->n8nService->listWorkflows();
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return [];
         }
 

@@ -19,10 +19,15 @@ class UserActivityLog extends Component
     use WithPagination;
 
     public User $user;
+
     public string $eventTypeFilter = '';
+
     public string $severityFilter = '';
+
     public string $statusFilter = '';
+
     public int $days = 30;
+
     public int $perPage = 20;
 
     protected $queryString = [

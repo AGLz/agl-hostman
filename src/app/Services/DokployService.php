@@ -11,9 +11,9 @@ use App\DTOs\Dokploy\EnvironmentDTO;
 use App\DTOs\Dokploy\LogDTO;
 use App\DTOs\Dokploy\ProjectDTO;
 use App\Repositories\DokployRepository;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 /**
  * Dokploy Service
@@ -38,7 +38,7 @@ class DokployService
             $data = $this->repository->get('/api/project.all');
 
             return collect($data)
-                ->map(fn($project) => ProjectDTO::fromArray($project));
+                ->map(fn ($project) => ProjectDTO::fromArray($project));
         } catch (Exception $e) {
             Log::error('Failed to get Dokploy projects', [
                 'error' => $e->getMessage(),
@@ -53,7 +53,7 @@ class DokployService
     public function getProject(string $projectId): ProjectDTO
     {
         try {
-            $data = $this->repository->get("/api/project.one", [
+            $data = $this->repository->get('/api/project.one', [
                 'projectId' => $projectId,
             ]);
 
@@ -387,6 +387,7 @@ class DokployService
     {
         try {
             $application = $this->getApplication($applicationId);
+
             return $application->applicationStatus ?? 'unknown';
         } catch (Exception $e) {
             Log::error('Failed to get deployment status', [
@@ -410,7 +411,7 @@ class DokployService
             ]);
 
             return collect($data)
-                ->map(fn($domain) => DomainDTO::fromArray($domain));
+                ->map(fn ($domain) => DomainDTO::fromArray($domain));
         } catch (Exception $e) {
             Log::error('Failed to get Dokploy domains', [
                 'applicationId' => $applicationId,
@@ -550,7 +551,7 @@ class DokployService
             ], false); // Don't cache logs
 
             return collect($data)
-                ->map(fn($log) => LogDTO::fromArray($log));
+                ->map(fn ($log) => LogDTO::fromArray($log));
         } catch (Exception $e) {
             Log::error('Failed to get deployment logs', [
                 'applicationId' => $applicationId,

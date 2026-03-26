@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Rbac\RoleService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class RoleController extends Controller
@@ -24,8 +24,8 @@ class RoleController extends Controller
         $query = Role::query();
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('description', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('description', 'like', '%'.$request->search.'%');
         }
 
         if ($request->has('type')) {
@@ -104,7 +104,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255|unique:roles,name,' . $role->id,
+            'name' => 'string|max:255|unique:roles,name,'.$role->id,
             'guard_name' => 'string|max:255',
             'description' => 'nullable|string',
             'permissions' => 'array',
@@ -118,7 +118,7 @@ class RoleController extends Controller
             ], 422);
         }
 
-        if (!$this->roleService->canModifyRole($role)) {
+        if (! $this->roleService->canModifyRole($role)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot modify system roles',
@@ -147,7 +147,7 @@ class RoleController extends Controller
      */
     public function destroy(Role $role): JsonResponse
     {
-        if (!$this->roleService->canDeleteRole($role)) {
+        if (! $this->roleService->canDeleteRole($role)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete system roles',

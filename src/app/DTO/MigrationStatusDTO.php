@@ -8,34 +8,38 @@ namespace App\DTO;
  * Container Migration Status DTO
  *
  * Immutable data transfer object for migration progress tracking.
- *
- * @package App\DTO
  */
 readonly class MigrationStatusDTO
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PREPARING = 'preparing';
+
     public const STATUS_SYNCING = 'syncing';
+
     public const STATUS_MIGRATING = 'migrating';
+
     public const STATUS_COMPLETING = 'completing';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     /**
-     * @param int $vmid Container VMID
-     * @param string $sourceNode Source Proxmox node
-     * @param string $targetNode Target Proxmox node
-     * @param string $status Current migration status
-     * @param int $progress Progress percentage (0-100)
-     * @param bool $online Online (live) migration
-     * @param string|null $taskId Proxmox task UPID
-     * @param float|null $transferredMb Data transferred in MB
-     * @param float|null $totalMb Total data size in MB
-     * @param int|null $estimatedSecondsRemaining Estimated time remaining
-     * @param string|null $error Error message if failed
-     * @param \DateTimeImmutable|null $startedAt Migration start time
-     * @param \DateTimeImmutable|null $completedAt Migration completion time
-     * @param array<string, mixed> $metadata Additional metadata
+     * @param  int  $vmid  Container VMID
+     * @param  string  $sourceNode  Source Proxmox node
+     * @param  string  $targetNode  Target Proxmox node
+     * @param  string  $status  Current migration status
+     * @param  int  $progress  Progress percentage (0-100)
+     * @param  bool  $online  Online (live) migration
+     * @param  string|null  $taskId  Proxmox task UPID
+     * @param  float|null  $transferredMb  Data transferred in MB
+     * @param  float|null  $totalMb  Total data size in MB
+     * @param  int|null  $estimatedSecondsRemaining  Estimated time remaining
+     * @param  string|null  $error  Error message if failed
+     * @param  \DateTimeImmutable|null  $startedAt  Migration start time
+     * @param  \DateTimeImmutable|null  $completedAt  Migration completion time
+     * @param  array<string, mixed>  $metadata  Additional metadata
      */
     public function __construct(
         public int $vmid,
@@ -59,22 +63,21 @@ readonly class MigrationStatusDTO
     /**
      * Create from array
      *
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
-            vmid: (int)($data['vmid'] ?? throw new \InvalidArgumentException('vmid is required')),
+            vmid: (int) ($data['vmid'] ?? throw new \InvalidArgumentException('vmid is required')),
             sourceNode: $data['source_node'] ?? throw new \InvalidArgumentException('source_node is required'),
             targetNode: $data['target_node'] ?? throw new \InvalidArgumentException('target_node is required'),
             status: $data['status'] ?? self::STATUS_PENDING,
-            progress: (int)($data['progress'] ?? 0),
-            online: (bool)($data['online'] ?? false),
+            progress: (int) ($data['progress'] ?? 0),
+            online: (bool) ($data['online'] ?? false),
             taskId: $data['task_id'] ?? $data['task'] ?? null,
-            transferredMb: isset($data['transferred_mb']) ? (float)$data['transferred_mb'] : null,
-            totalMb: isset($data['total_mb']) ? (float)$data['total_mb'] : null,
-            estimatedSecondsRemaining: isset($data['estimated_seconds']) ? (int)$data['estimated_seconds'] : null,
+            transferredMb: isset($data['transferred_mb']) ? (float) $data['transferred_mb'] : null,
+            totalMb: isset($data['total_mb']) ? (float) $data['total_mb'] : null,
+            estimatedSecondsRemaining: isset($data['estimated_seconds']) ? (int) $data['estimated_seconds'] : null,
             error: $data['error'] ?? null,
             startedAt: isset($data['started_at']) ? new \DateTimeImmutable($data['started_at']) : null,
             completedAt: isset($data['completed_at']) ? new \DateTimeImmutable($data['completed_at']) : null,
@@ -84,12 +87,6 @@ readonly class MigrationStatusDTO
 
     /**
      * Create pending status
-     *
-     * @param int $vmid
-     * @param string $sourceNode
-     * @param string $targetNode
-     * @param bool $online
-     * @return self
      */
     public static function pending(int $vmid, string $sourceNode, string $targetNode, bool $online = false): self
     {
@@ -99,18 +96,12 @@ readonly class MigrationStatusDTO
             targetNode: $targetNode,
             status: self::STATUS_PENDING,
             online: $online,
-            startedAt: new \DateTimeImmutable(),
+            startedAt: new \DateTimeImmutable,
         );
     }
 
     /**
      * Update progress
-     *
-     * @param int $progress
-     * @param string $status
-     * @param float|null $transferredMb
-     * @param float|null $totalMb
-     * @return self
      */
     public function withProgress(int $progress, string $status, ?float $transferredMb = null, ?float $totalMb = null): self
     {
@@ -127,16 +118,13 @@ readonly class MigrationStatusDTO
             estimatedSecondsRemaining: $this->calculateEstimatedTime($progress),
             error: $this->error,
             startedAt: $this->startedAt,
-            completedAt: $progress >= 100 ? new \DateTimeImmutable() : null,
+            completedAt: $progress >= 100 ? new \DateTimeImmutable : null,
             metadata: $this->metadata,
         );
     }
 
     /**
      * Mark as failed
-     *
-     * @param string $error
-     * @return self
      */
     public function withError(string $error): self
     {
@@ -153,7 +141,7 @@ readonly class MigrationStatusDTO
             estimatedSecondsRemaining: null,
             error: $error,
             startedAt: $this->startedAt,
-            completedAt: new \DateTimeImmutable(),
+            completedAt: new \DateTimeImmutable,
             metadata: $this->metadata,
         );
     }
@@ -200,7 +188,7 @@ readonly class MigrationStatusDTO
             self::STATUS_FAILED,
         ];
 
-        if (!in_array($this->status, $validStatuses, true)) {
+        if (! in_array($this->status, $validStatuses, true)) {
             throw new \InvalidArgumentException("Invalid status: {$this->status}");
         }
 
@@ -215,27 +203,22 @@ readonly class MigrationStatusDTO
 
     /**
      * Calculate estimated time remaining
-     *
-     * @param int $progress
-     * @return int|null
      */
     private function calculateEstimatedTime(int $progress): ?int
     {
-        if (!$this->startedAt || $progress <= 0 || $progress >= 100) {
+        if (! $this->startedAt || $progress <= 0 || $progress >= 100) {
             return null;
         }
 
-        $elapsed = (new \DateTimeImmutable())->getTimestamp() - $this->startedAt->getTimestamp();
+        $elapsed = (new \DateTimeImmutable)->getTimestamp() - $this->startedAt->getTimestamp();
         $rate = $progress / $elapsed;
         $remaining = (100 - $progress) / $rate;
 
-        return (int)$remaining;
+        return (int) $remaining;
     }
 
     /**
      * Check if migration is in progress
-     *
-     * @return bool
      */
     public function isInProgress(): bool
     {
@@ -250,8 +233,6 @@ readonly class MigrationStatusDTO
 
     /**
      * Check if migration is completed
-     *
-     * @return bool
      */
     public function isCompleted(): bool
     {
@@ -260,8 +241,6 @@ readonly class MigrationStatusDTO
 
     /**
      * Check if migration failed
-     *
-     * @return bool
      */
     public function isFailed(): bool
     {
@@ -270,32 +249,29 @@ readonly class MigrationStatusDTO
 
     /**
      * Get duration in seconds
-     *
-     * @return int|null
      */
     public function getDurationSeconds(): ?int
     {
-        if (!$this->startedAt) {
+        if (! $this->startedAt) {
             return null;
         }
 
-        $end = $this->completedAt ?? new \DateTimeImmutable();
+        $end = $this->completedAt ?? new \DateTimeImmutable;
+
         return $end->getTimestamp() - $this->startedAt->getTimestamp();
     }
 
     /**
      * Get transfer rate in MB/s
-     *
-     * @return float|null
      */
     public function getTransferRate(): ?float
     {
-        if (!$this->transferredMb || !$this->startedAt) {
+        if (! $this->transferredMb || ! $this->startedAt) {
             return null;
         }
 
         $duration = $this->getDurationSeconds();
-        if (!$duration || $duration <= 0) {
+        if (! $duration || $duration <= 0) {
             return null;
         }
 

@@ -2,12 +2,12 @@
 
 namespace App\Services\Metrics;
 
-use App\Models\Deployment;
 use App\Models\Alert;
+use App\Models\Deployment;
 use App\Models\DORAMetric;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class DORAMetricsService
 {
@@ -249,7 +249,7 @@ class DORAMetricsService
             $token = config('services.github.token');
             $repo = config('services.github.repository');
 
-            if (!$token || !$repo) {
+            if (! $token || ! $repo) {
                 return null;
             }
 
@@ -258,6 +258,7 @@ class DORAMetricsService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return Carbon::parse($data['commit']['author']['date']);
             }
         } catch (\Exception $e) {
@@ -342,7 +343,7 @@ class DORAMetricsService
                 ->whereNotNull('resolved_at')
                 ->whereBetween('created_at', [$start, $end])
                 ->get()
-                ->avg(fn($alert) => $alert->created_at->diffInMinutes($alert->resolved_at)) ?? 0,
+                ->avg(fn ($alert) => $alert->created_at->diffInMinutes($alert->resolved_at)) ?? 0,
 
             'change_failure_rate' => $this->calculateFailureRate($start, $end),
 
@@ -376,9 +377,16 @@ class DORAMetricsService
      */
     private function getDeploymentFrequencyTier(float $perDay): string
     {
-        if ($perDay >= 1) return 'elite';
-        if ($perDay >= 0.14) return 'high';      // ~1 per week
-        if ($perDay >= 0.03) return 'medium';    // ~1 per month
+        if ($perDay >= 1) {
+            return 'elite';
+        }
+        if ($perDay >= 0.14) {
+            return 'high';
+        }      // ~1 per week
+        if ($perDay >= 0.03) {
+            return 'medium';
+        }    // ~1 per month
+
         return 'low';
     }
 
@@ -389,9 +397,16 @@ class DORAMetricsService
     {
         $hours = $minutes / 60;
 
-        if ($hours < 1) return 'elite';
-        if ($hours < 24) return 'high';
-        if ($hours < 168) return 'medium';  // 1 week
+        if ($hours < 1) {
+            return 'elite';
+        }
+        if ($hours < 24) {
+            return 'high';
+        }
+        if ($hours < 168) {
+            return 'medium';
+        }  // 1 week
+
         return 'low';
     }
 
@@ -402,8 +417,13 @@ class DORAMetricsService
     {
         $hours = $minutes / 60;
 
-        if ($hours < 1) return 'elite';
-        if ($hours < 24) return 'high';
+        if ($hours < 1) {
+            return 'elite';
+        }
+        if ($hours < 24) {
+            return 'high';
+        }
+
         return 'medium';
     }
 
@@ -412,9 +432,16 @@ class DORAMetricsService
      */
     private function getChangeFailureRateTier(float $rate): string
     {
-        if ($rate < 15) return 'elite';
-        if ($rate < 30) return 'high';
-        if ($rate < 45) return 'medium';
+        if ($rate < 15) {
+            return 'elite';
+        }
+        if ($rate < 30) {
+            return 'high';
+        }
+        if ($rate < 45) {
+            return 'medium';
+        }
+
         return 'low';
     }
 

@@ -38,7 +38,7 @@ class ServerMetricsUpdated implements ShouldBroadcast
      */
     public function broadcastOn(): Channel
     {
-        return new Channel('infrastructure.server.' . $this->serverCode);
+        return new Channel('infrastructure.server.'.$this->serverCode);
     }
 
     /**

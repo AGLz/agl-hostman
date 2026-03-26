@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Services\Deployment\PromotionWorkflowService;
-use App\Services\Deployment\PromotionApprovalService;
-use App\Models\Promotion;
-use App\Models\User;
 use Illuminate\Console\Command;
 
 class PromoteEnvironment extends Command
@@ -36,7 +33,7 @@ class PromoteEnvironment extends Command
         $this->info("Requesting promotion: {$source} → {$target} (v{$version})");
 
         try {
-            $promotion = match("{$source}-{$target}") {
+            $promotion = match ("{$source}-{$target}") {
                 'qa-uat' => $this->workflowService->promoteQAtoUAT($version, $requester),
                 'uat-production' => $this->workflowService->promoteUATtoProduction($version, $requester),
                 default => throw new \InvalidArgumentException('Invalid environment pair')
@@ -49,6 +46,7 @@ class PromoteEnvironment extends Command
             return self::SUCCESS;
         } catch (\Exception $e) {
             $this->error("❌ Promotion failed: {$e->getMessage()}");
+
             return self::FAILURE;
         }
     }

@@ -27,7 +27,7 @@ return new class extends Migration
             $table->json('metadata')->nullable(); // Additional metadata
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->index('code');
             $table->index('type');
             $table->index('is_active');

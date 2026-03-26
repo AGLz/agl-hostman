@@ -2,16 +2,14 @@
 
 namespace App\Services;
 
-use App\Repositories\ProxmoxContainerRepository;
 use App\DTOs\ContainerMetrics;
 use App\Events\ContainerCritical;
-use App\Events\ResourceExhaustionPredicted;
 use App\Models\ContainerHealthLog;
 use App\Models\PerformanceTrend;
+use App\Repositories\ProxmoxContainerRepository;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Real-time Container Health Monitoring Service
@@ -25,13 +23,13 @@ use Carbon\Carbon;
  * - Anomaly detection
  * - Predictive alerts
  * - Multi-threshold alerting (warning, critical)
- *
- * @package App\Services
  */
 class ContainerHealthMonitor
 {
     protected ProxmoxContainerRepository $repository;
+
     protected PredictiveMaintenanceService $predictiveService;
+
     protected AlertDispatcher $alertDispatcher;
 
     /**
@@ -77,7 +75,7 @@ class ContainerHealthMonitor
     /**
      * Monitor all containers across specified nodes
      *
-     * @param array $nodes Node codes to monitor (e.g., ['pve1', 'pve2'])
+     * @param  array  $nodes  Node codes to monitor (e.g., ['pve1', 'pve2'])
      * @return array Monitoring results
      */
     public function monitorNodes(array $nodes): array
@@ -117,7 +115,7 @@ class ContainerHealthMonitor
     /**
      * Monitor containers on a single node
      *
-     * @param string $node Node code
+     * @param  string  $node  Node code
      * @return array Node monitoring results
      */
     public function monitorNode(string $node): array
@@ -159,6 +157,7 @@ class ContainerHealthMonitor
 
         } catch (\Exception $e) {
             Log::error("Failed to monitor node {$node}: {$e->getMessage()}");
+
             return [
                 'node' => $node,
                 'error' => $e->getMessage(),
@@ -170,8 +169,8 @@ class ContainerHealthMonitor
     /**
      * Check individual container health
      *
-     * @param string $node Node code
-     * @param ContainerMetrics $container Container metrics
+     * @param  string  $node  Node code
+     * @param  ContainerMetrics  $container  Container metrics
      * @return array Health check results
      */
     protected function checkContainerHealth(string $node, ContainerMetrics $container): array
@@ -251,8 +250,8 @@ class ContainerHealthMonitor
     /**
      * Get health trend for a container
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
      * @return array Trend analysis
      */
     protected function getHealthTrend(string $node, int $vmid): array
@@ -292,7 +291,7 @@ class ContainerHealthMonitor
     /**
      * Calculate trend from time series data
      *
-     * @param Collection $data Data points
+     * @param  Collection  $data  Data points
      * @return array Trend analysis (increasing, stable, decreasing)
      */
     protected function calculateTrend(Collection $data): array
@@ -329,10 +328,9 @@ class ContainerHealthMonitor
     /**
      * Trigger alert for critical container
      *
-     * @param string $node Node code
-     * @param ContainerMetrics $container Container metrics
-     * @param array $healthCheck Health check results
-     * @return void
+     * @param  string  $node  Node code
+     * @param  ContainerMetrics  $container  Container metrics
+     * @param  array  $healthCheck  Health check results
      */
     protected function triggerAlert(string $node, ContainerMetrics $container, array $healthCheck): void
     {
@@ -378,10 +376,9 @@ class ContainerHealthMonitor
     /**
      * Log container health status
      *
-     * @param string $node Node code
-     * @param ContainerMetrics $container Container metrics
-     * @param array $healthCheck Health check results
-     * @return void
+     * @param  string  $node  Node code
+     * @param  ContainerMetrics  $container  Container metrics
+     * @param  array  $healthCheck  Health check results
      */
     protected function logContainerHealth(string $node, ContainerMetrics $container, array $healthCheck): void
     {
@@ -402,8 +399,7 @@ class ContainerHealthMonitor
     /**
      * Store monitoring snapshot for analysis
      *
-     * @param array $results Monitoring results
-     * @return void
+     * @param  array  $results  Monitoring results
      */
     protected function storeMonitoringSnapshot(array $results): void
     {
@@ -437,9 +433,9 @@ class ContainerHealthMonitor
     /**
      * Get container health history
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
-     * @param int $hours Hours of history (default 24)
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
+     * @param  int  $hours  Hours of history (default 24)
      * @return Collection Health logs
      */
     public function getContainerHistory(string $node, int $vmid, int $hours = 24): Collection
@@ -475,7 +471,7 @@ class ContainerHealthMonitor
     /**
      * Get containers with most critical issues
      *
-     * @param int $limit Number of containers to return
+     * @param  int  $limit  Number of containers to return
      * @return Collection Most critical containers
      */
     protected function getMostCriticalContainers(int $limit = 10): Collection

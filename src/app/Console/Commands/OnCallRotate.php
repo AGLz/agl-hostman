@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class OnCallRotate extends Command
 {
     protected $signature = 'oncall:rotate {engineer} {email} {--hours=168}';
+
     protected $description = 'Manually trigger on-call rotation';
 
     public function handle(): int
@@ -35,7 +36,7 @@ class OnCallRotate extends Command
 
         event(new OnCallRotation($schedule, $previousEngineer));
 
-        $this->info("✅ On-call rotation completed");
+        $this->info('✅ On-call rotation completed');
         $this->info("Current on-call: {$schedule->engineer_name}");
         $this->info("Until: {$schedule->end_time->format('Y-m-d H:i:s')}");
 

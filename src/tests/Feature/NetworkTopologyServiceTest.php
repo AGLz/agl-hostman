@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Services\ContainerService;
 use App\Services\NetworkTopologyService;
 use App\Services\ProxmoxService;
-use App\Services\ContainerService;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
@@ -177,7 +177,7 @@ class NetworkTopologyServiceTest extends TestCase
 
         $hubNode = array_values(array_filter(
             $graph['nodes'],
-            fn($n) => $n['id'] === 'wg-hub'
+            fn ($n) => $n['id'] === 'wg-hub'
         ));
 
         $this->assertCount(1, $hubNode);
@@ -189,8 +189,8 @@ class NetworkTopologyServiceTest extends TestCase
     {
         $graph = $this->service->getNetworkGraph();
 
-        $containerNodes = array_filter($graph['nodes'], fn($n) => $n['type'] === 'container');
-        $wgEdges = array_filter($graph['edges'], fn($e) => $e['type'] === 'wireguard');
+        $containerNodes = array_filter($graph['nodes'], fn ($n) => $n['type'] === 'container');
+        $wgEdges = array_filter($graph['edges'], fn ($e) => $e['type'] === 'wireguard');
 
         foreach ($containerNodes as $container) {
             $hasConnectionToHub = false;

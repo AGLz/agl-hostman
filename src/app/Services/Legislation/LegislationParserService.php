@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Legislation;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 
 /**
@@ -35,8 +34,8 @@ class LegislationParserService
     /**
      * Parse raw legislation text into structured format
      *
-     * @param string $text Raw legislation text
-     * @param array $metadata Legislation metadata (number, date, type, etc.)
+     * @param  string  $text  Raw legislation text
+     * @param  array  $metadata  Legislation metadata (number, date, type, etc.)
      * @return array Structured legislation data
      */
     public function parse(string $text, array $metadata = []): array
@@ -75,9 +74,9 @@ class LegislationParserService
     /**
      * Parse CMN resolution specifically
      *
-     * @param string $text CMN resolution text
-     * @param string $number Resolution number (e.g., "4.963")
-     * @param string $date Resolution date
+     * @param  string  $text  CMN resolution text
+     * @param  string  $number  Resolution number (e.g., "4.963")
+     * @param  string  $date  Resolution date
      * @return array Structured CMN resolution data
      */
     public function parseCMNResolution(string $text, string $number, string $date): array
@@ -145,7 +144,9 @@ class LegislationParserService
 
         foreach ($lines as $line) {
             $line = trim($line);
-            if (empty($line)) continue;
+            if (empty($line)) {
+                continue;
+            }
 
             if (preg_match($this->patterns['section'], $line)) {
                 $currentSection = $line;
@@ -170,7 +171,9 @@ class LegislationParserService
 
         foreach ($sentences as $sentence) {
             $sentence = trim($sentence);
-            if (empty($sentence)) continue;
+            if (empty($sentence)) {
+                continue;
+            }
 
             // Check if sentence contains requirement keywords
             $hasRequirement = false;
@@ -276,7 +279,7 @@ class LegislationParserService
         // Look for asset class mentions
         $assetClasses = [
             'renda variável', 'renda fixa', 'fundos', 'imóveis', 'exterior',
-            'empréstimos', 'crédito', 'títulos', 'ações', 'debêntures'
+            'empréstimos', 'crédito', 'títulos', 'ações', 'debêntures',
         ];
 
         foreach ($assetClasses as $assetClass) {
@@ -292,7 +295,7 @@ class LegislationParserService
             if ((float) $percent > 0) {
                 $investments['limits'][] = [
                     'percentage' => (float) $percent,
-                    'value' => $percent . '%',
+                    'value' => $percent.'%',
                 ];
             }
         }
@@ -363,7 +366,7 @@ class LegislationParserService
             $pattern = "/N[íi]vel\s*{$roman}[^\.]*\./i";
             preg_match($pattern, $text, $matches);
 
-            if (!empty($matches[0])) {
+            if (! empty($matches[0])) {
                 $tiers[$roman] = [
                     'level' => $arabic,
                     'description' => trim($matches[0]),
@@ -417,7 +420,7 @@ class LegislationParserService
     /**
      * Parse multiple documents in batch
      *
-     * @param array $documents Array of ['text' => string, 'metadata' => array]
+     * @param  array  $documents  Array of ['text' => string, 'metadata' => array]
      * @return Collection Collection of parsed documents
      */
     public function parseBatch(array $documents): Collection

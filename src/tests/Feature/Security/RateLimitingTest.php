@@ -15,8 +15,6 @@ use Tests\TestCase;
  *
  * Tests for rate limiting configuration and enforcement
  * to prevent brute force and DoS attacks.
- *
- * @package Tests\Feature\Security
  */
 class RateLimitingTest extends TestCase
 {
@@ -201,7 +199,7 @@ class RateLimitingTest extends TestCase
 
         $this->assertIsArray($excludedIps);
 
-        if (!empty($excludedIps)) {
+        if (! empty($excludedIps)) {
             foreach ($excludedIps as $ip) {
                 $this->assertNotEmpty($ip);
             }

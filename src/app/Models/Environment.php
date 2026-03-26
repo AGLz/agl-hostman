@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\DokployApplication;
-use App\Models\DokployDeployment;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Environment Model
@@ -109,7 +107,7 @@ class Environment extends Model
     public function scopeAutoDeployEnabled(Builder $query): Builder
     {
         return $query->where('auto_deploy', true)
-                     ->where('status', 'active');
+            ->where('status', 'active');
     }
 
     /**
@@ -118,7 +116,7 @@ class Environment extends Model
     public function scopeAutoTestEnabled(Builder $query): Builder
     {
         return $query->where('auto_test', true)
-                     ->where('status', 'active');
+            ->where('status', 'active');
     }
 
     // ========== Methods ==========
@@ -153,7 +151,7 @@ class Environment extends Model
             ->skip(1) // Skip current deployment
             ->first();
 
-        if (!$lastDeployment) {
+        if (! $lastDeployment) {
             return false;
         }
 
@@ -173,7 +171,7 @@ class Environment extends Model
             ->orderBy('created_at', 'desc')
             ->first();
 
-        if (!$latestDeployment) {
+        if (! $latestDeployment) {
             return 'idle';
         }
 

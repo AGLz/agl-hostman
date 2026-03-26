@@ -1,18 +1,53 @@
 # AGL Infrastructure Map
 
-> **Last Updated**: 2026-03-16 | **Version**: 2.9.1
+> **Last Updated**: 2026-03-23 | **Version**: 3.0.0
 > **Reference**: Always read this document for infrastructure queries
+> **Maintainer**: Jarvis (AI Butler) + Sr.Big
+
+---
+
+## 🤖 AI Systems Overview
+
+### Jarvis (AI Butler)
+- **Host**: AGLWK45 (VM104 no AGLSRV1)
+- **Software**: OpenClaw
+- **Resources**: 32GB RAM, 24 Cores, Windows 11
+- **Role**: Infrastructure management, monitoring, automation
+- **Access**: Tailscale 100.117.146.21, LAN 192.168.0.245
+- **Workspace**: C:\Users\Administrator\.openclaw\workspace
+- **Gateway**: Port 18789 (loopback)
+- **Model**: zai/glm-5 via LiteLLM (100.94.221.87:4000)
+
+### OpenClaw Configuration
+| Setting | Value |
+|---------|-------|
+| **Agents** | main (default), infra, storage, harbor, net |
+| **Max Concurrent** | 4 agents, 8 subagents |
+| **Telegram** | Enabled (allowlist: 1272190248) |
+| **Compaction** | Safeguard mode |
+
+### LiteLLM Gateway
+- **URL**: http://100.94.221.87:4000 (agldv03 CT179)
+- **Providers**: zai, anthropic, openai, google, deepseek, moonshot, ollama
+- **Local Ollama**: http://192.168.0.200:11434/v1 (CT200 GPU)
+
+### Daily Memory System (agl-hostman)
+- **Dashboard**: /daily-memory
+- **API**: /api/daily-memory
+- **Purpose**: Track all work sessions and discussions
+- **Integration**: Jarvis auto-logs via API
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Network Overview](#-network-overview)
-2. [Hosts and Servers](#-hosts-and-servers)
-3. [WireGuard Mesh](#-wireguard-mesh)
-4. [Storage Configuration](#-storage-configuration)
-5. [Container Inventory](#-container-inventory)
-6. [Connection Matrix](#-connection-matrix)
+1. [AI Systems Overview](#-ai-systems-overview)
+2. [Network Overview](#-network-overview)
+3. [Hosts and Servers](#-hosts-and-servers)
+4. [WireGuard Mesh](#-wireguard-mesh)
+5. [Storage Configuration](#-storage-configuration)
+6. [Container Inventory](#-container-inventory)
+7. [Connection Matrix](#-connection-matrix)
 
 ---
 

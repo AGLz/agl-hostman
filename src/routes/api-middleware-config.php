@@ -10,8 +10,8 @@
  * Add these routes to routes/api.php
  */
 
-use App\Http\Middleware\VerifyN8NWebhook;
 use App\Http\Middleware\ThrottleApiRequests;
+use App\Http\Middleware\VerifyN8NWebhook;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,7 +37,7 @@ Route::middleware([VerifyN8NWebhook::class])
 */
 
 // Apply rate limiting to all API routes
-Route::middleware([ThrottleApiRequests::class . ':100,1']) // 100 requests per minute
+Route::middleware([ThrottleApiRequests::class.':100,1']) // 100 requests per minute
     ->prefix('api')
     ->group(function () {
 
@@ -49,7 +49,7 @@ Route::middleware([ThrottleApiRequests::class . ':100,1']) // 100 requests per m
         });
 
         // AI Model endpoints (stricter rate limiting)
-        Route::middleware([ThrottleApiRequests::class . ':20,1']) // 20 requests per minute for AI
+        Route::middleware([ThrottleApiRequests::class.':20,1']) // 20 requests per minute for AI
             ->prefix('ai')
             ->group(function () {
                 Route::post('/query', [App\Http\Controllers\AIController::class, 'query']);
@@ -85,7 +85,7 @@ Route::middleware([ThrottleApiRequests::class . ':100,1']) // 100 requests per m
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum', ThrottleApiRequests::class . ':300,1']) // 300 requests per minute for admins
+Route::middleware(['auth:sanctum', ThrottleApiRequests::class.':300,1']) // 300 requests per minute for admins
     ->prefix('api/admin')
     ->group(function () {
         Route::get('/metrics', [App\Http\Controllers\AdminController::class, 'metrics']);
@@ -99,7 +99,7 @@ Route::middleware(['auth:sanctum', ThrottleApiRequests::class . ':300,1']) // 30
 |--------------------------------------------------------------------------
 */
 
-Route::middleware([ThrottleApiRequests::class . ':30,1']) // 30 requests per minute for public
+Route::middleware([ThrottleApiRequests::class.':30,1']) // 30 requests per minute for public
     ->prefix('api/public')
     ->group(function () {
         Route::get('/status', function () {
@@ -122,11 +122,13 @@ Route::middleware(['auth:sanctum', 'role:admin'])
     ->group(function () {
         Route::post('/clear/{key}', function ($key) {
             App\Http\Middleware\ThrottleApiRequests::clearRateLimit($key);
+
             return response()->json(['message' => 'Rate limit cleared']);
         });
 
         Route::get('/status', function (Illuminate\Http\Request $request) {
             $status = App\Http\Middleware\ThrottleApiRequests::getRateLimitStatus($request, 100);
+
             return response()->json($status);
         });
     });

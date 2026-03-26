@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
-use App\Models\PerformanceTrend;
 use App\Models\LxcContainer;
+use App\Models\PerformanceTrend;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,8 +13,6 @@ use Tests\TestCase;
  * Performance Trend Model Test
  *
  * Tests for the PerformanceTrend model.
- *
- * @package Tests\Unit\Models
  */
 class PerformanceTrendModelTest extends TestCase
 {
@@ -219,7 +217,7 @@ class PerformanceTrendModelTest extends TestCase
      */
     public function test_fillable_attributes(): void
     {
-        $trend = new PerformanceTrend();
+        $trend = new PerformanceTrend;
 
         $expectedFillable = [
             'resource_type',
@@ -241,7 +239,7 @@ class PerformanceTrendModelTest extends TestCase
      */
     public function test_casts_configuration(): void
     {
-        $trend = new PerformanceTrend();
+        $trend = new PerformanceTrend;
 
         $this->assertArrayHasKey('metadata', $trend->getCasts());
         $this->assertArrayHasKey('recorded_at', $trend->getCasts());

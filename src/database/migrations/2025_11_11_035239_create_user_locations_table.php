@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('access_level', ['view', 'manage', 'admin'])->default('view');
             $table->boolean('is_primary')->default(false); // Primary location for user
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'physical_location_id']);
             $table->index(['user_id', 'access_level']);
         });

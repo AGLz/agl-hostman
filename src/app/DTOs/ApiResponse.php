@@ -13,10 +13,10 @@ class ApiResponse
     /**
      * Create API response DTO
      *
-     * @param bool $success Whether request was successful
-     * @param array $data Response data
-     * @param string|null $error Error message if failed
-     * @param int $statusCode HTTP status code
+     * @param  bool  $success  Whether request was successful
+     * @param  array  $data  Response data
+     * @param  string|null  $error  Error message if failed
+     * @param  int  $statusCode  HTTP status code
      */
     public function __construct(
         public readonly bool $success,
@@ -38,7 +38,7 @@ class ApiResponse
      */
     public function isFailed(): bool
     {
-        return !$this->success;
+        return ! $this->success;
     }
 
     /**

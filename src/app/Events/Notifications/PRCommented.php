@@ -27,7 +27,7 @@ class PRCommented
     public function getNotificationData(): array
     {
         $truncatedComment = strlen($this->comment) > 200
-            ? substr($this->comment, 0, 200) . '...'
+            ? substr($this->comment, 0, 200).'...'
             : $this->comment;
 
         return [
@@ -53,7 +53,7 @@ class PRCommented
                 ],
                 [
                     'text' => 'Reply',
-                    'url' => $this->url . '#discussion',
+                    'url' => $this->url.'#discussion',
                     'style' => 'default',
                 ],
             ],

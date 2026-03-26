@@ -36,12 +36,12 @@ class QueueFlushCommand extends Command
         $flushPending = $this->option('pending');
 
         // Default to flushing both if no specific option
-        if (!$flushFailed && !$flushPending) {
+        if (! $flushFailed && ! $flushPending) {
             $flushFailed = true;
             $flushPending = true;
         }
 
-        $this->info("Flushing queue: " . ($queue ?? 'all'));
+        $this->info('Flushing queue: '.($queue ?? 'all'));
 
         if ($flushFailed) {
             $this->flushFailedJobs($queue);
@@ -69,11 +69,13 @@ class QueueFlushCommand extends Command
 
         if ($count === 0) {
             $this->info('No failed jobs to flush.');
+
             return;
         }
 
-        if (!$this->confirm("Delete {$count} failed jobs?", $this->option('force'))) {
+        if (! $this->confirm("Delete {$count} failed jobs?", $this->option('force'))) {
             $this->info('Skipped failed jobs.');
+
             return;
         }
 
@@ -91,7 +93,7 @@ class QueueFlushCommand extends Command
         $totalDeleted = 0;
 
         foreach ($queues as $q) {
-            $key = 'queues:' . $q;
+            $key = 'queues:'.$q;
             $count = $redis->llen($key);
 
             if ($count > 0) {
@@ -118,7 +120,7 @@ class QueueFlushCommand extends Command
     protected function getAllQueues(): array
     {
         $queues = [];
-        $environment = config('horizon.environments.' . config('app.env'), []);
+        $environment = config('horizon.environments.'.config('app.env'), []);
 
         foreach ($environment as $supervisor) {
             $supervisorQueues = is_array($supervisor['queue'])

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Health Check Controller
@@ -24,8 +24,6 @@ use Illuminate\Support\Facades\Cache;
  * - GET /health/storage - Storage availability
  * - GET /health/readiness - Kubernetes-style readiness probe
  * - GET /health/liveness - Kubernetes-style liveness probe
- *
- * @package App\Http\Controllers
  */
 class HealthCheckController extends Controller
 {
@@ -44,8 +42,6 @@ class HealthCheckController extends Controller
      *
      * Simple ping endpoint for load balancers to verify the application is running.
      * Returns immediately with minimal processing.
-     *
-     * @return JsonResponse
      */
     public function index(): JsonResponse
     {
@@ -61,8 +57,6 @@ class HealthCheckController extends Controller
      *
      * Returns comprehensive health status of all system components.
      * Suitable for monitoring dashboards and health check pages.
-     *
-     * @return JsonResponse
      */
     public function detailed(): JsonResponse
     {
@@ -112,8 +106,6 @@ class HealthCheckController extends Controller
      * Database health check
      *
      * Verifies database connectivity and runs a simple query.
-     *
-     * @return array
      */
     public function database(): array
     {
@@ -124,8 +116,6 @@ class HealthCheckController extends Controller
      * Cache/Redis health check
      *
      * Verifies Redis connectivity and performs a PING operation.
-     *
-     * @return array
      */
     public function cache(): array
     {
@@ -136,8 +126,6 @@ class HealthCheckController extends Controller
      * Queue health check
      *
      * Checks if queue workers are running and processing jobs.
-     *
-     * @return array
      */
     public function queue(): array
     {
@@ -149,8 +137,6 @@ class HealthCheckController extends Controller
      *
      * Returns 200 when the application is ready to accept traffic.
      * Checks database, cache, and queue connectivity.
-     *
-     * @return JsonResponse
      */
     public function readiness(): JsonResponse
     {
@@ -173,8 +159,6 @@ class HealthCheckController extends Controller
      *
      * Simple check to verify the application is alive.
      * Returns immediately with minimal processing.
-     *
-     * @return JsonResponse
      */
     public function liveness(): JsonResponse
     {
@@ -186,8 +170,6 @@ class HealthCheckController extends Controller
 
     /**
      * Check database connectivity
-     *
-     * @return array
      */
     private function checkDatabase(): array
     {
@@ -215,15 +197,13 @@ class HealthCheckController extends Controller
                 'status' => 'unhealthy',
                 'latency_ms' => null,
                 'connection' => config('database.default'),
-                'message' => 'Database connection failed: ' . $e->getMessage(),
+                'message' => 'Database connection failed: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Check cache connectivity
-     *
-     * @return array
      */
     private function checkCache(): array
     {
@@ -264,15 +244,13 @@ class HealthCheckController extends Controller
                 'status' => 'unhealthy',
                 'latency_ms' => null,
                 'driver' => config('cache.default'),
-                'message' => 'Cache connection failed: ' . $e->getMessage(),
+                'message' => 'Cache connection failed: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Check queue workers
-     *
-     * @return array
      */
     private function checkQueue(): array
     {
@@ -285,7 +263,7 @@ class HealthCheckController extends Controller
                     'status' => $status === 'running' ? 'healthy' : 'unhealthy',
                     'driver' => config('queue.default'),
                     'horizon_status' => $status,
-                    'message' => 'Queue workers ' . $status,
+                    'message' => 'Queue workers '.$status,
                 ];
             }
 
@@ -310,21 +288,19 @@ class HealthCheckController extends Controller
             return [
                 'status' => 'unhealthy',
                 'driver' => config('queue.default'),
-                'message' => 'Queue check failed: ' . $e->getMessage(),
+                'message' => 'Queue check failed: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Check storage availability
-     *
-     * @return array
      */
     private function checkStorage(): array
     {
         try {
             // Test local storage
-            $testFile = 'health_check_' . time() . '.tmp';
+            $testFile = 'health_check_'.time().'.tmp';
             Storage::disk('local')->put($testFile, 'test');
             Storage::disk('local')->delete($testFile);
 
@@ -334,7 +310,7 @@ class HealthCheckController extends Controller
                     Storage::disk($name)->listFiles('/');
                     $disks[$name] = 'available';
                 } catch (\Exception $e) {
-                    $disks[$name] = 'unavailable: ' . $e->getMessage();
+                    $disks[$name] = 'unavailable: '.$e->getMessage();
                 }
             }
 
@@ -348,15 +324,13 @@ class HealthCheckController extends Controller
             return [
                 'status' => 'unhealthy',
                 'default_disk' => config('filesystems.default'),
-                'message' => 'Storage check failed: ' . $e->getMessage(),
+                'message' => 'Storage check failed: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Get application uptime
-     *
-     * @return string
      */
     private function getUptime(): string
     {

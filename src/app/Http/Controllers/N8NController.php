@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\N8NService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class N8NController extends Controller

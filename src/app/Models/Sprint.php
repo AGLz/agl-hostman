@@ -62,6 +62,7 @@ class Sprint extends Model
         }
 
         $completedTasks = $this->tasks()->where('status', 'done')->count();
+
         return round(($completedTasks / $totalTasks) * 100, 2);
     }
 
@@ -84,23 +85,23 @@ class Sprint extends Model
         $startDate = $this->start_date;
         $endDate = $this->end_date;
         $totalPoints = $this->tasks()->sum('story_points');
-        
+
         $currentDate = $startDate;
         while ($currentDate <= $endDate) {
             $completedPoints = $this->tasks()
                 ->where('status', 'done')
                 ->where('completed_at', '<=', $currentDate)
                 ->sum('story_points');
-            
+
             $days[] = [
                 'date' => $currentDate->format('Y-m-d'),
                 'ideal' => $totalPoints - ($totalPoints * $currentDate->diffInDays($startDate) / $endDate->diffInDays($startDate)),
                 'actual' => $totalPoints - $completedPoints,
             ];
-            
+
             $currentDate->addDay();
         }
-        
+
         return $days;
     }
 }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class AlertRule extends Model
 {
@@ -59,7 +59,7 @@ class AlertRule extends Model
     {
         $query->where(function ($q) {
             $q->whereNull('last_triggered_at')
-              ->orWhereRaw('last_triggered_at < NOW() - INTERVAL cooldown_minutes MINUTE');
+                ->orWhereRaw('last_triggered_at < NOW() - INTERVAL cooldown_minutes MINUTE');
         });
     }
 
@@ -68,11 +68,12 @@ class AlertRule extends Model
      */
     public function isInCooldown(): bool
     {
-        if (!$this->last_triggered_at) {
+        if (! $this->last_triggered_at) {
             return false;
         }
 
         $cooldownEndsAt = $this->last_triggered_at->addMinutes($this->cooldown_minutes);
+
         return now()->isBefore($cooldownEndsAt);
     }
 
@@ -81,11 +82,12 @@ class AlertRule extends Model
      */
     public function getCooldownRemainingAttribute(): ?int
     {
-        if (!$this->isInCooldown()) {
+        if (! $this->isInCooldown()) {
             return null;
         }
 
         $cooldownEndsAt = $this->last_triggered_at->addMinutes($this->cooldown_minutes);
+
         return max(0, now()->diffInSeconds($cooldownEndsAt, false));
     }
 
@@ -132,11 +134,11 @@ class AlertRule extends Model
      */
     public function validateConditions(): bool
     {
-        if (!is_array($this->conditions)) {
+        if (! is_array($this->conditions)) {
             return false;
         }
 
-        return match($this->rule_type) {
+        return match ($this->rule_type) {
             'threshold' => $this->validateThresholdConditions(),
             'pattern' => $this->validatePatternConditions(),
             'anomaly' => $this->validateAnomalyConditions(),
@@ -151,12 +153,13 @@ class AlertRule extends Model
     {
         $required = ['metric', 'operator', 'value', 'duration_minutes'];
         foreach ($required as $field) {
-            if (!isset($this->conditions[$field])) {
+            if (! isset($this->conditions[$field])) {
                 return false;
             }
         }
 
         $validOperators = ['>', '>=', '<', '<=', '==', '!='];
+
         return in_array($this->conditions['operator'], $validOperators);
     }
 

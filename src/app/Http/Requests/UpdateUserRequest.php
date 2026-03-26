@@ -8,15 +8,11 @@ namespace App\Http\Requests;
  * Update User Request
  *
  * Validation rules for updating user profiles.
- *
- * @package App\Http\Requests
  */
 class UpdateUserRequest extends BaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -32,8 +28,6 @@ class UpdateUserRequest extends BaseFormRequest
 
     /**
      * Get validation rules
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -41,7 +35,7 @@ class UpdateUserRequest extends BaseFormRequest
 
         return [
             'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $userId,
+            'email' => 'nullable|email|max:255|unique:users,email,'.$userId,
             'avatar_url' => 'nullable|url|max:500',
             'is_active' => 'nullable|boolean',
             'role' => 'nullable|string|exists:roles,name',
@@ -56,8 +50,6 @@ class UpdateUserRequest extends BaseFormRequest
 
     /**
      * Get custom messages for user validation
-     *
-     * @return array
      */
     public function messages(): array
     {

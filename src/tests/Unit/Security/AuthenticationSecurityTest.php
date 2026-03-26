@@ -15,8 +15,6 @@ use Tests\TestCase;
  *
  * Tests for authentication security including password hashing,
  * session management, and authentication bypass prevention.
- *
- * @package Tests\Unit\Security
  */
 class AuthenticationSecurityTest extends TestCase
 {

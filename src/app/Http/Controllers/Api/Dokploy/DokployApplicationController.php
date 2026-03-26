@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Api\Dokploy;
 
 use App\Http\Controllers\Controller;
 use App\Services\DokployApiClient;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Dokploy Application API Controller

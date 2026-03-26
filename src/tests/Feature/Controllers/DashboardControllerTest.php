@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Controllers;
 
-use App\Models\User;
-use App\Models\ProxmoxServer;
 use App\Models\ContainerHealthLog;
+use App\Models\ProxmoxServer;
+use App\Models\User;
 use App\Services\ContainerHealthMonitor;
 use App\Services\PredictiveMaintenanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,6 +28,7 @@ class DashboardControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected ProxmoxServer $server;
 
     protected function setUp(): void
@@ -255,7 +256,7 @@ class DashboardControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.resource-trends') . '?hours=24&interval=1h');
+            ->getJson(route('monitoring.api.resource-trends').'?hours=24&interval=1h');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -283,7 +284,7 @@ class DashboardControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.alert-history') . '?hours=24&per_page=15');
+            ->getJson(route('monitoring.api.alert-history').'?hours=24&per_page=15');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -318,7 +319,7 @@ class DashboardControllerTest extends TestCase
         ContainerHealthLog::factory()->count(10)->create(['health_status' => 'healthy']);
 
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.alert-history') . '?severity=critical');
+            ->getJson(route('monitoring.api.alert-history').'?severity=critical');
 
         $response->assertStatus(200);
 
@@ -340,7 +341,7 @@ class DashboardControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.alert-history') . '?search=test-container');
+            ->getJson(route('monitoring.api.alert-history').'?search=test-container');
 
         $response->assertStatus(200);
 
@@ -372,7 +373,7 @@ class DashboardControllerTest extends TestCase
         });
 
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.predictive-maintenance') . '?node=TEST01&vmid=100&resource_type=cpu&horizon=medium_term');
+            ->getJson(route('monitoring.api.predictive-maintenance').'?node=TEST01&vmid=100&resource_type=cpu&horizon=medium_term');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -410,7 +411,7 @@ class DashboardControllerTest extends TestCase
     public function it_validates_resource_type_for_predictions()
     {
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.predictive-maintenance') . '?node=TEST01&vmid=100&resource_type=invalid&horizon=short_term');
+            ->getJson(route('monitoring.api.predictive-maintenance').'?node=TEST01&vmid=100&resource_type=invalid&horizon=short_term');
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['resource_type']);
@@ -420,7 +421,7 @@ class DashboardControllerTest extends TestCase
     public function it_validates_horizon_for_predictions()
     {
         $response = $this->actingAs($this->user)
-            ->getJson(route('monitoring.api.predictive-maintenance') . '?node=TEST01&vmid=100&resource_type=cpu&horizon=invalid');
+            ->getJson(route('monitoring.api.predictive-maintenance').'?node=TEST01&vmid=100&resource_type=cpu&horizon=invalid');
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['horizon']);

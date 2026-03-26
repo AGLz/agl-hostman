@@ -14,10 +14,15 @@ use Illuminate\Support\Facades\Log;
 class ReasoningBank
 {
     protected array $patterns = [];
+
     protected array $ewcImportances = [];
+
     protected string $storagePath;
+
     protected float $minReward;
+
     protected int $maxPatterns;
+
     protected float $learningRate;
 
     public function __construct(array $config)
@@ -41,10 +46,11 @@ class ReasoningBank
                 'reward' => $reward,
                 'min' => $this->minReward,
             ]);
+
             return null;
         }
 
-        $patternId = "pattern:{$taskId}:" . md5($pattern);
+        $patternId = "pattern:{$taskId}:".md5($pattern);
 
         $this->patterns[$patternId] = [
             'id' => $patternId,
@@ -93,8 +99,7 @@ class ReasoningBank
         }
 
         // Sort by similarity and reward
-        usort($candidates, fn($a, $b) =>
-            ($b['similarity'] * 0.5 + $b['pattern']['reward'] * 0.5) <=>
+        usort($candidates, fn ($a, $b) => ($b['similarity'] * 0.5 + $b['pattern']['reward'] * 0.5) <=>
             ($a['similarity'] * 0.5 + $a['pattern']['reward'] * 0.5)
         );
 
@@ -106,7 +111,7 @@ class ReasoningBank
             }
         }
 
-        return array_map(fn($r) => $r['pattern'], $results);
+        return array_map(fn ($r) => $r['pattern'], $results);
     }
 
     /**
@@ -121,7 +126,7 @@ class ReasoningBank
             'avg_reward' => count($patterns) > 0
                 ? array_sum(array_column($patterns, 'reward')) / count($patterns)
                 : 0,
-            'high_reward_patterns' => count(array_filter($patterns, fn($p) => $p['reward'] >= 0.9)),
+            'high_reward_patterns' => count(array_filter($patterns, fn ($p) => $p['reward'] >= 0.9)),
             'total_usage' => array_sum(array_column($patterns, 'usage_count')),
             'learning_iterations' => $this->getLearningIterations(),
         ];
@@ -147,11 +152,10 @@ class ReasoningBank
         $progress = [];
 
         for ($i = 1; $i <= $iterations; $i++) {
-            $iterationPatterns = array_filter($this->patterns, fn($p) =>
-                isset($p['context']['iteration']) && $p['context']['iteration'] === $i
+            $iterationPatterns = array_filter($this->patterns, fn ($p) => isset($p['context']['iteration']) && $p['context']['iteration'] === $i
             );
 
-            if (!empty($iterationPatterns)) {
+            if (! empty($iterationPatterns)) {
                 $rewards = array_column($iterationPatterns, 'reward');
                 $progress[] = [
                     'iteration' => $i,
@@ -174,7 +178,7 @@ class ReasoningBank
         // In production, this would use Fisher information matrix
         $pattern = $this->patterns[$patternId] ?? null;
 
-        if (!$pattern) {
+        if (! $pattern) {
             return 0;
         }
 
@@ -232,7 +236,7 @@ class ReasoningBank
         similar_text($query, $pattern, $similarity);
         $patternSimilarity = $similarity / 100;
 
-        return ($taskIdSimilarity * 0.3 + $patternSimilarity * 0.7);
+        return $taskIdSimilarity * 0.3 + $patternSimilarity * 0.7;
     }
 
     /**
@@ -267,15 +271,15 @@ class ReasoningBank
         $components = [];
 
         if (isset($outcome['tool_used'])) {
-            $components[] = 'tool:' . $outcome['tool_used'];
+            $components[] = 'tool:'.$outcome['tool_used'];
         }
 
         if (isset($outcome['agent_type'])) {
-            $components[] = 'agent:' . $outcome['agent_type'];
+            $components[] = 'agent:'.$outcome['agent_type'];
         }
 
         if (isset($outcome['task_type'])) {
-            $components[] = 'task:' . $outcome['task_type'];
+            $components[] = 'task:'.$outcome['task_type'];
         }
 
         return implode('|', $components);
@@ -302,7 +306,7 @@ class ReasoningBank
      */
     protected function loadPatterns(): void
     {
-        $file = $this->storagePath . '/patterns.json';
+        $file = $this->storagePath.'/patterns.json';
 
         if (file_exists($file)) {
             $data = json_decode(file_get_contents($file), true);
@@ -324,10 +328,10 @@ class ReasoningBank
     protected function persistPatterns(): void
     {
         // Persist to file
-        $file = $this->storagePath . '/patterns.json';
+        $file = $this->storagePath.'/patterns.json';
         $dir = dirname($file);
 
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 

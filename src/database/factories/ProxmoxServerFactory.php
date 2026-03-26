@@ -22,7 +22,7 @@ class ProxmoxServerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'pve-' . fake()->unique()->word(),
+            'name' => 'pve-'.fake()->unique()->word(),
             'host' => fake()->unique()->domainName(),
             'port' => 8006,
             'username' => 'root@pam',

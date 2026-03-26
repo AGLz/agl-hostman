@@ -3,23 +3,24 @@
 namespace App\Jobs;
 
 use App\Models\PhysicalLocation;
-use App\Services\N8NService;
 use App\Services\AIModelService;
 use App\Services\InfrastructureAnalyticsService;
+use App\Services\N8NService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class MonitorInfrastructure implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected array $servers;
+
     protected string $monitoringType;
 
     /**
@@ -35,23 +36,23 @@ class MonitorInfrastructure implements ShouldQueue
      * Execute the job.
      */
     public function handle(
-        N8NService $n8nService, 
+        N8NService $n8nService,
         AIModelService $aiService,
         InfrastructureAnalyticsService $analyticsService
-    ): void
-    {
+    ): void {
         Log::info('Starting infrastructure monitoring', [
             'servers' => $this->servers,
             'type' => $this->monitoringType,
         ]);
 
         $results = [];
-        
+
         foreach ($this->servers as $serverCode) {
             $location = PhysicalLocation::where('code', $serverCode)->first();
-            
-            if (!$location) {
+
+            if (! $location) {
                 Log::warning("Server not found: {$serverCode}");
+
                 continue;
             }
 
@@ -75,7 +76,7 @@ class MonitorInfrastructure implements ShouldQueue
 
         // Perform AI analytics
         $analytics = $analyticsService->analyzeInfrastructure($results);
-        
+
         // Broadcast updates for real-time dashboard
         foreach ($results as $serverCode => $status) {
             $analyticsService->broadcastUpdate($serverCode, $status);
@@ -103,7 +104,7 @@ class MonitorInfrastructure implements ShouldQueue
         $pingResult = $this->pingServer($ip);
         $metrics['ping'] = $pingResult;
 
-        if (!$pingResult['success']) {
+        if (! $pingResult['success']) {
             $status = 'critical';
             $issues[] = 'Server unreachable';
         }
@@ -151,18 +152,18 @@ class MonitorInfrastructure implements ShouldQueue
     protected function checkContainerServices(PhysicalLocation $location): array
     {
         $services = [];
-        
+
         // Check based on container metadata
         if ($location->code === 'CT179') {
             // Development container with Docker
             $services['docker'] = $this->checkDockerStatus($location->ip_range);
         }
-        
+
         if ($location->code === 'CT180') {
             // Dokploy container
             $services['dokploy'] = $this->checkHttpService('https://dok.aglz.io');
         }
-        
+
         if ($location->code === 'CT183') {
             // Archon container
             $services['archon'] = $this->checkHttpService('https://archon.aglz.io');
@@ -201,6 +202,7 @@ class MonitorInfrastructure implements ShouldQueue
     {
         try {
             $response = Http::timeout(5)->get($url);
+
             return $response->successful();
         } catch (\Exception $e) {
             return false;
@@ -212,13 +214,13 @@ class MonitorInfrastructure implements ShouldQueue
      */
     protected function triggerAIAnalysis(PhysicalLocation $location, array $result, AIModelService $aiService): void
     {
-        $prompt = "Analyze the following infrastructure issue:\n" .
-                  "Server: {$location->name} ({$location->code})\n" .
-                  "Type: {$location->type}\n" .
-                  "Status: {$result['status']}\n" .
-                  "Issues: " . implode(', ', $result['issues']) . "\n" .
-                  "Metrics: " . json_encode($result['metrics']) . "\n\n" .
-                  "Provide recommendations for resolution.";
+        $prompt = "Analyze the following infrastructure issue:\n".
+                  "Server: {$location->name} ({$location->code})\n".
+                  "Type: {$location->type}\n".
+                  "Status: {$result['status']}\n".
+                  'Issues: '.implode(', ', $result['issues'])."\n".
+                  'Metrics: '.json_encode($result['metrics'])."\n\n".
+                  'Provide recommendations for resolution.';
 
         dispatch(new ProcessAIRequest('claude', $prompt, [
             'context' => 'infrastructure_monitoring',

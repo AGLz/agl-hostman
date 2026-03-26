@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\DailyMemoryApiController;
 use App\Http\Controllers\Auth\WorkOSController;
 use App\Http\Controllers\N8NController;
 use App\Http\Controllers\WebhookController;
@@ -9,6 +10,20 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// Daily Memory API (for OpenClaw integration)
+Route::prefix('daily-memory')->group(function () {
+    // Public endpoints with API key auth
+    Route::middleware('api.key')->group(function () {
+        Route::get('/', [DailyMemoryApiController::class, 'index'])->name('api.daily-memory.index');
+        Route::post('/', [DailyMemoryApiController::class, 'store'])->name('api.daily-memory.store');
+        Route::get('/search', [DailyMemoryApiController::class, 'search'])->name('api.daily-memory.search');
+        Route::get('/stats', [DailyMemoryApiController::class, 'stats'])->name('api.daily-memory.stats');
+        Route::get('/{id}', [DailyMemoryApiController::class, 'show'])->name('api.daily-memory.show');
+        Route::put('/{id}', [DailyMemoryApiController::class, 'update'])->name('api.daily-memory.update');
+        Route::delete('/{id}', [DailyMemoryApiController::class, 'destroy'])->name('api.daily-memory.destroy');
+    });
+});
 
 // WorkOS Authentication routes
 Route::prefix('auth')->group(function () {

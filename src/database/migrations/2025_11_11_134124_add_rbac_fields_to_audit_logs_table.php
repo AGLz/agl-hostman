@@ -30,12 +30,12 @@ return new class extends Migration
 
             // Severity and status tracking
             $table->enum('severity', ['info', 'warning', 'error', 'critical'])
-                  ->default('info')
-                  ->after('description');
+                ->default('info')
+                ->after('description');
 
             $table->enum('status', ['success', 'failed', 'pending'])
-                  ->default('success')
-                  ->after('severity');
+                ->default('success')
+                ->after('severity');
 
             // Indexes for faster querying
             $table->index('event_type');

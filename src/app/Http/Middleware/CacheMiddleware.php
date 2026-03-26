@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Cache;
 class CacheMiddleware
 {
     private CacheStrategyService $cache;
+
     private array $cacheablePaths = [
         'api/monitoring/health',
         'api/infrastructure/status',
@@ -50,7 +51,7 @@ class CacheMiddleware
         $cacheKey = $this->getCacheKey($request);
         $duration = $this->getCacheDuration($request);
 
-        if (!$cacheKey || !$duration) {
+        if (! $cacheKey || ! $duration) {
             return $next($request);
         }
 
@@ -93,7 +94,7 @@ class CacheMiddleware
                 ksort($queryParams); // Ensure consistent ordering
                 $queryString = http_build_query($queryParams);
 
-                return "api_response:{$path}" . ($queryString ? ":{$queryString}" : '');
+                return "api_response:{$path}".($queryString ? ":{$queryString}" : '');
             }
         }
 

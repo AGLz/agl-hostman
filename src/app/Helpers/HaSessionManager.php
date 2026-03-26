@@ -2,9 +2,9 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * HA Session Manager
@@ -41,12 +41,11 @@ class HaSessionManager
     /**
      * Get session with failover support
      *
-     * @param string $sessionId
      * @return mixed|null
      */
     public function getSession(string $sessionId)
     {
-        $key = $this->prefix . $sessionId;
+        $key = $this->prefix.$sessionId;
 
         try {
             // Try primary Redis
@@ -60,7 +59,7 @@ class HaSessionManager
         } catch (Exception $e) {
             Log::warning('Primary Redis unavailable for session read', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // Try backup nodes
@@ -71,7 +70,6 @@ class HaSessionManager
     /**
      * Get session from backup Redis instances
      *
-     * @param string $sessionId
      * @return mixed|null
      */
     protected function getSessionFromBackup(string $sessionId)
@@ -80,11 +78,11 @@ class HaSessionManager
             return null;
         }
 
-        $key = $this->prefix . $sessionId;
+        $key = $this->prefix.$sessionId;
 
         foreach ($this->config['backup_nodes'] as $name => $host) {
             try {
-                $backupRedis = new \Redis();
+                $backupRedis = new \Redis;
                 $backupRedis->connect($host, 6379);
                 $backupRedis->auth(config('database.redis.default.password'));
 
@@ -93,7 +91,7 @@ class HaSessionManager
                 if ($data !== null) {
                     Log::info('Retrieved session from backup node', [
                         'session_id' => $sessionId,
-                        'backup_node' => $name
+                        'backup_node' => $name,
                     ]);
 
                     return unserialize($data);
@@ -103,8 +101,9 @@ class HaSessionManager
             } catch (Exception $e) {
                 Log::warning('Backup Redis unavailable', [
                     'backup_node' => $name,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
+
                 continue;
             }
         }
@@ -115,14 +114,12 @@ class HaSessionManager
     /**
      * Save session with replication
      *
-     * @param string $sessionId
-     * @param mixed $data
-     * @param int $ttl Time to live in seconds
-     * @return bool
+     * @param  mixed  $data
+     * @param  int  $ttl  Time to live in seconds
      */
     public function saveSession(string $sessionId, $data, int $ttl = 3600): bool
     {
-        $key = $this->prefix . $sessionId;
+        $key = $this->prefix.$sessionId;
         $serialized = serialize($data);
 
         try {
@@ -138,7 +135,7 @@ class HaSessionManager
         } catch (Exception $e) {
             Log::error('Failed to save session', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return false;
@@ -147,11 +144,6 @@ class HaSessionManager
 
     /**
      * Replicate session to backup nodes
-     *
-     * @param string $key
-     * @param string $data
-     * @param int $ttl
-     * @return void
      */
     protected function replicateToBackups(string $key, string $data, int $ttl): void
     {
@@ -163,7 +155,7 @@ class HaSessionManager
 
         foreach ($this->config['backup_nodes'] as $name => $host) {
             try {
-                $backupRedis = new \Redis();
+                $backupRedis = new \Redis;
                 $backupRedis->connect($host, 6379);
                 $backupRedis->auth(config('database.redis.default.password'));
 
@@ -180,7 +172,7 @@ class HaSessionManager
             } catch (Exception $e) {
                 Log::warning('Failed to replicate session to backup', [
                     'backup_node' => $name,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -189,17 +181,15 @@ class HaSessionManager
     /**
      * Acquire distributed lock for session
      *
-     * @param string $sessionId
-     * @param int $timeout Lock timeout in seconds
-     * @return bool
+     * @param  int  $timeout  Lock timeout in seconds
      */
     public function acquireLock(string $sessionId, int $timeout = 10): bool
     {
-        if (!($this->config['locking']['enabled'] ?? true)) {
+        if (! ($this->config['locking']['enabled'] ?? true)) {
             return true; // Locking disabled
         }
 
-        $lockKey = 'lock:' . $this->prefix . $sessionId;
+        $lockKey = 'lock:'.$this->prefix.$sessionId;
         $lockValue = uniqid('', true);
         $expiry = microtime(true) + $timeout;
 
@@ -217,7 +207,7 @@ class HaSessionManager
                 Log::warning('Failed to acquire session lock', [
                     'session_id' => $sessionId,
                     'attempt' => $i + 1,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
 
@@ -226,7 +216,7 @@ class HaSessionManager
 
         Log::error('Failed to acquire session lock after retries', [
             'session_id' => $sessionId,
-            'max_retries' => $maxRetries
+            'max_retries' => $maxRetries,
         ]);
 
         return false;
@@ -234,25 +224,23 @@ class HaSessionManager
 
     /**
      * Release session lock
-     *
-     * @param string $sessionId
-     * @return bool
      */
     public function releaseLock(string $sessionId): bool
     {
-        if (!($this->config['locking']['enabled'] ?? true)) {
+        if (! ($this->config['locking']['enabled'] ?? true)) {
             return true;
         }
 
-        $lockKey = 'lock:' . $this->prefix . $sessionId;
+        $lockKey = 'lock:'.$this->prefix.$sessionId;
 
         try {
             $this->redis->del($lockKey);
+
             return true;
         } catch (Exception $e) {
             Log::error('Failed to release session lock', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return false;
@@ -261,13 +249,10 @@ class HaSessionManager
 
     /**
      * Check if session is locked
-     *
-     * @param string $sessionId
-     * @return bool
      */
     public function isLocked(string $sessionId): bool
     {
-        $lockKey = 'lock:' . $this->prefix . $sessionId;
+        $lockKey = 'lock:'.$this->prefix.$sessionId;
 
         try {
             return $this->redis->exists($lockKey) > 0;
@@ -278,22 +263,19 @@ class HaSessionManager
 
     /**
      * Delete session
-     *
-     * @param string $sessionId
-     * @return bool
      */
     public function deleteSession(string $sessionId): bool
     {
-        $key = $this->prefix . $sessionId;
+        $key = $this->prefix.$sessionId;
 
         try {
             $this->redis->del($key);
 
             // Also delete from backups
-            if (!empty($this->config['backup_nodes'])) {
+            if (! empty($this->config['backup_nodes'])) {
                 foreach ($this->config['backup_nodes'] as $name => $host) {
                     try {
-                        $backupRedis = new \Redis();
+                        $backupRedis = new \Redis;
                         $backupRedis->connect($host, 6379);
                         $backupRedis->auth(config('database.redis.default.password'));
                         $backupRedis->del($key);
@@ -308,7 +290,7 @@ class HaSessionManager
         } catch (Exception $e) {
             Log::error('Failed to delete session', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return false;
@@ -317,13 +299,10 @@ class HaSessionManager
 
     /**
      * Get session metadata
-     *
-     * @param string $sessionId
-     * @return array
      */
     public function getSessionMetadata(string $sessionId): array
     {
-        $key = 'meta:' . $this->prefix . $sessionId;
+        $key = 'meta:'.$this->prefix.$sessionId;
 
         try {
             $metadata = $this->redis->get($key);
@@ -340,17 +319,14 @@ class HaSessionManager
 
     /**
      * Update session metadata
-     *
-     * @param string $sessionId
-     * @param array $metadata
-     * @return bool
      */
     public function updateSessionMetadata(string $sessionId, array $metadata): bool
     {
-        $key = 'meta:' . $this->prefix . $sessionId;
+        $key = 'meta:'.$this->prefix.$sessionId;
 
         try {
             $this->redis->setex($key, 3600, json_encode($metadata));
+
             return true;
         } catch (Exception $e) {
             return false;
@@ -359,15 +335,13 @@ class HaSessionManager
 
     /**
      * Check health of session store
-     *
-     * @return array
      */
     public function healthCheck(): array
     {
         $health = [
             'primary' => false,
             'backups' => [],
-            'overall' => 'unhealthy'
+            'overall' => 'unhealthy',
         ];
 
         // Check primary
@@ -379,10 +353,10 @@ class HaSessionManager
         }
 
         // Check backups
-        if (!empty($this->config['backup_nodes'])) {
+        if (! empty($this->config['backup_nodes'])) {
             foreach ($this->config['backup_nodes'] as $name => $host) {
                 try {
-                    $backupRedis = new \Redis();
+                    $backupRedis = new \Redis;
                     $backupRedis->connect($host, 6379);
                     $backupRedis->auth(config('database.redis.default.password'));
                     $backupRedis->ping();
@@ -391,7 +365,7 @@ class HaSessionManager
                     $health['backups'][$name] = true;
                 } catch (Exception $e) {
                     $health['backups'][$name] = false;
-                    $health['backups'][$name . '_error'] = $e->getMessage();
+                    $health['backups'][$name.'_error'] = $e->getMessage();
                 }
             }
         }

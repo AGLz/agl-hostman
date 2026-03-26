@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Audit Log Model
@@ -49,12 +48,19 @@ class AuditLog extends Model
     // ========================================
 
     public const EVENT_AUTH = 'authentication';
+
     public const EVENT_AUTHORIZATION = 'authorization';
+
     public const EVENT_USER_MANAGEMENT = 'user_management';
+
     public const EVENT_ROLE_MANAGEMENT = 'role_management';
+
     public const EVENT_INFRASTRUCTURE = 'infrastructure';
+
     public const EVENT_MONITORING = 'monitoring';
+
     public const EVENT_SECURITY = 'security';
+
     public const EVENT_SYSTEM = 'system';
 
     // ========================================
@@ -62,16 +68,27 @@ class AuditLog extends Model
     // ========================================
 
     public const CATEGORY_LOGIN = 'login';
+
     public const CATEGORY_LOGOUT = 'logout';
+
     public const CATEGORY_LOGIN_FAILED = 'login_failed';
+
     public const CATEGORY_PASSWORD_RESET = 'password_reset';
+
     public const CATEGORY_PERMISSION_CHANGED = 'permission_changed';
+
     public const CATEGORY_ROLE_ASSIGNED = 'role_assigned';
+
     public const CATEGORY_USER_CREATED = 'user_created';
+
     public const CATEGORY_USER_UPDATED = 'user_updated';
+
     public const CATEGORY_USER_DELETED = 'user_deleted';
+
     public const CATEGORY_CONTAINER_ACTION = 'container_action';
+
     public const CATEGORY_CONFIG_CHANGED = 'config_changed';
+
     public const CATEGORY_UNAUTHORIZED_ACCESS = 'unauthorized_access';
 
     // ========================================
@@ -79,8 +96,11 @@ class AuditLog extends Model
     // ========================================
 
     public const SEVERITY_INFO = 'info';
+
     public const SEVERITY_WARNING = 'warning';
+
     public const SEVERITY_ERROR = 'error';
+
     public const SEVERITY_CRITICAL = 'critical';
 
     // ========================================
@@ -88,7 +108,9 @@ class AuditLog extends Model
     // ========================================
 
     public const STATUS_SUCCESS = 'success';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_PENDING = 'pending';
 
     /**
@@ -134,7 +156,7 @@ class AuditLog extends Model
     /**
      * Scope for specific model
      */
-    public function scopeForModel($query, string $modelType, int $modelId = null)
+    public function scopeForModel($query, string $modelType, ?int $modelId = null)
     {
         $query->where('model_type', $modelType);
 
@@ -188,7 +210,7 @@ class AuditLog extends Model
     {
         return $query->whereIn('event_type', [
             self::EVENT_SECURITY,
-            self::EVENT_AUTHORIZATION
+            self::EVENT_AUTHORIZATION,
         ]);
     }
 
@@ -235,7 +257,7 @@ class AuditLog extends Model
             'event_type' => self::EVENT_AUTH,
             'event_category' => $action,
             'action' => $action,
-            'description' => ucfirst($action) . ' attempt',
+            'description' => ucfirst($action).' attempt',
             'metadata' => $metadata,
             'status' => $status,
             'severity' => $status === self::STATUS_FAILED ? self::SEVERITY_WARNING : self::SEVERITY_INFO,
@@ -317,7 +339,7 @@ class AuditLog extends Model
      */
     public function getSeverityLabelAttribute(): string
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             self::SEVERITY_INFO => 'Info',
             self::SEVERITY_WARNING => 'Warning',
             self::SEVERITY_ERROR => 'Error',
@@ -331,7 +353,7 @@ class AuditLog extends Model
      */
     public function getSeverityColorAttribute(): string
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             self::SEVERITY_INFO => 'blue',
             self::SEVERITY_WARNING => 'yellow',
             self::SEVERITY_ERROR => 'orange',
@@ -345,7 +367,7 @@ class AuditLog extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_SUCCESS => 'Success',
             self::STATUS_FAILED => 'Failed',
             self::STATUS_PENDING => 'Pending',

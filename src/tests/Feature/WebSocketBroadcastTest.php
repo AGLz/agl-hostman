@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Events\AlertTriggered;
+use App\Events\ContainerStatusChanged;
+use App\Events\ServerMetricsUpdated;
 use App\Services\Broadcasting\WebSocketBroadcastService;
 use Illuminate\Support\Facades\Event;
-use App\Events\ServerMetricsUpdated;
-use App\Events\ContainerStatusChanged;
-use App\Events\AlertTriggered;
 
 describe('WebSocket Broadcasting', function () {
     beforeEach(function () {
-        $this->broadcastService = new WebSocketBroadcastService();
+        $this->broadcastService = new WebSocketBroadcastService;
         Event::fake();
     });
 

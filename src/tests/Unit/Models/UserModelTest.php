@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
-use App\Models\User;
-use App\Models\PhysicalLocation;
 use App\Models\ApiKey;
+use App\Models\PhysicalLocation;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,8 +14,6 @@ use Tests\TestCase;
  * User Model Test
  *
  * Tests for the User model.
- *
- * @package Tests\Unit\Models
  */
 class UserModelTest extends TestCase
 {
@@ -148,7 +146,7 @@ class UserModelTest extends TestCase
      */
     public function test_fillable_attributes(): void
     {
-        $user = new User();
+        $user = new User;
 
         $expectedFillable = [
             'name',
@@ -171,7 +169,7 @@ class UserModelTest extends TestCase
      */
     public function test_hidden_attributes(): void
     {
-        $user = new User();
+        $user = new User;
 
         $this->assertContains('password', $user->getHidden());
         $this->assertContains('remember_token', $user->getHidden());
@@ -182,7 +180,7 @@ class UserModelTest extends TestCase
      */
     public function test_casts_configuration(): void
     {
-        $user = new User();
+        $user = new User;
 
         $this->assertArrayHasKey('email_verified_at', $user->getCasts());
         $this->assertArrayHasKey('last_login_at', $user->getCasts());

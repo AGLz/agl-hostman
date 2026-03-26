@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Models\N8NWorkflow;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -20,11 +20,17 @@ use Illuminate\Support\Str;
 class N8NService
 {
     protected string $apiUrl;
+
     protected ?string $apiKey;
+
     protected ?string $webhookSecret;
+
     protected array $defaultHeaders;
+
     protected int $maxRetries;
+
     protected int $timeout;
+
     protected array $circuitBreaker = [
         'failures' => 0,
         'last_failure' => null,
@@ -59,7 +65,7 @@ class N8NService
      */
     public function executeWorkflow(string $workflowId, array $data = [], array $options = []): array
     {
-        if (!$this->isCircuitBreakerOpen()) {
+        if (! $this->isCircuitBreakerOpen()) {
             return $this->executeWithRetry($workflowId, $data, $options);
         }
 
@@ -160,7 +166,7 @@ class N8NService
 
         return [
             'success' => false,
-            'error' => 'Workflow execution failed after ' . $this->maxRetries . ' attempts',
+            'error' => 'Workflow execution failed after '.$this->maxRetries.' attempts',
             'attempts' => $attempt,
             'last_error' => $lastError,
         ];
@@ -404,7 +410,7 @@ class N8NService
     {
         $result = $this->listWorkflows();
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return $result;
         }
 
@@ -462,8 +468,9 @@ class N8NService
     {
         // Verify webhook signature if secret is configured
         if ($this->webhookSecret && $signature) {
-            if (!$this->verifyWebhookSignature($payload, $signature)) {
+            if (! $this->verifyWebhookSignature($payload, $signature)) {
                 Log::warning('N8N webhook signature verification failed');
+
                 return ['success' => false, 'error' => 'Invalid signature'];
             }
         }
@@ -488,6 +495,7 @@ class N8NService
 
             default:
                 Log::warning('Unknown N8N webhook type', ['type' => $type]);
+
                 return ['success' => false, 'error' => 'Unknown webhook type'];
         }
     }
@@ -516,7 +524,7 @@ class N8NService
 
         // Store AI response for retrieval
         Cache::put(
-            'ai_response_' . ($payload['request_id'] ?? Str::uuid()),
+            'ai_response_'.($payload['request_id'] ?? Str::uuid()),
             $payload,
             now()->addHours(24)
         );
@@ -635,6 +643,7 @@ class N8NService
         // Reset circuit breaker if timeout has passed
         if ($timeSinceLastFailure > $this->circuitBreaker['timeout']) {
             $this->resetCircuitBreaker();
+
             return false;
         }
 
@@ -698,6 +707,7 @@ class N8NService
     protected function verifyWebhookSignature(array $payload, string $signature): bool
     {
         $expected = hash_hmac('sha256', json_encode($payload), $this->webhookSecret);
+
         return hash_equals($expected, $signature);
     }
 
@@ -707,7 +717,8 @@ class N8NService
     protected function getWebhookUrl(string $path): string
     {
         $baseUrl = config('n8n.webhook_base_url', $this->apiUrl);
-        return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
+
+        return rtrim($baseUrl, '/').'/'.ltrim($path, '/');
     }
 
     /**

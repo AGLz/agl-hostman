@@ -51,7 +51,7 @@ class ProductionBackupLog extends Model
      */
     public function getFormattedFileSize(): string
     {
-        if (!$this->file_size_bytes) {
+        if (! $this->file_size_bytes) {
             return 'N/A';
         }
 
@@ -62,7 +62,7 @@ class ProductionBackupLog extends Model
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -70,7 +70,7 @@ class ProductionBackupLog extends Model
      */
     public function getFormattedDuration(): string
     {
-        if (!$this->duration_seconds) {
+        if (! $this->duration_seconds) {
             return 'N/A';
         }
 

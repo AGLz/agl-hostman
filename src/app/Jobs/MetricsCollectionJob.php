@@ -2,24 +2,22 @@
 
 namespace App\Jobs;
 
-use App\Services\MetricsCollector;
 use App\Models\ProxmoxServer;
+use App\Services\MetricsCollector;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Metrics Collection Job
  *
  * Collects and aggregates system metrics from all infrastructure components.
  * Stores metrics in database for trend analysis and alerting.
- *
- * @package App\Jobs
  */
 class MetricsCollectionJob implements ShouldQueue
 {
@@ -75,6 +73,7 @@ class MetricsCollectionJob implements ShouldQueue
             Log::warning('Metrics collection already running', [
                 'type' => $this->collectionType,
             ]);
+
             return;
         }
 
@@ -85,6 +84,7 @@ class MetricsCollectionJob implements ShouldQueue
 
             if ($servers->isEmpty()) {
                 Log::warning('No online servers for metrics collection');
+
                 return;
             }
 
@@ -238,13 +238,13 @@ class MetricsCollectionJob implements ShouldQueue
                 'timestamp' => now()->toIso8601String(),
                 'total_servers' => count($metrics),
                 'averages' => [
-                    'cpu_usage' => collect($metrics)->avg(fn($m) => $m['cpu'] ?? 0),
-                    'memory_usage' => collect($metrics)->avg(fn($m) => $m['memory'] ?? 0),
-                    'disk_usage' => collect($metrics)->avg(fn($m) => $m['disk'] ?? 0),
+                    'cpu_usage' => collect($metrics)->avg(fn ($m) => $m['cpu'] ?? 0),
+                    'memory_usage' => collect($metrics)->avg(fn ($m) => $m['memory'] ?? 0),
+                    'disk_usage' => collect($metrics)->avg(fn ($m) => $m['disk'] ?? 0),
                 ],
                 'totals' => [
-                    'containers_running' => collect($metrics)->sum(fn($m) => $m['containers_running'] ?? 0),
-                    'containers_stopped' => collect($metrics)->sum(fn($m) => $m['containers_stopped'] ?? 0),
+                    'containers_running' => collect($metrics)->sum(fn ($m) => $m['containers_running'] ?? 0),
+                    'containers_stopped' => collect($metrics)->sum(fn ($m) => $m['containers_stopped'] ?? 0),
                 ],
             ];
 

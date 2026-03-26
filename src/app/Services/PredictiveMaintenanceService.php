@@ -2,13 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\ContainerHealthLog;
-use App\Models\PerformanceTrend;
 use App\Events\ResourceExhaustionPredicted;
+use App\Models\ContainerHealthLog;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Predictive Maintenance Service
@@ -22,8 +20,6 @@ use Carbon\Carbon;
  * - Anomaly detection
  * - Capacity planning recommendations
  * - Predictive alerts
- *
- * @package App\Services
  */
 class PredictiveMaintenanceService
 {
@@ -55,10 +51,10 @@ class PredictiveMaintenanceService
     /**
      * Predict resource exhaustion for a container
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
-     * @param string $resourceType Resource type (cpu, memory, disk)
-     * @param string $horizon Forecast horizon (short_term, medium_term, long_term)
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
+     * @param  string  $resourceType  Resource type (cpu, memory, disk)
+     * @param  string  $horizon  Forecast horizon (short_term, medium_term, long_term)
      * @return array Prediction results
      */
     public function predictResourceExhaustion(
@@ -116,7 +112,7 @@ class PredictiveMaintenanceService
     /**
      * Predict failures across all containers
      *
-     * @param array $nodes Nodes to analyze
+     * @param  array  $nodes  Nodes to analyze
      * @return array Cluster-wide predictions
      */
     public function predictClusterFailures(array $nodes): array
@@ -149,7 +145,7 @@ class PredictiveMaintenanceService
     /**
      * Predict failures for containers on a node
      *
-     * @param string $node Node code
+     * @param  string  $node  Node code
      * @return array Node predictions
      */
     protected function predictNodeFailures(string $node): array
@@ -197,9 +193,9 @@ class PredictiveMaintenanceService
     /**
      * Get historical resource usage data
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
-     * @param string $resourceType Resource type
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
+     * @param  string  $resourceType  Resource type
      * @return Collection Historical data
      */
     protected function getHistoricalResourceData(string $node, int $vmid, string $resourceType): Collection
@@ -222,7 +218,7 @@ class PredictiveMaintenanceService
     /**
      * Analyze trend in historical data
      *
-     * @param Collection $data Historical data
+     * @param  Collection  $data  Historical data
      * @return array Trend analysis
      */
     protected function analyzeTrend(Collection $data): array
@@ -269,9 +265,9 @@ class PredictiveMaintenanceService
     /**
      * Calculate R-squared for trend line
      *
-     * @param array $values Data values
-     * @param float $slope Trend slope
-     * @param float $intercept Trend intercept
+     * @param  array  $values  Data values
+     * @param  float  $slope  Trend slope
+     * @param  float  $intercept  Trend intercept
      * @return float R-squared value
      */
     protected function calculateRSquared(array $values, float $slope, float $intercept): float
@@ -294,9 +290,9 @@ class PredictiveMaintenanceService
     /**
      * Forecast resource usage
      *
-     * @param Collection $historicalData Historical data
-     * @param string $resourceType Resource type
-     * @param string $horizon Forecast horizon
+     * @param  Collection  $historicalData  Historical data
+     * @param  string  $resourceType  Resource type
+     * @param  string  $horizon  Forecast horizon
      * @return array Forecast results
      */
     protected function forecastResource(Collection $historicalData, string $resourceType, string $horizon): array
@@ -328,8 +324,8 @@ class PredictiveMaintenanceService
     /**
      * Detect exhaustion risk from forecast
      *
-     * @param array $forecast Forecast results
-     * @param string $resourceType Resource type
+     * @param  array  $forecast  Forecast results
+     * @param  string  $resourceType  Resource type
      * @return array Exhaustion risk assessment
      */
     protected function detectExhaustionRisk(array $forecast, string $resourceType): array
@@ -367,7 +363,7 @@ class PredictiveMaintenanceService
     /**
      * Calculate overall risk from multiple predictions
      *
-     * @param array $predictions Array of exhaustion predictions
+     * @param  array  $predictions  Array of exhaustion predictions
      * @return string Overall risk level
      */
     protected function calculateOverallRisk(array $predictions): string
@@ -386,10 +382,9 @@ class PredictiveMaintenanceService
     /**
      * Trigger exhaustion alert
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
-     * @param array $prediction Prediction results
-     * @return void
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
+     * @param  array  $prediction  Prediction results
      */
     protected function triggerExhaustionAlert(string $node, int $vmid, array $prediction): void
     {
@@ -421,7 +416,7 @@ class PredictiveMaintenanceService
     /**
      * Generate cluster-wide recommendations
      *
-     * @param array $predictions Cluster predictions
+     * @param  array  $predictions  Cluster predictions
      * @return array Recommendations
      */
     protected function generateClusterRecommendations(array $predictions): array
@@ -442,14 +437,14 @@ class PredictiveMaintenanceService
 
         // Check for cluster-wide resource trends
         $memoryIssues = collect($predictions['high_risk_containers'])
-            ->filter(fn($c) => $c['predictions']['memory']['exhaustion_risk']['risk_level'] === 'high')
+            ->filter(fn ($c) => $c['predictions']['memory']['exhaustion_risk']['risk_level'] === 'high')
             ->count();
 
         if ($memoryIssues > 3) {
             $recommendations[] = [
                 'priority' => 'high',
                 'action' => 'increase_cluster_memory',
-                'description' => "Multiple containers showing memory exhaustion risk",
+                'description' => 'Multiple containers showing memory exhaustion risk',
                 'affected_count' => $memoryIssues,
             ];
         }
@@ -460,8 +455,8 @@ class PredictiveMaintenanceService
     /**
      * Get AI-powered maintenance insights
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
      * @return array AI insights
      */
     public function getAIMaintenanceInsights(string $node, int $vmid): array
@@ -490,31 +485,31 @@ class PredictiveMaintenanceService
     /**
      * Build prompt for AI maintenance insights
      *
-     * @param string $node Node code
-     * @param int $vmid Container VMID
-     * @param array $historicalData Historical resource data
+     * @param  string  $node  Node code
+     * @param  int  $vmid  Container VMID
+     * @param  array  $historicalData  Historical resource data
      * @return string AI prompt
      */
     protected function buildMaintenancePrompt(string $node, int $vmid, array $historicalData): string
     {
-        return "Analyze the following container resource usage trends and provide predictive maintenance recommendations:\n\n" .
-               "Node: {$node}\n" .
-               "Container VMID: {$vmid}\n\n" .
-               "Resource Usage Trends (last 7 days):\n" .
-               json_encode($historicalData, JSON_PRETTY_PRINT) . "\n\n" .
-               "Please provide:\n" .
-               "1. Risk assessment (high/medium/low)\n" .
-               "2. Predicted time to resource exhaustion\n" .
-               "3. Recommended preventive actions\n" .
-               "4. Capacity planning suggestions\n" .
-               "5. Optimization opportunities\n\n" .
-               "Format your response as actionable maintenance tasks.";
+        return "Analyze the following container resource usage trends and provide predictive maintenance recommendations:\n\n".
+               "Node: {$node}\n".
+               "Container VMID: {$vmid}\n\n".
+               "Resource Usage Trends (last 7 days):\n".
+               json_encode($historicalData, JSON_PRETTY_PRINT)."\n\n".
+               "Please provide:\n".
+               "1. Risk assessment (high/medium/low)\n".
+               "2. Predicted time to resource exhaustion\n".
+               "3. Recommended preventive actions\n".
+               "4. Capacity planning suggestions\n".
+               "5. Optimization opportunities\n\n".
+               'Format your response as actionable maintenance tasks.';
     }
 
     /**
      * Extract consensus from AI responses
      *
-     * @param array $responses AI model responses
+     * @param  array  $responses  AI model responses
      * @return array Consensus insights
      */
     protected function extractMaintenanceConsensus(array $responses): array
@@ -523,7 +518,7 @@ class PredictiveMaintenanceService
         return [
             'risk_assessment' => 'medium',
             'recommended_actions' => [],
-            'confidence' => count(array_filter($responses, fn($r) => $r['success'] ?? false)) / max(count($responses), 1),
+            'confidence' => count(array_filter($responses, fn ($r) => $r['success'] ?? false)) / max(count($responses), 1),
         ];
     }
 }

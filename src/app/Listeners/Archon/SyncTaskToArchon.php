@@ -17,7 +17,7 @@ class SyncTaskToArchon implements ShouldQueue
 {
     public function handle(TaskCreated|TaskUpdated $event): void
     {
-        if (!config('archon.sync_enabled')) {
+        if (! config('archon.sync_enabled')) {
             return;
         }
 

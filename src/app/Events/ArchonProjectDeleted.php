@@ -31,7 +31,7 @@ class ArchonProjectDeleted implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'project_id' => $this->projectId
+            'project_id' => $this->projectId,
         ];
     }
 }

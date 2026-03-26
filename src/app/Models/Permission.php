@@ -48,7 +48,7 @@ class Permission extends SpatiePermission
      */
     public function getFullNameAttribute(): string
     {
-        return $this->module . '.' . $this->name;
+        return $this->module.'.'.$this->name;
     }
 
     /**

@@ -7,8 +7,8 @@ use App\Models\AuditLog;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -31,8 +31,6 @@ class RegisterController extends Controller
 
     /**
      * Display the registration form
-     *
-     * @return View
      */
     public function showRegistrationForm(): View
     {
@@ -41,9 +39,6 @@ class RegisterController extends Controller
 
     /**
      * Handle registration request
-     *
-     * @param Request $request
-     * @return RedirectResponse
      */
     public function register(Request $request): RedirectResponse
     {

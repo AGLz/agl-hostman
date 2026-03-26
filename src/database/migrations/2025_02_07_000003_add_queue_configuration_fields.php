@@ -19,7 +19,7 @@ return new class extends Migration
 
         // Add index to job_batches table
         Schema::table('job_batches', function (Blueprint $table) {
-            if (!Schema::hasColumn('job_batches', 'queue')) {
+            if (! Schema::hasColumn('job_batches', 'queue')) {
                 $table->string('queue')->nullable();
                 $table->index('queue');
             }

@@ -31,7 +31,7 @@ class ArchonTaskDeleted implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'task_id' => $this->taskId
+            'task_id' => $this->taskId,
         ];
     }
 }

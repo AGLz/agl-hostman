@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 class ByzantineCoordinator implements ConsensusInterface
 {
     protected array $consensusStates = [];
+
     protected array $config;
 
     public function __construct()
@@ -60,14 +61,14 @@ class ByzantineCoordinator implements ConsensusInterface
         // Phase 2: Prepare
         $prepareResult = $this->preparePhase($consensusId);
 
-        if (!$prepareResult['success']) {
+        if (! $prepareResult['success']) {
             return $prepareResult;
         }
 
         // Phase 3: Commit
         $commitResult = $this->commitPhase($consensusId);
 
-        if (!$commitResult['success']) {
+        if (! $commitResult['success']) {
             return $commitResult;
         }
 
@@ -206,7 +207,7 @@ class ByzantineCoordinator implements ConsensusInterface
      */
     public function status(string $consensusId): array
     {
-        if (!isset($this->consensusStates[$consensusId])) {
+        if (! isset($this->consensusStates[$consensusId])) {
             return ['error' => 'Consensus not found'];
         }
 
@@ -310,7 +311,7 @@ class ByzantineCoordinator implements ConsensusInterface
 
         // Simple hash-based election (deterministic)
         $term = $this->consensusStates[$consensusId]['term'];
-        $leaderIndex = crc32($term . 'leader') % count($agents);
+        $leaderIndex = crc32($term.'leader') % count($agents);
 
         $leader = $agents[$leaderIndex];
         $this->consensusStates[$consensusId]['leader'] = $leader;
@@ -372,14 +373,14 @@ class ByzantineCoordinator implements ConsensusInterface
             $targets = $this->selectGossipTargets($agents, $infected, $fanout);
 
             foreach ($targets as $target) {
-                if (!in_array($target, $infected, true)) {
+                if (! in_array($target, $infected, true)) {
                     $this->consensusStates[$consensusId]['infected'][] = $target;
                 }
             }
         }
 
         // Infect first node if none infected
-        if (empty($infected) && !empty($agents)) {
+        if (empty($infected) && ! empty($agents)) {
             $this->consensusStates[$consensusId]['infected'][] = $agents[0];
         }
     }
@@ -406,7 +407,7 @@ class ByzantineCoordinator implements ConsensusInterface
         foreach ($agents as $agent) {
             if (isset($state[$agent])) {
                 $hash = md5(json_encode($state[$agent]));
-                if (!isset($versions[$hash])) {
+                if (! isset($versions[$hash])) {
                     $versions[$hash] = [];
                 }
                 $versions[$hash][] = $agent;
@@ -524,7 +525,7 @@ class ByzantineCoordinator implements ConsensusInterface
      */
     protected function signMessage(string $consensusId): string
     {
-        return hash('sha256', $consensusId . now()->toIso8601String());
+        return hash('sha256', $consensusId.now()->toIso8601String());
     }
 
     /**
@@ -548,7 +549,7 @@ class ByzantineCoordinator implements ConsensusInterface
     {
         return array_filter(
             $this->consensusStates[$consensusId]['votes'] ?? [],
-            fn($vote) => ($vote['message']['type'] ?? null) === $type
+            fn ($vote) => ($vote['message']['type'] ?? null) === $type
         );
     }
 
@@ -559,7 +560,7 @@ class ByzantineCoordinator implements ConsensusInterface
     {
         return array_filter(
             $this->consensusStates[$consensusId]['votes'] ?? [],
-            fn($vote) => isset($vote['ack']) && $vote['ack'] === true
+            fn ($vote) => isset($vote['ack']) && $vote['ack'] === true
         );
     }
 }

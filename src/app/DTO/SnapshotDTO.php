@@ -8,20 +8,18 @@ namespace App\DTO;
  * Container Snapshot DTO
  *
  * Immutable data transfer object for snapshot metadata.
- *
- * @package App\DTO
  */
 readonly class SnapshotDTO
 {
     /**
-     * @param int $vmid Container VMID
-     * @param string $name Snapshot name
-     * @param string|null $description Snapshot description
-     * @param \DateTimeImmutable|null $createdAt Snapshot creation time
-     * @param array<string, mixed> $config Snapshot configuration
-     * @param int|null $sizeMb Snapshot size in MB
-     * @param string|null $parentName Parent snapshot name
-     * @param array<string, mixed> $metadata Additional metadata
+     * @param  int  $vmid  Container VMID
+     * @param  string  $name  Snapshot name
+     * @param  string|null  $description  Snapshot description
+     * @param  \DateTimeImmutable|null  $createdAt  Snapshot creation time
+     * @param  array<string, mixed>  $config  Snapshot configuration
+     * @param  int|null  $sizeMb  Snapshot size in MB
+     * @param  string|null  $parentName  Parent snapshot name
+     * @param  array<string, mixed>  $metadata  Additional metadata
      */
     public function __construct(
         public int $vmid,
@@ -39,18 +37,17 @@ readonly class SnapshotDTO
     /**
      * Create from array
      *
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
-            vmid: (int)($data['vmid'] ?? throw new \InvalidArgumentException('vmid is required')),
+            vmid: (int) ($data['vmid'] ?? throw new \InvalidArgumentException('vmid is required')),
             name: $data['name'] ?? $data['snapname'] ?? throw new \InvalidArgumentException('name is required'),
             description: $data['description'] ?? null,
             createdAt: isset($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             config: $data['config'] ?? [],
-            sizeMb: isset($data['size_mb']) ? (int)$data['size_mb'] : null,
+            sizeMb: isset($data['size_mb']) ? (int) $data['size_mb'] : null,
             parentName: $data['parent'] ?? $data['parent_name'] ?? null,
             metadata: $data['metadata'] ?? [],
         );
@@ -59,9 +56,7 @@ readonly class SnapshotDTO
     /**
      * Create from Proxmox API response
      *
-     * @param int $vmid
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromProxmoxResponse(int $vmid, array $data): self
     {
@@ -69,9 +64,9 @@ readonly class SnapshotDTO
             vmid: $vmid,
             name: $data['name'] ?? throw new \InvalidArgumentException('name is required'),
             description: $data['description'] ?? null,
-            createdAt: isset($data['snaptime']) ? new \DateTimeImmutable('@' . $data['snaptime']) : null,
+            createdAt: isset($data['snaptime']) ? new \DateTimeImmutable('@'.$data['snaptime']) : null,
             config: $data['config'] ?? [],
-            sizeMb: isset($data['size']) ? (int)($data['size'] / 1024 / 1024) : null,
+            sizeMb: isset($data['size']) ? (int) ($data['size'] / 1024 / 1024) : null,
             parentName: $data['parent'] ?? null,
             metadata: [],
         );
@@ -122,7 +117,7 @@ readonly class SnapshotDTO
     private function validate(): void
     {
         // Validate snapshot name (no spaces, special chars)
-        if (!preg_match('/^[a-zA-Z0-9_-]{1,40}$/', $this->name)) {
+        if (! preg_match('/^[a-zA-Z0-9_-]{1,40}$/', $this->name)) {
             throw new \InvalidArgumentException(
                 "Invalid snapshot name: {$this->name}. Must be alphanumeric with hyphens/underscores, max 40 chars."
             );
@@ -135,56 +130,50 @@ readonly class SnapshotDTO
 
     /**
      * Get age in days
-     *
-     * @return int|null
      */
     public function getAgeDays(): ?int
     {
-        if (!$this->createdAt) {
+        if (! $this->createdAt) {
             return null;
         }
 
-        return (new \DateTimeImmutable())->diff($this->createdAt)->days;
+        return (new \DateTimeImmutable)->diff($this->createdAt)->days;
     }
 
     /**
      * Check if snapshot is recent (< 7 days)
-     *
-     * @return bool
      */
     public function isRecent(): bool
     {
         $age = $this->getAgeDays();
+
         return $age !== null && $age < 7;
     }
 
     /**
      * Check if snapshot is old (> 30 days)
-     *
-     * @return bool
      */
     public function isOld(): bool
     {
         $age = $this->getAgeDays();
+
         return $age !== null && $age > 30;
     }
 
     /**
      * Get formatted age
-     *
-     * @return string|null
      */
     public function getFormattedAge(): ?string
     {
-        if (!$this->createdAt) {
+        if (! $this->createdAt) {
             return null;
         }
 
-        $now = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable;
         $diff = $now->diff($this->createdAt);
 
         if ($diff->days > 30) {
-            return sprintf('%d months ago', (int)($diff->days / 30));
+            return sprintf('%d months ago', (int) ($diff->days / 30));
         }
 
         if ($diff->days > 0) {

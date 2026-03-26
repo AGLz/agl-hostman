@@ -4,16 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     use HasRoles {
         hasPermissionTo as protected hasPermissionToFromTrait;
@@ -37,7 +38,7 @@ class User extends Authenticatable
         'workos_id',
         'avatar_url',
         'last_login_at',
-        'is_active'
+        'is_active',
     ];
 
     /**
@@ -61,7 +62,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ];
     }
 
@@ -73,6 +74,14 @@ class User extends Authenticatable
         return $this->belongsToMany(PhysicalLocation::class, 'user_locations')
             ->withPivot(['access_level', 'is_primary'])
             ->withTimestamps();
+    }
+
+    /**
+     * Registos diários de trabalho com assistentes (resumos por dia).
+     */
+    public function dailySessionLogs(): HasMany
+    {
+        return $this->hasMany(DailySessionLog::class);
     }
 
     /**
@@ -124,7 +133,7 @@ class User extends Authenticatable
             ->where('code', $locationCode)
             ->first();
 
-        if (!$location) {
+        if (! $location) {
             return false;
         }
 
@@ -153,7 +162,7 @@ class User extends Authenticatable
     {
         return $this->physicalLocations()
             ->get()
-            ->map(fn($location) => [
+            ->map(fn ($location) => [
                 'location' => $location,
                 'access_level' => $location->pivot->access_level,
                 'is_primary' => $location->pivot->is_primary,
@@ -177,13 +186,12 @@ class User extends Authenticatable
     /**
      * Check if user has specific permission
      *
-     * @param string $permission Permission name (e.g., 'view-dashboard', 'manage-users')
-     * @return bool
+     * @param  string  $permission  Permission name (e.g., 'view-dashboard', 'manage-users')
      */
     public function hasPermissionTo(string $permission): bool
     {
         // Check if user is active first
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -194,12 +202,11 @@ class User extends Authenticatable
     /**
      * Check if user has any of the given permissions
      *
-     * @param array $permissions Array of permission names
-     * @return bool
+     * @param  array  $permissions  Array of permission names
      */
     public function hasAnyPermission(array $permissions): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -209,12 +216,11 @@ class User extends Authenticatable
     /**
      * Check if user has all of the given permissions
      *
-     * @param array $permissions Array of permission names
-     * @return bool
+     * @param  array  $permissions  Array of permission names
      */
     public function hasAllPermissions(array $permissions): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -224,12 +230,11 @@ class User extends Authenticatable
     /**
      * Check if user has specific role
      *
-     * @param string $role Role name (e.g., 'admin', 'operator', 'viewer')
-     * @return bool
+     * @param  string  $role  Role name (e.g., 'admin', 'operator', 'viewer')
      */
     public function hasRole($role): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -239,12 +244,11 @@ class User extends Authenticatable
     /**
      * Check if user has any of the given roles
      *
-     * @param array|string $roles Role name(s)
-     * @return bool
+     * @param  array|string  $roles  Role name(s)
      */
     public function hasAnyRole($roles): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -254,12 +258,11 @@ class User extends Authenticatable
     /**
      * Check if user has all of the given roles
      *
-     * @param array $roles Array of role names
-     * @return bool
+     * @param  array  $roles  Array of role names
      */
     public function hasAllRoles($roles): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
@@ -268,8 +271,6 @@ class User extends Authenticatable
 
     /**
      * Check if user is a super admin
-     *
-     * @return bool
      */
     public function isSuperAdmin(): bool
     {
@@ -278,8 +279,6 @@ class User extends Authenticatable
 
     /**
      * Check if user can access dashboard
-     *
-     * @return bool
      */
     public function canAccessDashboard(): bool
     {
@@ -289,8 +288,6 @@ class User extends Authenticatable
 
     /**
      * Check if user can manage other users
-     *
-     * @return bool
      */
     public function canManageUsers(): bool
     {
@@ -300,8 +297,6 @@ class User extends Authenticatable
 
     /**
      * Check if user can manage roles and permissions
-     *
-     * @return bool
      */
     public function canManageRoles(): bool
     {
@@ -311,8 +306,6 @@ class User extends Authenticatable
 
     /**
      * Check if user can view predictive maintenance
-     *
-     * @return bool
      */
     public function canViewPredictiveMaintenance(): bool
     {
@@ -322,8 +315,6 @@ class User extends Authenticatable
 
     /**
      * Check if user can manage infrastructure
-     *
-     * @return bool
      */
     public function canManageInfrastructure(): bool
     {
@@ -348,7 +339,7 @@ class User extends Authenticatable
      */
     public function getAllPermissions()
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return collect();
         }
 
@@ -362,7 +353,7 @@ class User extends Authenticatable
      */
     public function getDirectPermissions()
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return collect();
         }
 
@@ -371,8 +362,6 @@ class User extends Authenticatable
 
     /**
      * Update last login timestamp
-     *
-     * @return void
      */
     public function updateLastLogin(): void
     {
@@ -381,8 +370,6 @@ class User extends Authenticatable
 
     /**
      * Deactivate user account
-     *
-     * @return void
      */
     public function deactivate(): void
     {
@@ -391,8 +378,6 @@ class User extends Authenticatable
 
     /**
      * Activate user account
-     *
-     * @return void
      */
     public function activate(): void
     {
@@ -412,7 +397,7 @@ class User extends Authenticatable
     /**
      * Scope: Only active users
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive($query)
@@ -423,7 +408,7 @@ class User extends Authenticatable
     /**
      * Scope: Only inactive users
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeInactive($query)
@@ -434,8 +419,7 @@ class User extends Authenticatable
     /**
      * Scope: Users with specific role
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $role
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeWithRole($query, string $role)
@@ -446,8 +430,7 @@ class User extends Authenticatable
     /**
      * Scope: Users with specific permission
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $permission
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeWithPermission($query, string $permission)

@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Api\Dokploy;
 
 use App\Http\Controllers\Controller;
 use App\Services\DokployApiClient;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -73,7 +73,7 @@ class DokployWebhookController extends Controller
             // Find matching Dokploy application by image name
             $applications = $this->dokploy->getApplications();
 
-            if (!$applications->isSuccess()) {
+            if (! $applications->isSuccess()) {
                 throw new \Exception('Failed to fetch Dokploy applications');
             }
 
@@ -86,7 +86,7 @@ class DokployWebhookController extends Controller
                 }
             }
 
-            if (!$matchedApp) {
+            if (! $matchedApp) {
                 return response()->json([
                     'success' => true,
                     'message' => "No Dokploy application found for image: {$repoName}",
@@ -98,8 +98,8 @@ class DokployWebhookController extends Controller
             // Trigger redeployment
             $deployResult = $this->dokploy->redeployApplication($matchedApp['applicationId']);
 
-            if (!$deployResult->isSuccess()) {
-                throw new \Exception('Failed to trigger redeployment: ' . $deployResult->getError());
+            if (! $deployResult->isSuccess()) {
+                throw new \Exception('Failed to trigger redeployment: '.$deployResult->getError());
             }
 
             Log::info('Triggered Dokploy redeployment', [
@@ -137,20 +137,17 @@ class DokployWebhookController extends Controller
     /**
      * Verify webhook authenticity (optional)
      * Harbor can send webhook secret for verification
-     *
-     * @param Request $request
-     * @return bool
      */
     protected function verifyWebhookSignature(Request $request): bool
     {
         $secret = config('dokploy.harbor_webhook_secret');
 
-        if (!$secret) {
+        if (! $secret) {
             return true; // No secret configured, skip verification
         }
 
         $signature = $request->header('X-Harbor-Signature');
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
@@ -177,7 +174,7 @@ class DokployWebhookController extends Controller
             'event_data' => [
                 'repository' => [
                     'name' => $validated['repository'],
-                    'repo_full_name' => 'agl/' . $validated['repository'],
+                    'repo_full_name' => 'agl/'.$validated['repository'],
                     'repo_type' => 'private',
                 ],
                 'resources' => [

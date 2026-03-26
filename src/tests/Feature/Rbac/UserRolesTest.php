@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
+use App\Models\User;
 
 beforeEach(function () {
     $admin = User::factory()->create([

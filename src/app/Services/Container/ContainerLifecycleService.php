@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Container;
 
-use App\Services\Proxmox\ProxmoxApiClient;
 use App\Services\Broadcasting\WebSocketBroadcastService;
-use App\Events\ContainerStatusChanged;
+use App\Services\Proxmox\ProxmoxApiClient;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -31,14 +30,14 @@ class ContainerLifecycleService
     /**
      * Operation 1: Create new LXC container
      *
-     * @param string $node Node name (e.g., 'AGLSRV1')
-     * @param int $vmid Container ID
-     * @param array $config Container configuration
+     * @param  string  $node  Node name (e.g., 'AGLSRV1')
+     * @param  int  $vmid  Container ID
+     * @param  array  $config  Container configuration
      * @return array Operation result with task ID
      */
     public function createContainer(string $node, int $vmid, array $config): array
     {
-        Log::info("Creating container", ['node' => $node, 'vmid' => $vmid]);
+        Log::info('Creating container', ['node' => $node, 'vmid' => $vmid]);
 
         try {
             // Validate required configuration
@@ -66,7 +65,7 @@ class ContainerLifecycleService
                 serverCode: $node
             );
 
-            Log::info("Container creation initiated", [
+            Log::info('Container creation initiated', [
                 'vmid' => $vmid,
                 'task' => $response['data'] ?? null,
             ]);
@@ -78,7 +77,7 @@ class ContainerLifecycleService
                 'message' => "Container {$vmid} creation initiated on {$node}",
             ];
         } catch (\Exception $e) {
-            Log::error("Container creation failed", [
+            Log::error('Container creation failed', [
                 'vmid' => $vmid,
                 'error' => $e->getMessage(),
             ]);
@@ -93,15 +92,15 @@ class ContainerLifecycleService
     /**
      * Operation 2: Clone existing container
      *
-     * @param string $node Source node name
-     * @param int $vmid Source container ID
-     * @param int $newVmid Target container ID
-     * @param array $options Clone options
+     * @param  string  $node  Source node name
+     * @param  int  $vmid  Source container ID
+     * @param  int  $newVmid  Target container ID
+     * @param  array  $options  Clone options
      * @return array Operation result with task ID
      */
     public function cloneContainer(string $node, int $vmid, int $newVmid, array $options = []): array
     {
-        Log::info("Cloning container", [
+        Log::info('Cloning container', [
             'source' => $vmid,
             'target' => $newVmid,
             'node' => $node,
@@ -125,7 +124,7 @@ class ContainerLifecycleService
                 serverCode: $node
             );
 
-            Log::info("Container clone initiated", [
+            Log::info('Container clone initiated', [
                 'source' => $vmid,
                 'target' => $newVmid,
                 'task' => $response['data'] ?? null,
@@ -139,7 +138,7 @@ class ContainerLifecycleService
                 'message' => "Container {$vmid} cloned to {$newVmid} on {$node}",
             ];
         } catch (\Exception $e) {
-            Log::error("Container clone failed", [
+            Log::error('Container clone failed', [
                 'source' => $vmid,
                 'target' => $newVmid,
                 'error' => $e->getMessage(),
@@ -155,15 +154,15 @@ class ContainerLifecycleService
     /**
      * Operation 3: Migrate container between nodes
      *
-     * @param string $sourceNode Source node name
-     * @param string $targetNode Target node name
-     * @param int $vmid Container ID
-     * @param array $options Migration options
+     * @param  string  $sourceNode  Source node name
+     * @param  string  $targetNode  Target node name
+     * @param  int  $vmid  Container ID
+     * @param  array  $options  Migration options
      * @return array Operation result with task ID
      */
     public function migrateContainer(string $sourceNode, string $targetNode, int $vmid, array $options = []): array
     {
-        Log::info("Migrating container", [
+        Log::info('Migrating container', [
             'vmid' => $vmid,
             'source' => $sourceNode,
             'target' => $targetNode,
@@ -190,7 +189,7 @@ class ContainerLifecycleService
                 ]
             );
 
-            Log::info("Container migration initiated", [
+            Log::info('Container migration initiated', [
                 'vmid' => $vmid,
                 'source' => $sourceNode,
                 'target' => $targetNode,
@@ -206,7 +205,7 @@ class ContainerLifecycleService
                 'message' => "Container {$vmid} migration from {$sourceNode} to {$targetNode} initiated",
             ];
         } catch (\Exception $e) {
-            Log::error("Container migration failed", [
+            Log::error('Container migration failed', [
                 'vmid' => $vmid,
                 'error' => $e->getMessage(),
             ]);
@@ -221,14 +220,14 @@ class ContainerLifecycleService
     /**
      * Operation 4: Create container backup
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID
-     * @param array $options Backup options
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID
+     * @param  array  $options  Backup options
      * @return array Operation result with task ID
      */
     public function backupContainer(string $node, int $vmid, array $options = []): array
     {
-        Log::info("Creating container backup", ['node' => $node, 'vmid' => $vmid]);
+        Log::info('Creating container backup', ['node' => $node, 'vmid' => $vmid]);
 
         try {
             // Create backup via Proxmox API
@@ -240,7 +239,7 @@ class ContainerLifecycleService
                 'remove' => $options['remove'] ?? 0,
             ], $options));
 
-            Log::info("Container backup initiated", [
+            Log::info('Container backup initiated', [
                 'vmid' => $vmid,
                 'task' => $response['data'] ?? null,
             ]);
@@ -253,7 +252,7 @@ class ContainerLifecycleService
                 'message' => "Backup of container {$vmid} on {$node} initiated",
             ];
         } catch (\Exception $e) {
-            Log::error("Container backup failed", [
+            Log::error('Container backup failed', [
                 'vmid' => $vmid,
                 'error' => $e->getMessage(),
             ]);
@@ -268,16 +267,16 @@ class ContainerLifecycleService
     /**
      * Operation 5: Restore container from backup
      *
-     * @param string $node Node name
-     * @param string $storage Storage name
-     * @param string $volume Backup volume ID
-     * @param int $vmid Target container ID
-     * @param array $options Restore options
+     * @param  string  $node  Node name
+     * @param  string  $storage  Storage name
+     * @param  string  $volume  Backup volume ID
+     * @param  int  $vmid  Target container ID
+     * @param  array  $options  Restore options
      * @return array Operation result with task ID
      */
     public function restoreContainer(string $node, string $storage, string $volume, int $vmid, array $options = []): array
     {
-        Log::info("Restoring container from backup", [
+        Log::info('Restoring container from backup', [
             'node' => $node,
             'vmid' => $vmid,
             'volume' => $volume,
@@ -304,7 +303,7 @@ class ContainerLifecycleService
                 ]
             );
 
-            Log::info("Container restore initiated", [
+            Log::info('Container restore initiated', [
                 'vmid' => $vmid,
                 'volume' => $volume,
                 'task' => $response['data'] ?? null,
@@ -318,7 +317,7 @@ class ContainerLifecycleService
                 'message' => "Container {$vmid} restore from {$volume} initiated",
             ];
         } catch (\Exception $e) {
-            Log::error("Container restore failed", [
+            Log::error('Container restore failed', [
                 'vmid' => $vmid,
                 'volume' => $volume,
                 'error' => $e->getMessage(),
@@ -334,15 +333,15 @@ class ContainerLifecycleService
     /**
      * Operation 6: Create container snapshot
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID
-     * @param string $snapname Snapshot name
-     * @param array $options Snapshot options
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID
+     * @param  string  $snapname  Snapshot name
+     * @param  array  $options  Snapshot options
      * @return array Operation result
      */
     public function snapshotContainer(string $node, int $vmid, string $snapname, array $options = []): array
     {
-        Log::info("Creating container snapshot", [
+        Log::info('Creating container snapshot', [
             'node' => $node,
             'vmid' => $vmid,
             'snapname' => $snapname,
@@ -352,10 +351,10 @@ class ContainerLifecycleService
             // Create snapshot via Proxmox API
             $response = $this->proxmox->post("/nodes/{$node}/lxc/{$vmid}/snapshot", array_merge([
                 'snapname' => $snapname,
-                'description' => $options['description'] ?? "Snapshot created at " . now()->toDateTimeString(),
+                'description' => $options['description'] ?? 'Snapshot created at '.now()->toDateTimeString(),
             ], $options));
 
-            Log::info("Container snapshot created", [
+            Log::info('Container snapshot created', [
                 'vmid' => $vmid,
                 'snapname' => $snapname,
             ]);
@@ -367,7 +366,7 @@ class ContainerLifecycleService
                 'message' => "Snapshot '{$snapname}' created for container {$vmid}",
             ];
         } catch (\Exception $e) {
-            Log::error("Container snapshot failed", [
+            Log::error('Container snapshot failed', [
                 'vmid' => $vmid,
                 'snapname' => $snapname,
                 'error' => $e->getMessage(),
@@ -383,14 +382,14 @@ class ContainerLifecycleService
     /**
      * Operation 7: Rollback container to snapshot
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID
-     * @param string $snapname Snapshot name
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID
+     * @param  string  $snapname  Snapshot name
      * @return array Operation result with task ID
      */
     public function rollbackContainer(string $node, int $vmid, string $snapname): array
     {
-        Log::info("Rolling back container to snapshot", [
+        Log::info('Rolling back container to snapshot', [
             'node' => $node,
             'vmid' => $vmid,
             'snapname' => $snapname,
@@ -412,7 +411,7 @@ class ContainerLifecycleService
                 ]
             );
 
-            Log::info("Container rollback initiated", [
+            Log::info('Container rollback initiated', [
                 'vmid' => $vmid,
                 'snapname' => $snapname,
                 'task' => $response['data'] ?? null,
@@ -426,7 +425,7 @@ class ContainerLifecycleService
                 'message' => "Container {$vmid} rollback to '{$snapname}' initiated",
             ];
         } catch (\Exception $e) {
-            Log::error("Container rollback failed", [
+            Log::error('Container rollback failed', [
                 'vmid' => $vmid,
                 'snapname' => $snapname,
                 'error' => $e->getMessage(),
@@ -495,8 +494,8 @@ class ContainerLifecycleService
         }
 
         // Validate hostname format
-        if (!preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/', $config['hostname'])) {
-            throw new \InvalidArgumentException("Invalid hostname format");
+        if (! preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/', $config['hostname'])) {
+            throw new \InvalidArgumentException('Invalid hostname format');
         }
     }
 }

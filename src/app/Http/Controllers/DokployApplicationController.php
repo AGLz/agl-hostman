@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\DokployService;
 use App\Models\DokployApplication;
 use App\Models\DokployDeployment;
 use App\Models\DokployDomain;
-use Illuminate\Http\Request;
+use App\Services\DokployService;
+use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Exception;
 
 /**
  * Dokploy Application Controller
@@ -102,7 +102,7 @@ class DokployApplicationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Deployment failed: ' . $e->getMessage(),
+                'message' => 'Deployment failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -131,7 +131,7 @@ class DokployApplicationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Stop failed: ' . $e->getMessage(),
+                'message' => 'Stop failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -160,7 +160,7 @@ class DokployApplicationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Restart failed: ' . $e->getMessage(),
+                'message' => 'Restart failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -204,7 +204,7 @@ class DokployApplicationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'logs' => $logs->map(fn($log) => [
+                'logs' => $logs->map(fn ($log) => [
                     'timestamp' => $log->timestamp,
                     'level' => $log->level,
                     'message' => $log->message,
@@ -239,18 +239,18 @@ class DokployApplicationController extends Controller
                     $logs = $this->dokployService->getDeploymentLogs($application->dokploy_id, 10);
 
                     foreach ($logs as $log) {
-                        echo "data: " . json_encode([
+                        echo 'data: '.json_encode([
                             'timestamp' => $log->timestamp,
                             'level' => $log->level,
                             'message' => $log->message,
-                        ]) . "\n\n";
+                        ])."\n\n";
                         ob_flush();
                         flush();
                     }
 
                     sleep(2); // Poll every 2 seconds
                 } catch (Exception $e) {
-                    echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
+                    echo 'data: '.json_encode(['error' => $e->getMessage()])."\n\n";
                     break;
                 }
             }

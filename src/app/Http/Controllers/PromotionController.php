@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Promotion;
-use App\Services\Deployment\PromotionWorkflowService;
 use App\Services\Deployment\PromotionApprovalService;
-use Illuminate\Http\Request;
+use App\Services\Deployment\PromotionWorkflowService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PromotionController extends Controller
@@ -85,7 +85,7 @@ class PromotionController extends Controller
 
         try {
             $promotion = Promotion::findOrFail($id);
-            
+
             $approval = $this->approvalService->approve(
                 promotion: $promotion,
                 approver: Auth::user(),
@@ -117,7 +117,7 @@ class PromotionController extends Controller
 
         try {
             $promotion = Promotion::findOrFail($id);
-            
+
             $this->approvalService->reject(
                 promotion: $promotion,
                 approver: Auth::user(),
@@ -142,7 +142,7 @@ class PromotionController extends Controller
     public function getApprovalStatus(string $id): JsonResponse
     {
         $promotion = Promotion::findOrFail($id);
-        
+
         $status = $this->approvalService->getApprovalStatus($promotion);
 
         return response()->json($status);
@@ -168,7 +168,7 @@ class PromotionController extends Controller
     {
         try {
             $promotion = Promotion::findOrFail($id);
-            
+
             $result = $this->workflowService->rollbackPromotion($promotion);
 
             return response()->json($result);

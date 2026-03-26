@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Integration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -77,7 +76,7 @@ class UATSmokeTests extends TestCase
      */
     public function redis_connection_works(): void
     {
-        $key = 'smoke_test_' . time();
+        $key = 'smoke_test_'.time();
         $value = 'test_value';
 
         \Illuminate\Support\Facades\Redis::set($key, $value);
@@ -191,7 +190,7 @@ class UATSmokeTests extends TestCase
      */
     public function cache_works(): void
     {
-        $key = 'smoke_test_cache_' . time();
+        $key = 'smoke_test_cache_'.time();
         $value = 'cached_value';
 
         \Illuminate\Support\Facades\Cache::put($key, $value, 60);
@@ -233,7 +232,7 @@ class UATSmokeTests extends TestCase
             \Illuminate\Support\Facades\DB::connection()->getPdo();
             $results['database'] = 'PASS';
         } catch (\Exception $e) {
-            $results['database'] = 'FAIL: ' . $e->getMessage();
+            $results['database'] = 'FAIL: '.$e->getMessage();
         }
 
         // Redis
@@ -241,7 +240,7 @@ class UATSmokeTests extends TestCase
             \Illuminate\Support\Facades\Redis::ping();
             $results['redis'] = 'PASS';
         } catch (\Exception $e) {
-            $results['redis'] = 'FAIL: ' . $e->getMessage();
+            $results['redis'] = 'FAIL: '.$e->getMessage();
         }
 
         // Cache
@@ -249,7 +248,7 @@ class UATSmokeTests extends TestCase
             \Illuminate\Support\Facades\Cache::get('test');
             $results['cache'] = 'PASS';
         } catch (\Exception $e) {
-            $results['cache'] = 'FAIL: ' . $e->getMessage();
+            $results['cache'] = 'FAIL: '.$e->getMessage();
         }
 
         // Queue
@@ -257,12 +256,12 @@ class UATSmokeTests extends TestCase
             \Illuminate\Support\Facades\Queue::connection();
             $results['queue'] = 'PASS';
         } catch (\Exception $e) {
-            $results['queue'] = 'FAIL: ' . $e->getMessage();
+            $results['queue'] = 'FAIL: '.$e->getMessage();
         }
 
         // Config
-        $results['dokploy_configured'] = !empty(config('dokploy.api_url')) ? 'PASS' : 'FAIL';
-        $results['harbor_configured'] = !empty(config('harbor.registry')) ? 'PASS' : 'FAIL';
+        $results['dokploy_configured'] = ! empty(config('dokploy.api_url')) ? 'PASS' : 'FAIL';
+        $results['harbor_configured'] = ! empty(config('harbor.registry')) ? 'PASS' : 'FAIL';
 
         // Report results
         \Illuminate\Support\Facades\Log::info('UAT Smoke Test Summary', $results);

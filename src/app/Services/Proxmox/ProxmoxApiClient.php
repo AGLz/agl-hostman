@@ -6,9 +6,9 @@ namespace App\Services\Proxmox;
 
 use App\DTO\ProxmoxApiResponse;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -19,21 +19,25 @@ use Psr\Log\LoggerInterface;
  * - Connection pooling and retry logic
  * - Rate limiting and circuit breaker
  * - Comprehensive error handling
- *
- * @package App\Services\Proxmox
  */
 class ProxmoxApiClient
 {
     private const TOKEN_CACHE_PREFIX = 'proxmox_token_';
+
     private const CIRCUIT_BREAKER_PREFIX = 'proxmox_circuit_';
+
     private const RATE_LIMIT_PREFIX = 'proxmox_rate_';
 
     private const MAX_RETRIES = 3;
+
     private const RETRY_DELAY_MS = 500;
+
     private const REQUEST_TIMEOUT = 30;
+
     private const TOKEN_TTL = 7200; // 2 hours
 
     private ?string $authToken = null;
+
     private ?string $csrfToken = null;
 
     public function __construct(
@@ -43,25 +47,23 @@ class ProxmoxApiClient
         private readonly string $password,
         private readonly string $realm = 'pam',
         private readonly bool $verifySSL = false,
-        private readonly LoggerInterface $logger = new \Psr\Log\NullLogger(),
-    ) {
-    }
+        private readonly LoggerInterface $logger = new \Psr\Log\NullLogger,
+    ) {}
 
     /**
      * Create from config
      *
-     * @param array<string, mixed> $config
-     * @return self
+     * @param  array<string, mixed>  $config
      */
     public static function fromConfig(array $config): self
     {
         return new self(
             host: $config['host'] ?? throw new \InvalidArgumentException('Host is required'),
-            port: (int)($config['port'] ?? 8006),
+            port: (int) ($config['port'] ?? 8006),
             username: $config['username'] ?? throw new \InvalidArgumentException('Username is required'),
             password: $config['password'] ?? throw new \InvalidArgumentException('Password is required'),
             realm: $config['realm'] ?? 'pam',
-            verifySSL: (bool)($config['verify_ssl'] ?? false),
+            verifySSL: (bool) ($config['verify_ssl'] ?? false),
             logger: Log::channel($config['log_channel'] ?? 'default'),
         );
     }
@@ -73,24 +75,25 @@ class ProxmoxApiClient
      */
     public function authenticate(): ProxmoxApiResponse
     {
-        $cacheKey = self::TOKEN_CACHE_PREFIX . md5($this->host . $this->username);
+        $cacheKey = self::TOKEN_CACHE_PREFIX.md5($this->host.$this->username);
 
         // Check cache first
         $cached = Cache::get($cacheKey);
         if ($cached) {
             $this->authToken = $cached['ticket'];
             $this->csrfToken = $cached['csrf_token'];
+
             return ProxmoxApiResponse::success(['cached' => true]);
         }
 
         try {
             $response = $this->buildRequest(authenticated: false)
                 ->post($this->buildUrl('/api2/json/access/ticket'), [
-                    'username' => $this->username . '@' . $this->realm,
+                    'username' => $this->username.'@'.$this->realm,
                     'password' => $this->password,
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return ProxmoxApiResponse::fromHttpResponse($response);
             }
 
@@ -124,9 +127,7 @@ class ProxmoxApiClient
     /**
      * Make authenticated GET request
      *
-     * @param string $endpoint
-     * @param array<string, mixed> $query
-     * @return ProxmoxApiResponse
+     * @param  array<string, mixed>  $query
      */
     public function get(string $endpoint, array $query = []): ProxmoxApiResponse
     {
@@ -136,9 +137,7 @@ class ProxmoxApiClient
     /**
      * Make authenticated POST request
      *
-     * @param string $endpoint
-     * @param array<string, mixed> $data
-     * @return ProxmoxApiResponse
+     * @param  array<string, mixed>  $data
      */
     public function post(string $endpoint, array $data = []): ProxmoxApiResponse
     {
@@ -148,9 +147,7 @@ class ProxmoxApiClient
     /**
      * Make authenticated PUT request
      *
-     * @param string $endpoint
-     * @param array<string, mixed> $data
-     * @return ProxmoxApiResponse
+     * @param  array<string, mixed>  $data
      */
     public function put(string $endpoint, array $data = []): ProxmoxApiResponse
     {
@@ -159,9 +156,6 @@ class ProxmoxApiClient
 
     /**
      * Make authenticated DELETE request
-     *
-     * @param string $endpoint
-     * @return ProxmoxApiResponse
      */
     public function delete(string $endpoint): ProxmoxApiResponse
     {
@@ -171,11 +165,8 @@ class ProxmoxApiClient
     /**
      * Make HTTP request with retry logic
      *
-     * @param string $method
-     * @param string $endpoint
-     * @param array<string, mixed> $data
-     * @param array<string, mixed> $query
-     * @return ProxmoxApiResponse
+     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed>  $query
      */
     private function request(
         string $method,
@@ -189,14 +180,14 @@ class ProxmoxApiClient
         }
 
         // Rate limiting
-        if (!$this->checkRateLimit()) {
+        if (! $this->checkRateLimit()) {
             return ProxmoxApiResponse::error('Rate limit exceeded', 429);
         }
 
         // Ensure authenticated
-        if (!$this->authToken) {
+        if (! $this->authToken) {
             $authResponse = $this->authenticate();
-            if (!$authResponse->success) {
+            if (! $authResponse->success) {
                 return $authResponse;
             }
         }
@@ -209,7 +200,7 @@ class ProxmoxApiClient
                 $request = $this->buildRequest(authenticated: true);
                 $url = $this->buildUrl($endpoint);
 
-                $response = match($method) {
+                $response = match ($method) {
                     'GET' => $request->get($url, $query),
                     'POST' => $request->post($url, $data),
                     'PUT' => $request->put($url, $data),
@@ -225,6 +216,7 @@ class ProxmoxApiClient
                     if ($attempt < self::MAX_RETRIES - 1) {
                         $this->authenticate();
                         $attempt++;
+
                         continue;
                     }
                 }
@@ -272,13 +264,13 @@ class ProxmoxApiClient
                 'Content-Type' => 'application/json',
             ]);
 
-        if (!$this->verifySSL) {
+        if (! $this->verifySSL) {
             $request = $request->withoutVerifying();
         }
 
         if ($authenticated && $this->authToken) {
             $request = $request->withHeaders([
-                'Cookie' => 'PVEAuthCookie=' . $this->authToken,
+                'Cookie' => 'PVEAuthCookie='.$this->authToken,
             ]);
 
             if ($this->csrfToken) {
@@ -298,8 +290,8 @@ class ProxmoxApiClient
     {
         $endpoint = ltrim($endpoint, '/');
 
-        if (!str_starts_with($endpoint, 'api2/json/')) {
-            $endpoint = 'api2/json/' . $endpoint;
+        if (! str_starts_with($endpoint, 'api2/json/')) {
+            $endpoint = 'api2/json/'.$endpoint;
         }
 
         return sprintf('https://%s:%d/%s', $this->host, $this->port, $endpoint);
@@ -310,7 +302,7 @@ class ProxmoxApiClient
      */
     private function isCircuitOpen(): bool
     {
-        $key = self::CIRCUIT_BREAKER_PREFIX . md5($this->host);
+        $key = self::CIRCUIT_BREAKER_PREFIX.md5($this->host);
         $failures = Cache::get($key, 0);
 
         return $failures >= 5; // Open circuit after 5 failures
@@ -321,7 +313,7 @@ class ProxmoxApiClient
      */
     private function recordSuccess(): void
     {
-        $key = self::CIRCUIT_BREAKER_PREFIX . md5($this->host);
+        $key = self::CIRCUIT_BREAKER_PREFIX.md5($this->host);
         Cache::forget($key);
     }
 
@@ -330,7 +322,7 @@ class ProxmoxApiClient
      */
     private function recordFailure(): void
     {
-        $key = self::CIRCUIT_BREAKER_PREFIX . md5($this->host);
+        $key = self::CIRCUIT_BREAKER_PREFIX.md5($this->host);
         $failures = Cache::get($key, 0);
         Cache::put($key, $failures + 1, 300); // 5 minutes
     }
@@ -340,7 +332,7 @@ class ProxmoxApiClient
      */
     private function checkRateLimit(): bool
     {
-        $key = self::RATE_LIMIT_PREFIX . md5($this->host);
+        $key = self::RATE_LIMIT_PREFIX.md5($this->host);
         $count = Cache::get($key, 0);
 
         if ($count >= 100) { // Max 100 requests per minute
@@ -348,6 +340,7 @@ class ProxmoxApiClient
         }
 
         Cache::put($key, $count + 1, 60);
+
         return true;
     }
 
@@ -356,7 +349,7 @@ class ProxmoxApiClient
      */
     private function clearAuthCache(): void
     {
-        $cacheKey = self::TOKEN_CACHE_PREFIX . md5($this->host . $this->username);
+        $cacheKey = self::TOKEN_CACHE_PREFIX.md5($this->host.$this->username);
         Cache::forget($cacheKey);
     }
 

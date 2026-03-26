@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -22,8 +22,6 @@ class LoginController extends Controller
 {
     /**
      * Display the login form
-     *
-     * @return View
      */
     public function showLoginForm(): View
     {
@@ -33,8 +31,6 @@ class LoginController extends Controller
     /**
      * Handle login request
      *
-     * @param Request $request
-     * @return RedirectResponse
      * @throws ValidationException
      */
     public function login(Request $request): RedirectResponse
@@ -57,7 +53,7 @@ class LoginController extends Controller
             $user = Auth::user();
 
             // Check if user is active
-            if (!$user->isActive()) {
+            if (! $user->isActive()) {
                 Auth::logout();
 
                 // Log failed login attempt
@@ -118,9 +114,6 @@ class LoginController extends Controller
 
     /**
      * Handle logout request
-     *
-     * @param Request $request
-     * @return RedirectResponse
      */
     public function logout(Request $request): RedirectResponse
     {
@@ -150,13 +143,11 @@ class LoginController extends Controller
     /**
      * Ensure the login request is not rate limited
      *
-     * @param Request $request
-     * @return void
      * @throws ValidationException
      */
     protected function ensureIsNotRateLimited(Request $request): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
             return;
         }
 
@@ -184,20 +175,16 @@ class LoginController extends Controller
 
     /**
      * Get the rate limiting throttle key for the request
-     *
-     * @param Request $request
-     * @return string
      */
     protected function throttleKey(Request $request): string
     {
-        return Str::transliterate(Str::lower($request->input('email')) . '|' . $request->ip());
+        return Str::transliterate(Str::lower($request->input('email')).'|'.$request->ip());
     }
 
     /**
      * Redirect to appropriate dashboard based on user role
      *
-     * @param \App\Models\User $user
-     * @return RedirectResponse
+     * @param  \App\Models\User  $user
      */
     protected function redirectToDashboard($user): RedirectResponse
     {

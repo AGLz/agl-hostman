@@ -102,7 +102,7 @@ class AIModelUsageFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'provider' => $provider,
-            'model' => fake()->randomElement(match($provider) {
+            'model' => fake()->randomElement(match ($provider) {
                 'openai' => ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
                 'claude' => ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'],
                 'ollama' => ['llama2', 'mistral'],

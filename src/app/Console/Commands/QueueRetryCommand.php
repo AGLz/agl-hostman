@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class QueueRetryCommand extends Command
 {
@@ -53,6 +53,7 @@ class QueueRetryCommand extends Command
             $failedJobs = $failedJobs->filter(function ($job) use ($jobFilter) {
                 $payload = json_decode($job->payload, true);
                 $displayName = $payload['displayName'] ?? '';
+
                 return str_contains($displayName, $jobFilter);
             });
         }
@@ -65,13 +66,15 @@ class QueueRetryCommand extends Command
 
         if ($count === 0) {
             $this->warn('No failed jobs found matching criteria.');
+
             return 0;
         }
 
         $this->info("Found {$count} failed job(s) to retry.");
 
-        if (!$this->confirm('Proceed with retry?')) {
+        if (! $this->confirm('Proceed with retry?')) {
             $this->info('Cancelled.');
+
             return 0;
         }
 

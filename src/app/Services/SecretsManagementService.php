@@ -21,8 +21,6 @@ use Illuminate\Support\Facades\Log;
  * - Secure audit logging
  * - Role-based secret access control
  * - Caching with secure ttl
- *
- * @package App\Services
  */
 class SecretsManagementService
 {
@@ -66,7 +64,6 @@ class SecretsManagementService
      * @param  string  $key  Secret identifier (e.g., "database.primary.password")
      * @param  string  $value  Secret value to store
      * @param  array  $metadata  Optional metadata (description, tags, rotation schedule)
-     * @return bool
      */
     public function store(string $key, string $value, array $metadata = []): bool
     {
@@ -116,13 +113,13 @@ class SecretsManagementService
      *
      * @param  string  $key  Secret identifier
      * @param  string|null  $role  Optional role for RBAC check
-     * @return string|null  Decrypted secret value or null if not found
+     * @return string|null Decrypted secret value or null if not found
      */
     public function get(string $key, ?string $role = null): ?string
     {
         try {
             // Check RBAC permissions if role is provided
-            if ($role && !$this->hasAccess($key, $role)) {
+            if ($role && ! $this->hasAccess($key, $role)) {
                 SecurityAuditLog::logSecurityEvent(
                     null,
                     'secret.access_denied',
@@ -139,10 +136,10 @@ class SecretsManagementService
             $cacheKey = $this->getCacheKey($key);
             $secretData = Cache::get($cacheKey);
 
-            if (!$secretData) {
+            if (! $secretData) {
                 // Try to fetch from persistent storage
                 $secretData = $this->fetchFromStorage($key);
-                if (!$secretData) {
+                if (! $secretData) {
                     return null;
                 }
             }
@@ -173,11 +170,11 @@ class SecretsManagementService
      * Check if a secret exists.
      *
      * @param  string  $key  Secret identifier
-     * @return bool
      */
     public function exists(string $key): bool
     {
         $cacheKey = $this->getCacheKey($key);
+
         return Cache::has($cacheKey) || $this->existsInStorage($key);
     }
 
@@ -185,7 +182,6 @@ class SecretsManagementService
      * Delete a secret.
      *
      * @param  string  $key  Secret identifier
-     * @return bool
      */
     public function delete(string $key): bool
     {
@@ -223,7 +219,6 @@ class SecretsManagementService
      * @param  string  $key  Secret identifier
      * @param  string  $newValue  New secret value
      * @param  bool  $revokeOld  Whether to revoke the old value
-     * @return bool
      */
     public function rotate(string $key, string $newValue, bool $revokeOld = true): bool
     {
@@ -270,7 +265,7 @@ class SecretsManagementService
      * List all secret keys accessible to a role.
      *
      * @param  string  $role  Role name
-     * @return array<string>  List of secret keys
+     * @return array<string> List of secret keys
      */
     public function listForRole(string $role): array
     {
@@ -292,6 +287,7 @@ class SecretsManagementService
                     return true;
                 }
             }
+
             return false;
         });
     }
@@ -300,16 +296,16 @@ class SecretsManagementService
      * Get secret metadata without the value.
      *
      * @param  string  $key  Secret identifier
-     * @return array|null  Secret metadata or null if not found
+     * @return array|null Secret metadata or null if not found
      */
     public function getMetadata(string $key): ?array
     {
         $cacheKey = $this->getCacheKey($key);
         $secretData = Cache::get($cacheKey);
 
-        if (!$secretData) {
+        if (! $secretData) {
             $secretData = $this->fetchFromStorage($key);
-            if (!$secretData) {
+            if (! $secretData) {
                 return null;
             }
         }
@@ -327,11 +323,11 @@ class SecretsManagementService
      *
      * @param  int  $length  Length of the secret
      * @param  bool  $hex  Use hex encoding instead of base64
-     * @return string
      */
     public function generate(int $length = 32, bool $hex = false): string
     {
         $bytes = random_bytes($length);
+
         return $hex ? bin2hex($bytes) : base64_encode($bytes);
     }
 
@@ -360,23 +356,23 @@ class SecretsManagementService
         }
 
         // Check uppercase
-        if ($rules['require_uppercase'] && !preg_match('/[A-Z]/', $secret)) {
-            $errors[] = "Secret must contain at least one uppercase letter";
+        if ($rules['require_uppercase'] && ! preg_match('/[A-Z]/', $secret)) {
+            $errors[] = 'Secret must contain at least one uppercase letter';
         }
 
         // Check lowercase
-        if ($rules['require_lowercase'] && !preg_match('/[a-z]/', $secret)) {
-            $errors[] = "Secret must contain at least one lowercase letter";
+        if ($rules['require_lowercase'] && ! preg_match('/[a-z]/', $secret)) {
+            $errors[] = 'Secret must contain at least one lowercase letter';
         }
 
         // Check number
-        if ($rules['require_number'] && !preg_match('/[0-9]/', $secret)) {
-            $errors[] = "Secret must contain at least one number";
+        if ($rules['require_number'] && ! preg_match('/[0-9]/', $secret)) {
+            $errors[] = 'Secret must contain at least one number';
         }
 
         // Check special character
-        if ($rules['require_special'] && !preg_match('/[^a-zA-Z0-9]/', $secret)) {
-            $errors[] = "Secret must contain at least one special character";
+        if ($rules['require_special'] && ! preg_match('/[^a-zA-Z0-9]/', $secret)) {
+            $errors[] = 'Secret must contain at least one special character';
         }
 
         return [
@@ -387,17 +383,13 @@ class SecretsManagementService
 
     /**
      * Check if role has access to a secret key.
-     *
-     * @param  string  $key
-     * @param  string  $role
-     * @return bool
      */
     protected function hasAccess(string $key, string $role): bool
     {
         $rbacConfig = $this->loadRbacConfig();
         $secretAccess = $rbacConfig['secret_access'][$role] ?? [];
 
-        if (!($secretAccess['can_read'] ?? false)) {
+        if (! ($secretAccess['can_read'] ?? false)) {
             return false;
         }
 
@@ -414,10 +406,6 @@ class SecretsManagementService
 
     /**
      * Match secret key against pattern.
-     *
-     * @param  string  $pattern
-     * @param  string  $key
-     * @return bool
      */
     protected function matchSecretPattern(string $pattern, string $key): bool
     {
@@ -427,7 +415,8 @@ class SecretsManagementService
 
         if (str_ends_with($pattern, '.*')) {
             $prefix = str_replace('.*', '', $pattern);
-            return str_starts_with($key, $prefix . '.');
+
+            return str_starts_with($key, $prefix.'.');
         }
 
         return $pattern === $key;
@@ -435,20 +424,14 @@ class SecretsManagementService
 
     /**
      * Get cache key for a secret.
-     *
-     * @param  string  $key
-     * @return string
      */
     protected function getCacheKey(string $key): string
     {
-        return self::CACHE_PREFIX . md5($key);
+        return self::CACHE_PREFIX.md5($key);
     }
 
     /**
      * Sanitize key for logging.
-     *
-     * @param  string  $key
-     * @return string
      */
     protected function sanitizeKey(string $key): string
     {
@@ -457,13 +440,12 @@ class SecretsManagementService
         if (count($parts) > 1) {
             $parts[0] = str_repeat('*', strlen($parts[0]));
         }
+
         return implode('.', $parts);
     }
 
     /**
      * Get current secret version.
-     *
-     * @return int
      */
     protected function getCurrentVersion(): int
     {
@@ -472,9 +454,6 @@ class SecretsManagementService
 
     /**
      * Store new version number.
-     *
-     * @param  int  $version
-     * @return void
      */
     protected function storeVersion(int $version): void
     {
@@ -483,10 +462,6 @@ class SecretsManagementService
 
     /**
      * Persist secret to storage (database or external).
-     *
-     * @param  string  $key
-     * @param  array  $data
-     * @return void
      */
     protected function persistToStorage(string $key, array $data): void
     {
@@ -502,9 +477,6 @@ class SecretsManagementService
 
     /**
      * Fetch secret from storage.
-     *
-     * @param  string  $key
-     * @return array|null
      */
     protected function fetchFromStorage(string $key): ?array
     {
@@ -514,9 +486,6 @@ class SecretsManagementService
 
     /**
      * Check if secret exists in storage.
-     *
-     * @param  string  $key
-     * @return bool
      */
     protected function existsInStorage(string $key): bool
     {
@@ -526,9 +495,6 @@ class SecretsManagementService
 
     /**
      * Delete secret from storage.
-     *
-     * @param  string  $key
-     * @return void
      */
     protected function deleteFromStorage(string $key): void
     {
@@ -537,10 +503,6 @@ class SecretsManagementService
 
     /**
      * Archive old secret value.
-     *
-     * @param  string  $key
-     * @param  string  $oldValue
-     * @return void
      */
     protected function archiveOldValue(string $key, string $oldValue): void
     {
@@ -560,15 +522,13 @@ class SecretsManagementService
 
     /**
      * Load RBAC configuration.
-     *
-     * @return array
      */
     protected function loadRbacConfig(): array
     {
         // Load from config/rbac.yaml or use defaults
         $configPath = base_path('config/rbac.yaml');
 
-        if (!file_exists($configPath)) {
+        if (! file_exists($configPath)) {
             return $this->getDefaultRbacConfig();
         }
 
@@ -578,8 +538,6 @@ class SecretsManagementService
 
     /**
      * Get default RBAC configuration.
-     *
-     * @return array
      */
     protected function getDefaultRbacConfig(): array
     {
