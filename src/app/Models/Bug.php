@@ -118,6 +118,7 @@ class Bug extends Model
         if ($activeSprint) {
             return $query->where('sprint_id', $activeSprint->id);
         }
+
         return $query->whereNull('sprint_id');
     }
 
@@ -134,7 +135,7 @@ class Bug extends Model
      */
     public function getResolutionTimeAttribute(): ?int
     {
-        if (!$this->reported_at || !$this->resolved_at) {
+        if (! $this->reported_at || ! $this->resolved_at) {
             return null;
         }
 
@@ -148,11 +149,11 @@ class Bug extends Model
     {
         $this->status = $status;
 
-        if ($status === 'resolved' && !$this->resolved_at) {
+        if ($status === 'resolved' && ! $this->resolved_at) {
             $this->resolved_at = now();
         }
 
-        if ($status === 'verified' && !$this->verified_at) {
+        if ($status === 'verified' && ! $this->verified_at) {
             $this->verified_at = now();
         }
 
@@ -211,7 +212,7 @@ class Bug extends Model
      */
     public function getSeverityLevelAttribute(): int
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             'blocker' => 5,
             'critical' => 4,
             'high' => 3,

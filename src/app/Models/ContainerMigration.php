@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 /**
  * Container Migration Model
@@ -31,7 +31,6 @@ use Illuminate\Database\Eloquent\Casts\AsArrayObject;
  * @property \Illuminate\Support\Carbon|null $completed_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- *
  * @property-read LxcContainer $container
  * @property-read ProxmoxServer $sourceServer
  * @property-read ProxmoxServer $targetServer
@@ -43,11 +42,17 @@ class ContainerMigration extends Model
     protected $table = 'container_migrations';
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PREPARING = 'preparing';
+
     public const STATUS_SYNCING = 'syncing';
+
     public const STATUS_MIGRATING = 'migrating';
+
     public const STATUS_COMPLETING = 'completing';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     /**
@@ -201,11 +206,12 @@ class ContainerMigration extends Model
      */
     public function getDurationSeconds(): ?int
     {
-        if (!$this->started_at) {
+        if (! $this->started_at) {
             return null;
         }
 
         $end = $this->completed_at ?? now();
+
         return $end->diffInSeconds($this->started_at);
     }
 
@@ -240,7 +246,7 @@ class ContainerMigration extends Model
      */
     public function getTransferRate(): ?float
     {
-        if (!$this->transferred_mb || !$this->getDurationSeconds()) {
+        if (! $this->transferred_mb || ! $this->getDurationSeconds()) {
             return null;
         }
 
@@ -278,7 +284,7 @@ class ContainerMigration extends Model
      */
     public function getFormattedEstimatedTime(): ?string
     {
-        if (!$this->estimated_seconds) {
+        if (! $this->estimated_seconds) {
             return null;
         }
 
@@ -288,6 +294,7 @@ class ContainerMigration extends Model
         if ($minutes > 60) {
             $hours = floor($minutes / 60);
             $minutes = $minutes % 60;
+
             return sprintf('%dh %dm', $hours, $minutes);
         }
 

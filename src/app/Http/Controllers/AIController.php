@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\AIModelService;
 use App\Services\N8NService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AIController extends Controller
 {
     protected AIModelService $aiService;
+
     protected N8NService $n8nService;
 
     public function __construct(AIModelService $aiService, N8NService $n8nService)
@@ -76,11 +77,11 @@ class AIController extends Controller
     public function models()
     {
         $models = $this->aiService->getAvailableModels();
-        
+
         return response()->json([
             'success' => true,
             'models' => $models,
-            'configured' => array_keys(array_filter($models, fn($m) => $m['configured'])),
+            'configured' => array_keys(array_filter($models, fn ($m) => $m['configured'])),
         ]);
     }
 
@@ -115,7 +116,7 @@ class AIController extends Controller
         ]);
 
         $prompt = $this->buildInfrastructurePrompt($request->servers, $request->analysis_type);
-        
+
         // Use the best model for analysis
         $model = $this->aiService->selectBestModel('data_analysis');
         $result = $this->aiService->query($model, $prompt);
@@ -140,7 +141,7 @@ class AIController extends Controller
     protected function buildInfrastructurePrompt(array $servers, string $type): string
     {
         $serverList = implode(', ', $servers);
-        
+
         $prompts = [
             'health' => "Analyze the health status of these servers: {$serverList}. Check for potential issues, uptime, and resource utilization.",
             'performance' => "Analyze performance metrics for servers: {$serverList}. Identify bottlenecks and optimization opportunities.",
@@ -164,7 +165,7 @@ class AIController extends Controller
 
         $reviewType = $request->review_type ?? 'all';
         $prompt = "Review this {$request->language} code for {$reviewType} issues:\n\n```{$request->language}\n{$request->code}\n```";
-        
+
         // Use Claude for code review as it excels at this
         $result = $this->aiService->query('claude', $prompt, ['max_tokens' => 4096]);
 

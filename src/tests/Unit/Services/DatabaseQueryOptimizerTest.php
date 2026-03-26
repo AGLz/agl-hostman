@@ -11,26 +11,22 @@ use App\Models\LxcContainer;
 use App\Models\PerformanceTrend;
 use App\Models\User;
 use App\Services\DatabaseQueryOptimizer;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
  * Database Query Optimizer Service Test
  *
  * Tests for the DatabaseQueryOptimizer class.
- *
- * @package Tests\Unit\Services
  */
 class DatabaseQueryOptimizerTest extends TestCase
 {
-
     private DatabaseQueryOptimizer $optimizer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->optimizer = new DatabaseQueryOptimizer();
+        $this->optimizer = new DatabaseQueryOptimizer;
     }
 
     /**

@@ -41,7 +41,7 @@ class WorkOSController extends Controller
             // Get the code from the callback
             $code = $request->query('code');
 
-            if (!$code) {
+            if (! $code) {
                 return redirect()->route('home')->withErrors(['error' => 'Authentication failed: No code provided']);
             }
 
@@ -71,7 +71,7 @@ class WorkOSController extends Controller
             );
 
             // Update tokens if user exists
-            if (!$user->wasRecentlyCreated) {
+            if (! $user->wasRecentlyCreated) {
                 $user->update([
                     'workos_access_token' => $profile->accessToken ?? null,
                     'workos_refresh_token' => $profile->refreshToken ?? null,
@@ -96,7 +96,7 @@ class WorkOSController extends Controller
             ]);
 
             return redirect()->route('home')->withErrors([
-                'error' => 'Authentication failed: ' . $e->getMessage()
+                'error' => 'Authentication failed: '.$e->getMessage(),
             ]);
         }
     }

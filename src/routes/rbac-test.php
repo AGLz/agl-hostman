@@ -116,7 +116,7 @@ Route::prefix('rbac-test')->middleware(['web'])->group(function () {
             'message' => 'Super Admin only route',
             'user' => auth()->user()->only(['id', 'name', 'email']),
             'roles' => auth()->user()->roles->pluck('name'),
-            'all_permissions' => auth()->user()->getAllPermissions()->count() . ' permissions',
+            'all_permissions' => auth()->user()->getAllPermissions()->count().' permissions',
         ]);
     })->middleware(['auth:sanctum', 'role:super-admin']);
 
@@ -152,7 +152,7 @@ Route::prefix('rbac-test')->middleware(['web'])->group(function () {
             'roles' => $user->roles->pluck('name'),
             'permissions' => $user->getAllPermissions()->pluck('name'),
             'api_token' => $token,
-            'usage' => 'Add header: Authorization: Bearer ' . $token,
+            'usage' => 'Add header: Authorization: Bearer '.$token,
         ]);
     });
 

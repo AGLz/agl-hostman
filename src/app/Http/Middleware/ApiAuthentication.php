@@ -14,76 +14,77 @@ class ApiAuthentication
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, string $permission = null): Response
+    public function handle(Request $request, Closure $next, ?string $permission = null): Response
     {
         $apiKey = $this->extractApiKey($request);
-        
-        if (!$apiKey) {
+
+        if (! $apiKey) {
             return response()->json([
                 'error' => 'API key required',
                 'message' => 'Please provide an API key via X-API-Key header or api_key parameter',
             ], 401);
         }
-        
+
         // Check cache first
-        $cacheKey = 'api_key:' . substr($apiKey, 0, 8);
+        $cacheKey = 'api_key:'.substr($apiKey, 0, 8);
         $apiKeyModel = Cache::remember($cacheKey, 300, function () use ($apiKey) {
             return ApiKey::where('key', $apiKey)->active()->first();
         });
-        
-        if (!$apiKeyModel) {
+
+        if (! $apiKeyModel) {
             return response()->json([
                 'error' => 'Invalid API key',
                 'message' => 'The provided API key is invalid or inactive',
             ], 401);
         }
-        
+
         // Check if expired
         if ($apiKeyModel->isExpired()) {
             Cache::forget($cacheKey);
+
             return response()->json([
                 'error' => 'API key expired',
                 'message' => 'Your API key has expired. Please renew it.',
             ], 401);
         }
-        
+
         // Check permissions
-        if ($permission && !$apiKeyModel->hasPermission($permission)) {
+        if ($permission && ! $apiKeyModel->hasPermission($permission)) {
             return response()->json([
                 'error' => 'Insufficient permissions',
                 'message' => "Your API key does not have the '{$permission}' permission",
             ], 403);
         }
-        
+
         // Rate limiting
-        $rateLimitKey = 'api_rate:' . $apiKeyModel->id;
+        $rateLimitKey = 'api_rate:'.$apiKeyModel->id;
         $limit = $apiKeyModel->rate_limit ?: 60;
-        
-        if (!RateLimiter::attempt($rateLimitKey, $limit, function() {}, 60)) {
+
+        if (! RateLimiter::attempt($rateLimitKey, $limit, function () {}, 60)) {
             $seconds = RateLimiter::availableIn($rateLimitKey);
-            
+
             return response()->json([
                 'error' => 'Rate limit exceeded',
                 'message' => "Too many requests. Please try again in {$seconds} seconds.",
                 'retry_after' => $seconds,
             ], 429)->header('Retry-After', $seconds);
         }
-        
+
         // Record usage
         $apiKeyModel->recordUsage($request->ip());
-        
+
         // Attach to request
         $request->attributes->set('api_key', $apiKeyModel);
-        
+
         // Add API key ID to response headers
         $response = $next($request);
         $response->headers->set('X-API-Key-ID', $apiKeyModel->id);
         $response->headers->set('X-RateLimit-Limit', $limit);
         $response->headers->set('X-RateLimit-Remaining', RateLimiter::remaining($rateLimitKey, $limit));
-        
+
         return $response;
     }
-    
+
     /**
      * Extract API key from request
      */
@@ -93,7 +94,7 @@ class ApiAuthentication
         if ($request->hasHeader('X-API-Key')) {
             return $request->header('X-API-Key');
         }
-        
+
         // Check Authorization header
         if ($request->hasHeader('Authorization')) {
             $auth = $request->header('Authorization');
@@ -101,12 +102,12 @@ class ApiAuthentication
                 return substr($auth, 7);
             }
         }
-        
+
         // Check query parameter
         if ($request->has('api_key')) {
             return $request->input('api_key');
         }
-        
+
         return null;
     }
 }

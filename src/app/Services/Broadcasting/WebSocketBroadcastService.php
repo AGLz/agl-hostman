@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Broadcasting;
 
-use App\Events\ServerMetricsUpdated;
-use App\Events\ContainerStatusChanged;
 use App\Events\AlertTriggered;
+use App\Events\ContainerStatusChanged;
+use App\Events\ServerMetricsUpdated;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -40,9 +40,9 @@ class WebSocketBroadcastService
                 networkStats: $networkStats
             ));
 
-            Log::debug("Server metrics broadcasted", ['server' => $serverCode]);
+            Log::debug('Server metrics broadcasted', ['server' => $serverCode]);
         } catch (\Exception $e) {
-            Log::error("Failed to broadcast server metrics", [
+            Log::error('Failed to broadcast server metrics', [
                 'server' => $serverCode,
                 'error' => $e->getMessage(),
             ]);
@@ -70,12 +70,12 @@ class WebSocketBroadcastService
                 metrics: $metrics
             ));
 
-            Log::debug("Container status broadcasted", [
+            Log::debug('Container status broadcasted', [
                 'vmid' => $vmid,
                 'status' => $status,
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to broadcast container status", [
+            Log::error('Failed to broadcast container status', [
                 'vmid' => $vmid,
                 'error' => $e->getMessage(),
             ]);
@@ -103,12 +103,12 @@ class WebSocketBroadcastService
                 metadata: $metadata
             ));
 
-            Log::info("Alert broadcasted", [
+            Log::info('Alert broadcasted', [
                 'severity' => $severity,
                 'title' => $title,
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to broadcast alert", [
+            Log::error('Failed to broadcast alert', [
                 'severity' => $severity,
                 'error' => $e->getMessage(),
             ]);

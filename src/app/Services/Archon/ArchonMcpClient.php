@@ -23,9 +23,13 @@ use Illuminate\Support\Str;
 class ArchonMcpClient
 {
     private string $mcpUrl;
+
     private int $timeout;
+
     private int $retryTimes;
+
     private int $retryDelay;
+
     private array $requestHistory = [];
 
     public function __construct()
@@ -39,10 +43,11 @@ class ArchonMcpClient
     /**
      * Call an MCP tool using JSON-RPC 2.0 protocol
      *
-     * @param string $toolName The MCP tool name (e.g., 'find_projects')
-     * @param array $arguments Tool-specific arguments
-     * @param bool $useCache Whether to cache the result
+     * @param  string  $toolName  The MCP tool name (e.g., 'find_projects')
+     * @param  array  $arguments  Tool-specific arguments
+     * @param  bool  $useCache  Whether to cache the result
      * @return array The tool result
+     *
      * @throws ArchonMcpException
      */
     public function call(string $toolName, array $arguments = [], bool $useCache = false): array
@@ -60,6 +65,7 @@ class ArchonMcpClient
                     'tool' => $toolName,
                     'cache_key' => $cacheKey,
                 ]);
+
                 return $cached;
             }
         }
@@ -86,7 +92,7 @@ class ArchonMcpClient
     /**
      * Execute multiple MCP tool calls in batch
      *
-     * @param array $calls Array of ['tool' => toolName, 'args' => arguments]
+     * @param  array  $calls  Array of ['tool' => toolName, 'args' => arguments]
      * @return array Results indexed by request ID
      */
     public function batch(array $calls): array
@@ -120,16 +126,16 @@ class ArchonMcpClient
 
     /**
      * Test MCP connection health
-     *
-     * @return bool
      */
     public function ping(): bool
     {
         try {
             $result = $this->call('health_check');
+
             return isset($result['status']) && $result['status'] === 'ok';
         } catch (ArchonMcpException $e) {
             Log::error('Archon MCP ping failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -207,7 +213,7 @@ class ArchonMcpClient
         }
 
         throw new ArchonMcpException(
-            "MCP call failed after {$this->retryTimes} attempts: " . $lastException?->getMessage(),
+            "MCP call failed after {$this->retryTimes} attempts: ".$lastException?->getMessage(),
             500,
             $lastException
         );
@@ -219,11 +225,11 @@ class ArchonMcpClient
     private function parseResponse(array $response, string $requestId, string $toolName): array
     {
         // Validate JSON-RPC 2.0 response structure
-        if (!isset($response['jsonrpc']) || $response['jsonrpc'] !== '2.0') {
+        if (! isset($response['jsonrpc']) || $response['jsonrpc'] !== '2.0') {
             throw new ArchonMcpException('Invalid JSON-RPC 2.0 response: missing or invalid jsonrpc field');
         }
 
-        if (!isset($response['id']) || $response['id'] !== $requestId) {
+        if (! isset($response['id']) || $response['id'] !== $requestId) {
             throw new ArchonMcpException('Invalid JSON-RPC 2.0 response: request ID mismatch');
         }
 
@@ -231,14 +237,14 @@ class ArchonMcpClient
         if (isset($response['error'])) {
             $error = $response['error'];
             throw new ArchonMcpException(
-                "MCP tool '{$toolName}' error: " . ($error['message'] ?? 'Unknown error'),
+                "MCP tool '{$toolName}' error: ".($error['message'] ?? 'Unknown error'),
                 $error['code'] ?? 500,
                 data: $error['data'] ?? null
             );
         }
 
         // Return result
-        if (!isset($response['result'])) {
+        if (! isset($response['result'])) {
             throw new ArchonMcpException('Invalid JSON-RPC 2.0 response: missing result field');
         }
 
@@ -248,12 +254,14 @@ class ArchonMcpClient
         if (isset($result['structuredContent']['result'])) {
             // Parse the JSON string in structuredContent.result
             $actualResult = json_decode($result['structuredContent']['result'], true);
+
             return $actualResult ?? $result;
         }
 
         // If content array exists with text type, try parsing that
         if (isset($result['content'][0]['text'])) {
             $actualResult = json_decode($result['content'][0]['text'], true);
+
             return $actualResult ?? $result;
         }
 
@@ -319,6 +327,7 @@ class ArchonMcpClient
     private function getCacheKey(string $toolName, array $arguments): string
     {
         $argsHash = md5(json_encode($arguments));
+
         return "archon:mcp:{$toolName}:{$argsHash}";
     }
 

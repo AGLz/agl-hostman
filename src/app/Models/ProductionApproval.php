@@ -56,7 +56,7 @@ class ProductionApproval extends Model
      */
     public function isPending(): bool
     {
-        return $this->status === 'pending' && !$this->isExpired();
+        return $this->status === 'pending' && ! $this->isExpired();
     }
 
     /**
@@ -64,7 +64,7 @@ class ProductionApproval extends Model
      */
     public function approve(User $user, ?string $notes = null): bool
     {
-        if (!$this->isPending()) {
+        if (! $this->isPending()) {
             return false;
         }
 
@@ -83,7 +83,7 @@ class ProductionApproval extends Model
      */
     public function reject(User $user, string $reason): bool
     {
-        if (!$this->isPending()) {
+        if (! $this->isPending()) {
             return false;
         }
 

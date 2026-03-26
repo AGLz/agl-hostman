@@ -14,8 +14,6 @@ use Tests\TestCase;
  * Store Container Request Test
  *
  * Tests for the StoreContainerRequest form request.
- *
- * @package Tests\Unit\Requests
  */
 class StoreContainerRequestTest extends TestCase
 {
@@ -36,7 +34,7 @@ class StoreContainerRequestTest extends TestCase
      */
     public function test_authorized_user_can_create_container(): void
     {
-        $request = new StoreContainerRequest();
+        $request = new StoreContainerRequest;
         $request->setUserResolver(fn () => $this->user);
 
         $this->assertTrue($request->authorize());
@@ -50,7 +48,7 @@ class StoreContainerRequestTest extends TestCase
         $user = User::factory()->create();
         $user->revokePermissionTo('create containers');
 
-        $request = new StoreContainerRequest();
+        $request = new StoreContainerRequest;
         $request->setUserResolver(fn () => $user);
 
         $this->assertFalse($request->authorize());
@@ -61,7 +59,7 @@ class StoreContainerRequestTest extends TestCase
      */
     public function test_validation_rules(): void
     {
-        $rules = (new StoreContainerRequest())->rules();
+        $rules = (new StoreContainerRequest)->rules();
 
         $this->assertArrayHasKey('vmid', $rules);
         $this->assertArrayHasKey('name', $rules);
@@ -91,7 +89,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertFalse($validator->fails());
     }
@@ -110,7 +108,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('vmid', $validator->errors()->toArray());
@@ -131,7 +129,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('vmid', $validator->errors()->toArray());
@@ -152,7 +150,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('vmid', $validator->errors()->toArray());
@@ -173,7 +171,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('vmid', $validator->errors()->toArray());
@@ -193,7 +191,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
@@ -214,7 +212,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
@@ -235,7 +233,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
@@ -263,7 +261,7 @@ class StoreContainerRequestTest extends TestCase
                 'proxmox_server_id' => 1,
             ];
 
-            $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+            $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
             $this->assertTrue($validator->fails(), "Name '{$name}' should fail validation");
         }
@@ -284,7 +282,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('cores', $validator->errors()->toArray());
@@ -305,7 +303,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('memory_mb', $validator->errors()->toArray());
@@ -326,7 +324,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('disk_gb', $validator->errors()->toArray());
@@ -347,7 +345,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 1,
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('template_id', $validator->errors()->toArray());
@@ -368,7 +366,7 @@ class StoreContainerRequestTest extends TestCase
             'proxmox_server_id' => 999, // Non-existent
         ];
 
-        $validator = Validator::make($data, (new StoreContainerRequest())->rules());
+        $validator = Validator::make($data, (new StoreContainerRequest)->rules());
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('proxmox_server_id', $validator->errors()->toArray());
@@ -379,7 +377,7 @@ class StoreContainerRequestTest extends TestCase
      */
     public function test_input_sanitization(): void
     {
-        $request = new StoreContainerRequest();
+        $request = new StoreContainerRequest;
         $request->merge([
             'vmid' => 100,
             'name' => '  test-container  ', // with spaces
@@ -402,7 +400,7 @@ class StoreContainerRequestTest extends TestCase
      */
     public function test_pagination_rules(): void
     {
-        $request = new StoreContainerRequest();
+        $request = new StoreContainerRequest;
         $paginationRules = $request->getPaginationRules();
 
         $this->assertArrayHasKey('page', $paginationRules);
@@ -416,7 +414,7 @@ class StoreContainerRequestTest extends TestCase
      */
     public function test_validation_messages(): void
     {
-        $messages = (new StoreContainerRequest())->messages();
+        $messages = (new StoreContainerRequest)->messages();
 
         $this->assertIsArray($messages);
         $this->assertArrayHasKey('vmid.required', $messages);

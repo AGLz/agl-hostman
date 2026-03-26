@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Closure;
 
 /**
  * Flexible Cache Service
@@ -17,22 +17,18 @@ use Closure;
  * - Automatic cache warming
  * - Cache hit/miss metrics
  * - Flexible TTL strategies
- *
- * @package App\Services
  */
 class CacheService
 {
     private const DEFAULT_TTL = 3600; // 1 hour
+
     private const METRICS_KEY = 'cache_metrics';
 
     /**
      * Remember with flexible TTL
      *
-     * @param string $key
-     * @param Closure $callback
-     * @param int|string|null $ttl TTL in seconds, 'auto', or null for default
-     * @param array<string> $tags Cache tags
-     * @return mixed
+     * @param  int|string|null  $ttl  TTL in seconds, 'auto', or null for default
+     * @param  array<string>  $tags  Cache tags
      */
     public function remember(string $key, Closure $callback, int|string|null $ttl = null, array $tags = []): mixed
     {
@@ -53,10 +49,7 @@ class CacheService
     /**
      * Remember forever (until manually cleared)
      *
-     * @param string $key
-     * @param Closure $callback
-     * @param array<string> $tags
-     * @return mixed
+     * @param  array<string>  $tags
      */
     public function rememberForever(string $key, Closure $callback, array $tags = []): mixed
     {
@@ -73,10 +66,6 @@ class CacheService
 
     /**
      * Get cached value with fallback
-     *
-     * @param string $key
-     * @param mixed $default
-     * @return mixed
      */
     public function get(string $key, mixed $default = null): mixed
     {
@@ -91,11 +80,7 @@ class CacheService
     /**
      * Put value in cache with flexible TTL
      *
-     * @param string $key
-     * @param mixed $value
-     * @param int|string|null $ttl
-     * @param array<string> $tags
-     * @return bool
+     * @param  array<string>  $tags
      */
     public function put(string $key, mixed $value, int|string|null $ttl = null, array $tags = []): bool
     {
@@ -110,9 +95,6 @@ class CacheService
 
     /**
      * Forget cache key
-     *
-     * @param string $key
-     * @return bool
      */
     public function forget(string $key): bool
     {
@@ -122,20 +104,21 @@ class CacheService
     /**
      * Flush cache by tags
      *
-     * @param array<string> $tags
-     * @return bool
+     * @param  array<string>  $tags
      */
     public function flushTags(array $tags): bool
     {
         try {
             Cache::tags($tags)->flush();
             Log::info('Cache flushed by tags', ['tags' => $tags]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to flush cache tags', [
                 'tags' => $tags,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -143,9 +126,8 @@ class CacheService
     /**
      * Warm cache with predefined data
      *
-     * @param array<string, mixed> $data Key-value pairs to cache
-     * @param int|string|null $ttl
-     * @param array<string> $tags
+     * @param  array<string, mixed>  $data  Key-value pairs to cache
+     * @param  array<string>  $tags
      * @return int Number of items cached
      */
     public function warm(array $data, int|string|null $ttl = null, array $tags = []): int
@@ -171,7 +153,7 @@ class CacheService
     /**
      * Batch get multiple keys
      *
-     * @param array<string> $keys
+     * @param  array<string>  $keys
      * @return array<string, mixed>
      */
     public function getMany(array $keys): array
@@ -182,24 +164,17 @@ class CacheService
     /**
      * Batch put multiple key-value pairs
      *
-     * @param array<string, mixed> $values
-     * @param int|string|null $ttl
-     * @return bool
+     * @param  array<string, mixed>  $values
      */
     public function putMany(array $values, int|string|null $ttl = null): bool
     {
         $resolvedTtl = $this->resolveTtl($ttl);
+
         return Cache::putMany($values, $resolvedTtl);
     }
 
     /**
      * Remember with lock (prevent cache stampede)
-     *
-     * @param string $key
-     * @param Closure $callback
-     * @param int|string|null $ttl
-     * @param int $lockSeconds
-     * @return mixed
      */
     public function rememberWithLock(
         string $key,
@@ -211,7 +186,7 @@ class CacheService
             return Cache::get($key);
         }
 
-        $lock = Cache::lock($key . '_lock', $lockSeconds);
+        $lock = Cache::lock($key.'_lock', $lockSeconds);
 
         try {
             if ($lock->get()) {
@@ -229,6 +204,7 @@ class CacheService
 
             // Wait for lock to be released and try to get cached value
             sleep(1);
+
             return Cache::get($key) ?? $callback();
 
         } finally {
@@ -238,10 +214,6 @@ class CacheService
 
     /**
      * Increment cache value
-     *
-     * @param string $key
-     * @param int $value
-     * @return int|bool
      */
     public function increment(string $key, int $value = 1): int|bool
     {
@@ -250,10 +222,6 @@ class CacheService
 
     /**
      * Decrement cache value
-     *
-     * @param string $key
-     * @param int $value
-     * @return int|bool
      */
     public function decrement(string $key, int $value = 1): int|bool
     {
@@ -262,9 +230,6 @@ class CacheService
 
     /**
      * Check if key exists
-     *
-     * @param string $key
-     * @return bool
      */
     public function has(string $key): bool
     {
@@ -297,9 +262,6 @@ class CacheService
 
     /**
      * Resolve TTL value
-     *
-     * @param int|string|null $ttl
-     * @return int
      */
     private function resolveTtl(int|string|null $ttl): int
     {
@@ -312,7 +274,7 @@ class CacheService
         }
 
         // Auto TTL based on strategy
-        return match($ttl) {
+        return match ($ttl) {
             'short' => 300,      // 5 minutes
             'medium' => 1800,    // 30 minutes
             'long' => 3600,      // 1 hour
@@ -325,8 +287,6 @@ class CacheService
 
     /**
      * Calculate automatic TTL based on load
-     *
-     * @return int
      */
     private function calculateAutoTtl(): int
     {
@@ -347,10 +307,6 @@ class CacheService
 
     /**
      * Record cache metric
-     *
-     * @param string $key
-     * @param bool $hit
-     * @param float $time
      */
     private function recordMetric(string $key, bool $hit, float $time): void
     {
@@ -386,9 +342,7 @@ class CacheService
     /**
      * Create cache key with prefix
      *
-     * @param string $prefix
-     * @param array<mixed> $parts
-     * @return string
+     * @param  array<mixed>  $parts
      */
     public static function makeKey(string $prefix, array $parts = []): string
     {
@@ -398,7 +352,7 @@ class CacheService
             if (is_array($part)) {
                 $part = md5(json_encode($part));
             }
-            $key .= '_' . $part;
+            $key .= '_'.$part;
         }
 
         return $key;

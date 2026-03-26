@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\ProxmoxServer;
 use App\Models\LxcContainer;
+use App\Models\ProxmoxServer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use App\Services\ProxmoxApiClient;
 
 /**
  * MetricsCollector - Aggregate metrics from all infrastructure sources
@@ -28,7 +27,9 @@ use App\Services\ProxmoxApiClient;
 class MetricsCollector
 {
     protected int $cacheTtl;
+
     protected int $apiTimeout;
+
     protected int $retryAttempts;
 
     public function __construct()
@@ -41,7 +42,7 @@ class MetricsCollector
     /**
      * Collect server metrics (CPU, RAM, uptime, load)
      *
-     * @param string $serverCode Server code (e.g., 'aglsrv1')
+     * @param  string  $serverCode  Server code (e.g., 'aglsrv1')
      * @return array{
      *   success: bool,
      *   server: ?array,
@@ -58,7 +59,7 @@ class MetricsCollector
             try {
                 $server = ProxmoxServer::where('code', $serverCode)->first();
 
-                if (!$server) {
+                if (! $server) {
                     return [
                         'success' => false,
                         'server' => null,
@@ -69,7 +70,7 @@ class MetricsCollector
                 }
 
                 // Check if server is offline
-                if (!$server->isOnline()) {
+                if (! $server->isOnline()) {
                     return [
                         'success' => true,
                         'server' => $this->formatServerInfo($server),
@@ -95,7 +96,7 @@ class MetricsCollector
                 // Fetch metrics from Proxmox API
                 $response = $apiClient->getNodeStatus($nodeName);
 
-                if (!$response->success) {
+                if (! $response->success) {
                     return [
                         'success' => false,
                         'server' => $this->formatServerInfo($server),
@@ -139,7 +140,7 @@ class MetricsCollector
     /**
      * Collect container metrics for all containers on a server
      *
-     * @param string $serverId Server ID or code
+     * @param  string  $serverId  Server ID or code
      * @return Collection<int, array>
      */
     public function collectContainerMetrics(string $serverId): Collection
@@ -153,7 +154,7 @@ class MetricsCollector
                     ? ProxmoxServer::find($serverId)
                     : ProxmoxServer::where('code', $serverId)->first();
 
-                if (!$server) {
+                if (! $server) {
                     return collect([]);
                 }
 
@@ -167,7 +168,7 @@ class MetricsCollector
                 }
 
                 // Check if server is online
-                if (!$server->isOnline()) {
+                if (! $server->isOnline()) {
                     return $containers->map(function ($container) {
                         return $this->formatContainerOffline($container);
                     });
@@ -212,7 +213,7 @@ class MetricsCollector
      */
     public function collectNetworkMetrics(): array
     {
-        $cacheKey = "metrics:network";
+        $cacheKey = 'metrics:network';
 
         return Cache::remember($cacheKey, 30, function () {
             try {
@@ -245,7 +246,7 @@ class MetricsCollector
                 ];
 
             } catch (\Exception $e) {
-                Log::error("Failed to collect network metrics", [
+                Log::error('Failed to collect network metrics', [
                     'error' => $e->getMessage(),
                 ]);
 
@@ -276,7 +277,7 @@ class MetricsCollector
      */
     public function collectStorageMetrics(): array
     {
-        $cacheKey = "metrics:storage";
+        $cacheKey = 'metrics:storage';
 
         return Cache::remember($cacheKey, 60, function () {
             try {
@@ -304,9 +305,9 @@ class MetricsCollector
                                     'server' => $server->code,
                                     'name' => $storage['storage'] ?? 'unknown',
                                     'type' => $storage['type'] ?? 'unknown',
-                                    'used_gb' => isset($storage['used']) ? round($storage['used'] / (1024**3), 2) : 0,
-                                    'total_gb' => isset($storage['total']) ? round($storage['total'] / (1024**3), 2) : 0,
-                                    'available_gb' => isset($storage['avail']) ? round($storage['avail'] / (1024**3), 2) : 0,
+                                    'used_gb' => isset($storage['used']) ? round($storage['used'] / (1024 ** 3), 2) : 0,
+                                    'total_gb' => isset($storage['total']) ? round($storage['total'] / (1024 ** 3), 2) : 0,
+                                    'available_gb' => isset($storage['avail']) ? round($storage['avail'] / (1024 ** 3), 2) : 0,
                                     'percent_used' => isset($storage['used'], $storage['total']) && $storage['total'] > 0
                                         ? round(($storage['used'] / $storage['total']) * 100, 1)
                                         : 0,
@@ -341,7 +342,7 @@ class MetricsCollector
                 ];
 
             } catch (\Exception $e) {
-                Log::error("Failed to collect storage metrics", [
+                Log::error('Failed to collect storage metrics', [
                     'error' => $e->getMessage(),
                 ]);
 
@@ -451,9 +452,9 @@ class MetricsCollector
                 'model' => $data['cpuinfo']['model'] ?? 'Unknown',
             ],
             'memory' => [
-                'total_gb' => round($memTotal / (1024**3), 2),
-                'used_gb' => round($memUsed / (1024**3), 2),
-                'free_gb' => round(($memTotal - $memUsed) / (1024**3), 2),
+                'total_gb' => round($memTotal / (1024 ** 3), 2),
+                'used_gb' => round($memUsed / (1024 ** 3), 2),
+                'free_gb' => round(($memTotal - $memUsed) / (1024 ** 3), 2),
                 'usage_percent' => round($memPercent, 1),
             ],
             'load' => [
@@ -476,7 +477,7 @@ class MetricsCollector
         try {
             $response = $apiClient->getContainerStatus($nodeName, (int) $container->vmid);
 
-            if (!$response->success) {
+            if (! $response->success) {
                 return $this->formatContainerError($container, $response->error);
             }
 
@@ -516,13 +517,13 @@ class MetricsCollector
                 'cores' => $container->cores,
             ],
             'memory' => [
-                'total_mb' => round($memTotal / (1024**2), 0),
-                'used_mb' => round($memUsed / (1024**2), 0),
+                'total_mb' => round($memTotal / (1024 ** 2), 0),
+                'used_mb' => round($memUsed / (1024 ** 2), 0),
                 'usage_percent' => round($memPercent, 1),
             ],
             'disk' => [
                 'total_gb' => $container->disk_gb,
-                'used_gb' => isset($data['disk']) ? round($data['disk'] / (1024**3), 2) : 0,
+                'used_gb' => isset($data['disk']) ? round($data['disk'] / (1024 ** 3), 2) : 0,
                 'usage_percent' => isset($data['disk'], $data['maxdisk']) && $data['maxdisk'] > 0
                     ? round(($data['disk'] / $data['maxdisk']) * 100, 1)
                     : 0,
@@ -711,8 +712,8 @@ class MetricsCollector
             Cache::forget("metrics:containers:{$server->id}");
         }
 
-        Cache::forget("metrics:network");
-        Cache::forget("metrics:storage");
+        Cache::forget('metrics:network');
+        Cache::forget('metrics:storage');
 
         Log::info('All metrics caches cleared');
     }

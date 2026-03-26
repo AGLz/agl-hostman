@@ -5,14 +5,15 @@ namespace App\Services\Scaling;
 use App\Models\ScalingEvent;
 use App\Services\Monitoring\MetricsCollector;
 use App\Services\Notification\NotificationService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class AutoScalingService
 {
     private const CACHE_PREFIX = 'autoscaling:';
+
     private const DECISION_CACHE_TTL = 300; // 5 minutes
 
     public function __construct(
@@ -25,7 +26,7 @@ class AutoScalingService
      */
     public function evaluateScaling(string $environment = 'production'): array
     {
-        if (!config('scaling.enabled')) {
+        if (! config('scaling.enabled')) {
             return ['action' => 'none', 'reason' => 'Auto-scaling disabled'];
         }
 
@@ -63,8 +64,9 @@ class AutoScalingService
         $targetReplicas = $decision['target_replicas'];
 
         // Check cooldown period
-        if (!$this->canScale($action)) {
+        if (! $this->canScale($action)) {
             Log::info("Scaling {$action} blocked by cooldown period");
+
             return false;
         }
 
@@ -93,6 +95,7 @@ class AutoScalingService
             ]);
 
             $this->notifyScalingFailure($action, $e);
+
             return false;
         }
     }
@@ -102,7 +105,7 @@ class AutoScalingService
      */
     private function collectCurrentMetrics(): array
     {
-        $cacheKey = self::CACHE_PREFIX . 'current_metrics';
+        $cacheKey = self::CACHE_PREFIX.'current_metrics';
 
         return Cache::remember($cacheKey, 30, function () {
             return [
@@ -125,7 +128,7 @@ class AutoScalingService
         $results = [];
 
         foreach ($triggers as $metric => $config) {
-            if (!$config['enabled']) {
+            if (! $config['enabled']) {
                 continue;
             }
 
@@ -173,7 +176,7 @@ class AutoScalingService
 
             if ($duration >= $scaleDown['duration']) {
                 // Only scale down if not already triggered for scale up
-                if (!$result['triggered']) {
+                if (! $result['triggered']) {
                     $result['action'] = 'scale_down';
                     $result['triggered'] = true;
                     $result['duration'] = $duration;
@@ -190,13 +193,14 @@ class AutoScalingService
      */
     private function getMetricDuration(string $metric, float $threshold, string $operator): int
     {
-        $cacheKey = self::CACHE_PREFIX . "duration:{$metric}:{$operator}:{$threshold}";
+        $cacheKey = self::CACHE_PREFIX."duration:{$metric}:{$operator}:{$threshold}";
 
         $start = Cache::get($cacheKey);
 
-        if (!$start) {
+        if (! $start) {
             // First time seeing this threshold breach
             Cache::put($cacheKey, time(), 3600);
+
             return 0;
         }
 
@@ -213,8 +217,8 @@ class AutoScalingService
         $maxReplicas = $envConfig['max_replicas'] ?? config('scaling.limits.max_replicas');
 
         // Count scale up and scale down triggers
-        $scaleUpCount = count(array_filter($triggers, fn($t) => $t['action'] === 'scale_up'));
-        $scaleDownCount = count(array_filter($triggers, fn($t) => $t['action'] === 'scale_down'));
+        $scaleUpCount = count(array_filter($triggers, fn ($t) => $t['action'] === 'scale_up'));
+        $scaleDownCount = count(array_filter($triggers, fn ($t) => $t['action'] === 'scale_down'));
 
         // Consensus check if enabled
         if (config('scaling.advanced.require_consensus')) {
@@ -246,7 +250,7 @@ class AutoScalingService
 
             // Health check before scale down
             if (config('scaling.advanced.health_check_before_scale_down')) {
-                if (!$this->isHealthy()) {
+                if (! $this->isHealthy()) {
                     return [
                         'action' => 'none',
                         'reason' => 'Failed health check - unsafe to scale down',
@@ -273,7 +277,7 @@ class AutoScalingService
             'action' => $action,
             'current_replicas' => $currentReplicas,
             'target_replicas' => $targetReplicas,
-            'triggered_by' => array_filter($triggers, fn($t) => $t['triggered']),
+            'triggered_by' => array_filter($triggers, fn ($t) => $t['triggered']),
             'scale_up_votes' => $scaleUpCount,
             'scale_down_votes' => $scaleDownCount,
             'reason' => $this->buildReasonMessage($triggers, $action),
@@ -285,8 +289,9 @@ class AutoScalingService
      */
     private function canScale(string $action): bool
     {
-        $cacheKey = self::CACHE_PREFIX . "cooldown:{$action}";
-        return !Cache::has($cacheKey);
+        $cacheKey = self::CACHE_PREFIX."cooldown:{$action}";
+
+        return ! Cache::has($cacheKey);
     }
 
     /**
@@ -299,7 +304,7 @@ class AutoScalingService
         // Get maximum cooldown from all triggers
         $maxCooldown = 0;
         foreach ($triggers as $config) {
-            if (!$config['enabled']) {
+            if (! $config['enabled']) {
                 continue;
             }
 
@@ -307,7 +312,7 @@ class AutoScalingService
             $maxCooldown = max($maxCooldown, $cooldown);
         }
 
-        $cacheKey = self::CACHE_PREFIX . "cooldown:{$action}";
+        $cacheKey = self::CACHE_PREFIX."cooldown:{$action}";
         Cache::put($cacheKey, true, $maxCooldown);
     }
 
@@ -319,7 +324,7 @@ class AutoScalingService
         try {
             $response = Http::withToken(config('scaling.dokploy.api_token'))
                 ->timeout(config('scaling.dokploy.timeout'))
-                ->get(config('scaling.dokploy.api_url') . '/applications/' . config('scaling.dokploy.application_id'));
+                ->get(config('scaling.dokploy.api_url').'/applications/'.config('scaling.dokploy.application_id'));
 
             if ($response->successful()) {
                 return $response->json()['replicas'] ?? 1;
@@ -340,7 +345,7 @@ class AutoScalingService
             $response = Http::withToken(config('scaling.dokploy.api_token'))
                 ->timeout(config('scaling.dokploy.timeout'))
                 ->patch(
-                    config('scaling.dokploy.api_url') . '/applications/' . config('scaling.dokploy.application_id'),
+                    config('scaling.dokploy.api_url').'/applications/'.config('scaling.dokploy.application_id'),
                     ['replicas' => $replicas]
                 );
 
@@ -350,6 +355,7 @@ class AutoScalingService
                 'replicas' => $replicas,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -426,7 +432,7 @@ class AutoScalingService
      */
     private function buildReasonMessage(array $triggers, string $action): string
     {
-        $triggered = array_filter($triggers, fn($t) => $t['triggered']);
+        $triggered = array_filter($triggers, fn ($t) => $t['triggered']);
 
         if (empty($triggered)) {
             return 'No triggers';
@@ -451,11 +457,11 @@ class AutoScalingService
      */
     private function notifyScaling(string $action, array $decision): void
     {
-        if (!config('scaling.notifications.enabled')) {
+        if (! config('scaling.notifications.enabled')) {
             return;
         }
 
-        if (!config("scaling.notifications.events.{$action}")) {
+        if (! config("scaling.notifications.events.{$action}")) {
             return;
         }
 
@@ -482,7 +488,7 @@ class AutoScalingService
      */
     private function notifyLimitReached(string $limit, int $replicas): void
     {
-        if (!config('scaling.notifications.events.limit_reached')) {
+        if (! config('scaling.notifications.events.limit_reached')) {
             return;
         }
 
@@ -504,7 +510,7 @@ class AutoScalingService
      */
     private function notifyScalingFailure(string $action, \Exception $e): void
     {
-        if (!config('scaling.notifications.events.scale_failed')) {
+        if (! config('scaling.notifications.events.scale_failed')) {
             return;
         }
 
@@ -525,7 +531,7 @@ class AutoScalingService
      */
     private function logDecision(array $decision, array $metrics, array $triggers): void
     {
-        if (!config('scaling.logging.enabled')) {
+        if (! config('scaling.logging.enabled')) {
             return;
         }
 

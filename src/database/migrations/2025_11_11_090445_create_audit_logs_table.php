@@ -26,7 +26,7 @@ return new class extends Migration
             $table->uuid('request_id')->nullable();
             $table->string('session_id')->nullable();
             $table->timestamps();
-            
+
             $table->index(['model_type', 'model_id']);
             $table->index('user_id');
             $table->index('api_key_id');

@@ -12,8 +12,6 @@ use Tests\TestCase;
  * Security Endpoints Test
  *
  * Tests for security-related API endpoints.
- *
- * @package Tests\Feature\Api
  */
 class SecurityEndpointsTest extends TestCase
 {

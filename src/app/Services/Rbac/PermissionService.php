@@ -5,8 +5,8 @@ namespace App\Services\Rbac;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class PermissionService
 {
@@ -73,6 +73,7 @@ class PermissionService
         return DB::transaction(function () use ($permission) {
             $permission->delete();
             $this->clearPermissionCache();
+
             return true;
         });
     }
@@ -83,7 +84,7 @@ class PermissionService
     public function assignPermissionToRole(Permission $permission, Role $role): Role
     {
         return DB::transaction(function () use ($permission, $role) {
-            if (!$role->hasPermissionTo($permission->name)) {
+            if (! $role->hasPermissionTo($permission->name)) {
                 $role->givePermissionTo($permission);
                 $this->clearPermissionCache();
             }
@@ -100,6 +101,7 @@ class PermissionService
         return DB::transaction(function () use ($permission, $role) {
             $role->revokePermissionTo($permission);
             $this->clearPermissionCache();
+
             return $role->fresh();
         });
     }
@@ -110,7 +112,7 @@ class PermissionService
     public function assignPermissionToUser(Permission $permission, User $user): User
     {
         return DB::transaction(function () use ($permission, $user) {
-            if (!$user->hasDirectPermission($permission->name)) {
+            if (! $user->hasDirectPermission($permission->name)) {
                 $user->givePermissionTo($permission);
                 $this->clearPermissionCache();
             }
@@ -127,6 +129,7 @@ class PermissionService
         return DB::transaction(function () use ($permission, $user) {
             $user->revokePermissionTo($permission);
             $this->clearPermissionCache();
+
             return $user->fresh();
         });
     }
@@ -140,6 +143,7 @@ class PermissionService
             $permissions = Permission::whereIn('id', $permissionIds)->get();
             $role->syncPermissions($permissions);
             $this->clearPermissionCache();
+
             return $role->fresh();
         });
     }

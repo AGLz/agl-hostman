@@ -20,22 +20,17 @@ use Illuminate\Support\Facades\Redis;
  * - Redis cleanup between tests
  * - Process-aware test database naming
  *
- * @package Tests
  * @version 1.0.0
  */
 abstract class TestCase extends BaseTestCase
 {
     /**
      * Database connection name for this test process
-     *
-     * @var string|null
      */
     protected static ?string $testDatabase = null;
 
     /**
      * Whether database transactions are enabled for this test
-     *
-     * @var bool
      */
     protected bool $useDatabaseTransactions = true;
 
@@ -60,8 +55,6 @@ abstract class TestCase extends BaseTestCase
      * - Unique test database for parallel process isolation
      * - Database transactions for test isolation
      * - Redis cleanup
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -72,9 +65,9 @@ abstract class TestCase extends BaseTestCase
             $this->setupParallelDatabase();
         }
 
-        // Start database transaction for test isolation
-        if ($this->useDatabaseTransactions && $this->shouldUseDatabase()) {
-            $this->beginDatabaseTransaction();
+        // Transação manual só quando não há RefreshDatabase (esse trait define beginDatabaseTransaction)
+        if ($this->useDatabaseTransactions && $this->shouldUseDatabase() && ! $this->usesRefreshDatabase()) {
+            $this->beginLegacyManualDatabaseTransaction();
         }
 
         // Clear Redis test database
@@ -85,13 +78,10 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * Clean up the testing environment after each test.
-     *
-     * @return void
      */
     protected function tearDown(): void
     {
-        // Rollback database transaction
-        if ($this->useDatabaseTransactions && $this->shouldUseDatabase()) {
+        if ($this->useDatabaseTransactions && $this->shouldUseDatabase() && ! $this->usesRefreshDatabase()) {
             $this->rollbackDatabaseTransaction();
         }
 
@@ -108,8 +98,6 @@ abstract class TestCase extends BaseTestCase
      *
      * Creates a unique database for each parallel process to avoid conflicts.
      * Database naming pattern: agl_hostman_test_p{process_id}
-     *
-     * @return void
      */
     protected function setupParallelDatabase(): void
     {
@@ -132,7 +120,7 @@ abstract class TestCase extends BaseTestCase
         DB::reconnect('pgsql');
 
         // Run migrations if needed (only once per process)
-        if (!$this->databaseMigrationsRan($testDbName)) {
+        if (! $this->databaseMigrationsRan($testDbName)) {
             $this->runDatabaseMigrations($testDbName);
         }
     }
@@ -153,17 +141,17 @@ abstract class TestCase extends BaseTestCase
         if ($testToken !== false && $testToken !== '') {
             // Extract numeric ID from token (e.g., "1", "2", "3")
             if (is_numeric($testToken)) {
-                return (string)$testToken;
+                return (string) $testToken;
             }
 
             // Hash-based token: use hash modulo to get process ID
-            return (string)(crc32($testToken) % 8 + 1);
+            return (string) (crc32($testToken) % 8 + 1);
         }
 
         // Check for ParaTest token
         $paraTestToken = getenv('PARATEST');
         if ($paraTestToken !== false && $paraTestToken !== '') {
-            return (string)$paraTestToken;
+            return (string) $paraTestToken;
         }
 
         // Default to process 1 for sequential execution
@@ -173,7 +161,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Get the test database name for a given process ID.
      *
-     * @param string $processId Process identifier
+     * @param  string  $processId  Process identifier
      * @return string Database name
      */
     protected function getTestDatabaseName(string $processId): string
@@ -189,8 +177,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Create test database if it doesn't exist.
      *
-     * @param string $dbName Database name to create
-     * @return void
+     * @param  string  $dbName  Database name to create
      */
     protected function createTestDatabaseIfNotExists(string $dbName): void
     {
@@ -221,7 +208,7 @@ abstract class TestCase extends BaseTestCase
                 "SELECT 1 FROM pg_database WHERE datname = '{$dbName}'"
             );
 
-            if (!$stmt || $stmt->fetchColumn() === false) {
+            if (! $stmt || $stmt->fetchColumn() === false) {
                 // Create database
                 $pdo->exec("CREATE DATABASE {$dbName}");
             }
@@ -234,7 +221,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Check if database migrations have been run for this database.
      *
-     * @param string $dbName Database name
+     * @param  string  $dbName  Database name
      * @return bool True if migrations have been run
      */
     protected function databaseMigrationsRan(string $dbName): bool
@@ -258,8 +245,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Run database migrations for test database.
      *
-     * @param string $dbName Database name
-     * @return void
+     * @param  string  $dbName  Database name
      */
     protected function runDatabaseMigrations(string $dbName): void
     {
@@ -271,18 +257,11 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Begin a database transaction for test isolation.
-     *
-     * Note: This method is overridden from RefreshDatabase trait.
-     * Do not call this method directly when using RefreshDatabase trait.
+     * Transação simples para testes sem o trait RefreshDatabase.
+     * Não usar o nome beginDatabaseTransaction — o trait RefreshDatabase precisa desse método.
      */
-    protected function beginDatabaseTransaction()
+    protected function beginLegacyManualDatabaseTransaction(): void
     {
-        // Skip if RefreshDatabase trait is being used
-        if (in_array(RefreshDatabase::class, class_uses_recursive($this))) {
-            return;
-        }
-
         try {
             $connection = $this->shouldUseDatabase() ? DB::connection(config('database.default')) : null;
             if ($connection) {
@@ -293,10 +272,13 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
+    protected function usesRefreshDatabase(): bool
+    {
+        return in_array(RefreshDatabase::class, class_uses_recursive(static::class), true);
+    }
+
     /**
      * Rollback the database transaction.
-     *
-     * @return void
      */
     protected function rollbackDatabaseTransaction(): void
     {
@@ -313,8 +295,6 @@ abstract class TestCase extends BaseTestCase
      * Clear Redis test data.
      *
      * Flushes the test Redis database (DB 1) to ensure clean state.
-     *
-     * @return void
      */
     protected function clearRedisTestData(): void
     {
@@ -345,10 +325,9 @@ abstract class TestCase extends BaseTestCase
      */
     protected function shouldUseDatabase(): bool
     {
-        // Check if test uses RefreshDatabase trait
         $traits = class_uses_recursive(static::class);
 
-        return in_array(RefreshDatabase::class, $traits)
+        return in_array(RefreshDatabase::class, $traits, true)
             || config('database.default') !== 'array';
     }
 
@@ -367,8 +346,6 @@ abstract class TestCase extends BaseTestCase
      * Disable database transactions for this test.
      *
      * Useful for tests that need to test actual database commits.
-     *
-     * @return void
      */
     protected function disableDatabaseTransactions(): void
     {
@@ -390,8 +367,7 @@ abstract class TestCase extends BaseTestCase
      *
      * Useful when you need to clean a table without rolling back the entire transaction.
      *
-     * @param string $table Table name to truncate
-     * @return void
+     * @param  string  $table  Table name to truncate
      */
     protected function truncateTable(string $table): void
     {
@@ -403,8 +379,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Truncate multiple database tables.
      *
-     * @param array $tables Array of table names
-     * @return void
+     * @param  array  $tables  Array of table names
      */
     protected function truncateTables(array $tables): void
     {

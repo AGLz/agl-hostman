@@ -119,7 +119,8 @@ class N8NWorkflow extends Model
     public function getWebhookUrl(): string
     {
         $baseUrl = config('n8n.webhook_base_url');
-        return rtrim($baseUrl, '/') . '/webhook/' . $this->getWebhookPath();
+
+        return rtrim($baseUrl, '/').'/webhook/'.$this->getWebhookPath();
     }
 
     /**
@@ -158,11 +159,12 @@ class N8NWorkflow extends Model
      */
     public function getExecutionRate(): float
     {
-        if (!$this->created_at) {
+        if (! $this->created_at) {
             return 0;
         }
 
         $daysSinceCreation = max(1, $this->created_at->diffInDays(now()));
+
         return round($this->execution_count / $daysSinceCreation, 2);
     }
 }

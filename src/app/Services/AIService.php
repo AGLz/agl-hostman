@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Client\Response;
 use App\Models\AIModelUsage;
 use Exception;
 use Generator;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * AI Integration Service
@@ -28,6 +28,7 @@ use Generator;
 class AIService
 {
     protected array $config;
+
     protected array $providers;
 
     /**
@@ -65,9 +66,9 @@ class AIService
     /**
      * Generate predictions based on historical data
      *
-     * @param array $data Historical metrics/data
-     * @param string $type Prediction type (capacity, performance, failure, etc.)
-     * @param string|null $model Specific model to use
+     * @param  array  $data  Historical metrics/data
+     * @param  string  $type  Prediction type (capacity, performance, failure, etc.)
+     * @param  string|null  $model  Specific model to use
      * @return array Prediction results with confidence scores
      */
     public function generatePrediction(array $data, string $type = 'performance', ?string $model = null): array
@@ -101,9 +102,9 @@ class AIService
     /**
      * Analyze system logs and metrics
      *
-     * @param array $logs Log entries to analyze
-     * @param array $metrics System metrics
-     * @param string|null $model Specific model to use
+     * @param  array  $logs  Log entries to analyze
+     * @param  array  $metrics  System metrics
+     * @param  string|null  $model  Specific model to use
      * @return array Analysis results with insights and recommendations
      */
     public function analyzeLogsAndMetrics(array $logs, array $metrics, ?string $model = null): array
@@ -135,9 +136,9 @@ class AIService
     /**
      * Generate recommendations based on analysis
      *
-     * @param array $context Current system state/context
-     * @param string $category Recommendation category
-     * @param string|null $model Specific model to use
+     * @param  array  $context  Current system state/context
+     * @param  string  $category  Recommendation category
+     * @param  string|null  $model  Specific model to use
      * @return array Recommendations with priority and action items
      */
     public function generateRecommendations(array $context, string $category = 'optimization', ?string $model = null): array
@@ -169,10 +170,10 @@ class AIService
     /**
      * Interactive chat with AI
      *
-     * @param string $message User message
-     * @param array $history Conversation history
-     * @param string|null $model Specific model to use
-     * @param bool $stream Enable streaming response
+     * @param  string  $message  User message
+     * @param  array  $history  Conversation history
+     * @param  string|null  $model  Specific model to use
+     * @param  bool  $stream  Enable streaming response
      * @return array|string Response array or generator for streaming
      */
     public function chat(string $message, array $history = [], ?string $model = null, bool $stream = false): array|string|Generator
@@ -229,12 +230,12 @@ class AIService
     protected function streamOpenAI(string $model, array $messages): Generator
     {
         $apiKey = $this->providers['openai']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('OpenAI API key not configured');
         }
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
+            'Authorization' => 'Bearer '.$apiKey,
             'Content-Type' => 'application/json',
         ])->withOptions([
             'stream' => true,
@@ -261,7 +262,7 @@ class AIService
     protected function streamClaude(string $model, array $messages): Generator
     {
         $apiKey = $this->providers['claude']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('Claude API key not configured');
         }
 
@@ -372,14 +373,14 @@ class AIService
     protected function queryOpenAI(string $model, string|array $input, array $options): array
     {
         $apiKey = $this->providers['openai']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('OpenAI API key not configured');
         }
 
         $messages = is_string($input) ? [['role' => 'user', 'content' => $input]] : $input;
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
+            'Authorization' => 'Bearer '.$apiKey,
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
             'model' => $model,
@@ -390,6 +391,7 @@ class AIService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['choices'][0]['message']['content'] ?? '',
@@ -397,7 +399,7 @@ class AIService
             ];
         }
 
-        throw new Exception('OpenAI API error: ' . $response->body());
+        throw new Exception('OpenAI API error: '.$response->body());
     }
 
     /**
@@ -406,7 +408,7 @@ class AIService
     protected function queryClaude(string $model, string|array $input, array $options): array
     {
         $apiKey = $this->providers['claude']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('Claude API key not configured');
         }
 
@@ -425,6 +427,7 @@ class AIService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['content'][0]['text'] ?? '',
@@ -432,7 +435,7 @@ class AIService
             ];
         }
 
-        throw new Exception('Claude API error: ' . $response->body());
+        throw new Exception('Claude API error: '.$response->body());
     }
 
     /**
@@ -456,6 +459,7 @@ class AIService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['response'] ?? '',
@@ -466,7 +470,7 @@ class AIService
             ];
         }
 
-        throw new Exception('Ollama API error: ' . $response->body());
+        throw new Exception('Ollama API error: '.$response->body());
     }
 
     /**
@@ -497,8 +501,8 @@ class AIService
     protected function isModelAvailable(string $provider, string $model): bool
     {
         return match ($provider) {
-            'openai' => !empty($this->providers['openai']['api_key']),
-            'claude' => !empty($this->providers['claude']['api_key']),
+            'openai' => ! empty($this->providers['openai']['api_key']),
+            'claude' => ! empty($this->providers['claude']['api_key']),
             'ollama' => $this->checkOllamaConnection(),
             default => false,
         };
@@ -512,6 +516,7 @@ class AIService
         try {
             $endpoint = $this->providers['ollama']['endpoint'] ?? 'http://localhost:11434';
             $response = Http::timeout(5)->get("{$endpoint}/api/tags");
+
             return $response->successful();
         } catch (Exception) {
             return false;
@@ -588,10 +593,10 @@ class AIService
      */
     protected function buildPredictionPrompt(array $data, string $type): string
     {
-        return "You are a predictive analytics system for infrastructure management. " .
-               "Analyze the following data and provide predictions for {$type}.\n\n" .
-               "Data:\n" . json_encode($data, JSON_PRETTY_PRINT) . "\n\n" .
-               "Provide your response as JSON with this structure:\n" .
+        return 'You are a predictive analytics system for infrastructure management. '.
+               "Analyze the following data and provide predictions for {$type}.\n\n".
+               "Data:\n".json_encode($data, JSON_PRETTY_PRINT)."\n\n".
+               "Provide your response as JSON with this structure:\n".
                "{\n  \"predictions\": [...],\n  \"confidence\": 0.0-1.0,\n  \"reasoning\": \"...\",\n  \"timeframe\": \"...\"\n}";
     }
 
@@ -600,11 +605,11 @@ class AIService
      */
     protected function buildAnalysisPrompt(array $logs, array $metrics): string
     {
-        return "You are a system analysis expert. Analyze the following logs and metrics.\n\n" .
-               "Logs:\n" . json_encode(array_slice($logs, 0, 50), JSON_PRETTY_PRINT) . "\n\n" .
-               "Metrics:\n" . json_encode($metrics, JSON_PRETTY_PRINT) . "\n\n" .
-               "Provide:\n1. Key findings\n2. Anomalies detected\n3. Root causes (if applicable)\n4. Recommendations\n\n" .
-               "Format as JSON.";
+        return "You are a system analysis expert. Analyze the following logs and metrics.\n\n".
+               "Logs:\n".json_encode(array_slice($logs, 0, 50), JSON_PRETTY_PRINT)."\n\n".
+               "Metrics:\n".json_encode($metrics, JSON_PRETTY_PRINT)."\n\n".
+               "Provide:\n1. Key findings\n2. Anomalies detected\n3. Root causes (if applicable)\n4. Recommendations\n\n".
+               'Format as JSON.';
     }
 
     /**
@@ -612,9 +617,9 @@ class AIService
      */
     protected function buildRecommendationPrompt(array $context, string $category): string
     {
-        return "You are an infrastructure optimization expert. Provide recommendations for {$category}.\n\n" .
-               "Context:\n" . json_encode($context, JSON_PRETTY_PRINT) . "\n\n" .
-               "Provide prioritized recommendations as JSON:\n" .
+        return "You are an infrastructure optimization expert. Provide recommendations for {$category}.\n\n".
+               "Context:\n".json_encode($context, JSON_PRETTY_PRINT)."\n\n".
+               "Provide prioritized recommendations as JSON:\n".
                "{\n  \"recommendations\": [{\n    \"priority\": \"high|medium|low\",\n    \"action\": \"...\",\n    \"expected_impact\": \"...\",\n    \"effort\": \"...\"\n  }]\n}";
     }
 
@@ -648,6 +653,7 @@ class AIService
             $content = $msg['content'] ?? '';
             $result .= "{$role}: {$content}\n\n";
         }
+
         return $result;
     }
 

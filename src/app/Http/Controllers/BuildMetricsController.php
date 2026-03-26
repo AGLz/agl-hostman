@@ -18,15 +18,13 @@ class BuildMetricsController extends Controller
 
     /**
      * Get latest build metrics
-     *
-     * @return JsonResponse
      */
     public function getLatestMetrics(): JsonResponse
     {
         $metrics = $this->buildPerformanceService->getLatestMetrics();
         $improvements = $this->buildPerformanceService->calculateImprovements();
 
-        if (!$metrics) {
+        if (! $metrics) {
             return response()->json([
                 'message' => 'No build metrics available yet',
                 'latest' => null,
@@ -42,9 +40,6 @@ class BuildMetricsController extends Controller
 
     /**
      * Get build metrics history
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getBuildHistory(Request $request): JsonResponse
     {
@@ -58,8 +53,6 @@ class BuildMetricsController extends Controller
 
     /**
      * Get build performance trends
-     *
-     * @return JsonResponse
      */
     public function getBuildTrends(): JsonResponse
     {
@@ -70,10 +63,6 @@ class BuildMetricsController extends Controller
 
     /**
      * Get metrics for specific environment
-     *
-     * @param Request $request
-     * @param string $environment
-     * @return JsonResponse
      */
     public function getEnvironmentMetrics(Request $request, string $environment): JsonResponse
     {
@@ -87,9 +76,6 @@ class BuildMetricsController extends Controller
 
     /**
      * Record new build metrics (webhook endpoint)
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function recordMetrics(Request $request): JsonResponse
     {
@@ -129,8 +115,6 @@ class BuildMetricsController extends Controller
 
     /**
      * Get performance comparison
-     *
-     * @return JsonResponse
      */
     public function getComparison(): JsonResponse
     {
@@ -145,18 +129,18 @@ class BuildMetricsController extends Controller
 
         $comparison = [
             'performance_gain' => [
-                'build_time_reduction' => $improvements['build_time_improvement'] . '%',
-                'time_saved_per_build' => $improvements['time_saved_per_build'] . 's',
+                'build_time_reduction' => $improvements['build_time_improvement'].'%',
+                'time_saved_per_build' => $improvements['time_saved_per_build'].'s',
                 'total_builds_analyzed' => $improvements['total_builds'],
             ],
             'baseline' => [
-                'average_build_time' => $improvements['baseline_build_time'] . 's',
+                'average_build_time' => $improvements['baseline_build_time'].'s',
                 'description' => 'Average of first 10 builds',
             ],
             'current' => [
-                'average_build_time' => $improvements['current_build_time'] . 's',
-                'cache_hit_rate' => $improvements['cache_hit_rate'] . '%',
-                'layer_reuse_rate' => $improvements['layer_reuse_rate'] . '%',
+                'average_build_time' => $improvements['current_build_time'].'s',
+                'cache_hit_rate' => $improvements['cache_hit_rate'].'%',
+                'layer_reuse_rate' => $improvements['layer_reuse_rate'].'%',
                 'description' => 'Average of last 10 builds',
             ],
             'targets' => [

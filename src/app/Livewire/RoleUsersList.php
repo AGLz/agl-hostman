@@ -18,7 +18,9 @@ class RoleUsersList extends Component
     use WithPagination;
 
     public Role $role;
+
     public string $search = '';
+
     public int $perPage = 15;
 
     protected $queryString = [
@@ -38,7 +40,7 @@ class RoleUsersList extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%");
+                    ->orWhere('email', 'like', "%{$this->search}%");
             });
         }
 

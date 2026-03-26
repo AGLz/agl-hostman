@@ -30,7 +30,7 @@ describe('Task Creation', function () {
                 'id' => 'task-1',
                 'title' => 'New Task',
                 'status' => 'todo',
-                'project_id' => 'proj-1'
+                'project_id' => 'proj-1',
             ]);
 
         Event::fake();
@@ -43,7 +43,7 @@ describe('Task Creation', function () {
             'assignee' => 'User',
             'priority' => 'medium',
             'feature' => 'feature-1',
-            'task_order' => 5
+            'task_order' => 5,
         ]);
 
         $response->assertRedirect();
@@ -52,7 +52,7 @@ describe('Task Creation', function () {
 
     it('validates required fields', function () {
         $response = $this->post('/archon/tasks', [
-            'description' => 'Missing project_id and title'
+            'description' => 'Missing project_id and title',
         ]);
 
         $response->assertSessionHasErrors(['project_id', 'title', 'status']);
@@ -62,7 +62,7 @@ describe('Task Creation', function () {
         $response = $this->post('/archon/tasks', [
             'project_id' => 'proj-1',
             'title' => 'Task',
-            'status' => 'invalid-status'
+            'status' => 'invalid-status',
         ]);
 
         $response->assertSessionHasErrors(['status']);
@@ -73,7 +73,7 @@ describe('Task Creation', function () {
             'project_id' => 'proj-1',
             'title' => 'Task',
             'status' => 'todo',
-            'priority' => 'invalid-priority'
+            'priority' => 'invalid-priority',
         ]);
 
         $response->assertSessionHasErrors(['priority']);
@@ -84,7 +84,7 @@ describe('Task Creation', function () {
             'project_id' => 'proj-1',
             'title' => 'Task',
             'status' => 'todo',
-            'task_order' => 101 // Out of range
+            'task_order' => 101, // Out of range
         ]);
 
         $response->assertSessionHasErrors(['task_order']);
@@ -100,14 +100,14 @@ describe('Task Update', function () {
                 'id' => 'task-1',
                 'title' => 'Updated Title',
                 'status' => 'doing',
-                'project_id' => 'proj-1'
+                'project_id' => 'proj-1',
             ]);
 
         Event::fake();
 
         $response = $this->put('/archon/tasks/task-1', [
             'title' => 'Updated Title',
-            'status' => 'doing'
+            'status' => 'doing',
         ]);
 
         $response->assertRedirect();
@@ -120,13 +120,13 @@ describe('Task Update', function () {
             ->andReturn([
                 'id' => 'task-1',
                 'status' => 'done',
-                'project_id' => 'proj-1'
+                'project_id' => 'proj-1',
             ]);
 
         Event::fake();
 
         $this->put('/archon/tasks/task-1', [
-            'status' => 'done'
+            'status' => 'done',
         ]);
 
         Event::assertDispatched(\App\Events\ArchonTaskMoved::class);
@@ -137,16 +137,16 @@ describe('Task Update', function () {
             ->once()
             ->andReturn([
                 'id' => 'task-1',
-                'title' => 'Updated'
+                'title' => 'Updated',
             ]);
 
         $response = $this->putJson('/archon/tasks/task-1', [
-            'title' => 'Updated'
+            'title' => 'Updated',
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true
+            'success' => true,
         ]);
     });
 
@@ -156,12 +156,12 @@ describe('Task Update', function () {
             ->andThrow(new Exception('Update failed'));
 
         $response = $this->putJson('/archon/tasks/task-1', [
-            'title' => 'Updated'
+            'title' => 'Updated',
         ]);
 
         $response->assertStatus(500);
         $response->assertJson([
-            'success' => false
+            'success' => false,
         ]);
     });
 });
@@ -208,17 +208,17 @@ describe('Bulk Task Update', function () {
         $response = $this->postJson('/archon/tasks/bulk-update', [
             'tasks' => [
                 ['id' => 'task-1', 'status' => 'doing', 'task_order' => 1],
-                ['id' => 'task-2', 'status' => 'review', 'task_order' => 2]
-            ]
+                ['id' => 'task-2', 'status' => 'review', 'task_order' => 2],
+            ],
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true
+            'success' => true,
         ]);
         $response->assertJsonStructure([
             'success',
-            'tasks'
+            'tasks',
         ]);
 
         Event::assertDispatched(\App\Events\ArchonTaskMoved::class, 2);
@@ -227,8 +227,8 @@ describe('Bulk Task Update', function () {
     it('validates bulk update payload', function () {
         $response = $this->postJson('/archon/tasks/bulk-update', [
             'tasks' => [
-                ['id' => 'task-1'] // Missing status
-            ]
+                ['id' => 'task-1'], // Missing status
+            ],
         ]);
 
         $response->assertStatus(422);
@@ -242,13 +242,13 @@ describe('Bulk Task Update', function () {
 
         $response = $this->postJson('/archon/tasks/bulk-update', [
             'tasks' => [
-                ['id' => 'task-1', 'status' => 'doing']
-            ]
+                ['id' => 'task-1', 'status' => 'doing'],
+            ],
         ]);
 
         $response->assertStatus(500);
         $response->assertJson([
-            'success' => false
+            'success' => false,
         ]);
     });
 });
@@ -261,7 +261,7 @@ describe('Task Status Transitions', function () {
             ->andReturn(['id' => 'task-1', 'status' => 'doing', 'project_id' => 'proj-1']);
 
         $response = $this->putJson('/archon/tasks/task-1', [
-            'status' => 'doing'
+            'status' => 'doing',
         ]);
 
         $response->assertSuccessful();
@@ -274,7 +274,7 @@ describe('Task Status Transitions', function () {
             ->andReturn(['id' => 'task-1', 'status' => 'review', 'project_id' => 'proj-1']);
 
         $response = $this->putJson('/archon/tasks/task-1', [
-            'status' => 'review'
+            'status' => 'review',
         ]);
 
         $response->assertSuccessful();
@@ -287,7 +287,7 @@ describe('Task Status Transitions', function () {
             ->andReturn(['id' => 'task-1', 'status' => 'done', 'project_id' => 'proj-1']);
 
         $response = $this->putJson('/archon/tasks/task-1', [
-            'status' => 'done'
+            'status' => 'done',
         ]);
 
         $response->assertSuccessful();

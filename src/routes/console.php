@@ -7,17 +7,17 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-use Illuminate\Support\Facades\Schedule;
 use App\Jobs\MonitorInfrastructure;
 use App\Jobs\PerformBackup;
+use Illuminate\Support\Facades\Schedule;
 
 // Schedule infrastructure monitoring every 5 minutes
 Schedule::job(new MonitorInfrastructure(
     ['AGLSRV1', 'AGLSRV2', 'AGLSRV3', 'AGLSRV4', 'AGLSRV5', 'AGLSRV6']
 ))->everyFiveMinutes()
-  ->name('infrastructure-monitoring')
-  ->withoutOverlapping()
-  ->onOneServer();
+    ->name('infrastructure-monitoring')
+    ->withoutOverlapping()
+    ->onOneServer();
 
 // Schedule daily full backup at 2 AM
 Schedule::job(new PerformBackup('full', true))

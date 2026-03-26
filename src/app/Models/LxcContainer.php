@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 /**
  * LXC Container Model
@@ -35,7 +35,6 @@ use Illuminate\Database\Eloquent\Casts\AsArrayObject;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- *
  * @property-read ProxmoxServer $server
  */
 class LxcContainer extends Model
@@ -161,7 +160,7 @@ class LxcContainer extends Model
      */
     public function getUptimeSeconds(): ?int
     {
-        if (!$this->isRunning() || !$this->started_at) {
+        if (! $this->isRunning() || ! $this->started_at) {
             return null;
         }
 
@@ -199,7 +198,7 @@ class LxcContainer extends Model
      */
     public function getPrimaryIp(): ?string
     {
-        if (!isset($this->network_config['net0'])) {
+        if (! isset($this->network_config['net0'])) {
             return null;
         }
 
@@ -221,7 +220,7 @@ class LxcContainer extends Model
      */
     public function getFqdn(): string
     {
-        return $this->hostname ?: ($this->name . '.' . config('app.domain', 'local'));
+        return $this->hostname ?: ($this->name.'.'.config('app.domain', 'local'));
     }
 
     /**

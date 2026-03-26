@@ -31,7 +31,7 @@ class NetworkTopologyControllerTest extends TestCase
         $response = $this->actingAs($this->user)->get(route('network.topology'));
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page->component('Network/Topology'));
+        $response->assertInertia(fn ($page) => $page->component('Network/Topology'));
     }
 
     public function test_can_get_network_graph()

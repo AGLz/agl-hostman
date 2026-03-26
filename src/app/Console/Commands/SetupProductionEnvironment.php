@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\Environment;
 use App\Models\ProductionDeployment;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 
 class SetupProductionEnvironment extends Command
@@ -39,9 +38,10 @@ class SetupProductionEnvironment extends Command
         // Check if production environment already exists
         $existing = Environment::where('type', 'production')->first();
 
-        if ($existing && !$this->option('force')) {
+        if ($existing && ! $this->option('force')) {
             $this->error('❌ Production environment already exists!');
             $this->info('   Use --force to recreate');
+
             return self::FAILURE;
         }
 
@@ -51,14 +51,14 @@ class SetupProductionEnvironment extends Command
         }
 
         // Step 1: Verify prerequisites
-        if (!$this->verifyPrerequisites()) {
+        if (! $this->verifyPrerequisites()) {
             return self::FAILURE;
         }
 
         // Step 2: Create environment
         $environment = $this->createEnvironment();
 
-        if (!$environment) {
+        if (! $environment) {
             return self::FAILURE;
         }
 
@@ -110,8 +110,9 @@ class SetupProductionEnvironment extends Command
             }
         }
 
-        if (!$allPassed) {
+        if (! $allPassed) {
             $this->error('❌ Prerequisites check failed!');
+
             return false;
         }
 
@@ -126,7 +127,8 @@ class SetupProductionEnvironment extends Command
      */
     private function checkCommand(string $command): bool
     {
-        exec($command . ' 2>&1', $output, $returnCode);
+        exec($command.' 2>&1', $output, $returnCode);
+
         return $returnCode === 0;
     }
 
@@ -137,7 +139,7 @@ class SetupProductionEnvironment extends Command
     {
         $harborUrl = config('deployment.harbor_registry');
 
-        if (!$harborUrl) {
+        if (! $harborUrl) {
             return false;
         }
 
@@ -193,7 +195,8 @@ class SetupProductionEnvironment extends Command
 
             return $environment;
         } catch (\Exception $e) {
-            $this->error('   ✗ Failed to create environment: ' . $e->getMessage());
+            $this->error('   ✗ Failed to create environment: '.$e->getMessage());
+
             return null;
         }
     }
@@ -237,7 +240,7 @@ class SetupProductionEnvironment extends Command
         $this->info('🔐 Generating production secrets...');
 
         $secrets = [
-            'APP_KEY' => 'base64:' . base64_encode(Str::random(32)),
+            'APP_KEY' => 'base64:'.base64_encode(Str::random(32)),
             'REVERB_APP_KEY' => Str::random(32),
             'REVERB_APP_SECRET' => Str::random(32),
             'DB_PASSWORD' => Str::random(32),
@@ -340,6 +343,6 @@ class SetupProductionEnvironment extends Command
         $this->newLine();
 
         $this->info("Environment ID: {$environment->id}");
-        $this->info('Domains: ' . implode(', ', $environment->domains));
+        $this->info('Domains: '.implode(', ', $environment->domains));
     }
 }

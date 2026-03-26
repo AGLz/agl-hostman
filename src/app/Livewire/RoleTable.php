@@ -18,7 +18,9 @@ class RoleTable extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $sortBy = 'name';
+
     public string $sortOrder = 'asc';
 
     protected $queryString = [

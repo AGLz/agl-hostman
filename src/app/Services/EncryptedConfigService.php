@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -19,30 +19,32 @@ use Illuminate\Support\Facades\Log;
 class EncryptedConfigService
 {
     private const CACHE_PREFIX = 'encrypted_config:';
+
     private const CACHE_TTL = 3600; // 1 hour
 
     /**
      * Get encrypted configuration value
      *
-     * @param string $key Config key (e.g., 'services.claude.api_key')
-     * @param mixed $default Default value if not found
+     * @param  string  $key  Config key (e.g., 'services.claude.api_key')
+     * @param  mixed  $default  Default value if not found
      * @return mixed Decrypted value
      */
     public function get(string $key, mixed $default = null): mixed
     {
         // Check cache first
-        $cacheKey = self::CACHE_PREFIX . $key;
+        $cacheKey = self::CACHE_PREFIX.$key;
 
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
         // Get encrypted value from config
-        $encryptedValue = config($key . '_encrypted');
+        $encryptedValue = config($key.'_encrypted');
 
         if (empty($encryptedValue)) {
             // Fallback to plain config (for backwards compatibility)
             Log::warning("Encrypted config not found for key: {$key}, using plain config");
+
             return config($key, $default);
         }
 
@@ -67,8 +69,8 @@ class EncryptedConfigService
     /**
      * Store encrypted configuration value
      *
-     * @param string $key Config key
-     * @param string $value Value to encrypt
+     * @param  string  $key  Config key
+     * @param  string  $value  Value to encrypt
      * @return bool Success status
      */
     public function set(string $key, string $value): bool
@@ -79,13 +81,13 @@ class EncryptedConfigService
 
             // Store in database or config file
             // For now, we'll use .env file with _ENCRYPTED suffix
-            $envKey = strtoupper(str_replace('.', '_', $key)) . '_ENCRYPTED';
+            $envKey = strtoupper(str_replace('.', '_', $key)).'_ENCRYPTED';
 
             // Update .env file (you might want to use a package like vlucas/phpdotenv)
             $this->updateEnvFile($envKey, $encryptedValue);
 
             // Clear cache
-            Cache::forget(self::CACHE_PREFIX . $key);
+            Cache::forget(self::CACHE_PREFIX.$key);
 
             Log::info("Encrypted config stored for key: {$key}");
 
@@ -119,8 +121,8 @@ class EncryptedConfigService
     /**
      * Rotate API key (encrypt new value, invalidate cache)
      *
-     * @param string $key Config key
-     * @param string $newValue New API key
+     * @param  string  $key  Config key
+     * @param  string  $newValue  New API key
      * @return bool Success status
      */
     public function rotate(string $key, string $newValue): bool
@@ -130,7 +132,7 @@ class EncryptedConfigService
 
         if ($success) {
             // Clear all related caches
-            Cache::forget(self::CACHE_PREFIX . $key);
+            Cache::forget(self::CACHE_PREFIX.$key);
 
             Log::info("API key rotated for: {$key}");
         }
@@ -141,12 +143,12 @@ class EncryptedConfigService
     /**
      * Validate API key is properly encrypted
      *
-     * @param string $key Config key
+     * @param  string  $key  Config key
      * @return bool Validation status
      */
     public function validate(string $key): bool
     {
-        $encryptedValue = config($key . '_encrypted');
+        $encryptedValue = config($key.'_encrypted');
 
         if (empty($encryptedValue)) {
             return false;
@@ -154,6 +156,7 @@ class EncryptedConfigService
 
         try {
             Crypt::decryptString($encryptedValue);
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -163,16 +166,16 @@ class EncryptedConfigService
     /**
      * Update .env file with encrypted value
      *
-     * @param string $key Environment variable key
-     * @param string $value Encrypted value
-     * @return void
+     * @param  string  $key  Environment variable key
+     * @param  string  $value  Encrypted value
      */
     protected function updateEnvFile(string $key, string $value): void
     {
         $envPath = base_path('.env');
 
-        if (!file_exists($envPath)) {
+        if (! file_exists($envPath)) {
             Log::error('.env file not found');
+
             return;
         }
 
@@ -197,8 +200,6 @@ class EncryptedConfigService
 
     /**
      * Clear all encrypted config cache
-     *
-     * @return void
      */
     public function clearCache(): void
     {

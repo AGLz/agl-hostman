@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DokployController;
 use App\Http\Controllers\DokployApplicationController;
+use App\Http\Controllers\DokployController;
 use App\Http\Controllers\DokployDeploymentController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Dokploy Dashboard Routes
@@ -11,7 +11,6 @@ use App\Http\Controllers\DokployDeploymentController;
  * All routes for Dokploy integration frontend
  * Requires authentication middleware
  */
-
 Route::middleware(['auth'])->prefix('dokploy')->name('dokploy.')->group(function () {
 
     // Dashboard

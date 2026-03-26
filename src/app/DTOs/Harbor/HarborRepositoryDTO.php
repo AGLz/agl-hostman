@@ -58,6 +58,6 @@ class HarborRepositoryDTO implements Arrayable
             'artifact_size_bytes' => $this->artifactSizeBytes,
             'creation_time' => $this->lastPushAt,
             'metadata' => $this->metadata,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 }

@@ -132,14 +132,14 @@ class NotificationRule extends Model
         if (isset($conditions['time_window'])) {
             $window = $conditions['time_window'];
             if (isset($window['days'])) {
-                $parts[] = "Days: " . implode(', ', $window['days']);
+                $parts[] = 'Days: '.implode(', ', $window['days']);
             }
             if (isset($window['start_time']) && isset($window['end_time'])) {
                 $parts[] = "Time: {$window['start_time']} - {$window['end_time']}";
             }
         }
 
-        return !empty($parts) ? implode(' | ', $parts) : 'No conditions';
+        return ! empty($parts) ? implode(' | ', $parts) : 'No conditions';
     }
 
     /**
@@ -149,11 +149,11 @@ class NotificationRule extends Model
     {
         $config = $this->config ?? [];
 
-        return match($this->action) {
-            'route' => 'Route to: ' . implode(', ', $config['channels'] ?? ['default']),
+        return match ($this->action) {
+            'route' => 'Route to: '.implode(', ', $config['channels'] ?? ['default']),
             'suppress' => 'Suppress notification',
-            'escalate' => 'Escalate to: ' . implode(', ', $config['channels'] ?? ['all']),
-            'group' => 'Group for ' . ($config['window'] ?? 300) . ' seconds',
+            'escalate' => 'Escalate to: '.implode(', ', $config['channels'] ?? ['all']),
+            'group' => 'Group for '.($config['window'] ?? 300).' seconds',
             default => ucfirst($this->action)
         };
     }

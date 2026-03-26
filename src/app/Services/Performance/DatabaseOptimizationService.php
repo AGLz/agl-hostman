@@ -6,7 +6,6 @@ namespace App\Services\Performance;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 
 /**
  * Database Optimization Service
@@ -33,13 +32,13 @@ class DatabaseOptimizationService
         $start = microtime(true);
 
         try {
-            $result = DB::select(DB::raw("EXPLAIN " . $query), $bindings);
+            $result = DB::select(DB::raw('EXPLAIN '.$query), $bindings);
             $results['explain'] = $result;
             $results['execution_time'] = (microtime(true) - $start) * 1000;
 
             // Analyze EXPLAIN output
             foreach ($result as $row) {
-                $rowArray = (array)$row;
+                $rowArray = (array) $row;
 
                 // Check for full table scans
                 if (isset($rowArray['type']) && $rowArray['type'] === 'ALL') {
@@ -82,7 +81,7 @@ class DatabaseOptimizationService
      */
     public function recommendIndexes(string $table): array
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return [];
         }
 
@@ -141,13 +140,13 @@ class DatabaseOptimizationService
     protected function getForeignKeys(string $table): array
     {
         try {
-            $keys = DB::select("
+            $keys = DB::select('
                 SELECT COLUMN_NAME
                 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
                 WHERE TABLE_SCHEMA = DATABASE()
                 AND TABLE_NAME = ?
                 AND REFERENCED_TABLE_NAME IS NOT NULL
-            ", [$table]);
+            ', [$table]);
 
             return array_column($keys, 'COLUMN_NAME');
         } catch (\Exception $e) {
@@ -165,7 +164,7 @@ class DatabaseOptimizationService
         // Check alerts table
         if (Schema::hasTable('alerts')) {
             $slowQueries['alerts'] = $this->analyzeQuery(
-                "SELECT * FROM alerts WHERE status = ? AND resolved_at IS NULL ORDER BY created_at DESC LIMIT 100",
+                'SELECT * FROM alerts WHERE status = ? AND resolved_at IS NULL ORDER BY created_at DESC LIMIT 100',
                 ['active']
             );
         }
@@ -173,7 +172,7 @@ class DatabaseOptimizationService
         // Check users table
         if (Schema::hasTable('users')) {
             $slowQueries['users'] = $this->analyzeQuery(
-                "SELECT * FROM users WHERE is_active = ? ORDER BY last_login_at DESC",
+                'SELECT * FROM users WHERE is_active = ? ORDER BY last_login_at DESC',
                 [true]
             );
         }
@@ -181,7 +180,7 @@ class DatabaseOptimizationService
         // Check n8n_workflows table
         if (Schema::hasTable('n8n_workflows')) {
             $slowQueries['n8n_workflows'] = $this->analyzeQuery(
-                "SELECT * FROM n8n_workflows WHERE active = ? AND category = ? ORDER BY last_executed_at DESC",
+                'SELECT * FROM n8n_workflows WHERE active = ? AND category = ? ORDER BY last_executed_at DESC',
                 [true, 'automation']
             );
         }
@@ -214,7 +213,7 @@ class DatabaseOptimizationService
      */
     public function analyzeTable(string $table): array
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return ['error' => 'Table does not exist'];
         }
 
@@ -222,13 +221,13 @@ class DatabaseOptimizationService
         $columnInfo = [];
 
         foreach ($columns as $column) {
-            $type = DB::selectOne("
+            $type = DB::selectOne('
                 SELECT DATA_TYPE, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, EXTRA
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE TABLE_SCHEMA = DATABASE()
                 AND TABLE_NAME = ?
                 AND COLUMN_NAME = ?
-            ", [$table, $column]);
+            ', [$table, $column]);
 
             if ($type) {
                 $columnInfo[$column] = [
@@ -340,7 +339,7 @@ class DatabaseOptimizationService
                 ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
             ");
 
-            return array_map(fn($t) => (array)$t, $tables);
+            return array_map(fn ($t) => (array) $t, $tables);
         } catch (\Exception $e) {
             return [];
         }
@@ -351,14 +350,14 @@ class DatabaseOptimizationService
      */
     public function recommendCompositeIndex(string $table, array $columns): array
     {
-        $indexName = 'idx_' . $table . '_' . implode('_', $columns);
+        $indexName = 'idx_'.$table.'_'.implode('_', $columns);
 
         return [
             'type' => 'composite',
             'table' => $table,
             'columns' => $columns,
             'name' => $indexName,
-            'sql' => "CREATE INDEX {$indexName} ON {$table}(" . implode(', ', $columns) . ");",
+            'sql' => "CREATE INDEX {$indexName} ON {$table}(".implode(', ', $columns).');',
             'priority' => 'high',
         ];
     }

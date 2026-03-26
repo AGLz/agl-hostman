@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Log;
  *
  * Checks compliance against security standards including OWASP Top 10,
  * GDPR requirements, and industry best practices.
- *
- * @package App\Services
  */
 class SecurityComplianceService
 {
@@ -26,8 +24,6 @@ class SecurityComplianceService
 
     /**
      * Run full compliance check
-     *
-     * @return array
      */
     public function runComplianceCheck(): array
     {
@@ -52,8 +48,6 @@ class SecurityComplianceService
 
     /**
      * Check OWASP Top 10 compliance
-     *
-     * @return array
      */
     public function checkOWASPTop10(): array
     {
@@ -94,8 +88,6 @@ class SecurityComplianceService
 
     /**
      * Check A01: Broken Access Control
-     *
-     * @return array
      */
     private function checkBrokenAccessControl(): array
     {
@@ -106,7 +98,7 @@ class SecurityComplianceService
         ];
 
         // Check if users can access other users' data
-        if (!Schema::hasColumn('users', 'id')) {
+        if (! Schema::hasColumn('users', 'id')) {
             $result['compliant'] = false;
             $result['findings'][] = 'Users table structure may not support proper access control';
         }
@@ -118,13 +110,13 @@ class SecurityComplianceService
 
             // Look for direct ID access without authorization
             if (preg_match('/\$this->route\([\'"]id[\'"]\)/i', $content) &&
-                !preg_match('/\$this->authorize\(/i', $content)) {
+                ! preg_match('/\$this->authorize\(/i', $content)) {
                 $result['compliant'] = false;
-                $result['findings'][] = 'Potential IDOR vulnerability in ' . basename($controller);
+                $result['findings'][] = 'Potential IDOR vulnerability in '.basename($controller);
             }
         }
 
-        if (!$result['compliant']) {
+        if (! $result['compliant']) {
             $result['recommendations'][] = 'Implement proper authorization checks using policies';
             $result['recommendations'][] = 'Use route model binding with authorization';
             $result['recommendations'][] = 'Validate user permissions before resource access';
@@ -135,8 +127,6 @@ class SecurityComplianceService
 
     /**
      * Check A02: Cryptographic Failures
-     *
-     * @return array
      */
     private function checkCryptographicFailures(): array
     {
@@ -147,14 +137,14 @@ class SecurityComplianceService
         ];
 
         // Check for HTTPS
-        if (config('app.env') === 'production' && !str_starts_with(config('app.url'), 'https://')) {
+        if (config('app.env') === 'production' && ! str_starts_with(config('app.url'), 'https://')) {
             $result['compliant'] = false;
             $result['findings'][] = 'Application not using HTTPS in production';
             $result['recommendations'][] = 'Enable HTTPS and configure SSL certificate';
         }
 
         // Check for encrypted sessions
-        if (!config('session.encrypt')) {
+        if (! config('session.encrypt')) {
             $result['compliant'] = false;
             $result['findings'][] = 'Session encryption is disabled';
             $result['recommendations'][] = 'Enable session encryption in config/session.php';
@@ -179,8 +169,6 @@ class SecurityComplianceService
 
     /**
      * Check A03: Injection
-     *
-     * @return array
      */
     private function checkInjection(): array
     {
@@ -198,7 +186,7 @@ class SecurityComplianceService
             // Look for dangerous patterns
             if (preg_match('/DB::(raw|select|statement)\([^)]*\$\w+\)/i', $content)) {
                 $result['compliant'] = false;
-                $result['findings'][] = 'Potential SQL injection in ' . basename($model);
+                $result['findings'][] = 'Potential SQL injection in '.basename($model);
             }
         }
 
@@ -212,7 +200,7 @@ class SecurityComplianceService
             }
         }
 
-        if (!$usesEloquent) {
+        if (! $usesEloquent) {
             $result['findings'][] = 'Not using Eloquent ORM - increased SQL injection risk';
             $result['recommendations'][] = 'Use Eloquent ORM with parameterized queries';
         }
@@ -230,8 +218,6 @@ class SecurityComplianceService
 
     /**
      * Check A04: Insecure Design
-     *
-     * @return array
      */
     private function checkInsecureDesign(): array
     {
@@ -242,21 +228,21 @@ class SecurityComplianceService
         ];
 
         // Check for rate limiting
-        if (!class_exists(\App\Http\Middleware\RateLimiting::class)) {
+        if (! class_exists(\App\Http\Middleware\RateLimiting::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'No rate limiting implemented';
             $result['recommendations'][] = 'Implement rate limiting to prevent abuse';
         }
 
         // Check for authentication
-        if (!config('session.driver')) {
+        if (! config('session.driver')) {
             $result['compliant'] = false;
             $result['findings'][] = 'No session driver configured';
             $result['recommendations'][] = 'Configure proper session driver';
         }
 
         // Check for RBAC
-        if (!class_exists(\Spatie\Permission\PermissionServiceProvider::class)) {
+        if (! class_exists(\Spatie\Permission\PermissionServiceProvider::class)) {
             $result['findings'][] = 'No RBAC implementation';
             $result['recommendations'][] = 'Implement role-based access control';
         }
@@ -266,8 +252,6 @@ class SecurityComplianceService
 
     /**
      * Check A05: Security Misconfiguration
-     *
-     * @return array
      */
     private function checkSecurityMisconfiguration(): array
     {
@@ -292,7 +276,7 @@ class SecurityComplianceService
 
         // Check for default credentials
         if (config('database.default')) {
-            $connection = config('database.connections.' . config('database.default'));
+            $connection = config('database.connections.'.config('database.default'));
             if (isset($connection['username']) && $connection['username'] === 'root') {
                 $result['findings'][] = 'Using root database user';
                 $result['recommendations'][] = 'Create dedicated database user with limited privileges';
@@ -300,7 +284,7 @@ class SecurityComplianceService
         }
 
         // Check for security headers
-        if (!class_exists(\App\Http\Middleware\SecurityHeaders::class)) {
+        if (! class_exists(\App\Http\Middleware\SecurityHeaders::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'Security headers middleware not implemented';
             $result['recommendations'][] = 'Implement security headers (CSP, HSTS, X-Frame-Options, etc.)';
@@ -311,8 +295,6 @@ class SecurityComplianceService
 
     /**
      * Check A06: Vulnerable and Outdated Components
-     *
-     * @return array
      */
     private function checkVulnerableComponents(): array
     {
@@ -325,25 +307,25 @@ class SecurityComplianceService
         // Check for composer audit
         try {
             $process = \Illuminate\Support\Process::timeout(60)->run('composer audit --no-dev');
-            if (!$process->successful()) {
+            if (! $process->successful()) {
                 $result['compliant'] = false;
                 $result['findings'][] = 'PHP dependencies have known vulnerabilities';
                 $result['recommendations'][] = 'Run composer update to fix vulnerabilities';
             }
         } catch (\Exception $e) {
-            $result['findings'][] = 'Unable to check for vulnerabilities: ' . $e->getMessage();
+            $result['findings'][] = 'Unable to check for vulnerabilities: '.$e->getMessage();
         }
 
         // Check for npm audit
         try {
             $process = \Illuminate\Support\Process::timeout(60)->run('npm audit --json');
-            if (!$process->successful()) {
+            if (! $process->successful()) {
                 $result['compliant'] = false;
                 $result['findings'][] = 'Node dependencies have known vulnerabilities';
                 $result['recommendations'][] = 'Run npm audit fix to fix vulnerabilities';
             }
         } catch (\Exception $e) {
-            $result['findings'][] = 'Unable to check for vulnerabilities: ' . $e->getMessage();
+            $result['findings'][] = 'Unable to check for vulnerabilities: '.$e->getMessage();
         }
 
         // Check Laravel version
@@ -359,8 +341,6 @@ class SecurityComplianceService
 
     /**
      * Check A07: Identification and Authentication Failures
-     *
-     * @return array
      */
     private function checkAuthFailures(): array
     {
@@ -371,20 +351,20 @@ class SecurityComplianceService
         ];
 
         // Check for password policy
-        if (!class_exists(\App\Rules\StrongPassword::class)) {
+        if (! class_exists(\App\Rules\StrongPassword::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'No strong password policy implemented';
             $result['recommendations'][] = 'Implement strong password requirements';
         }
 
         // Check for session security
-        if (!config('session.secure') && config('app.env') === 'production') {
+        if (! config('session.secure') && config('app.env') === 'production') {
             $result['compliant'] = false;
             $result['findings'][] = 'Session cookies not marked as secure';
             $result['recommendations'][] = 'Set SESSION_SECURE=true';
         }
 
-        if (!config('session.http_only')) {
+        if (! config('session.http_only')) {
             $result['compliant'] = false;
             $result['findings'][] = 'Session cookies accessible via JavaScript';
             $result['recommendations'][] = 'Set SESSION_HTTP_ONLY=true';
@@ -394,7 +374,7 @@ class SecurityComplianceService
         $authRoutes = base_path('routes/api.php');
         if (file_exists($authRoutes)) {
             $content = file_get_contents($authRoutes);
-            if (!str_contains($content, 'throttle:auth')) {
+            if (! str_contains($content, 'throttle:auth')) {
                 $result['findings'][] = 'Authentication endpoints not rate limited';
                 $result['recommendations'][] = 'Apply rate limiting to authentication endpoints';
             }
@@ -405,8 +385,6 @@ class SecurityComplianceService
 
     /**
      * Check A08: Software and Data Integrity Failures
-     *
-     * @return array
      */
     private function checkIntegrityFailures(): array
     {
@@ -420,12 +398,12 @@ class SecurityComplianceService
         $result['recommendations'][] = 'Consider implementing code signing for deployments';
 
         // Check for verification of third-party components
-        if (!file_exists(base_path('composer.lock'))) {
+        if (! file_exists(base_path('composer.lock'))) {
             $result['findings'][] = 'composer.lock not found - unable to verify dependency versions';
             $result['recommendations'][] = 'Commit composer.lock to version control';
         }
 
-        if (!file_exists(base_path('package-lock.json'))) {
+        if (! file_exists(base_path('package-lock.json'))) {
             $result['findings'][] = 'package-lock.json not found - unable to verify dependency versions';
             $result['recommendations'][] = 'Commit package-lock.json to version control';
         }
@@ -438,8 +416,6 @@ class SecurityComplianceService
 
     /**
      * Check A09: Security Logging and Monitoring Failures
-     *
-     * @return array
      */
     private function checkLoggingFailures(): array
     {
@@ -450,14 +426,14 @@ class SecurityComplianceService
         ];
 
         // Check for logging configuration
-        if (!config('logging.default')) {
+        if (! config('logging.default')) {
             $result['compliant'] = false;
             $result['findings'][] = 'No logging channel configured';
             $result['recommendations'][] = 'Configure logging channels';
         }
 
         // Check for audit logs
-        if (!Schema::hasTable('audit_logs') && !Schema::hasTable('activity_log')) {
+        if (! Schema::hasTable('audit_logs') && ! Schema::hasTable('activity_log')) {
             $result['compliant'] = false;
             $result['findings'][] = 'No audit logging implemented';
             $result['recommendations'][] = 'Implement audit logging for sensitive operations';
@@ -474,8 +450,6 @@ class SecurityComplianceService
 
     /**
      * Check A10: Server-Side Request Forgery
-     *
-     * @return array
      */
     private function checkSSRF(): array
     {
@@ -486,7 +460,7 @@ class SecurityComplianceService
         ];
 
         // Check for URL validation
-        if (!class_exists(\App\Rules\SafeUrl::class)) {
+        if (! class_exists(\App\Rules\SafeUrl::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'No URL validation to prevent SSRF';
             $result['recommendations'][] = 'Implement URL validation with SSRF protection';
@@ -497,7 +471,7 @@ class SecurityComplianceService
         foreach ($files as $file) {
             $content = file_get_contents($file);
             if (preg_match('/file_get_contents\s*\(\s*["\']https?:\/\//i', $content)) {
-                $result['findings'][] = 'Potential SSRF in ' . basename($file);
+                $result['findings'][] = 'Potential SSRF in '.basename($file);
                 $result['recommendations'][] = 'Use HTTP client with proper validation';
             }
         }
@@ -512,7 +486,7 @@ class SecurityComplianceService
             }
         }
 
-        if (!$hasHttpValidation) {
+        if (! $hasHttpValidation) {
             $result['findings'][] = 'HTTP requests may not be properly validated';
             $result['recommendations'][] = 'Implement allowlist for external requests';
         }
@@ -522,8 +496,6 @@ class SecurityComplianceService
 
     /**
      * Check GDPR compliance
-     *
-     * @return array
      */
     public function checkGDPRCompliance(): array
     {
@@ -561,8 +533,6 @@ class SecurityComplianceService
 
     /**
      * Check data minimization
-     *
-     * @return array
      */
     private function checkDataMinimization(): array
     {
@@ -580,8 +550,8 @@ class SecurityComplianceService
             $unnecessaryFields = ['ip_address', 'user_agent', 'device_id'];
             $foundUnnecessary = array_intersect($unnecessaryFields, $columns);
 
-            if (!empty($foundUnnecessary)) {
-                $result['findings'][] = 'Collecting potentially unnecessary data: ' . implode(', ', $foundUnnecessary);
+            if (! empty($foundUnnecessary)) {
+                $result['findings'][] = 'Collecting potentially unnecessary data: '.implode(', ', $foundUnnecessary);
                 $result['recommendations'][] = 'Review data collection practices and minimize data collection';
             }
         }
@@ -591,8 +561,6 @@ class SecurityComplianceService
 
     /**
      * Check right to access
-     *
-     * @return array
      */
     private function checkRightToAccess(): array
     {
@@ -614,7 +582,7 @@ class SecurityComplianceService
             }
         }
 
-        if (!$hasExport) {
+        if (! $hasExport) {
             $result['compliant'] = false;
             $result['findings'][] = 'No data export functionality implemented';
             $result['recommendations'][] = 'Implement data export endpoint for users';
@@ -625,8 +593,6 @@ class SecurityComplianceService
 
     /**
      * Check right to erasure
-     *
-     * @return array
      */
     private function checkRightToErasure(): array
     {
@@ -638,9 +604,9 @@ class SecurityComplianceService
 
         // Check if user can delete their account
         $controllers = glob(app_path('Http/Controllers/UserController.php'));
-        if (!empty($controllers)) {
+        if (! empty($controllers)) {
             $content = file_get_contents($controllers[0]);
-            if (!str_contains($content, 'destroy') && !str_contains($content, 'delete')) {
+            if (! str_contains($content, 'destroy') && ! str_contains($content, 'delete')) {
                 $result['compliant'] = false;
                 $result['findings'][] = 'No account deletion functionality';
                 $result['recommendations'][] = 'Implement account deletion with data anonymization';
@@ -655,8 +621,6 @@ class SecurityComplianceService
 
     /**
      * Check right to portability
-     *
-     * @return array
      */
     private function checkRightToPortability(): array
     {
@@ -674,8 +638,6 @@ class SecurityComplianceService
 
     /**
      * Check consent management
-     *
-     * @return array
      */
     private function checkConsentManagement(): array
     {
@@ -688,7 +650,7 @@ class SecurityComplianceService
         // Check if consent is tracked
         if (Schema::hasTable('users')) {
             $columns = Schema::getColumnListing('users');
-            if (!in_array('terms_accepted_at', $columns) && !in_array('consent_given', $columns)) {
+            if (! in_array('terms_accepted_at', $columns) && ! in_array('consent_given', $columns)) {
                 $result['compliant'] = false;
                 $result['findings'][] = 'No consent tracking implemented';
                 $result['recommendations'][] = 'Implement consent tracking and management';
@@ -700,8 +662,6 @@ class SecurityComplianceService
 
     /**
      * Check data breach notification
-     *
-     * @return array
      */
     private function checkDataBreachNotification(): array
     {
@@ -720,8 +680,6 @@ class SecurityComplianceService
 
     /**
      * Check data protection by design
-     *
-     * @return array
      */
     private function checkDataProtectionByDesign(): array
     {
@@ -742,8 +700,6 @@ class SecurityComplianceService
 
     /**
      * Check security best practices
-     *
-     * @return array
      */
     public function checkBestPractices(): array
     {
@@ -781,8 +737,6 @@ class SecurityComplianceService
 
     /**
      * Check password policy
-     *
-     * @return array
      */
     private function checkPasswordPolicy(): array
     {
@@ -792,7 +746,7 @@ class SecurityComplianceService
             'recommendations' => [],
         ];
 
-        if (!class_exists(\App\Rules\StrongPassword::class)) {
+        if (! class_exists(\App\Rules\StrongPassword::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'No strong password policy';
             $result['recommendations'][] = 'Implement strong password requirements (12+ chars, mixed case, numbers, special chars)';
@@ -803,8 +757,6 @@ class SecurityComplianceService
 
     /**
      * Check session management
-     *
-     * @return array
      */
     private function checkSessionManagement(): array
     {
@@ -819,7 +771,7 @@ class SecurityComplianceService
             $result['recommendations'][] = 'Reduce session lifetime to 2 hours or less';
         }
 
-        if (!config('session.expire_on_close')) {
+        if (! config('session.expire_on_close')) {
             $result['findings'][] = 'Sessions not set to expire on close';
             $result['recommendations'][] = 'Consider setting SESSION_EXPIRE_ON_CLOSE=true for sensitive applications';
         }
@@ -829,8 +781,6 @@ class SecurityComplianceService
 
     /**
      * Check API security
-     *
-     * @return array
      */
     private function checkAPISecurity(): array
     {
@@ -841,19 +791,19 @@ class SecurityComplianceService
         ];
 
         // Check for API authentication
-        if (!class_exists(\App\Http\Middleware\Authenticate::class)) {
+        if (! class_exists(\App\Http\Middleware\Authenticate::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'API authentication middleware not found';
         }
 
         // Check for rate limiting
-        if (!class_exists(\App\Http\Middleware\RateLimiting::class)) {
+        if (! class_exists(\App\Http\Middleware\RateLimiting::class)) {
             $result['compliant'] = false;
             $result['findings'][] = 'API rate limiting not implemented';
         }
 
         // Check for security headers
-        if (!class_exists(\App\Http\Middleware\SecurityHeaders::class)) {
+        if (! class_exists(\App\Http\Middleware\SecurityHeaders::class)) {
             $result['findings'][] = 'Security headers not implemented';
         }
 
@@ -862,8 +812,6 @@ class SecurityComplianceService
 
     /**
      * Check file upload security
-     *
-     * @return array
      */
     private function checkFileUploadSecurity(): array
     {
@@ -885,7 +833,6 @@ class SecurityComplianceService
     /**
      * Check error handling
      *
-     * @return array
      {
         $result = [
             'compliant' => true,
@@ -907,8 +854,6 @@ class SecurityComplianceService
 
     /**
      * Check backup security
-     *
-     * @return array
      */
     private function checkBackupSecurity(): array
     {
@@ -928,8 +873,6 @@ class SecurityComplianceService
 
     /**
      * Check dependency management
-     *
-     * @return array
      */
     private function checkDependencyManagement(): array
     {
@@ -940,12 +883,12 @@ class SecurityComplianceService
         ];
 
         // Check if lock files are committed
-        if (!file_exists(base_path('composer.lock'))) {
+        if (! file_exists(base_path('composer.lock'))) {
             $result['compliant'] = false;
             $result['findings'][] = 'composer.lock not committed to version control';
         }
 
-        if (!file_exists(base_path('package-lock.json'))) {
+        if (! file_exists(base_path('package-lock.json'))) {
             $result['findings'][] = 'package-lock.json not committed to version control';
         }
 
@@ -957,8 +900,6 @@ class SecurityComplianceService
 
     /**
      * Calculate compliance scores
-     *
-     * @return array
      */
     private function calculateComplianceScores(): array
     {
@@ -1016,16 +957,13 @@ class SecurityComplianceService
 
     /**
      * Get PHP files from directory
-     *
-     * @param string $directory
-     * @return array
      */
     private function getPhpFiles(string $directory): array
     {
         $files = [];
         $dir = base_path($directory);
 
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return $files;
         }
 

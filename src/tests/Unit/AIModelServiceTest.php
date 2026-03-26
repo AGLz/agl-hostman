@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Services\AIModelService;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Pool;
+use Illuminate\Support\Facades\Http;
 
 describe('AIModelService', function () {
     beforeEach(function () {
-        $this->service = new AIModelService();
+        $this->service = new AIModelService;
     });
 
     it('executes multi-agent queries concurrently', function () {

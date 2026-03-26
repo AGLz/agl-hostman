@@ -17,6 +17,7 @@ function assertZaiIds(yaml, label) {
   assert.match(yaml, /model_name:\s*"zai\/glm-5"/, `${label}: zai/glm-5`);
   assert.match(yaml, /model_name:\s*"zai\/glm-4\.7"/, `${label}: zai/glm-4.7`);
   assert.match(yaml, /model_name:\s*"zai\/glm-4\.7-flash"/, `${label}: zai/glm-4.7-flash`);
+  assert.match(yaml, /model_name:\s*"glm-4\.7-flash"/, `${label}: glm-4.7-flash (OpenClaw zai sem prefixo)`);
 }
 
 test('LiteLLM: IDs zai/glm-* (OpenClaw) em config.yaml', () => {

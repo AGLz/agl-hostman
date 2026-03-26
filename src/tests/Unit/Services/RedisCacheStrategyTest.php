@@ -14,12 +14,11 @@ use Tests\TestCase;
  * Redis Cache Strategy Service Test
  *
  * Tests for the RedisCacheStrategy class.
- *
- * @package Tests\Unit\Services
  */
 class RedisCacheStrategyTest extends TestCase
 {
     private RedisCacheStrategy $cacheStrategy;
+
     private CacheService $cacheService;
 
     protected function setUp(): void
@@ -37,7 +36,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $endpoint = '/api/containers';
         $parameters = ['status' => 'running'];
-        $callback = fn() => ['data' => 'test'];
+        $callback = fn () => ['data' => 'test'];
 
         $this->cacheService->expects($this->once())
             ->method('remember')
@@ -60,7 +59,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $resource = 'containers';
         $identifier = '101';
-        $callback = fn() => ['vmid' => '101', 'name' => 'test-vm'];
+        $callback = fn () => ['vmid' => '101', 'name' => 'test-vm'];
 
         $this->cacheService->expects($this->once())
             ->method('rememberWithLock')
@@ -83,7 +82,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $resource = 'applications';
         $identifier = 'app-1';
-        $callback = fn() => ['id' => 'app-1', 'name' => 'test-app'];
+        $callback = fn () => ['id' => 'app-1', 'name' => 'test-app'];
 
         $this->cacheService->expects($this->once())
             ->method('remember')
@@ -106,7 +105,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $resource = 'projects';
         $identifier = 'project-1';
-        $callback = fn() => ['id' => 'project-1', 'name' => 'test-project'];
+        $callback = fn () => ['id' => 'project-1', 'name' => 'test-project'];
 
         $this->cacheService->expects($this->once())
             ->method('remember')
@@ -129,7 +128,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $table = 'containers';
         $conditions = ['status' => 'running'];
-        $callback = fn() => ['id' => 1, 'name' => 'container-1'];
+        $callback = fn () => ['id' => 1, 'name' => 'container-1'];
 
         $this->cacheService->expects($this->once())
             ->method('remember')
@@ -152,7 +151,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $userId = 1;
         $dataType = 'permissions';
-        $callback = fn() => ['admin' => true, 'edit' => true];
+        $callback = fn () => ['admin' => true, 'edit' => true];
 
         $this->cacheService->expects($this->once())
             ->method('remember')
@@ -175,7 +174,7 @@ class RedisCacheStrategyTest extends TestCase
     {
         $metricType = 'cpu';
         $resource = 'server-1';
-        $callback = fn() => ['usage' => 45.5, 'cores' => 4];
+        $callback = fn () => ['usage' => 45.5, 'cores' => 4];
 
         $this->cacheService->expects($this->once())
             ->method('remember')

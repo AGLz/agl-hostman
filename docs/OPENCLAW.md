@@ -1,6 +1,6 @@
 # OpenClaw - Documentação AGL
 
-> **Last Updated**: 2026-03-21 | **Version doc**: 1.7.1
+> **Last Updated**: 2026-03-24 | **Version doc**: 1.8.1
 
 **OpenClaw** é uma plataforma de agente AI autônomo self-hosted. Funciona como assistente pessoal com suporte a múltiplos canais (Telegram, Slack, Discord, WhatsApp etc.), multi-agentes, roteamento de modelos e automação via LLMs.
 
@@ -8,6 +8,26 @@
 - **Docs**: https://docs.openclaw.ai
 - **GitHub**: https://github.com/openclaw/openclaw
 - **Config**: `~/.openclaw/openclaw.json`
+
+### Modo direct (providers sem LiteLLM)
+
+- **Env**: `config/openclaw/zshrc-openclaw.env` faz source de `zshrc-openclaw-direct.env` por omissão (chaves canónicas: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` / `GOOGLE_API_KEY`, `ZAI_API_KEY`, `DEEPSEEK_API_KEY`, `MOONSHOT_API_KEY`, `DASHSCOPE_API_KEY`, `OPENROUTER_API_KEY`).
+- **LiteLLM (legado)**: `export OPENCLAW_ENV_MODE=litellm` antes do `source` para carregar `zshrc-openclaw-litellm.env` (inclui `cclitellm` para Claude Code → gateway).
+- **Moonshot + Qwen (DashScope) no OpenClaw**: fragmento `config/openclaw/openclaw-models-direct.providers.json`; aplicar com `python3 scripts/openclaw/apply-openclaw-direct-providers.py` (backups `*.bak.direct-*`). Todos os agentes: `--all-agents`; só `agents/.../models.json`: `--skip-openclaw-json --all-agents`.
+- **Z.AI (`zai/glm-*`) sem Vercel AI Gateway**: o catálogo embutido do `pi-ai` usa `provider: vercel-ai-gateway` e `baseUrl` em `ai-gateway.vercel.sh` — sem `AI_GATEWAY_API_KEY` obtém-se 401. O fragmento direct inclui `models.providers.zai` com `https://api.z.ai/api/anthropic` e `${ZAI_API_KEY}`. O script `apply-openclaw-direct-providers.py` **substitui** todo o mapa `providers` do agente: antes de correr, fundir manualmente ou acrescentar só o bloco `zai` se precisares de outros providers (ex. `openrouter`) não listados no template.
+- **Smoke HTTP** (SKIP se a chave estiver vazia): `bash scripts/openclaw/test-openclaw-direct-providers.sh`. Variáveis `TEST_*_MODEL` permitem ajustar o modelo por fornecedor. Com chaves válidas mas quota esgotada: `OPENCLAW_SMOKE_TREAT_RATE_LIMIT=1` trata HTTP **402** e **429** como aviso (exit 0), não como falha.
+- **Fundir patch no `openclaw.json` local** (merge profundo; preserva tokens/canais): `python3 scripts/openclaw/merge-openclaw-json-patch.py` (`--dry-run` para pré-visualizar chaves alteradas). Em seguida, opcionalmente: `python3 scripts/openclaw/apply-openclaw-direct-providers.py`. Atalho: `bash scripts/openclaw/apply-openclaw-direct-bundle.sh`.
+- **systemd --user**: o `sync-systemd-openclaw-env.sh` lê `~/.openclaw/zshrc-openclaw.env`; alinhar com o repo via cópia ou symlink. Em modo direct não escreve `ANTHROPIC_API_KEY` fictício; chaves vazias são omitidas.
+
+Fallbacks e aliases multi-modelo: `config/openclaw/openclaw-patch.json` e agentes em `config/openclaw/openclaw-agents-list.fragment.json`.
+
+**Skills (Linux / gateway):** `skills.allowBundled` em `openclaw.json` limita skills *bundled* a entradas sem dependências macOS ou CLIs opcionais; skills do *workspace* (`~/.openclaw/workspace/skills`) não são afectadas. Ver [Skills Config](https://docs.openclaw.ai/tools/skills-config) (`docs/tools/skills-config.md` no pacote npm).
+
+**Telegram “All models failed”:** (1) `ANTHROPIC_BASE_URL` no systemd não deve apontar para LiteLLM (`:4000`) em modo direct — `sync-systemd-openclaw-env.sh` omite proxy e placeholders `sk-optional` / `sk-litellm-default`. Se o *manager* `--user` ainda exportar `LITELLM_*` / `ANTHROPIC_*` (ver `systemctl --user show-environment`), usar `systemctl --user unset-environment …` e o drop-in `config/openclaw/openclaw-gateway.service.d-env.conf` (`bash scripts/openclaw/install-openclaw-gateway-dropin.sh`). (2) `DEEPSEEK_URL` deve ser `https://api.deepseek.com/v1` (OpenAI-compat), não `/anthropic`. (3) O catálogo `openclaw-models-direct.providers.json` inclui bloco `deepseek` explícito para `deepseek/deepseek-chat` ser resolvido. (4) Validar chaves reais em DashScope, créditos OpenRouter e quotas OpenAI/Google/Moonshot.
+
+**Claude Desktop Pro vs OpenClaw:** a subscrição da app desktop **não** fornece `ANTHROPIC_API_KEY` utilizável pelo gateway. Para Claude via HTTP no OpenClaw usa-se **chave API Anthropic** (paga) ou um modelo **Claude agregado no OpenRouter** (ex. variantes `:free` quando disponíveis). O patch AGL sem créditos Google/OpenAI/Moonshot usa **Z.AI + DeepSeek + OpenRouter free + DashScope intl**.
+
+**DashScope:** chaves da consola **internacional** (`dashscope-intl`) devem usar `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` (não o host `dashscope.aliyuncs.com` só China). O `.zshrc` pode definir `DASHSCOPE_URL`; o `sync-systemd-openclaw-env.sh` exporta também essa variável para o systemd.
 
 ---
 
@@ -23,12 +43,12 @@ Sincronizado com docs oficiais: [Anthropic models](https://docs.anthropic.com/en
 | **Moonshot** | kimi-k2.5 | **kimi-k2.5** | $0.60/$3 | 256K |
 | **Moonshot** | - | **kimi-k2-thinking** | $0.60/$2.50 | 256K |
 | **DeepSeek** | V3/R1 | **V3.2** (`deepseek-chat`) | $0.28/$0.42 | 128K |
-| **OpenAI** | gpt-5.2 | **gpt-5.4** (frontier) | $2.50/$15 | ~1.05M |
-| **OpenAI** | — | **gpt-5.3-chat-latest** (= Instant ChatGPT) | $1.75/$14 | 128K |
+| **OpenAI** | — | **gpt-5.4** (flagship API) | $2.50/$15 | ~1M |
+| **OpenAI** | — | **openai/gpt-5.3-chat-latest** (alias LiteLLM; backend API **gpt-5.4-mini**) | ~$0.75/$4.50 | ~400K |
 | **OpenAI** | - | **gpt-4.1** | $2/$8 | 1M |
 | **Google** | gemini-3-pro-preview (desligado) | **gemini-3.1-pro-preview** | ver pricing | 1M |
 | **Google** | - | **gemini-2.5-flash-lite** | $0.10/$0.40 | 1M |
-| **Qwen** | qwen-plus | **qwen3.5-plus-02-15** | $0.26/$1.56 | 1M |
+| **Qwen** | qwen-plus / `qwen3.5-plus` (LiteLLM) | **qwen3.5-plus-2026-02-15** (DashScope OpenAI-compat) | $0.26/$1.56 | 1M |
 
 \*Preços OpenAI/Gemini conforme páginas de modelo em mar/2026.
 
@@ -40,6 +60,8 @@ Sincronizado com docs oficiais: [Anthropic models](https://docs.anthropic.com/en
 |------|-------------|--------|--------------------|
 | agldv03 (CT179) | 100.94.221.87 | **v2026.3.13** | 2026-03-21 |
 | fgsrv6 | 100.83.51.9 | **v2026.3.13** | 2026-03-21 |
+
+**Repo agl-hostman no agldv03**: `/mnt/overpower/apps/dev/agl/agl-hostman` (mesma árvore que `U:\apps\dev\agl\agl-hostman` na wk45 quando o drive está mapeado para overpower).
 
 **Versão instalada antes do update (histórico)**: v2026.1.29 (agldv03) / v2026.2.24 (fgsrv6)
 
@@ -57,6 +79,65 @@ systemctl --user daemon-reload && systemctl --user restart openclaw-gateway
 ```
 
 > **Nota**: `gateway install --force` pode regenerar `gateway.auth.token` e gravar backup em `~/.openclaw/openclaw.json.bak`. Clientes que usam o token antigo precisam do valor novo em `~/.openclaw/openclaw.json` ou novo *pairing*.
+
+### Windows (posto de desenvolvimento): clone Git + `pnpm link` (substitui pacote global)
+
+Em **aglwk45** (ou outro Windows com Node/pnpm), a instalação pode ser **a partir do repositório** em vez de `pnpm add -g openclaw` / `npm i -g`, para permitir `pnpm ui:build`, `pnpm build` e atualizações com `git pull` (alinhado ao [Install from source](https://docs.openclaw.ai/install) upstream).
+
+| Tópico | Detalhe |
+|--------|---------|
+| **Repositório** | `https://github.com/openclaw/openclaw` |
+| **Path recomendado** | `C:\Users\Administrator\src\openclaw` — **disco local** (NTFS). Evitar clone em shares SMB (ex.: drive `U:\` mapeado para rede): o `pnpm` usa **symlinks** no store; em SMB costuma falhar com `UNKNOWN: symlink`. |
+| **Trocar de global para clone** | `pnpm remove -g openclaw` → clone → `pnpm install` → `pnpm ui:build` → `pnpm build` → `pnpm link --global`. |
+| **CLI global** | `pnpm link --global` no diretório do clone faz o comando `openclaw` apontar para esse checkout. |
+| **Pré-requisitos** | Node 24+ (recomendado), pnpm, **Git for Windows** (o script `canvas:a2ui:bundle` invoca `bash`). |
+
+**Fluxo inicial (PowerShell)**:
+
+```powershell
+mkdir C:\Users\Administrator\src -Force
+cd C:\Users\Administrator\src
+git clone https://github.com/openclaw/openclaw.git
+cd openclaw
+pnpm install
+pnpm ui:build
+$env:PATH = "C:\Program Files\Git\bin;" + $env:PATH   # se `bash` não estiver no PATH do sistema
+pnpm build
+pnpm link --global
+openclaw --version
+```
+
+Opcional: adicionar `C:\Program Files\Git\bin` ao PATH permanente do utilizador para não repetir a linha `$env:PATH` em cada build.
+
+**Atualizar o checkout**:
+
+```powershell
+cd C:\Users\Administrator\src\openclaw
+git pull
+pnpm install
+pnpm ui:build
+$env:PATH = "C:\Program Files\Git\bin;" + $env:PATH
+pnpm build
+```
+
+Alternativa: `openclaw update` **dentro** do clone (o upstream deteta instalação git e corre fetch/build conforme configurado).
+
+**Notas**:
+
+- `pnpm ui:build` gera a **Control UI** (assets em `dist/control-ui/`); é o passo indicado quando o assistente reporta assets em falta ou após atualizar o código.
+- `pnpm link --global` pode mostrar avisos de *peerDependencies* (`@napi-rs/canvas`, `node-llama-cpp`); em geral são informativos no modo desenvolvimento.
+- `%USERPROFILE%\.openclaw\` (`openclaw.json`, workspace, credenciais) **não depende** do método de instalação — mantém-se ao mudar de npm/pnpm global para clone.
+
+#### Troubleshooting (Windows): gateway parado / Control UI não abre
+
+| Sintoma | Causa provável | Ação |
+|--------|----------------|------|
+| `openclaw gateway status` → serviço **não corre** / *exited immediately* | `~\.openclaw\gateway.cmd` ainda aponta para um **caminho antigo** do pacote global (ex. `...\openclaw@2026.3.8\...\dist\index.js`) já removido ou inválido após `pnpm link` ao clone. | `openclaw gateway install --force` (regenera `gateway.cmd` para o `dist\index.js` atual, ex. `C:\Users\Administrator\src\openclaw\dist\index.js`). Depois `openclaw gateway restart`. |
+| HTTP **503** / mensagem *Control UI assets not found* | Pasta `dist\control-ui\` em falta no clone (build não corrido ou limpeza). A tarefa agendada **não** tem `pnpm` no PATH → o auto-build do gateway pode falhar com *operable program or batch file*. | No clone: `pnpm ui:build` (e `pnpm build` se necessário). Reiniciar o gateway. |
+| Browser não abre nada / *connection refused* | Gateway parado ou porta **18789** presa por processo antigo. | `openclaw gateway stop`; se *port busy*, `openclaw gateway restart` após alguns segundos ou terminar o `node` que escuta em 18789. |
+| `openclaw health` / RPC com avisos *device-required* | Proteção de handshake WS; o **browser** pode funcionar na mesma. | Abrir **http://127.0.0.1:18789/** (só **127.0.0.1** — *loopback*). Se *unauthorized*, `openclaw dashboard` para obter URL com `?token=...`. |
+
+**Verificação rápida** (PowerShell): `openclaw gateway status` deve mostrar *Runtime: running* e *RPC probe: ok*; `Invoke-WebRequest http://127.0.0.1:18789/` deve devolver **200**.
 
 ### Histórico de versões relevantes
 
@@ -82,7 +163,7 @@ A configuração em `/root/.openclaw/openclaw.json` usa os providers definidos e
 | **ZAI/GLM** | `GLM_AUTH` / `ZAI_API_KEY` | `GLM_URL` (`api.z.ai`) | `anthropic-messages` | **glm-5** (744B/40B), glm-4.7, glm-4.7-flash (FREE) |
 | **Kimi** | `KIMI_AUTH` / `MOONSHOT_API_KEY` | `KIMI_URL` / `api.moonshot.ai` | `anthropic-messages` / `openai-completions` | **kimi-k2.5** (256K), kimi-k2-thinking, kimi-k2-turbo-preview, moonshot-v1-128k |
 | **DeepSeek** | `DEEPSEEK_AUTH` / `DEEPSEEK_API_KEY` | `DEEPSEEK_URL` (`deepseek.com`) | `anthropic-messages` | **deepseek-chat** (V3.2), deepseek-reasoner (64K out) |
-| **OpenAI** | `OPENAI_AUTH` / `OPENAI_API_KEY` | `OPENAI_URL` (`openai.com`) | built-in | **gpt-5.4**, **gpt-5.3-chat-latest** (128K), gpt-4.1, gpt-4o, gpt-4o-mini |
+| **OpenAI** | `OPENAI_AUTH` / `OPENAI_API_KEY` | `OPENAI_URL` (`openai.com`) | built-in | **gpt-5.4**, aliases **`openai/gpt-5.3-chat-latest`** / **`gpt-5.3-instant`** (LiteLLM → **gpt-5.4-mini**), gpt-4.1, gpt-4o, gpt-4o-mini |
 | **Gemini** | `GEMINI_AUTH` / `GEMINI_API_KEY` | `GEMINI_URL` (`googleapis.com`) | built-in Google | **gemini-3.1-pro-preview**, gemini-2.5-pro, gemini-2.5-flash, gemini-2.5-flash-lite |
 
 > **Como funciona**: O openclaw usa interpolação `${VAR}` para ler as variáveis de ambiente. As vars são definidas em `~/.zshrc` e precisam estar no ambiente quando o daemon inicializa.
@@ -95,7 +176,7 @@ zai/glm-5                              ← primário (744B params, agentic)
   → moonshot/kimi-k2.5                 ← fallback 2 (multimodal, 256K, Agent Swarm)
   → kimi/moonshot-v1-128k              ← fallback 3 (contexto 128k)
   → deepseek/deepseek-chat             ← fallback 4 (código — V3.2, $0.28/M)
-  → openai/gpt-5.3-chat-latest         ← fallback 5 (128K ctx, Instant API)
+  → openai/gpt-5.3-chat-latest         ← fallback 5 (alias LiteLLM → OpenAI **gpt-5.4-mini**, ~400K ctx)
   → google/gemini-3.1-pro-preview      ← fallback 6 (Gemini 3.1)
   → openrouter/deepseek/deepseek-v3.2  ← fallback 7 (via OpenRouter)
   → openrouter/z-ai/glm-4.5-air:free   ← último recurso (gratuito)
@@ -148,6 +229,8 @@ Substituir em `bindings[].match.peer.id` o placeholder `-100REPLACE_WITH_TELEGRA
 
 **aglwk45 (Windows, VM104 no AGLSRV1)**: SSH ao Proxmox não expõe `openclaw` ao Windows; usar guest agent. Script `scripts/openclaw/deploy-aglwk45-openclaw-guest.sh` copia o fragmento para o host e executa `scripts/openclaw/vm104_guest_merge.py` (base64 em **chunks** para respeitar o limite de linha de comando do Windows). Requer `python3` no AGLSRV1 e `node` na VM104.
 
+**Sincronizar bundle wk45 → agldv03 (Telegram só no destino)**: `scripts/openclaw/sync-agldv03-openclaw-from-wk45-qemu.sh` — copia `vm104_guest_pack_openclaw.py` para o AGLSRV1, empacota `C:/Users/Administrator/.openclaw` na VM104 via `qm guest exec`, transfere o `.tgz` para o agldv03 e corre `apply-wk45-bundle-on-agldv03.sh`. Variáveis: `AGLSRV1_HOST`, `AGLDV03`, `AGLWK45_VMID`.
+
 ### Mudar modelo no chat (sem restart)
 
 ```
@@ -165,6 +248,7 @@ Substituir em `bindings[].match.peer.id` o placeholder `-100REPLACE_WITH_TELEGRA
 /model r1                          # DeepSeek Reasoner (V3.2, 64K out)
 /model deepseek                    # DeepSeek Chat (V3.2, 128k)
 /model gpt                         # GPT-5.4 / alias gpt (LiteLLM: openai/gpt-5.4)
+/model gpt-5.4-mini                # OpenAI mini (~400K); cursor-composer usa este path
 /model gpt-4.1                     # GPT-4.1 (1M context)
 /model gpt-mini                    # GPT-4o-mini
 /model gemini                      # Gemini 3.1 Pro Preview (google/gemini-3.1-pro-preview)
@@ -184,7 +268,7 @@ Substituir em `bindings[].match.peer.id` o placeholder `-100REPLACE_WITH_TELEGRA
 | **Barato** | `deepseek/deepseek-chat` (V3.2) | $0.28/M | Código, 128K ctx |
 | **Padrão** | `zai/glm-5` | $1/M | Uso geral (primário) |
 | **Contexto longo** | `moonshot/kimi-k2.5` | $0.60/M | Docs grandes, 256K, multimodal |
-| **Premium** | `openai/gpt-5.3-chat-latest` | $1.75/M | Fallback Instant, 128K ctx |
+| **Premium** | `openai/gpt-5.3-chat-latest` (→ **gpt-5.4-mini**) | ~$0.75/M in | Fallback rápido OpenAI via LiteLLM (~400K ctx) |
 | **Topo** | `anthropic/claude-opus-4-6` | $5/M | 1M context, Agent Teams |
 | **Frontier** | `google/gemini-3.1-pro-preview` | ver Google | Gemini 3.1 |
 
@@ -201,7 +285,7 @@ anthropic/claude-sonnet-4-6           text+img   1M       yes   fallback#1, alia
 moonshot/kimi-k2.5                    text+img   256k     yes   fallback#2, alias:kimi-k2
 kimi/moonshot-v1-128k                 text       128k     yes   fallback#3, alias:kimi
 deepseek/deepseek-chat (V3.2)         text       128k     yes   fallback#4, alias:deepseek
-openai/gpt-5.3-chat-latest            text+img   128k     yes   fallback#5 (Instant API)
+openai/gpt-5.3-chat-latest            text+img   ~400k    yes   fallback#5 (→ API gpt-5.4-mini)
 google/gemini-3.1-pro-preview         text+img   1M       yes   fallback#6, alias:gemini
 openrouter/deepseek/deepseek-v3.2     text       160k     yes   fallback#7
 openrouter/z-ai/glm-4.5-air:free      text       128k     yes   fallback#8
@@ -418,6 +502,17 @@ for host in 100.94.221.87 100.83.51.9; do
 done
 ```
 
+### Doctor / “missing env var” no SSH
+
+O `openclaw.json` usa placeholders (`${GLM_URL}`, `${ZAI_API_KEY}`, …). O **gateway** systemd carrega `~/.config/environment.d/openclaw.conf` (gerado por `sync-systemd-openclaw-env.sh`). Num **SSH interativo** sem `source` desse ficheiro, `openclaw doctor` e `openclaw models list` podem mostrar avisos falsos.
+
+```bash
+set -a; source ~/.config/environment.d/openclaw.conf; set +a
+openclaw doctor
+```
+
+Reaplicar env + reinício seguro: `bash scripts/openclaw/fix-openclaw-agldv03-fgsrv06.sh` (a partir do repo, com SSH aos hosts).
+
 ### Arquivos no repositório (agl-hostman)
 
 | Arquivo | Descrição |
@@ -435,11 +530,21 @@ done
 | `scripts/openclaw/merge-openclaw-agents.mjs` | Merge seguro do fragmento no `openclaw.json` |
 | `scripts/openclaw/vm104_guest_merge.py` | Merge na VM104 (Windows) via `qm guest exec` + chunks base64 |
 | `scripts/openclaw/deploy-aglwk45-openclaw-guest.sh` | Orquestra scp + `vm104_guest_merge.py` no AGLSRV1 |
+| `scripts/openclaw/vm104_guest_pack_openclaw.py` | **AGLSRV1**: empacota `Administrator\\.openclaw` na VM104 (`tar` + leitura em chunks via `qm guest exec`) |
+| `scripts/openclaw/sync-agldv03-openclaw-from-wk45-qemu.sh` | **AGLSRV1 → agldv03**: bundle wk45 + `apply-wk45-bundle-on-agldv03.sh` (só Telegram no destino) |
+| `scripts/openclaw/apply-wk45-bundle-on-agldv03.sh` | Corre no **agldv03**: merge filesystem + JSON (executado pelo sync ou manualmente) |
+| `scripts/openclaw/pack-openclaw-for-agldv03.ps1` | Alternativa manual: `.tgz` no Desktop da wk45 (sem Proxmox) |
+| `scripts/openclaw/push-wk45-bundle-to-agldv03.sh` | Envia `.tgz` já gerado para o agldv03 |
 | `scripts/openclaw/deploy-aglwk45-wk45-litellm-qemu.sh` | **wk45**: sincroniza LiteLLM (`apiKey`/`baseUrl` + `litellm-gateway.env`) via `qm guest exec` |
 | `scripts/openclaw/vm104_guest_wk45_litellm_sync.py` | Python no Proxmox: upload + `node wk45-sync-openclaw-litellm.cjs` na VM104 |
 | `scripts/openclaw/wk45-sync-openclaw-litellm.cjs` | Merge JSON no Windows sem `jq` (mesma lógica que o `.jq`) |
 | `scripts/openclaw/wk45-patch-gateway-nodeopts.ps1` | **wk45**: suprime aviso Node **DEP0040** (`punycode`) no `gateway.cmd` |
 | `scripts/openclaw/vm104-verify-overpower-repo.sh` | Via `qm guest exec`: confirma se o `.ps1` existe no caminho Windows (default `U:\\apps\\dev\\agl\\agl-hostman`; ver limitação sessão no `AGLWK45-SETUP.md`) |
+| `scripts/openclaw/vm104-qemu-verify-all.sh` | **aglwk45**: bateria de checks via SSH ao AGLSRV1 + `qm guest exec` (ping LiteLLM, liveliness, `openclaw.json`, gateway 18789, tarefa agendada, clone `package.json`; guest = **SYSTEM**) |
+| `scripts/openclaw/verify-openclaw-agldv03-remote.sh` | SSH ao agldv03: gateway, `openclaw.json`, `agents.list`, LiteLLM `/v1/models`, logs em `~/.openclaw/logs` |
+| `scripts/openclaw/fix-openclaw-agldv03-fgsrv06.sh` | **agldv03 + fgsrv06**: regen `openclaw.conf` (`sync-systemd-openclaw-env.sh`), `chmod 600` em `openclaw.json`, restart `openclaw-gateway`. Opcional: `DOCTOR=1` (com timeout) para `openclaw doctor --yes` |
+| `scripts/openclaw/invoke-remote-openclaw-upgrade.sh` | **agldv03 + fgsrv06**: `npm install -g openclaw@latest` + `openclaw gateway install --force` + restart (usa `remote-openclaw-upgrade-gateway.sh` via scp) |
+| `scripts/openclaw/remote-openclaw-upgrade-gateway.sh` | Script copiado para `/tmp/` no host; não correr localmente (é para o tarball remoto) |
 | `scripts/openclaw/wk45-sync-openclaw-litellm.sh` | **aglwk45**: alinha `apiKey` + `baseUrl` ao agldv03 (evita 401 `sk-litellm-default`) |
 | `config/openclaw/wk45-litellm-gateway.env.example` | Template `~/.openclaw/litellm-gateway.env` na VM Windows (chave real) |
 | `tests/unit/openclaw-agents-fragment.test.js` | Valida fragmento multi-agente |
@@ -466,6 +571,7 @@ done
 | Gateway timeout no restart | Demora para subir mas fica OK | Verificar com `systemctl --user status openclaw-gateway` |
 | Config não recarregado | Gateway ainda com config antigo | `source ~/.zshrc && openclaw gateway restart` |
 | `Unhandled stop reason: model_context_window_exceeded` | Contexto da sessão (ou sessão **embedded** heartbeat/cron) excedeu o limite do modelo; em versões antigas o stop reason não disparava compactação automática ([issue #35868](https://github.com/openclaw/openclaw/issues/35868)) | **Curto prazo**: `/new` ou `/reset` no canal, ou apagar sessão inchada em `~/.openclaw/**/sessions/*.jsonl` e `systemctl --user restart openclaw-gateway`. **Definitivo**: `npm install -g openclaw@latest` (build com fix do stop reason). Manter `compaction` ativo; reduzir histórico anexado em tarefas periódicas. |
+| `Context overflow: prompt too large for the model` (Telegram / canal) | O **histórico da sessão** (ficheiro `*.jsonl` em `~/.openclaw/agents/<agente>/sessions/`) acumulou mais tokens que o **context window** do modelo na sessão (ex.: ~137k tokens vs 125k limite no `sessions.json`). Comum em conversas longas sem `/reset`. | No chat: **`/reset`** ou **`/new`**. No servidor: fazer backup do `sessions.json` + `*.jsonl` gigante, remover a entrada do peer em `sessions.json` (ex. `agent:main:main`) e arquivar o `.jsonl`, depois `systemctl --user restart openclaw-gateway`. Verificar `compaction.mode` em `agents.defaults` se o problema voltar. |
 | `404 No endpoints found for google/gemini-2.5-flash-lite:free` (**fgsrv06** / Telegram) | Muitas vezes o **GLM principal falha**: OpenClaw pede `zai/glm-5` mas o proxy só tinha `glm-5` → fallbacks até Gemini e erro confuso. | 1) LiteLLM com `model_name` **`zai/glm-5`** (e `zai/glm-4.7*`) no `config.yaml`; `./scripts/litellm/replicate-all-hosts.sh`. 2) `curl` de teste com `"model":"zai/glm-5"`. 3) `baseUrl` → `http://127.0.0.1:4000`. Ver `docs/LITELLM-TROUBLESHOOTING.md` §11. |
 | `(node:…) [DEP0040] DeprecationWarning: punycode` ao subir o gateway | Dependências ainda usam o módulo **integrado** `punycode` do Node (deprecated). Não é erro do teu `openclaw.json`. | **Windows (wk45)**: `cd` à raiz do repo `agl-hostman`, depois `powershell -ExecutionPolicy Bypass -File .\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1` (ou `-File "C:\…\agl-hostman\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1"`). Reinicia o gateway. **Linux**: export `NODE_OPTIONS=--disable-warning=DEP0040` antes de `openclaw gateway` ou no unit systemd. Definitivo: upgrades Node/OpenClaw quando upstream remover o uso. |
 | Linhas `[telegram] autoSelectFamily=…` / `dnsResultOrder=…` | **Informativas** (stack de rede Node/undici), não são erros. | Ignorar ou reduzir verbosidade nas opções do OpenClaw se existirem. |

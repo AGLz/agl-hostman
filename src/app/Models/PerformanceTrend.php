@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
 
 /**
  * Performance Trend Model
@@ -25,8 +25,6 @@ use Carbon\Carbon;
  * @property Carbon $recorded_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
- *
- * @package App\Models
  */
 class PerformanceTrend extends Model
 {
@@ -56,7 +54,7 @@ class PerformanceTrend extends Model
     public function scopeByResource(Builder $query, string $resourceType, string $resourceId): Builder
     {
         return $query->where('resource_type', $resourceType)
-                     ->where('resource_id', $resourceId);
+            ->where('resource_id', $resourceId);
     }
 
     /**
@@ -97,9 +95,9 @@ class PerformanceTrend extends Model
     public function scopeLatestPerResource(Builder $query, array $resourceIds, string $metricType): Builder
     {
         return $query->whereIn('resource_id', $resourceIds)
-                     ->where('metric_type', $metricType)
-                     ->orderBy('recorded_at', 'desc')
-                     ->distinct('resource_id');
+            ->where('metric_type', $metricType)
+            ->orderBy('recorded_at', 'desc')
+            ->distinct('resource_id');
     }
 
     /**
@@ -109,7 +107,7 @@ class PerformanceTrend extends Model
     {
         return $query->whereBetween('recorded_at', [
             now()->subHours($maxHours),
-            now()->subHours($minHours)
+            now()->subHours($minHours),
         ]);
     }
 

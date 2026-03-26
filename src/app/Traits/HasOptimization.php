@@ -36,8 +36,8 @@ trait HasOptimization
     protected static function bootHasOptimization(): void
     {
         // Auto-eager load relations
-        static:: resolving(function ($model) {
-            if (!empty($model->alwaysEagerLoad)) {
+        static::resolving(function ($model) {
+            if (! empty($model->alwaysEagerLoad)) {
                 $model->load($model->alwaysEagerLoad);
             }
         });
@@ -46,7 +46,7 @@ trait HasOptimization
     /**
      * Scope to cache query results
      */
-    public function scopeCache(Builder $query, int $ttl = null): Builder
+    public function scopeCache(Builder $query, ?int $ttl = null): Builder
     {
         $ttl = $ttl ?? $this->cacheTTL;
         $key = $this->getCacheKey($query);
@@ -65,7 +65,7 @@ trait HasOptimization
             '%s:%s:%s',
             $this->cachePrefix,
             $this->getTable(),
-            md5($query->toSql() . serialize($query->getBindings()))
+            md5($query->toSql().serialize($query->getBindings()))
         );
     }
 
@@ -87,7 +87,7 @@ trait HasOptimization
     public function scopeOptimized(Builder $query): Builder
     {
         // Eager load common relations
-        if (!empty($this->alwaysEagerLoad)) {
+        if (! empty($this->alwaysEagerLoad)) {
             $query->with($this->alwaysEagerLoad);
         }
 
@@ -102,9 +102,9 @@ trait HasOptimization
     /**
      * Get cached model instance
      */
-    public static function cachedFind($id, int $ttl = null): ?self
+    public static function cachedFind($id, ?int $ttl = null): ?self
     {
-        $instance = new static();
+        $instance = new static;
         $ttl = $ttl ?? $instance->cacheTTL;
         $key = "{$instance->cachePrefix}:{$instance->getTable()}:{$id}";
 
@@ -135,7 +135,7 @@ trait HasOptimization
      */
     public static function clearAllCache(): bool
     {
-        $instance = new static();
+        $instance = new static;
 
         return Cache::tags([$instance->cachePrefix, $instance->getTable()])->flush() !== false;
     }
@@ -155,7 +155,7 @@ trait HasOptimization
     /**
      * Get paginated results with optimization
      */
-    public function scopePaginated(Builder $query, int $perPage = null): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function scopePaginated(Builder $query, ?int $perPage = null): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = $perPage ?? config('performance.api.default_page_size', 25);
         $maxPerPage = config('performance.api.max_page_size', 100);
@@ -197,10 +197,10 @@ trait HasOptimization
      */
     public static function getStats(int $ttl = 300): array
     {
-        $instance = new static();
+        $instance = new static;
         $key = "stats:{$instance->getTable()}";
 
-        return Cache::remember($key, $ttl, function () use ($instance) {
+        return Cache::remember($key, $ttl, function () {
             return [
                 'total' => static::count(),
                 'active' => static::active()->count(),

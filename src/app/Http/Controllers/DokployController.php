@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\DokployService;
-use App\Models\DokployProject;
 use App\Models\DokployApplication;
 use App\Models\DokployDeployment;
+use App\Models\DokployProject;
+use App\Services\DokployService;
+use Exception;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Exception;
 
 /**
  * Dokploy Dashboard Controller
@@ -45,7 +45,7 @@ class DokployController extends Controller
 
                 if ($local) {
                     $projectArray['id'] = $local->id;
-                    $projectArray['applications'] = $local->applications->map(fn($app) => [
+                    $projectArray['applications'] = $local->applications->map(fn ($app) => [
                         'id' => $app->id,
                         'name' => $app->name,
                         'status' => $app->status,

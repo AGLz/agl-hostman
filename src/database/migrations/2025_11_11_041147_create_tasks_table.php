@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['status', 'sprint_id']);
             $table->index(['assigned_to', 'status']);
             $table->index('epic');

@@ -4,9 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Log;
 
 /**
  * ThrottleApiRequests - Advanced rate limiting for API endpoints
@@ -71,12 +71,12 @@ class ThrottleApiRequests
     {
         // Authenticated users: rate limit by user ID
         if ($user = $request->user()) {
-            return 'api:user:' . $user->id;
+            return 'api:user:'.$user->id;
         }
 
         // Guest users: rate limit by IP + User-Agent
-        return 'api:ip:' . sha1(
-            $request->ip() . '|' . $request->userAgent()
+        return 'api:ip:'.sha1(
+            $request->ip().'|'.$request->userAgent()
         );
     }
 
@@ -94,7 +94,7 @@ class ThrottleApiRequests
      */
     public static function getRateLimitStatus(Request $request, int $maxAttempts = 100): array
     {
-        $middleware = new self();
+        $middleware = new self;
         $key = $middleware->resolveRequestSignature($request);
 
         return [

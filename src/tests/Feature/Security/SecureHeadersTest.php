@@ -13,8 +13,6 @@ use Tests\TestCase;
  *
  * Tests for security headers including CSP, HSTS, X-Frame-Options,
  * and other protective headers.
- *
- * @package Tests\Feature\Security
  */
 class SecureHeadersTest extends TestCase
 {

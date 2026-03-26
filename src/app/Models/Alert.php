@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Alert extends Model
@@ -64,7 +64,7 @@ class Alert extends Model
         $query->where('status', 'active')
             ->where(function ($q) {
                 $q->whereNull('muted_until')
-                  ->orWhere('muted_until', '<', now());
+                    ->orWhere('muted_until', '<', now());
             });
     }
 
@@ -172,7 +172,7 @@ class Alert extends Model
     public function scopeByResource(Builder $query, string $resourceType, string $resourceId): void
     {
         $query->where('resource_type', $resourceType)
-              ->where('resource_id', $resourceId);
+            ->where('resource_id', $resourceId);
     }
 
     /**
@@ -182,7 +182,7 @@ class Alert extends Model
     {
         $query->where(function ($q) {
             $q->whereNull('muted_until')
-              ->orWhere('muted_until', '<', now());
+                ->orWhere('muted_until', '<', now());
         });
     }
 
@@ -248,7 +248,7 @@ class Alert extends Model
      */
     public function shouldAutoResolve(): bool
     {
-        if (!$this->auto_resolve_after_hours) {
+        if (! $this->auto_resolve_after_hours) {
             return false;
         }
 
@@ -264,7 +264,7 @@ class Alert extends Model
             return 0;
         }
 
-        return match($this->severity) {
+        return match ($this->severity) {
             'critical' => 100,
             'high' => 80,
             'medium' => 60,
@@ -278,7 +278,7 @@ class Alert extends Model
      */
     public function getColorAttribute(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             'critical' => '#EF4444', // Red
             'warning' => '#F59E0B', // Yellow
             'info' => '#3B82F6', // Blue
@@ -291,7 +291,7 @@ class Alert extends Model
      */
     public function getIconAttribute(): string
     {
-        return match($this->source) {
+        return match ($this->source) {
             'server' => 'server',
             'container' => 'box',
             'network' => 'network',
@@ -307,7 +307,7 @@ class Alert extends Model
     public function shouldNotify(): bool
     {
         // Only notify for critical and warning alerts
-        if (!in_array($this->type, ['critical', 'warning'])) {
+        if (! in_array($this->type, ['critical', 'warning'])) {
             return false;
         }
 

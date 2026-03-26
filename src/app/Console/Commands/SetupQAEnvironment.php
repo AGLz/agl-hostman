@@ -2,15 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\DTOs\Dokploy\ApplicationDTO;
+use App\DTOs\Dokploy\DomainDTO;
+use App\DTOs\Dokploy\ProjectDTO;
 use App\Models\Environment;
 use App\Services\Deployment\EnvironmentConfigService;
 use App\Services\DokployService;
-use App\DTOs\Dokploy\ProjectDTO;
-use App\DTOs\Dokploy\ApplicationDTO;
-use App\DTOs\Dokploy\DomainDTO;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 /**
  * Setup QA Environment Command
@@ -41,6 +41,7 @@ class SetupQAEnvironment extends Command
     protected $description = 'Setup QA environment with Dokploy integration';
 
     private EnvironmentConfigService $configService;
+
     private DokployService $dokployService;
 
     public function __construct(
@@ -64,9 +65,10 @@ class SetupQAEnvironment extends Command
             // Step 1: Check if QA environment exists
             $environment = Environment::where('type', 'qa')->first();
 
-            if ($environment && !$this->option('force')) {
-                $this->error('❌ QA Environment already exists (ID: ' . $environment->id . ')');
+            if ($environment && ! $this->option('force')) {
+                $this->error('❌ QA Environment already exists (ID: '.$environment->id.')');
                 $this->warn('Use --force to recreate');
+
                 return self::FAILURE;
             }
 
@@ -76,11 +78,12 @@ class SetupQAEnvironment extends Command
             }
 
             // Step 2: Verify Dokploy connectivity
-            if (!$this->option('skip-dokploy')) {
+            if (! $this->option('skip-dokploy')) {
                 $this->task('Verifying Dokploy connectivity', function () {
-                    if (!$this->dokployService->testConnection()) {
+                    if (! $this->dokployService->testConnection()) {
                         throw new Exception('Cannot connect to Dokploy API');
                     }
+
                     return true;
                 });
             }
@@ -93,7 +96,7 @@ class SetupQAEnvironment extends Command
             $this->info("   ✅ Environment created (ID: {$environment->id})");
 
             // Step 4: Create Dokploy project
-            if (!$this->option('skip-dokploy')) {
+            if (! $this->option('skip-dokploy')) {
                 $project = $this->task('Creating Dokploy project', function () use ($environment) {
                     $projectDTO = new ProjectDTO([
                         'name' => 'AGL-HOSTMAN QA',
@@ -112,7 +115,7 @@ class SetupQAEnvironment extends Command
                 $this->info("   ✅ Project created (ID: {$project->projectId})");
 
                 // Step 5: Create application
-                $application = $this->task('Creating Dokploy application', function () use ($environment, $project) {
+                $application = $this->task('Creating Dokploy application', function () use ($project) {
                     $appDTO = new ApplicationDTO([
                         'name' => 'agl-hostman-qa',
                         'environmentId' => $project->projectId,
@@ -142,12 +145,12 @@ class SetupQAEnvironment extends Command
                     }
                 });
 
-                $this->info('   ✅ Domains configured: ' . implode(', ', $environment->domains));
+                $this->info('   ✅ Domains configured: '.implode(', ', $environment->domains));
 
                 // Step 7: Set environment variables
                 $this->task('Setting environment variables', function () use ($environment, $application) {
                     $envString = collect($environment->env_vars)
-                        ->map(fn($value, $key) => "{$key}={$value}")
+                        ->map(fn ($value, $key) => "{$key}={$value}")
                         ->implode("\n");
 
                     $envDTO = new \App\DTOs\Dokploy\EnvironmentDTO([
@@ -158,7 +161,7 @@ class SetupQAEnvironment extends Command
                     $this->dokployService->setEnvironmentVariables($envDTO);
                 });
 
-                $this->info('   ✅ Environment variables set (' . count($environment->env_vars) . ' vars)');
+                $this->info('   ✅ Environment variables set ('.count($environment->env_vars).' vars)');
 
                 // Step 8: Configure resource limits
                 $this->task('Setting resource limits', function () use ($environment, $application) {
@@ -174,8 +177,8 @@ class SetupQAEnvironment extends Command
                 });
 
                 $this->info('   ✅ Resource limits configured');
-                $this->info('      CPU: ' . $environment->getResource('cpu_limit'));
-                $this->info('      Memory: ' . $environment->getResource('memory_limit'));
+                $this->info('      CPU: '.$environment->getResource('cpu_limit'));
+                $this->info('      Memory: '.$environment->getResource('memory_limit'));
             }
 
             // Summary
@@ -198,13 +201,13 @@ class SetupQAEnvironment extends Command
 
             $this->newLine();
             $this->line('🔗 Next Steps:');
-            $this->line('1. Configure Harbor project: ' . $environment->harbor_project);
+            $this->line('1. Configure Harbor project: '.$environment->harbor_project);
             $this->line('2. Set up GitHub webhook:');
-            $this->line('   URL: ' . config('app.url') . '/webhooks/github');
+            $this->line('   URL: '.config('app.url').'/webhooks/github');
             $this->line('   Secret: Set GITHUB_WEBHOOK_SECRET in .env');
             $this->line('3. Push Docker image to Harbor:');
-            $this->line('   docker build -t harbor.aglz.io:5000/' . $environment->harbor_project . '/agl-hostman:qa-latest .');
-            $this->line('   docker push harbor.aglz.io:5000/' . $environment->harbor_project . '/agl-hostman:qa-latest');
+            $this->line('   docker build -t harbor.aglz.io:5000/'.$environment->harbor_project.'/agl-hostman:qa-latest .');
+            $this->line('   docker push harbor.aglz.io:5000/'.$environment->harbor_project.'/agl-hostman:qa-latest');
             $this->line('4. Trigger first deployment:');
             $this->line('   php artisan deployment:deploy-qa');
 
@@ -215,11 +218,12 @@ class SetupQAEnvironment extends Command
             return self::SUCCESS;
 
         } catch (Exception $e) {
-            $this->error('❌ Setup failed: ' . $e->getMessage());
+            $this->error('❌ Setup failed: '.$e->getMessage());
             Log::error('QA Environment setup failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return self::FAILURE;
         }
     }

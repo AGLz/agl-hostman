@@ -13,9 +13,13 @@ use Illuminate\Support\Collection;
 class HNSWIndexer
 {
     protected array $layers = [];
+
     protected int $dimensions;
+
     protected int $m; // Connections per element
+
     protected int $efConstruction;
+
     protected int $maxElements;
 
     public function __construct(array $config)
@@ -61,7 +65,7 @@ class HNSWIndexer
     public function search(array $query, int $k, int $ef = 50): Collection
     {
         $entryPoint = $this->getEntryPoint();
-        if (!$entryPoint) {
+        if (! $entryPoint) {
             return collect();
         }
 
@@ -90,7 +94,8 @@ class HNSWIndexer
         }
 
         // Return top k results
-        usort($candidates, fn($a, $b) => $a['distance'] <=> $b['distance']);
+        usort($candidates, fn ($a, $b) => $a['distance'] <=> $b['distance']);
+
         return collect(array_slice($candidates, 0, $k));
     }
 
@@ -99,7 +104,7 @@ class HNSWIndexer
      */
     protected function calculateMaxLayer(): int
     {
-        return (int)(log($this->maxElements) / log(2)) + 1;
+        return (int) (log($this->maxElements) / log(2)) + 1;
     }
 
     /**
@@ -107,7 +112,7 @@ class HNSWIndexer
      */
     protected function selectEntryPointLayer(): int
     {
-        return (int)(-log(random_int(1, PHP_INT_MAX) / PHP_INT_MAX) / log(2));
+        return (int) (-log(random_int(1, PHP_INT_MAX) / PHP_INT_MAX) / log(2));
     }
 
     /**
@@ -115,7 +120,7 @@ class HNSWIndexer
      */
     protected function insertAtLayer(string $id, array $vector, int $layer): void
     {
-        if (!isset($this->layers[$layer])) {
+        if (! isset($this->layers[$layer])) {
             $this->layers[$layer] = [];
         }
 
@@ -155,7 +160,7 @@ class HNSWIndexer
             ];
         }
 
-        usort($candidates, fn($a, $b) => $a['distance'] <=> $b['distance']);
+        usort($candidates, fn ($a, $b) => $a['distance'] <=> $b['distance']);
 
         return array_slice(array_column($candidates, 'id'), 0, $m);
     }
@@ -185,6 +190,7 @@ class HNSWIndexer
                 return $layer[$id]['vector'];
             }
         }
+
         return null;
     }
 
@@ -195,7 +201,7 @@ class HNSWIndexer
     {
         $maxLayer = $this->getMaxLayer();
 
-        if ($maxLayer < 0 || !isset($this->layers[$maxLayer])) {
+        if ($maxLayer < 0 || ! isset($this->layers[$maxLayer])) {
             return null;
         }
 
@@ -208,10 +214,11 @@ class HNSWIndexer
     protected function getMaxLayer(): int
     {
         for ($layer = count($this->layers) - 1; $layer >= 0; $layer--) {
-            if (!empty($this->layers[$layer])) {
+            if (! empty($this->layers[$layer])) {
                 return $layer;
             }
         }
+
         return -1;
     }
 
@@ -220,7 +227,7 @@ class HNSWIndexer
      */
     protected function getNearestNeighbor(string $currentId, array $query, array $visited, int $layer): ?string
     {
-        if (!isset($this->layers[$layer][$currentId])) {
+        if (! isset($this->layers[$layer][$currentId])) {
             return null;
         }
 
@@ -254,7 +261,7 @@ class HNSWIndexer
 
         // Maintain size limit
         if (count($candidates) > $ef) {
-            usort($candidates, fn($a, $b) => $a['distance'] <=> $b['distance']);
+            usort($candidates, fn ($a, $b) => $a['distance'] <=> $b['distance']);
             $candidates = array_slice($candidates, 0, $ef);
         }
     }

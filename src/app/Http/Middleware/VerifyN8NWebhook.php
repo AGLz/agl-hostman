@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * VerifyN8NWebhook - HMAC signature verification for N8N webhooks
@@ -52,11 +52,11 @@ class VerifyN8NWebhook
         $expectedSignature = hash_hmac('sha256', $payload, $webhookSecret);
 
         // Timing-safe comparison to prevent timing attacks
-        if (!hash_equals($expectedSignature, $signature)) {
+        if (! hash_equals($expectedSignature, $signature)) {
             Log::warning('N8N webhook rejected - invalid signature', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'received_signature' => substr($signature, 0, 8) . '...',
+                'received_signature' => substr($signature, 0, 8).'...',
             ]);
 
             abort(403, 'Invalid webhook signature');
@@ -67,7 +67,7 @@ class VerifyN8NWebhook
 
         if ($timestamp) {
             $maxAge = 300; // 5 minutes
-            $age = time() - (int)$timestamp;
+            $age = time() - (int) $timestamp;
 
             if ($age > $maxAge) {
                 Log::warning('N8N webhook rejected - timestamp too old', [
@@ -90,7 +90,7 @@ class VerifyN8NWebhook
     /**
      * Generate signature for testing
      *
-     * @param string $payload Request body
+     * @param  string  $payload  Request body
      * @return string HMAC signature
      */
     public static function generateSignature(string $payload): string

@@ -65,7 +65,7 @@ readonly class DomainDTO
             'customCertResolver' => $this->customCertResolver,
             'internalPath' => $this->internalPath,
             'domainType' => $this->domainType,
-        ], fn($value) => $value !== null && $value !== '');
+        ], fn ($value) => $value !== null && $value !== '');
     }
 
     public static function forCreate(

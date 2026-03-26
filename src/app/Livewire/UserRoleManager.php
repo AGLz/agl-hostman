@@ -19,7 +19,9 @@ class UserRoleManager extends Component
     protected UserRepository $userRepository;
 
     public User $user;
+
     public string $selectedRole = '';
+
     public bool $showModal = false;
 
     protected $rules = [

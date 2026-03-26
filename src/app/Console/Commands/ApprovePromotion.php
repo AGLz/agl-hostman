@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Services\Deployment\PromotionApprovalService;
 use App\Models\Promotion;
 use App\Models\User;
+use App\Services\Deployment\PromotionApprovalService;
 use Illuminate\Console\Command;
 
 class ApprovePromotion extends Command
@@ -30,8 +30,9 @@ class ApprovePromotion extends Command
         $approverEmail = $this->option('approver');
         $notes = $this->option('notes');
 
-        if (!$approverEmail) {
+        if (! $approverEmail) {
             $this->error('❌ --approver option is required');
+
             return self::FAILURE;
         }
 
@@ -50,6 +51,7 @@ class ApprovePromotion extends Command
             return self::SUCCESS;
         } catch (\Exception $e) {
             $this->error("❌ Approval failed: {$e->getMessage()}");
+
             return self::FAILURE;
         }
     }

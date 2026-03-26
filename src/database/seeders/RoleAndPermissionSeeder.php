@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleAndPermissionSeeder extends Seeder
 {
@@ -23,39 +23,39 @@ class RoleAndPermissionSeeder extends Seeder
             'create users',
             'edit users',
             'delete users',
-            
+
             // Location management
             'view locations',
             'manage locations',
             'assign locations',
-            
+
             // Infrastructure monitoring
             'view infrastructure',
             'manage infrastructure',
             'execute commands',
-            
+
             // N8N workflows
             'view workflows',
             'create workflows',
             'execute workflows',
             'manage workflows',
-            
+
             // AI Models
             'view ai models',
             'use ai models',
             'configure ai models',
-            
+
             // System
             'view logs',
             'view telescope',
             'view horizon',
             'manage system',
-            
+
             // Scrum board
             'view board',
             'create tasks',
             'edit tasks',
-            'delete tasks'
+            'delete tasks',
         ];
 
         foreach ($permissions as $permission) {
@@ -63,7 +63,7 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         // Create roles and assign permissions
-        
+
         // Admin - acesso total
         $adminRole = Role::create(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
@@ -86,7 +86,7 @@ class RoleAndPermissionSeeder extends Seeder
             'view telescope',
             'view board',
             'create tasks',
-            'edit tasks'
+            'edit tasks',
         ]);
 
         // Common - operações básicas
@@ -101,7 +101,7 @@ class RoleAndPermissionSeeder extends Seeder
             'use ai models',
             'view board',
             'create tasks',
-            'edit tasks'
+            'edit tasks',
         ]);
 
         // Restricted - apenas leitura
@@ -110,7 +110,7 @@ class RoleAndPermissionSeeder extends Seeder
             'view locations',
             'view infrastructure',
             'view workflows',
-            'view board'
+            'view board',
         ]);
     }
 }

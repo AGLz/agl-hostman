@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 class SlackNotificationService
 {
     protected array $config;
+
     protected ?NotificationChannel $channel = null;
 
     public function __construct()
@@ -25,6 +26,7 @@ class SlackNotificationService
     public function setChannel(NotificationChannel $channel): self
     {
         $this->channel = $channel;
+
         return $this;
     }
 
@@ -33,14 +35,14 @@ class SlackNotificationService
      */
     public function sendDeploymentNotification(Deployment $deployment): bool
     {
-        $color = match($deployment->status) {
+        $color = match ($deployment->status) {
             'completed' => 'good',
             'failed' => 'danger',
             'in_progress' => 'warning',
             default => '#808080'
         };
 
-        $emoji = match($deployment->status) {
+        $emoji = match ($deployment->status) {
             'completed' => ':white_check_mark:',
             'failed' => ':x:',
             'in_progress' => ':hourglass_flowing_sand:',
@@ -53,18 +55,18 @@ class SlackNotificationService
             'icon_emoji' => ':rocket:',
             'attachments' => [[
                 'color' => $color,
-                'title' => "{$emoji} Deployment {$deployment->environment->name}: " . ucfirst($deployment->status),
+                'title' => "{$emoji} Deployment {$deployment->environment->name}: ".ucfirst($deployment->status),
                 'fields' => [
                     ['title' => 'Version', 'value' => $deployment->version, 'short' => true],
                     ['title' => 'Commit', 'value' => substr($deployment->git_commit ?? 'N/A', 0, 7), 'short' => true],
-                    ['title' => 'Duration', 'value' => ($deployment->duration ?? 0) . 's', 'short' => true],
+                    ['title' => 'Duration', 'value' => ($deployment->duration ?? 0).'s', 'short' => true],
                     ['title' => 'Author', 'value' => $deployment->triggered_by ?? 'System', 'short' => true],
                 ],
                 'actions' => [
                     [
                         'type' => 'button',
                         'text' => 'View Logs',
-                        'url' => route('deployments.show', $deployment->id)
+                        'url' => route('deployments.show', $deployment->id),
                     ],
                     [
                         'type' => 'button',
@@ -75,14 +77,14 @@ class SlackNotificationService
                             'title' => 'Are you sure?',
                             'text' => 'This will rollback to the previous deployment',
                             'ok_text' => 'Yes, rollback',
-                            'dismiss_text' => 'Cancel'
-                        ]
-                    ]
+                            'dismiss_text' => 'Cancel',
+                        ],
+                    ],
                 ],
                 'footer' => 'AGL-HOSTMAN',
                 'footer_icon' => 'https://aglz.io/favicon.ico',
-                'ts' => $deployment->created_at->timestamp
-            ]]
+                'ts' => $deployment->created_at->timestamp,
+            ]],
         ];
 
         return $this->send($message, 'deployment', $deployment->id);
@@ -93,14 +95,14 @@ class SlackNotificationService
      */
     public function sendAlertNotification(Alert $alert): bool
     {
-        $color = match($alert->type) {
+        $color = match ($alert->type) {
             'critical' => 'danger',
             'warning' => 'warning',
             'info' => 'good',
             default => '#808080'
         };
 
-        $emoji = match($alert->type) {
+        $emoji = match ($alert->type) {
             'critical' => ':rotating_light:',
             'warning' => ':warning:',
             'info' => ':information_source:',
@@ -126,23 +128,23 @@ class SlackNotificationService
                         'type' => 'button',
                         'text' => 'Acknowledge',
                         'url' => route('alerts.acknowledge', $alert->id),
-                        'style' => 'primary'
+                        'style' => 'primary',
                     ],
                     [
                         'type' => 'button',
                         'text' => 'Resolve',
                         'url' => route('alerts.resolve', $alert->id),
-                        'style' => 'primary'
+                        'style' => 'primary',
                     ],
                     [
                         'type' => 'button',
                         'text' => 'View Details',
-                        'url' => route('alerts.show', $alert->id)
-                    ]
+                        'url' => route('alerts.show', $alert->id),
+                    ],
                 ],
                 'footer' => 'AGL-HOSTMAN Alert Center',
-                'ts' => $alert->created_at->timestamp
-            ]]
+                'ts' => $alert->created_at->timestamp,
+            ]],
         ];
 
         return $this->send($message, 'alert', $alert->id);
@@ -153,7 +155,7 @@ class SlackNotificationService
      */
     public function sendPRNotification(string $action, array $prData): bool
     {
-        $color = match($action) {
+        $color = match ($action) {
             'opened' => 'good',
             'merged' => '#6f42c1',
             'closed' => '#dc3545',
@@ -161,7 +163,7 @@ class SlackNotificationService
             default => '#808080'
         };
 
-        $emoji = match($action) {
+        $emoji = match ($action) {
             'opened' => ':arrow_heading_up:',
             'merged' => ':white_check_mark:',
             'closed' => ':x:',
@@ -186,18 +188,18 @@ class SlackNotificationService
                     [
                         'type' => 'button',
                         'text' => 'View PR',
-                        'url' => $prData['url']
+                        'url' => $prData['url'],
                     ],
                     [
                         'type' => 'button',
                         'text' => 'Review Changes',
-                        'url' => $prData['url'] . '/files'
-                    ]
+                        'url' => $prData['url'].'/files',
+                    ],
                 ],
                 'footer' => 'GitHub',
                 'footer_icon' => 'https://github.githubassets.com/favicons/favicon.png',
-                'ts' => time()
-            ]]
+                'ts' => time(),
+            ]],
         ];
 
         return $this->send($message, 'pr', $prData['number']);
@@ -215,7 +217,7 @@ class SlackNotificationService
             'icon_emoji' => ':robot_face:',
         ];
 
-        if (!empty($attachments)) {
+        if (! empty($attachments)) {
             $message['attachments'] = $attachments;
         }
 
@@ -245,8 +247,9 @@ class SlackNotificationService
     {
         $webhookUrl = $this->getWebhookUrl();
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             Log::warning('Slack webhook URL not configured');
+
             return false;
         }
 
@@ -257,7 +260,7 @@ class SlackNotificationService
                     'channel' => $channel,
                     'ts' => $ts,
                     'attachments' => $newAttachments,
-                    'replace_original' => true
+                    'replace_original' => true,
                 ]);
 
             return $response->successful();
@@ -265,8 +268,9 @@ class SlackNotificationService
             Log::error('Failed to update Slack message', [
                 'error' => $e->getMessage(),
                 'channel' => $channel,
-                'ts' => $ts
+                'ts' => $ts,
             ]);
+
             return false;
         }
     }
@@ -278,8 +282,9 @@ class SlackNotificationService
     {
         $webhookUrl = $this->getWebhookUrl();
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             Log::warning('Slack webhook URL not configured');
+
             return false;
         }
 
@@ -296,11 +301,11 @@ class SlackNotificationService
 
             $this->updateHistory($historyId, $success, $response->body());
 
-            if (!$success) {
+            if (! $success) {
                 Log::error('Slack notification failed', [
                     'status' => $response->status(),
                     'response' => $response->body(),
-                    'message' => $message
+                    'message' => $message,
                 ]);
             }
 
@@ -311,7 +316,7 @@ class SlackNotificationService
 
             Log::error('Slack notification exception', [
                 'error' => $e->getMessage(),
-                'message' => $message
+                'message' => $message,
             ]);
 
             return false;
@@ -360,8 +365,9 @@ class SlackNotificationService
             return $history->id;
         } catch (\Exception $e) {
             Log::error('Failed to create notification history', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -371,7 +377,7 @@ class SlackNotificationService
      */
     protected function updateHistory(?int $historyId, bool $success, ?string $response): void
     {
-        if (!$historyId) {
+        if (! $historyId) {
             return;
         }
 
@@ -380,12 +386,12 @@ class SlackNotificationService
                 'status' => $success ? 'sent' : 'failed',
                 'response' => $response,
                 'sent_at' => $success ? now() : null,
-                'failed_at' => !$success ? now() : null,
+                'failed_at' => ! $success ? now() : null,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to update notification history', [
                 'error' => $e->getMessage(),
-                'history_id' => $historyId
+                'history_id' => $historyId,
             ]);
         }
     }
@@ -397,10 +403,10 @@ class SlackNotificationService
     {
         $webhookUrl = $this->getWebhookUrl();
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             return [
                 'success' => false,
-                'message' => 'Webhook URL not configured'
+                'message' => 'Webhook URL not configured',
             ];
         }
 
@@ -414,8 +420,8 @@ class SlackNotificationService
                 'title' => 'Connection Test',
                 'text' => 'If you see this message, Slack integration is working correctly!',
                 'footer' => 'AGL-HOSTMAN',
-                'ts' => time()
-            ]]
+                'ts' => time(),
+            ]],
         ];
 
         try {
@@ -427,13 +433,13 @@ class SlackNotificationService
                     ? 'Slack notification sent successfully'
                     : 'Failed to send Slack notification',
                 'status' => $response->status(),
-                'response' => $response->body()
+                'response' => $response->body(),
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'message' => 'Exception occurred',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }

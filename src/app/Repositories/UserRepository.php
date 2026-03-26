@@ -2,14 +2,14 @@
 
 namespace App\Repositories;
 
-use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /**
  * User Repository
@@ -22,10 +22,6 @@ class UserRepository
 {
     /**
      * Get all users with optional filters
-     *
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
      */
     public function getAllUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -46,7 +42,7 @@ class UserRepository
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -67,8 +63,6 @@ class UserRepository
 
     /**
      * Get active users only
-     *
-     * @return Collection
      */
     public function getActiveUsers(): Collection
     {
@@ -77,9 +71,6 @@ class UserRepository
 
     /**
      * Find user by ID with relationships
-     *
-     * @param int $userId
-     * @return User|null
      */
     public function findById(int $userId): ?User
     {
@@ -88,9 +79,6 @@ class UserRepository
 
     /**
      * Find user by email
-     *
-     * @param string $email
-     * @return User|null
      */
     public function findByEmail(string $email): ?User
     {
@@ -100,9 +88,6 @@ class UserRepository
     /**
      * Create new user with role assignment
      *
-     * @param array $data
-     * @param User $creator
-     * @return User
      * @throws \Exception
      */
     public function createUser(array $data, User $creator): User
@@ -154,10 +139,6 @@ class UserRepository
     /**
      * Update user information
      *
-     * @param User $user
-     * @param array $data
-     * @param User $updater
-     * @return User
      * @throws \Exception
      */
     public function updateUser(User $user, array $data, User $updater): User
@@ -219,9 +200,6 @@ class UserRepository
     /**
      * Delete user
      *
-     * @param User $user
-     * @param User $deleter
-     * @return bool
      * @throws \Exception
      */
     public function deleteUser(User $user, User $deleter): bool
@@ -266,10 +244,6 @@ class UserRepository
 
     /**
      * Activate user account
-     *
-     * @param User $user
-     * @param User $activator
-     * @return User
      */
     public function activateUser(User $user, User $activator): User
     {
@@ -289,9 +263,6 @@ class UserRepository
     /**
      * Deactivate user account
      *
-     * @param User $user
-     * @param User $deactivator
-     * @return User
      * @throws \Exception
      */
     public function deactivateUser(User $user, User $deactivator): User
@@ -309,7 +280,7 @@ class UserRepository
             }
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             throw new \Exception('User is already inactive');
         }
 
@@ -326,10 +297,6 @@ class UserRepository
     /**
      * Assign role to user
      *
-     * @param User $user
-     * @param string|Role $role
-     * @param User $assigner
-     * @return User
      * @throws \Exception
      */
     public function assignRole(User $user, string|Role $role, User $assigner): User
@@ -362,10 +329,6 @@ class UserRepository
     /**
      * Remove role from user
      *
-     * @param User $user
-     * @param string|Role $role
-     * @param User $remover
-     * @return User
      * @throws \Exception
      */
     public function removeRole(User $user, string|Role $role, User $remover): User
@@ -403,11 +366,6 @@ class UserRepository
 
     /**
      * Give permission directly to user
-     *
-     * @param User $user
-     * @param string|Permission $permission
-     * @param User $granter
-     * @return User
      */
     public function givePermission(User $user, string|Permission $permission, User $granter): User
     {
@@ -435,11 +393,6 @@ class UserRepository
 
     /**
      * Revoke permission from user
-     *
-     * @param User $user
-     * @param string|Permission $permission
-     * @param User $revoker
-     * @return User
      */
     public function revokePermission(User $user, string|Permission $permission, User $revoker): User
     {
@@ -467,9 +420,6 @@ class UserRepository
 
     /**
      * Get users by role
-     *
-     * @param string $role
-     * @return Collection
      */
     public function getUsersByRole(string $role): Collection
     {
@@ -478,9 +428,6 @@ class UserRepository
 
     /**
      * Get users by permission
-     *
-     * @param string $permission
-     * @return Collection
      */
     public function getUsersByPermission(string $permission): Collection
     {
@@ -489,10 +436,6 @@ class UserRepository
 
     /**
      * Get user's activity statistics
-     *
-     * @param User $user
-     * @param int $days
-     * @return array
      */
     public function getUserActivityStats(User $user, int $days = 30): array
     {
@@ -519,11 +462,6 @@ class UserRepository
 
     /**
      * Check if user can perform action on target user
-     *
-     * @param User $actor
-     * @param User $target
-     * @param string $action
-     * @return bool
      */
     public function canPerformAction(User $actor, User $target, string $action): bool
     {
@@ -538,12 +476,12 @@ class UserRepository
         }
 
         // Cannot perform actions on super admins unless you are one
-        if ($target->isSuperAdmin() && !$actor->isSuperAdmin()) {
+        if ($target->isSuperAdmin() && ! $actor->isSuperAdmin()) {
             return false;
         }
 
         // Check specific permissions
-        return match($action) {
+        return match ($action) {
             'view' => $actor->hasPermissionTo('view-users'),
             'create' => $actor->hasPermissionTo('create-users'),
             'edit' => $actor->hasPermissionTo('edit-users'),
@@ -558,9 +496,6 @@ class UserRepository
     /**
      * Validate business rules for user operations
      *
-     * @param string $operation
-     * @param User|null $user
-     * @param array $data
      * @return array ['valid' => bool, 'errors' => array]
      */
     public function validateBusinessRules(string $operation, ?User $user = null, array $data = []): array

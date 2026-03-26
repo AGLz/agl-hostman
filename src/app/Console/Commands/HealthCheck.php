@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class HealthCheck extends Command
 {
     protected $signature = 'health:check {--json : Output as JSON}';
+
     protected $description = 'Run comprehensive health checks on the application';
 
     public function handle(HealthCheckService $healthCheck): int
@@ -19,6 +20,7 @@ class HealthCheck extends Command
 
         if ($this->option('json')) {
             $this->line(json_encode($results, JSON_PRETTY_PRINT));
+
             return $results['healthy'] ? 0 : 1;
         }
 
@@ -55,15 +57,15 @@ class HealthCheck extends Command
 
         if ($results['healthy']) {
             $this->info('✅ All health checks passed!');
+
             return 0;
         } else {
             $this->error('❌ Some health checks failed');
 
-            $critical = array_filter($results['checks'], fn($c) =>
-                $c['status'] === 'unhealthy' && $c['severity'] === 'critical'
+            $critical = array_filter($results['checks'], fn ($c) => $c['status'] === 'unhealthy' && $c['severity'] === 'critical'
             );
 
-            if (!empty($critical)) {
+            if (! empty($critical)) {
                 $this->newLine();
                 $this->error('Critical Issues:');
                 foreach ($critical as $issue) {

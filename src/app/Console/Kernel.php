@@ -2,12 +2,12 @@
 
 namespace App\Console;
 
-use App\Jobs\ContainerHealthCheckJob;
-use App\Jobs\MetricsCollectionJob;
-use App\Jobs\SecurityScanJob;
 use App\Jobs\BackupJob;
 use App\Jobs\CleanupJob;
+use App\Jobs\ContainerHealthCheckJob;
+use App\Jobs\MetricsCollectionJob;
 use App\Jobs\NotificationJob;
+use App\Jobs\SecurityScanJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -38,7 +38,7 @@ class Kernel extends ConsoleKernel
         // ============================================
 
         // Container health checks - every minute
-        $schedule->job(new ContainerHealthCheckJob())
+        $schedule->job(new ContainerHealthCheckJob)
             ->everyMinute()
             ->onQueue('health-checks')
             ->withoutOverlapping()
@@ -241,7 +241,7 @@ class Kernel extends ConsoleKernel
 
         if (config('app.env') === 'local' || config('app.env') === 'staging') {
             // Development: Less frequent checks
-            $schedule->job(new ContainerHealthCheckJob())
+            $schedule->job(new ContainerHealthCheckJob)
                 ->everyTenMinutes()
                 ->onQueue('health-checks');
         }

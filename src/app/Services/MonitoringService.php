@@ -6,12 +6,9 @@ namespace App\Services;
 
 use App\Models\Alert;
 use App\Models\PerformanceTrend;
-use App\Models\ProxmoxServer;
-use App\Models\LxcContainer;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Collection;
-use Carbon\Carbon;
 
 /**
  * MonitoringService - Core monitoring orchestration service
@@ -21,15 +18,17 @@ use Carbon\Carbon;
  * - Alert generation and evaluation
  * - Health check scheduling
  * - Performance trend analysis
- *
- * @package App\Services
  */
 class MonitoringService
 {
     protected MetricsCollector $metricsCollector;
+
     protected AlertService $alertService;
+
     protected int $collectionInterval;
+
     protected int $retentionDays;
+
     protected array $thresholds;
 
     public function __construct(
@@ -71,9 +70,10 @@ class MonitoringService
             $metrics = $this->metricsCollector->aggregateAllMetrics();
             $result['metrics_collected'] = $metrics['success'];
 
-            if (!$metrics['success']) {
+            if (! $metrics['success']) {
                 $result['success'] = false;
                 $result['errors'][] = 'Failed to collect metrics';
+
                 return $result;
             }
 
@@ -108,7 +108,7 @@ class MonitoringService
     /**
      * Evaluate metrics against thresholds and generate alerts
      *
-     * @param array $metrics Collected metrics
+     * @param  array  $metrics  Collected metrics
      * @return array<Alert> Generated alerts
      */
     protected function evaluateAlerts(array $metrics): array
@@ -166,6 +166,7 @@ class MonitoringService
                     'error' => $server['error'] ?? null,
                 ],
             ];
+
             return $alerts;
         }
 
@@ -332,7 +333,7 @@ class MonitoringService
     {
         $alerts = [];
 
-        if (!$network['success'] ?? false) {
+        if (! $network['success'] ?? false) {
             return $alerts;
         }
 
@@ -411,7 +412,7 @@ class MonitoringService
     {
         $alerts = [];
 
-        if (!$storage['success'] ?? false) {
+        if (! $storage['success'] ?? false) {
             return $alerts;
         }
 
@@ -461,7 +462,7 @@ class MonitoringService
     /**
      * Record performance trends for analysis
      *
-     * @param array $metrics Collected metrics
+     * @param  array  $metrics  Collected metrics
      * @return int Number of trends recorded
      */
     protected function recordPerformanceTrends(array $metrics): int
@@ -470,7 +471,7 @@ class MonitoringService
 
         // Record server trends
         foreach ($metrics['servers'] ?? [] as $server) {
-            if (!isset($server['metrics'])) {
+            if (! isset($server['metrics'])) {
                 continue;
             }
 
@@ -655,10 +656,9 @@ class MonitoringService
     /**
      * Get performance trend analysis
      *
-     * @param string|null $resourceType Filter by resource type
-     * @param string|null $resourceId Filter by resource ID
-     * @param int $hours Time period in hours
-     * @return array
+     * @param  string|null  $resourceType  Filter by resource type
+     * @param  string|null  $resourceId  Filter by resource ID
+     * @param  int  $hours  Time period in hours
      */
     public function getPerformanceTrends(
         ?string $resourceType = null,

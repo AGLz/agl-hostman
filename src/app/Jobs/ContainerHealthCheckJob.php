@@ -2,25 +2,22 @@
 
 namespace App\Jobs;
 
-use App\Services\ContainerHealthMonitor;
-use App\Services\AlertService;
 use App\Models\ProxmoxServer;
-use App\Models\Alert;
+use App\Services\AlertService;
+use App\Services\ContainerHealthMonitor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Container Health Check Job
  *
  * Periodically checks the health of all containers across Proxmox nodes.
  * Runs every minute via Laravel Horizon scheduler.
- *
- * @package App\Jobs
  */
 class ContainerHealthCheckJob implements ShouldQueue
 {
@@ -76,13 +73,14 @@ class ContainerHealthCheckJob implements ShouldQueue
         AlertService $alertService
     ): void {
         $startTime = microtime(true);
-        $cacheKey = 'health_check:running:' . ($this->nodeCode ?? 'all');
+        $cacheKey = 'health_check:running:'.($this->nodeCode ?? 'all');
 
         // Prevent overlapping health checks
         if (Cache::get($cacheKey)) {
             Log::warning('Health check already running', [
                 'node' => $this->nodeCode ?? 'all',
             ]);
+
             return;
         }
 
@@ -98,6 +96,7 @@ class ContainerHealthCheckJob implements ShouldQueue
                 Log::warning('No online Proxmox servers found for health check', [
                     'node' => $this->nodeCode ?? 'all',
                 ]);
+
                 return;
             }
 

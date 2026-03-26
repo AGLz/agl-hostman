@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 describe('CacheService', function () {
     beforeEach(function () {
         Cache::flush();
-        $this->service = new CacheService();
+        $this->service = new CacheService;
     });
 
     afterEach(function () {
@@ -30,6 +30,7 @@ describe('CacheService', function () {
         $callback = function () use (&$hitCount) {
             $hitCount++;
             usleep(100000); // 100ms simulated database query
+
             return 'expensive-result';
         };
 

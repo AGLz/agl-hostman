@@ -8,40 +8,46 @@ namespace App\DTO;
  * Container Backup DTO
  *
  * Immutable data transfer object for backup metadata and status.
- *
- * @package App\DTO
  */
 readonly class BackupDTO
 {
     public const MODE_SNAPSHOT = 'snapshot';
+
     public const MODE_SUSPEND = 'suspend';
+
     public const MODE_STOP = 'stop';
 
     public const COMPRESS_NONE = '0';
+
     public const COMPRESS_LZO = 'lzo';
+
     public const COMPRESS_GZIP = 'gzip';
+
     public const COMPRESS_ZSTD = 'zstd';
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_RUNNING = 'running';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     /**
-     * @param int $vmid Container VMID
-     * @param string $storage Storage name (e.g., 'local', 'fgsrv6-wg')
-     * @param string $mode Backup mode (snapshot, suspend, stop)
-     * @param string $compress Compression algorithm (0, lzo, gzip, zstd)
-     * @param string|null $filename Backup filename (generated if null)
-     * @param string $status Backup status
-     * @param int|null $sizeMb Backup size in MB
-     * @param string|null $taskId Proxmox task UPID
-     * @param int $progress Progress percentage (0-100)
-     * @param bool $removeOnRestore Remove backup after successful restore
-     * @param string|null $notes User notes about backup
-     * @param \DateTimeImmutable|null $createdAt Backup creation time
-     * @param \DateTimeImmutable|null $completedAt Backup completion time
-     * @param array<string, mixed> $metadata Additional metadata
+     * @param  int  $vmid  Container VMID
+     * @param  string  $storage  Storage name (e.g., 'local', 'fgsrv6-wg')
+     * @param  string  $mode  Backup mode (snapshot, suspend, stop)
+     * @param  string  $compress  Compression algorithm (0, lzo, gzip, zstd)
+     * @param  string|null  $filename  Backup filename (generated if null)
+     * @param  string  $status  Backup status
+     * @param  int|null  $sizeMb  Backup size in MB
+     * @param  string|null  $taskId  Proxmox task UPID
+     * @param  int  $progress  Progress percentage (0-100)
+     * @param  bool  $removeOnRestore  Remove backup after successful restore
+     * @param  string|null  $notes  User notes about backup
+     * @param  \DateTimeImmutable|null  $createdAt  Backup creation time
+     * @param  \DateTimeImmutable|null  $completedAt  Backup completion time
+     * @param  array<string, mixed>  $metadata  Additional metadata
      */
     public function __construct(
         public int $vmid,
@@ -65,22 +71,21 @@ readonly class BackupDTO
     /**
      * Create from array
      *
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
-            vmid: (int)($data['vmid'] ?? throw new \InvalidArgumentException('vmid is required')),
+            vmid: (int) ($data['vmid'] ?? throw new \InvalidArgumentException('vmid is required')),
             storage: $data['storage'] ?? 'local',
             mode: $data['mode'] ?? self::MODE_SNAPSHOT,
             compress: $data['compress'] ?? self::COMPRESS_ZSTD,
             filename: $data['filename'] ?? null,
             status: $data['status'] ?? self::STATUS_PENDING,
-            sizeMb: isset($data['size_mb']) ? (int)$data['size_mb'] : null,
+            sizeMb: isset($data['size_mb']) ? (int) $data['size_mb'] : null,
             taskId: $data['task_id'] ?? $data['task'] ?? null,
-            progress: (int)($data['progress'] ?? 0),
-            removeOnRestore: (bool)($data['remove'] ?? $data['remove_on_restore'] ?? false),
+            progress: (int) ($data['progress'] ?? 0),
+            removeOnRestore: (bool) ($data['remove'] ?? $data['remove_on_restore'] ?? false),
             notes: $data['notes'] ?? null,
             createdAt: isset($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             completedAt: isset($data['completed_at']) ? new \DateTimeImmutable($data['completed_at']) : null,
@@ -90,12 +95,6 @@ readonly class BackupDTO
 
     /**
      * Create pending backup
-     *
-     * @param int $vmid
-     * @param string $storage
-     * @param string $mode
-     * @param string $compress
-     * @return self
      */
     public static function pending(int $vmid, string $storage = 'local', string $mode = self::MODE_SNAPSHOT, string $compress = self::COMPRESS_ZSTD): self
     {
@@ -105,7 +104,7 @@ readonly class BackupDTO
             mode: $mode,
             compress: $compress,
             status: self::STATUS_PENDING,
-            createdAt: new \DateTimeImmutable(),
+            createdAt: new \DateTimeImmutable,
         );
     }
 
@@ -156,9 +155,6 @@ readonly class BackupDTO
 
     /**
      * Update with task ID
-     *
-     * @param string $taskId
-     * @return self
      */
     public function withTaskId(string $taskId): self
     {
@@ -182,10 +178,6 @@ readonly class BackupDTO
 
     /**
      * Mark as completed
-     *
-     * @param string $filename
-     * @param int $sizeMb
-     * @return self
      */
     public function withCompleted(string $filename, int $sizeMb): self
     {
@@ -202,16 +194,13 @@ readonly class BackupDTO
             removeOnRestore: $this->removeOnRestore,
             notes: $this->notes,
             createdAt: $this->createdAt,
-            completedAt: new \DateTimeImmutable(),
+            completedAt: new \DateTimeImmutable,
             metadata: $this->metadata,
         );
     }
 
     /**
      * Mark as failed
-     *
-     * @param string $error
-     * @return self
      */
     public function withError(string $error): self
     {
@@ -228,7 +217,7 @@ readonly class BackupDTO
             removeOnRestore: $this->removeOnRestore,
             notes: $this->notes,
             createdAt: $this->createdAt,
-            completedAt: new \DateTimeImmutable(),
+            completedAt: new \DateTimeImmutable,
             metadata: array_merge($this->metadata, ['error' => $error]),
         );
     }
@@ -241,17 +230,17 @@ readonly class BackupDTO
     private function validate(): void
     {
         $validModes = [self::MODE_SNAPSHOT, self::MODE_SUSPEND, self::MODE_STOP];
-        if (!in_array($this->mode, $validModes, true)) {
+        if (! in_array($this->mode, $validModes, true)) {
             throw new \InvalidArgumentException("Invalid mode: {$this->mode}");
         }
 
         $validCompress = [self::COMPRESS_NONE, self::COMPRESS_LZO, self::COMPRESS_GZIP, self::COMPRESS_ZSTD];
-        if (!in_array($this->compress, $validCompress, true)) {
+        if (! in_array($this->compress, $validCompress, true)) {
             throw new \InvalidArgumentException("Invalid compress: {$this->compress}");
         }
 
         $validStatuses = [self::STATUS_PENDING, self::STATUS_RUNNING, self::STATUS_COMPLETED, self::STATUS_FAILED];
-        if (!in_array($this->status, $validStatuses, true)) {
+        if (! in_array($this->status, $validStatuses, true)) {
             throw new \InvalidArgumentException("Invalid status: {$this->status}");
         }
 
@@ -262,8 +251,6 @@ readonly class BackupDTO
 
     /**
      * Check if backup is in progress
-     *
-     * @return bool
      */
     public function isInProgress(): bool
     {
@@ -272,8 +259,6 @@ readonly class BackupDTO
 
     /**
      * Check if backup is completed
-     *
-     * @return bool
      */
     public function isCompleted(): bool
     {
@@ -282,8 +267,6 @@ readonly class BackupDTO
 
     /**
      * Check if backup failed
-     *
-     * @return bool
      */
     public function isFailed(): bool
     {
@@ -292,12 +275,10 @@ readonly class BackupDTO
 
     /**
      * Get duration in seconds
-     *
-     * @return int|null
      */
     public function getDurationSeconds(): ?int
     {
-        if (!$this->createdAt || !$this->completedAt) {
+        if (! $this->createdAt || ! $this->completedAt) {
             return null;
         }
 
@@ -306,12 +287,10 @@ readonly class BackupDTO
 
     /**
      * Get backup speed in MB/s
-     *
-     * @return float|null
      */
     public function getBackupSpeed(): ?float
     {
-        if (!$this->sizeMb || !$this->getDurationSeconds()) {
+        if (! $this->sizeMb || ! $this->getDurationSeconds()) {
             return null;
         }
 

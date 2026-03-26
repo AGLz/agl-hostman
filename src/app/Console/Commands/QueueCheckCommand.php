@@ -51,7 +51,7 @@ class QueueCheckCommand extends Command
         $this->displayMetrics($health['metrics']);
 
         // Display issues
-        if (!empty($health['issues'])) {
+        if (! empty($health['issues'])) {
             $this->newLine();
             $this->warn('Issues Found:');
             foreach ($health['issues'] as $issue) {
@@ -69,7 +69,7 @@ class QueueCheckCommand extends Command
         }
 
         // Send alerts if requested and issues found
-        if ($this->option('alert') && !empty($health['issues'])) {
+        if ($this->option('alert') && ! empty($health['issues'])) {
             $this->monitoring->sendQueueAlert($health['issues']);
             $this->info('Alerts sent for detected issues.');
         }
@@ -91,7 +91,7 @@ class QueueCheckCommand extends Command
                 ['Processing Jobs', number_format($metrics['processing_jobs'] ?? 0)],
                 ['Failed Jobs', number_format($metrics['failed_jobs'] ?? 0)],
                 ['Completed Today', number_format($metrics['completed_jobs_today'] ?? 0)],
-                ['Avg Wait Time', number_format($metrics['avg_wait_time'] ?? 0, 2) . 's'],
+                ['Avg Wait Time', number_format($metrics['avg_wait_time'] ?? 0, 2).'s'],
             ]
         );
     }
@@ -112,7 +112,7 @@ class QueueCheckCommand extends Command
                 $this->warn('Queue Backlog:');
                 foreach ($issue['queues'] as $queue) {
                     $this->line(
-                        "  - {$queue['queue']}: {$queue['pending_count']} " .
+                        "  - {$queue['queue']}: {$queue['pending_count']} ".
                         "(threshold: {$queue['threshold']})"
                     );
                 }
@@ -122,7 +122,7 @@ class QueueCheckCommand extends Command
                 $this->warn('Long Running Jobs:');
                 foreach ($issue['jobs'] as $job) {
                     $this->line(
-                        "  - {$job['job']} on queue '{$job['queue']}': " .
+                        "  - {$job['job']} on queue '{$job['queue']}': ".
                         "{$job['duration_minutes']} minutes"
                     );
                 }

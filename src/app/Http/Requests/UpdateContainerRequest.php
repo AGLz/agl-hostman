@@ -8,15 +8,11 @@ namespace App\Http\Requests;
  * Update Container Request
  *
  * Validation rules for updating existing LXC containers.
- *
- * @package App\Http\Requests
  */
 class UpdateContainerRequest extends BaseFormRequest
 {
     /**
      * Get validation rules
-     *
-     * @return array
      */
     public function rules(): array
     {

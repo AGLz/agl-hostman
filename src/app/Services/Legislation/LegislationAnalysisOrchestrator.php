@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Log;
 class LegislationAnalysisOrchestrator
 {
     protected LegislationParserService $parser;
+
     protected LegislationComparisonService $comparison;
+
     protected CMNResolutionDataProvider $dataProvider;
 
     public function __construct(
@@ -31,7 +33,7 @@ class LegislationAnalysisOrchestrator
     /**
      * Execute full analysis workflow for CMN 4.963 vs 5.272
      *
-     * @param bool $storeInMemory Whether to store results in memory
+     * @param  bool  $storeInMemory  Whether to store results in memory
      * @return array Complete analysis results
      */
     public function executeCMNAnalysis(bool $storeInMemory = true): array
@@ -138,13 +140,13 @@ class LegislationAnalysisOrchestrator
 
         // Use base path for Laravel or fallback to relative path
         $basePath = function_exists('base_path') ? base_path() : dirname(__DIR__, 3);
-        $memoryPath = $basePath . '/src/storage/app/memory/swarm/coder';
+        $memoryPath = $basePath.'/src/storage/app/memory/swarm/coder';
 
-        if (!is_dir($memoryPath)) {
+        if (! is_dir($memoryPath)) {
             mkdir($memoryPath, 0755, true);
         }
 
-        $memoryFile = $memoryPath . '/comparison-results.json';
+        $memoryFile = $memoryPath.'/comparison-results.json';
         file_put_contents(
             $memoryFile,
             json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
@@ -162,13 +164,14 @@ class LegislationAnalysisOrchestrator
     public function getComparisonResultsFromMemory(): ?array
     {
         $basePath = function_exists('base_path') ? base_path() : dirname(__DIR__, 3);
-        $memoryFile = $basePath . '/src/storage/app/memory/swarm/coder/comparison-results.json';
+        $memoryFile = $basePath.'/src/storage/app/memory/swarm/coder/comparison-results.json';
 
-        if (!file_exists($memoryFile)) {
+        if (! file_exists($memoryFile)) {
             return null;
         }
 
         $content = file_get_contents($memoryFile);
+
         return json_decode($content, true);
     }
 

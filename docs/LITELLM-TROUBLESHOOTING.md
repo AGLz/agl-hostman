@@ -1,6 +1,6 @@
 # LiteLLM — Troubleshooting
 
-> **Last Updated**: 2026-03-21  
+> **Last Updated**: 2026-03-25  
 > **Host**: agldv03 (100.94.221.87) — porta 4000
 
 ## Diagnóstico rápido
@@ -31,6 +31,8 @@ curl -s -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://localhost:4000/mod
 
 **Sintoma** (exemplo): `Received API Key = sk-...ault` · `Unable to find token in cache or LiteLLM_VerificationTokenTable`.
 
+**OpenClaw (2026.3.x) — `models.providers.*.apiKey`**: usar o marcador **`LITELLM_API_KEY`** (nome exacto da variável de ambiente), **não** a string literal `${LITELLM_MASTER_KEY}` (não é expandida e o LiteLLM recebe Bearer inválido → 401 ou respostas vazias). O script `scripts/openclaw/ensure-litellm-gateway-env-from-opt.sh` alinha `litellm-gateway.env`, `models.json` do agente e **`openclaw.json`**; `sync-systemd-openclaw-env.sh` exporta `LITELLM_API_KEY` para o systemd do gateway.
+
 **Causa**: O cliente (OpenClaw na VM Windows) envia **`sk-litellm-default`** como Bearer, mas o LiteLLM em **produção** usa outro valor em **`LITELLM_MASTER_KEY`** (ficheiro **`/opt/litellm/.env`** no agldv03). O placeholder `sk-litellm-default` só é válido se o proxy estiver configurado **explicitamente** com essa string.
 
 **Verificação no gateway**:
@@ -51,6 +53,29 @@ curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer COPIE_A_CHAVE_A
 
 **Variáveis Windows**: alinhar `ANTHROPIC_AUTH_TOKEN` e `LITELLM_MASTER_KEY` com o **mesmo** valor do `/opt/litellm/.env` (ver `docs/AGLWK45-SETUP.md`).
 
+**TUI no próprio agldv03**: O erro com sufixo de chave **diferente** da master (ex.: `...nTG0` no log vs `...er-key` no servidor) indica que o processo do TUI ainda envia **outra** API key. Alinhar `apiKey` / env do provider com `grep ^LITELLM_MASTER_KEY= /opt/litellm/.env` (sem aspas extra em `~/.openclaw/litellm-gateway.env`). Diagnóstico sem expor a chave: `bash scripts/litellm/diag-litellm-key-mismatch.sh` no host.
+
+---
+
+### 0b. Embeddings (`/v1/embeddings`) — OpenClaw memory / HTTP 400
+
+**Sintoma**: Erro ao indexar ou pesquisar memória no OpenClaw com `model: text-embedding-3-small` (ex.: 400 *Invalid model name* ou falha upstream OpenAI).
+
+**Configuração no repo**: `config/litellm/config.yaml` inclui `text-embedding-3-small`, `text-embedding-3-large` e `text-embedding-ada-002` com `api_key: os.environ/OPENAI_API_KEY`. Sem estas linhas o proxy não reconhece o nome do modelo.
+
+**Chave OpenAI no host**: Em cada servidor, `/opt/litellm/.env` deve ter **`OPENAI_API_KEY=`** válida (carregada pelo container `litellm-proxy`). O script `scripts/litellm/replicate-all-hosts.sh` faz *merge* do `config/litellm/.env` do repo: se aparecer **`.env (0 vars)`**, significa que o ficheiro local não tinha valores não vazios a aplicar — **não apaga** chaves já presentes no servidor.
+
+**Teste no agldv03** (substituir a chave):
+
+```bash
+export LITELLM_MASTER_KEY=$(grep ^LITELLM_MASTER_KEY= /opt/litellm/.env | cut -d= -f2-)
+curl -sS -H "Authorization: Bearer $LITELLM_MASTER_KEY" -H "Content-Type: application/json" \
+  http://127.0.0.1:4000/v1/embeddings \
+  -d '{"model":"text-embedding-3-small","input":"teste"}' | head -c 400
+```
+
+Resposta esperada: JSON com `data[0].embedding` (vector). Se faltar `OPENAI_API_KEY` no `.env` do host, o erro costuma indicar falha ao chamar a API OpenAI.
+
 ---
 
 ### 1. HTTP 401 — "No api key passed in"
@@ -65,6 +90,7 @@ curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer COPIE_A_CHAVE_A
 - `/health` — health completo dos modelos (faz chamadas reais às APIs)
 - `/models` — lista de modelos
 - `/chat/completions` — inferência
+- `/v1/embeddings` — embeddings (OpenClaw memory, clientes OpenAI-compat)
 
 **Solução**:
 ```bash

@@ -25,11 +25,12 @@ class QAEnvironmentSeeder extends Seeder
         $existing = Environment::where('type', 'qa')->first();
 
         if ($existing) {
-            $this->command->warn('QA Environment already exists (ID: ' . $existing->id . ')');
+            $this->command->warn('QA Environment already exists (ID: '.$existing->id.')');
             $this->command->warn('Skipping seeding to avoid duplicates');
             Log::warning('QA Environment already exists, skipping seed', [
                 'id' => $existing->id,
             ]);
+
             return;
         }
 
@@ -86,13 +87,13 @@ class QAEnvironmentSeeder extends Seeder
             ],
         ]);
 
-        $this->command->info('✅ Created QA Environment (ID: ' . $qaEnvironment->id . ')');
-        $this->command->info('   Name: ' . $qaEnvironment->name);
-        $this->command->info('   Type: ' . $qaEnvironment->type);
-        $this->command->info('   Branch: ' . $qaEnvironment->git_branch);
-        $this->command->info('   Auto-deploy: ' . ($qaEnvironment->auto_deploy ? 'Yes' : 'No'));
-        $this->command->info('   Auto-test: ' . ($qaEnvironment->auto_test ? 'Yes' : 'No'));
-        $this->command->info('   Domains: ' . implode(', ', $qaEnvironment->domains));
+        $this->command->info('✅ Created QA Environment (ID: '.$qaEnvironment->id.')');
+        $this->command->info('   Name: '.$qaEnvironment->name);
+        $this->command->info('   Type: '.$qaEnvironment->type);
+        $this->command->info('   Branch: '.$qaEnvironment->git_branch);
+        $this->command->info('   Auto-deploy: '.($qaEnvironment->auto_deploy ? 'Yes' : 'No'));
+        $this->command->info('   Auto-test: '.($qaEnvironment->auto_test ? 'Yes' : 'No'));
+        $this->command->info('   Domains: '.implode(', ', $qaEnvironment->domains));
 
         Log::info('QA Environment seeded successfully', [
             'id' => $qaEnvironment->id,

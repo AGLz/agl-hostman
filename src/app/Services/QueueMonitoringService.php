@@ -2,19 +2,16 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Jobs\NotificationJob;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Queue Monitoring Service
  *
  * Monitors queue health, tracks failed jobs, and provides alerts
  * for queue-related issues.
- *
- * @package App\Services
  */
 class QueueMonitoringService
 {
@@ -31,7 +28,7 @@ class QueueMonitoringService
 
         // Check for long-running jobs
         $longRunning = $this->checkLongRunningJobs();
-        if (!empty($longRunning)) {
+        if (! empty($longRunning)) {
             $health['issues'][] = [
                 'type' => 'long_running_jobs',
                 'count' => count($longRunning),
@@ -53,7 +50,7 @@ class QueueMonitoringService
 
         // Check queue backlog
         $backlog = $this->checkQueueBacklog();
-        if (!empty($backlog)) {
+        if (! empty($backlog)) {
             $health['issues'][] = [
                 'type' => 'queue_backlog',
                 'queues' => $backlog,
@@ -64,7 +61,7 @@ class QueueMonitoringService
         $health['metrics'] = array_merge($health['metrics'], $this->getQueueMetrics());
 
         // Determine overall status
-        if (!empty($health['issues'])) {
+        if (! empty($health['issues'])) {
             $health['status'] = 'warning';
 
             // Check for critical issues
@@ -104,13 +101,13 @@ class QueueMonitoringService
             $redis = app('redis')->connection();
 
             $pending = 0;
-            $queues = config('horizon.environments.' . config('app.env'));
+            $queues = config('horizon.environments.'.config('app.env'));
 
             if ($queues) {
                 foreach ($queues as $supervisor) {
                     $queueList = is_array($supervisor['queue']) ? $supervisor['queue'] : [$supervisor['queue']];
                     foreach ($queueList as $queue) {
-                        $pending += $redis->llen('queues:' . $queue);
+                        $pending += $redis->llen('queues:'.$queue);
                     }
                 }
             }
@@ -191,6 +188,7 @@ class QueueMonitoringService
             ->get()
             ->map(function ($job) {
                 $payload = json_decode($job->payload, true);
+
                 return [
                     'id' => $job->id,
                     'queue' => $job->queue,
@@ -211,7 +209,7 @@ class QueueMonitoringService
     public function checkQueueBacklog(int $threshold = 1000): array
     {
         $backlog = [];
-        $queues = config('horizon.environments.' . config('app.env'));
+        $queues = config('horizon.environments.'.config('app.env'));
 
         if ($queues) {
             $redis = app('redis')->connection();
@@ -220,7 +218,7 @@ class QueueMonitoringService
                 $queueList = is_array($supervisor['queue']) ? $supervisor['queue'] : [$supervisor['queue']];
 
                 foreach ($queueList as $queue) {
-                    $count = $redis->llen('queues:' . $queue);
+                    $count = $redis->llen('queues:'.$queue);
 
                     if ($count > $threshold) {
                         $backlog[] = [
@@ -247,6 +245,7 @@ class QueueMonitoringService
             ->get()
             ->map(function ($job) {
                 $payload = json_decode($job->payload, true);
+
                 return [
                     'id' => $job->id,
                     'uuid' => $job->uuid,
@@ -276,6 +275,7 @@ class QueueMonitoringService
     protected function extractExceptionMessage(string $exception): string
     {
         $lines = explode("\n", $exception);
+
         return $lines[0] ?? 'Unknown error';
     }
 
@@ -284,7 +284,7 @@ class QueueMonitoringService
      */
     public function takeQueueHealthSnapshot(): void
     {
-        $queues = config('horizon.environments.' . config('app.env'));
+        $queues = config('horizon.environments.'.config('app.env'));
 
         if ($queues) {
             $redis = app('redis')->connection();
@@ -293,7 +293,7 @@ class QueueMonitoringService
                 $queueList = is_array($supervisor['queue']) ? $supervisor['queue'] : [$supervisor['queue']];
 
                 foreach ($queueList as $queue) {
-                    $pending = $redis->llen('queues:' . $queue);
+                    $pending = $redis->llen('queues:'.$queue);
 
                     DB::table('queue_health_snapshots')->insert([
                         'queue' => $queue,
@@ -351,7 +351,7 @@ class QueueMonitoringService
                         'queue_long_running',
                         [
                             'title' => 'Long Running Jobs Alert',
-                            'message' => count($issue['jobs']) . ' jobs have been running for over 30 minutes.',
+                            'message' => count($issue['jobs']).' jobs have been running for over 30 minutes.',
                             'jobs' => $issue['jobs'],
                         ],
                         null,

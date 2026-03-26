@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\InfrastructureService;
 use App\Services\InfrastructureAnalyticsService;
+use App\Services\InfrastructureService;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
 class InfrastructureController extends Controller
 {
     protected $infrastructureService;
+
     protected $analyticsService;
 
     public function __construct(
@@ -29,12 +30,17 @@ class InfrastructureController extends Controller
      *     description="Get current status of all infrastructure components",
      *     operationId="getInfrastructureStatus",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Infrastructure status",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="servers", type="array",
+     *
      *                 @OA\Items(
+     *
      *                     @OA\Property(property="name", type="string", example="AGLSRV1"),
      *                     @OA\Property(property="status", type="string", example="online"),
      *                     @OA\Property(property="cpu_usage", type="number", example=45.2),
@@ -53,6 +59,7 @@ class InfrastructureController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated"
@@ -62,6 +69,7 @@ class InfrastructureController extends Controller
     public function status()
     {
         $status = $this->infrastructureService->getStatus();
+
         return response()->json($status);
     }
 
@@ -73,24 +81,31 @@ class InfrastructureController extends Controller
      *     description="Get detailed metrics for infrastructure monitoring",
      *     operationId="getInfrastructureMetrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="server",
      *         in="query",
      *         description="Filter by server name",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="period",
      *         in="query",
      *         description="Time period (1h, 6h, 24h, 7d, 30d)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", enum={"1h", "6h", "24h", "7d", "30d"})
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Infrastructure metrics",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="cpu", type="array", @OA\Items(
      *                 @OA\Property(property="timestamp", type="string"),
      *                 @OA\Property(property="value", type="number")
@@ -116,8 +131,9 @@ class InfrastructureController extends Controller
     {
         $server = $request->query('server');
         $period = $request->query('period', '24h');
-        
+
         $metrics = $this->infrastructureService->getMetrics($server, $period);
+
         return response()->json($metrics);
     }
 
@@ -129,17 +145,23 @@ class InfrastructureController extends Controller
      *     description="Perform AI-powered analysis of infrastructure health and recommendations",
      *     operationId="analyzeInfrastructure",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=false,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="focus", type="string", example="performance", description="Analysis focus area"),
      *             @OA\Property(property="servers", type="array", @OA\Items(type="string"), description="Specific servers to analyze")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Analysis results",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="health_score", type="number", example=85.7),
      *             @OA\Property(property="issues", type="array", @OA\Items(
      *                 @OA\Property(property="severity", type="string", example="warning"),
@@ -165,10 +187,10 @@ class InfrastructureController extends Controller
     {
         $focus = $request->input('focus', 'general');
         $servers = $request->input('servers', []);
-        
+
         $metrics = $this->infrastructureService->getMetrics(null, '24h');
         $analysis = $this->analyticsService->analyzeInfrastructure($metrics);
-        
+
         return response()->json($analysis);
     }
 }

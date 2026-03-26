@@ -39,8 +39,8 @@ class DeploymentProgressUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('deployments.' . $this->deploymentId),
-            new Channel('deployments.environment.' . $this->environment),
+            new Channel('deployments.'.$this->deploymentId),
+            new Channel('deployments.environment.'.$this->environment),
         ];
     }
 

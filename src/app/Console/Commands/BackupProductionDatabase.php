@@ -6,7 +6,6 @@ use App\Models\Environment;
 use App\Models\ProductionBackupLog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class BackupProductionDatabase extends Command
 {
@@ -38,8 +37,9 @@ class BackupProductionDatabase extends Command
         // Get production environment
         $environment = Environment::where('type', 'production')->first();
 
-        if (!$environment) {
+        if (! $environment) {
             $this->error('❌ No production environment found');
+
             return self::FAILURE;
         }
 
@@ -57,14 +57,14 @@ class BackupProductionDatabase extends Command
             // Step 1: Create backup
             $backupFile = $this->createBackup($backupLog);
 
-            if (!$backupFile) {
+            if (! $backupFile) {
                 throw new \Exception('Failed to create backup file');
             }
 
             // Step 2: Verify backup (if requested)
             if ($this->option('verify')) {
                 $this->info('🔍 Verifying backup integrity...');
-                if (!$this->verifyBackup($backupFile)) {
+                if (! $this->verifyBackup($backupFile)) {
                     throw new \Exception('Backup verification failed');
                 }
                 $this->info('   ✓ Backup verified successfully');
@@ -75,7 +75,7 @@ class BackupProductionDatabase extends Command
                 $this->info('☁️  Uploading to offsite storage...');
                 $storageLocation = $this->uploadToOffsiteStorage($backupFile);
 
-                if (!$storageLocation) {
+                if (! $storageLocation) {
                     throw new \Exception('Failed to upload to offsite storage');
                 }
 
@@ -110,7 +110,7 @@ class BackupProductionDatabase extends Command
             $this->newLine();
             $this->info('✅ Backup completed successfully!');
             $this->info("   File: {$backupFile}");
-            $this->info("   Size: " . $this->formatBytes($fileSize));
+            $this->info('   Size: '.$this->formatBytes($fileSize));
             $this->info("   Duration: {$duration} seconds");
 
             return self::SUCCESS;
@@ -124,7 +124,8 @@ class BackupProductionDatabase extends Command
                 'completed_at' => now(),
             ]);
 
-            $this->error('❌ Backup failed: ' . $e->getMessage());
+            $this->error('❌ Backup failed: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -140,7 +141,7 @@ class BackupProductionDatabase extends Command
 
         // Ensure backup directory exists
         $backupDir = dirname($backupFile);
-        if (!is_dir($backupDir)) {
+        if (! is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
 
@@ -161,16 +162,18 @@ class BackupProductionDatabase extends Command
             escapeshellarg($backupFile)
         );
 
-        exec($pgDumpCommand . ' 2>&1', $output, $returnCode);
+        exec($pgDumpCommand.' 2>&1', $output, $returnCode);
 
         if ($returnCode !== 0) {
             $this->error('   ✗ Backup command failed');
-            $this->error('   Output: ' . implode("\n", $output));
+            $this->error('   Output: '.implode("\n", $output));
+
             return null;
         }
 
-        if (!file_exists($backupFile)) {
+        if (! file_exists($backupFile)) {
             $this->error('   ✗ Backup file was not created');
+
             return null;
         }
 
@@ -185,7 +188,7 @@ class BackupProductionDatabase extends Command
     private function verifyBackup(string $backupFile): bool
     {
         // Verify file exists and is readable
-        if (!file_exists($backupFile) || !is_readable($backupFile)) {
+        if (! file_exists($backupFile) || ! is_readable($backupFile)) {
             return false;
         }
 
@@ -195,7 +198,7 @@ class BackupProductionDatabase extends Command
         }
 
         // Verify gzip integrity
-        exec("gzip -t " . escapeshellarg($backupFile) . " 2>&1", $output, $returnCode);
+        exec('gzip -t '.escapeshellarg($backupFile).' 2>&1', $output, $returnCode);
 
         return $returnCode === 0;
     }
@@ -208,8 +211,9 @@ class BackupProductionDatabase extends Command
         $bucket = config('backup.s3_bucket');
         $region = config('filesystems.disks.s3.region', 'us-east-1');
 
-        if (!$bucket) {
+        if (! $bucket) {
             $this->warn('   ⚠️  S3 bucket not configured');
+
             return null;
         }
 
@@ -221,7 +225,8 @@ class BackupProductionDatabase extends Command
 
             return "s3://{$bucket}/{$s3Path}";
         } catch (\Exception $e) {
-            $this->error('   ✗ Upload failed: ' . $e->getMessage());
+            $this->error('   ✗ Upload failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -254,7 +259,7 @@ class BackupProductionDatabase extends Command
             // Delete from offsite storage
             if ($backup->storage_location && str_starts_with($backup->storage_location, 's3://')) {
                 try {
-                    $path = str_replace('s3://' . config('backup.s3_bucket') . '/', '', $backup->storage_location);
+                    $path = str_replace('s3://'.config('backup.s3_bucket').'/', '', $backup->storage_location);
                     Storage::disk('s3')->delete($path);
                 } catch (\Exception $e) {
                     // Log but continue
@@ -281,6 +286,6 @@ class BackupProductionDatabase extends Command
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 }

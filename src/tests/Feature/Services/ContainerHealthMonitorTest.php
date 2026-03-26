@@ -2,24 +2,26 @@
 
 namespace Tests\Feature\Services;
 
+use App\DTOs\ContainerMetrics;
+use App\Events\ContainerCritical;
+use App\Models\ContainerHealthLog;
+use App\Repositories\ProxmoxContainerRepository;
+use App\Services\AlertDispatcher;
 use App\Services\ContainerHealthMonitor;
 use App\Services\PredictiveMaintenanceService;
-use App\Services\AlertDispatcher;
-use App\Repositories\ProxmoxContainerRepository;
-use App\DTOs\ContainerMetrics;
-use App\Models\ContainerHealthLog;
-use App\Models\PerformanceTrend;
-use App\Events\ContainerCritical;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Cache;
-use Tests\TestCase;
+use Illuminate\Support\Facades\Event;
 use Mockery;
+use Tests\TestCase;
 
 class ContainerHealthMonitorTest extends TestCase
 {
     protected ContainerHealthMonitor $monitor;
+
     protected $mockRepository;
+
     protected $mockPredictive;
+
     protected $mockAlertDispatcher;
 
     protected function setUp(): void

@@ -2,17 +2,18 @@
 
 namespace Tests\Feature\Production;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Environment;
 use App\Models\ProductionDeployment;
 use App\Services\DeploymentWorkflowService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class BlueGreenDeploymentTest extends TestCase
 {
     use RefreshDatabase;
 
     private DeploymentWorkflowService $deploymentService;
+
     private Environment $environment;
 
     protected function setUp(): void

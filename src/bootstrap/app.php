@@ -33,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // MCP Server Security
             'mcp.security' => \App\Http\Middleware\McpSecurity::class,
             'mcp.rbac' => \App\Http\Middleware\McpRbac::class,
+            // API Key Authentication (for OpenClaw/Jarvis integration)
+            'api.key' => \App\Http\Middleware\ApiKeyAuth::class,
         ]);
 
         // Apply security and performance middleware to API routes
@@ -46,6 +48,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Apply security middleware to web routes
         $middleware->web(prepend: [
             \App\Http\Middleware\SecurityHeaders::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

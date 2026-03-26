@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Illuminate\Support\Facades\Session;
 
 describe('Authentication', function () {
     it('redirects to WorkOS login page', function () {
@@ -63,12 +62,12 @@ describe('Authentication', function () {
 
         // Act & Assert: Can view AGLSRV1
         $this->actingAs($user)
-            ->get("/api/infrastructure/servers/AGLSRV1")
+            ->get('/api/infrastructure/servers/AGLSRV1')
             ->assertOk();
 
         // Cannot view AGLSRV2 (no permission)
         $this->actingAs($user)
-            ->get("/api/infrastructure/servers/AGLSRV2")
+            ->get('/api/infrastructure/servers/AGLSRV2')
             ->assertForbidden();
     });
 

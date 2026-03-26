@@ -45,10 +45,10 @@ class ApiKey extends Model
     protected static function booted()
     {
         static::creating(function ($apiKey) {
-            if (!$apiKey->key) {
-                $apiKey->key = 'ak_' . Str::random(32);
+            if (! $apiKey->key) {
+                $apiKey->key = 'ak_'.Str::random(32);
             }
-            if (!$apiKey->secret) {
+            if (! $apiKey->secret) {
                 $apiKey->secret = hash('sha256', Str::random(64));
             }
         });
@@ -70,7 +70,7 @@ class ApiKey extends Model
         if (in_array('*', $this->permissions ?? [])) {
             return true;
         }
-        
+
         return in_array($permission, $this->permissions ?? []);
     }
 
@@ -79,10 +79,10 @@ class ApiKey extends Model
      */
     public function isExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
-        
+
         return $this->expires_at->isPast();
     }
 
@@ -91,13 +91,13 @@ class ApiKey extends Model
      */
     public function isValid(): bool
     {
-        return $this->is_active && !$this->isExpired();
+        return $this->is_active && ! $this->isExpired();
     }
 
     /**
      * Record API key usage
      */
-    public function recordUsage(string $ip = null): void
+    public function recordUsage(?string $ip = null): void
     {
         $this->increment('usage_count');
         $this->update([
@@ -112,9 +112,9 @@ class ApiKey extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true)
-                     ->where(function ($q) {
-                         $q->whereNull('expires_at')
-                           ->orWhere('expires_at', '>', now());
-                     });
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            });
     }
 }

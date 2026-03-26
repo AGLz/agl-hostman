@@ -11,7 +11,9 @@ namespace App\Services\AgentOS;
 class VectorQuantization
 {
     protected array $codebooks = [];
+
     protected int $codebookSize;
+
     protected float $compressionRatio;
 
     public function __construct(array $config)
@@ -75,8 +77,8 @@ class VectorQuantization
      */
     protected function splitSubvectors(array $vector): array
     {
-        $numSubvectors = (int)(1 / $this->compressionRatio);
-        $subvectorSize = (int)ceil(count($vector) / $numSubvectors);
+        $numSubvectors = (int) (1 / $this->compressionRatio);
+        $subvectorSize = (int) ceil(count($vector) / $numSubvectors);
         $subvectors = [];
 
         for ($i = 0; $i < $numSubvectors; $i++) {
@@ -92,7 +94,7 @@ class VectorQuantization
      */
     protected function getCodebook(int $index): array
     {
-        if (!isset($this->codebooks[$index])) {
+        if (! isset($this->codebooks[$index])) {
             $this->codebooks[$index] = $this->initializeCodebook();
         }
 
@@ -118,7 +120,7 @@ class VectorQuantization
      */
     protected function generateRandomCentroid(): array
     {
-        $subvectorSize = (int)ceil(1536 / (1 / $this->compressionRatio));
+        $subvectorSize = (int) ceil(1536 / (1 / $this->compressionRatio));
         $centroid = [];
 
         for ($i = 0; $i < $subvectorSize; $i++) {

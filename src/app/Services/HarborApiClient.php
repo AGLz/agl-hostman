@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\DTOs\ApiResponse;
 use Exception;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Harbor API Client
@@ -21,10 +20,15 @@ use Exception;
 class HarborApiClient
 {
     protected string $baseUrl;
+
     protected ?string $username = null;
+
     protected ?string $password = null;
+
     protected int $timeout = 30;
+
     protected int $maxRetries = 3;
+
     protected array $circuitBreaker = [
         'failures' => 0,
         'last_failure' => null,
@@ -165,14 +169,14 @@ class HarborApiClient
      */
     protected function executeRequest(string $method, string $endpoint, array $params = [])
     {
-        $url = $this->baseUrl . $endpoint;
+        $url = $this->baseUrl.$endpoint;
 
         $http = Http::withBasicAuth($this->username, $this->password)
             ->timeout($this->timeout)
             ->acceptJson()
             ->asJson();
 
-        if (strtoupper($method) === 'GET' && !empty($params)) {
+        if (strtoupper($method) === 'GET' && ! empty($params)) {
             return $http->get($url, $params);
         }
 
@@ -189,11 +193,12 @@ class HarborApiClient
         }
 
         $lastFailure = $this->circuitBreaker['last_failure'];
-        if (!$lastFailure) {
+        if (! $lastFailure) {
             return false;
         }
 
         $elapsed = now()->diffInSeconds($lastFailure);
+
         return $elapsed < $this->circuitBreaker['timeout'];
     }
 
@@ -241,11 +246,13 @@ class HarborApiClient
     {
         try {
             $response = $this->get('/api/v2.0/systeminfo');
+
             return $response->isSuccess();
         } catch (Exception $e) {
             Log::error('Harbor connection test failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

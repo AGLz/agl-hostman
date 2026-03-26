@@ -12,11 +12,13 @@ Contexto **TurboFlow / Ruflo** pode coexistir com **Cursor** (regras em `.cursor
 | API Node (Fastify) | `src/api/` — entrada `npm run dev` / `server.js` |
 | Laravel 12 + Pest | árvore em `src/` (`artisan`, `composer.json`, `app/`, `tests/`, etc.) |
 | Gateway LLM | `config/litellm/config.yaml`, `config/litellm/config-remote.yaml` |
-| Cursor + LiteLLM | `docs/CURSOR-LITELLM-INTEGRATION.md`; modelos `cursor-composer` / `cursor-composer-2-fast` → proxy `openai/gpt-5.3-chat-latest` |
+| Cursor + LiteLLM | `docs/CURSOR-LITELLM-INTEGRATION.md`; `cursor-composer*` → **gpt-5.4-mini**; aliases `openai/gpt-5.3-chat-latest` / `gpt-5.3-instant` → mesmo backend |
 | OpenClaw + Claude Code → LiteLLM local | `scripts/deploy-openclaw-config.sh` copia `config/openclaw/litellm-gateway-local.env` → `~/.openclaw/litellm-gateway.env` e aplica `openclaw-litellm-local.jq`; `.claude/settings.json` define `ANTHROPIC_BASE_URL` / `LITELLM_GATEWAY_URL` = `http://localhost:4000` |
+| OpenClaw (Windows, clone + pnpm) | `docs/OPENCLAW.md` — checkout em disco local (ex. `C:\Users\Administrator\src\openclaw`), `pnpm link --global`; não clonar em shares SMB (symlinks do pnpm). |
 | Testes Node (raiz) | `tests/api/`, `tests/unit/`, `tests/integration/` — `npm test` |
 | Infra docs | `docs/INFRA.md`, `docs/README.md` |
 | Beads / bd | `.beads/`; fluxo em `AGENTS.md` |
+| **agl-hostman no agldv03 (CT179)** | `/mnt/overpower/apps/dev/agl/agl-hostman` (NFS overpower; alinhar com U:\… na wk45) |
 
 Antes de alterações amplas: seguir convenções em **sibling files** e em `.cursor/rules/`.
 

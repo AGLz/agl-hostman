@@ -1,16 +1,15 @@
 <?php
 
 use App\Models\Environment;
-use App\Services\DokployService;
 use App\Services\Deployment\DeploymentWorkflowService;
+use App\Services\DokployService;
 use Illuminate\Support\Facades\Http;
-use Pest\Framework\TestCase;
 
 describe('QA Environment Integration Tests', function () {
     beforeEach(function () {
         $this->environment = Environment::where('type', 'qa')->first();
 
-        if (!$this->environment) {
+        if (! $this->environment) {
             $this->markTestSkipped('QA Environment not configured');
         }
     });
@@ -46,7 +45,7 @@ describe('QA Environment Integration Tests', function () {
         $dokployService = app(DokployService::class);
 
         expect($dokployService->testConnection())->toBeTrue();
-    })->group('integration')->skip(fn () => !config('dokploy.api_url'), 'Dokploy not configured');
+    })->group('integration')->skip(fn () => ! config('dokploy.api_url'), 'Dokploy not configured');
 
     it('has Dokploy project created', function () {
         expect($this->environment->dokploy_project_id)->not->toBeNull();
@@ -56,12 +55,12 @@ describe('QA Environment Integration Tests', function () {
 
         expect($project)->not->toBeNull()
             ->and($project->projectId)->toBe($this->environment->dokploy_project_id);
-    })->group('integration')->skip(fn () => !config('dokploy.api_url'), 'Dokploy not configured');
+    })->group('integration')->skip(fn () => ! config('dokploy.api_url'), 'Dokploy not configured');
 
     it('can reach QA deployment health endpoint', function () {
         $primaryDomain = $this->environment->getPrimaryDomain();
 
-        if (!$primaryDomain) {
+        if (! $primaryDomain) {
             $this->markTestSkipped('No primary domain configured');
         }
 
@@ -84,7 +83,7 @@ describe('QA Environment Integration Tests', function () {
             \DB::connection('qa')->getPdo();
             expect(true)->toBeTrue();
         } catch (\Exception $e) {
-            $this->markTestSkipped('QA database not accessible: ' . $e->getMessage());
+            $this->markTestSkipped('QA database not accessible: '.$e->getMessage());
         }
     })->group('integration')->skip('Requires QA database connection');
 
@@ -93,7 +92,7 @@ describe('QA Environment Integration Tests', function () {
         $redisPort = $this->environment->env_vars['REDIS_PORT'] ?? '6379';
 
         try {
-            $redis = new \Redis();
+            $redis = new \Redis;
             $connected = $redis->connect($redisHost, (int) $redisPort, 2);
 
             expect($connected)->toBeTrue()
@@ -101,19 +100,19 @@ describe('QA Environment Integration Tests', function () {
 
             $redis->close();
         } catch (\Exception $e) {
-            $this->markTestSkipped('Redis not accessible: ' . $e->getMessage());
+            $this->markTestSkipped('Redis not accessible: '.$e->getMessage());
         }
     })->group('integration')->skip('Requires Redis connection');
 
     it('has WebSocket connection available', function () {
         $primaryDomain = $this->environment->getPrimaryDomain();
 
-        if (!$primaryDomain) {
+        if (! $primaryDomain) {
             $this->markTestSkipped('No primary domain configured');
         }
 
         // Check WebSocket endpoint
-        $wsUrl = str_replace(['https://', 'http://'], 'wss://', "https://{$primaryDomain}") . '/ws';
+        $wsUrl = str_replace(['https://', 'http://'], 'wss://', "https://{$primaryDomain}").'/ws';
 
         // Simple check - would need WebSocket client for full test
         expect($wsUrl)->toContain('wss://');
@@ -136,7 +135,7 @@ describe('QA Environment Integration Tests', function () {
     it('has Archon MCP integration configured', function () {
         $archonUrl = $this->environment->env_vars['ARCHON_MCP_URL'] ?? config('archon.mcp_url');
 
-        if (!$archonUrl) {
+        if (! $archonUrl) {
             $this->markTestSkipped('Archon MCP not configured');
         }
 
@@ -161,10 +160,10 @@ describe('QA Deployment Workflow Tests', function () {
         $workflowService = app(DeploymentWorkflowService::class);
 
         // Create a test deployment ID
-        $testDeploymentId = 'test-' . uniqid();
+        $testDeploymentId = 'test-'.uniqid();
 
         // This should not crash (actual test logic will depend on implementation)
-        expect(function () use ($workflowService, $testDeploymentId) {
+        expect(function () {
             // $workflowService->runIntegrationTests($testDeploymentId);
             return true;
         })->not->toThrow(\Exception::class);

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Promotion Model
@@ -66,12 +66,19 @@ class Promotion extends Model
      * Possible promotion statuses
      */
     public const STATUS_PENDING = 'pending_approval';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_DEPLOYING = 'deploying';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_ROLLED_BACK = 'rolled_back';
+
     public const STATUS_EXPIRED = 'expired';
 
     /**
@@ -194,7 +201,7 @@ class Promotion extends Model
      */
     public function getSmokeTestSummary(): ?array
     {
-        if (!$this->smoke_test_results) {
+        if (! $this->smoke_test_results) {
             return null;
         }
 
@@ -212,7 +219,7 @@ class Promotion extends Model
      */
     public function getDuration(): ?int
     {
-        if (!$this->requested_at || !$this->completed_at) {
+        if (! $this->requested_at || ! $this->completed_at) {
             return null;
         }
 

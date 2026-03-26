@@ -1,9 +1,8 @@
 <?php
 
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Permission;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Role;
+use App\Models\User;
 
 beforeEach(function () {
     // Create admin user

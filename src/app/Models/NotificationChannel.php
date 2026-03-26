@@ -117,7 +117,7 @@ class NotificationChannel extends Model
      */
     public function getStatistics(string $period = '24h'): array
     {
-        $since = match($period) {
+        $since = match ($period) {
             '1h' => now()->subHour(),
             '24h' => now()->subDay(),
             '7d' => now()->subWeek(),

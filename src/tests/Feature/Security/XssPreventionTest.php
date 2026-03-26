@@ -13,8 +13,6 @@ use Tests\TestCase;
  *
  * Tests for Cross-Site Scripting prevention including output escaping,
  * content security policy, and input sanitization.
- *
- * @package Tests\Feature\Security
  */
 class XssPreventionTest extends TestCase
 {

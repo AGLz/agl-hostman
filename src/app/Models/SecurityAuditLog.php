@@ -12,8 +12,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * Security Audit Log Model
  *
  * Tracks security-related events for audit and compliance.
- *
- * @package App\Models
  */
 class SecurityAuditLog extends Model
 {
@@ -63,44 +61,66 @@ class SecurityAuditLog extends Model
      * Event types
      */
     public const EVENT_AUTH_LOGIN = 'auth.login';
+
     public const EVENT_AUTH_LOGOUT = 'auth.logout';
+
     public const EVENT_AUTH_FAILED = 'auth.failed';
+
     public const EVENT_AUTH_PASSWORD_CHANGED = 'auth.password_changed';
+
     public const EVENT_AUTH_PASSWORD_RESET = 'auth.password_reset';
 
     public const EVENT_USER_CREATED = 'user.created';
+
     public const EVENT_USER_UPDATED = 'user.updated';
+
     public const EVENT_USER_DELETED = 'user.deleted';
+
     public const EVENT_USER_ROLE_CHANGED = 'user.role_changed';
 
     public const EVENT_PERMISSION_GRANTED = 'permission.granted';
+
     public const EVENT_PERMISSION_REVOKED = 'permission.revoked';
 
     public const EVENT_CONTAINER_CREATED = 'container.created';
+
     public const EVENT_CONTAINER_UPDATED = 'container.updated';
+
     public const EVENT_CONTAINER_DELETED = 'container.deleted';
+
     public const EVENT_CONTAINER_DEPLOYED = 'container.deployed';
 
     public const EVENT_DEPLOYMENT_STARTED = 'deployment.started';
+
     public const EVENT_DEPLOYMENT_COMPLETED = 'deployment.completed';
+
     public const EVENT_DEPLOYMENT_FAILED = 'deployment.failed';
+
     public const EVENT_DEPLOYMENT_ROLLED_BACK = 'deployment.rolled_back';
 
     public const EVENT_SECURITY_SCAN = 'security.scan';
+
     public const EVENT_SECURITY_ALERT = 'security.alert';
+
     public const EVENT_VULNERABILITY_FOUND = 'security.vulnerability_found';
 
     public const EVENT_CONFIG_CHANGED = 'config.changed';
+
     public const EVENT_API_KEY_CREATED = 'api_key.created';
+
     public const EVENT_API_KEY_DELETED = 'api_key.deleted';
 
     /**
      * Severity levels
      */
     public const SEVERITY_INFO = 'info';
+
     public const SEVERITY_LOW = 'low';
+
     public const SEVERITY_MEDIUM = 'medium';
+
     public const SEVERITY_HIGH = 'high';
+
     public const SEVERITY_CRITICAL = 'critical';
 
     /**
@@ -115,8 +135,6 @@ class SecurityAuditLog extends Model
 
     /**
      * Get the auditable model (polymorphic)
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
      */
     public function auditable(): MorphTo
     {
@@ -126,7 +144,7 @@ class SecurityAuditLog extends Model
     /**
      * Scope a query to only include critical severity
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeCritical($query)
@@ -137,7 +155,7 @@ class SecurityAuditLog extends Model
     /**
      * Scope a query to only include high severity or above
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeHighOrAbove($query)
@@ -148,8 +166,7 @@ class SecurityAuditLog extends Model
     /**
      * Scope a query to only include recent logs
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $days
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeRecent($query, int $days = 7)
@@ -160,8 +177,7 @@ class SecurityAuditLog extends Model
     /**
      * Scope a query to filter by event type
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $eventType
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeEventType($query, string $eventType)
@@ -172,8 +188,8 @@ class SecurityAuditLog extends Model
     /**
      * Scope a query to filter by tags
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string|array $tags
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|array  $tags
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeWithTag($query, $tags)
@@ -190,9 +206,6 @@ class SecurityAuditLog extends Model
     /**
      * Log a security event
      *
-     * @param string $eventType
-     * @param string $description
-     * @param array $data
      * @return static
      */
     public static function log(string $eventType, string $description, array $data = []): self
@@ -210,8 +223,6 @@ class SecurityAuditLog extends Model
     /**
      * Log authentication event
      *
-     * @param string $event
-     * @param array $data
      * @return static
      */
     public static function logAuth(string $event, array $data = []): self
@@ -222,9 +233,6 @@ class SecurityAuditLog extends Model
     /**
      * Log user event
      *
-     * @param string $event
-     * @param User $user
-     * @param array $data
      * @return static
      */
     public static function logUser(string $event, User $user, array $data = []): self
@@ -239,8 +247,6 @@ class SecurityAuditLog extends Model
     /**
      * Log security alert
      *
-     * @param string $description
-     * @param array $data
      * @return static
      */
     public static function alert(string $description, array $data = []): self
@@ -253,8 +259,6 @@ class SecurityAuditLog extends Model
 
     /**
      * Get all available event types
-     *
-     * @return array
      */
     public static function getEventTypes(): array
     {
@@ -267,8 +271,6 @@ class SecurityAuditLog extends Model
 
     /**
      * Get all available severity levels
-     *
-     * @return array
      */
     public static function getSeverityLevels(): array
     {

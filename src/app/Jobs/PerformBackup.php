@@ -17,7 +17,9 @@ class PerformBackup implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected string $backupType;
+
     protected bool $notifyOnComplete;
+
     protected ?string $notificationEmail;
 
     /**
@@ -44,18 +46,18 @@ class PerformBackup implements ShouldQueue
         ]);
 
         $startTime = microtime(true);
-        
+
         // Perform backup
         $result = $backupService->performBackup($this->backupType);
-        
+
         $duration = round(microtime(true) - $startTime, 2);
-        
+
         if ($result['success']) {
             Log::info('Backup completed successfully', [
                 'backup' => $result['backup'],
                 'duration' => $duration,
             ]);
-            
+
             // Trigger N8N workflow for successful backup
             $n8nService->executeWorkflow('backup-success', [
                 'backup_name' => $result['backup']['name'],
@@ -63,7 +65,7 @@ class PerformBackup implements ShouldQueue
                 'duration' => $duration,
                 'components' => $result['backup']['components'],
             ]);
-            
+
             // Send notification if configured
             if ($this->notifyOnComplete && $this->notificationEmail) {
                 $this->sendNotification($result['backup'], $duration, true);
@@ -73,14 +75,14 @@ class PerformBackup implements ShouldQueue
                 'error' => $result['error'],
                 'duration' => $duration,
             ]);
-            
+
             // Trigger N8N workflow for failed backup
             $n8nService->executeWorkflow('backup-failure', [
                 'error' => $result['error'],
                 'type' => $this->backupType,
                 'duration' => $duration,
             ]);
-            
+
             // Send failure notification
             if ($this->notifyOnComplete && $this->notificationEmail) {
                 $this->sendNotification(['error' => $result['error']], $duration, false);
@@ -93,17 +95,17 @@ class PerformBackup implements ShouldQueue
      */
     protected function sendNotification(array $backup, float $duration, bool $success): void
     {
-        $subject = $success 
+        $subject = $success
             ? "Backup Completed Successfully - {$backup['name']}"
             : "Backup Failed - {$this->backupType}";
-        
+
         $data = [
             'success' => $success,
             'backup' => $backup,
             'duration' => $duration,
             'type' => $this->backupType,
         ];
-        
+
         // Simple email notification
         // In production, use a proper Mailable class
         try {
@@ -111,7 +113,7 @@ class PerformBackup implements ShouldQueue
                 view('emails.backup-notification', $data)->render(),
                 function ($message) use ($subject) {
                     $message->to($this->notificationEmail)
-                            ->subject($subject);
+                        ->subject($subject);
                 }
             );
         } catch (\Exception $e) {

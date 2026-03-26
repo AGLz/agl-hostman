@@ -21,6 +21,7 @@ class IndexKnowledgeBaseJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 300;
 
     public function __construct(
@@ -33,16 +34,18 @@ class IndexKnowledgeBaseJob implements ShouldQueue
         try {
             $docsPath = base_path('docs');
 
-            if (!File::isDirectory($docsPath)) {
+            if (! File::isDirectory($docsPath)) {
                 Log::warning('Documentation directory not found', ['path' => $docsPath]);
+
                 return;
             }
 
             // Get list of markdown files
-            $files = File::glob($docsPath . '/*.md');
+            $files = File::glob($docsPath.'/*.md');
 
             if (empty($files)) {
                 Log::info('No markdown files found to index');
+
                 return;
             }
 
@@ -54,7 +57,7 @@ class IndexKnowledgeBaseJob implements ShouldQueue
             // For now, we'll index the main docs URL if available
             // In production, you'd want to deploy these docs to a web server first
             $webUrl = config('app.url');
-            $docsUrl = $webUrl . '/docs';
+            $docsUrl = $webUrl.'/docs';
 
             $result = $archon->addKnowledgeSource($docsUrl, array_merge([
                 'name' => 'AGL-HostMan Laravel Application Docs',

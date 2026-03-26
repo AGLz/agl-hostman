@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Deployment;
 
+use App\DTOs\Dokploy\ProjectDTO;
 use App\Models\Environment;
 use App\Services\DokployService;
-use App\DTOs\Dokploy\ProjectDTO;
-use App\DTOs\Dokploy\ApplicationDTO;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use Exception;
 
 /**
  * Environment Configuration Service
@@ -23,6 +22,7 @@ use Exception;
 class EnvironmentConfigService
 {
     private const CACHE_TTL = 600; // 10 minutes
+
     private const CACHE_PREFIX = 'env_config:';
 
     public function __construct(
@@ -32,9 +32,10 @@ class EnvironmentConfigService
     /**
      * Create new environment configuration
      *
-     * @param string $name Environment name (e.g., "QA Environment")
-     * @param string $type Environment type (dev, qa, uat, production)
+     * @param  string  $name  Environment name (e.g., "QA Environment")
+     * @param  string  $type  Environment type (dev, qa, uat, production)
      * @return Environment Created environment instance
+     *
      * @throws ValidationException If validation fails
      * @throws Exception If creation fails
      */
@@ -42,10 +43,10 @@ class EnvironmentConfigService
     {
         try {
             // Validate type
-            if (!in_array($type, ['dev', 'qa', 'uat', 'production'])) {
+            if (! in_array($type, ['dev', 'qa', 'uat', 'production'])) {
                 throw new ValidationException(
                     Validator::make([], [])
-                        ->after(fn($validator) => $validator->errors()->add('type', "Invalid environment type: {$type}"))
+                        ->after(fn ($validator) => $validator->errors()->add('type', "Invalid environment type: {$type}"))
                 );
             }
 
@@ -73,7 +74,7 @@ class EnvironmentConfigService
             ]);
 
             // Clear cache
-            Cache::forget(self::CACHE_PREFIX . $type);
+            Cache::forget(self::CACHE_PREFIX.$type);
 
             Log::info('Created environment', [
                 'id' => $environment->id,
@@ -95,13 +96,13 @@ class EnvironmentConfigService
     /**
      * Get environment-specific configuration
      *
-     * @param string $type Environment type
+     * @param  string  $type  Environment type
      * @return array Configuration array
      */
     public function getEnvironmentConfig(string $type): array
     {
         return Cache::remember(
-            self::CACHE_PREFIX . $type,
+            self::CACHE_PREFIX.$type,
             self::CACHE_TTL,
             function () use ($type) {
                 return match ($type) {
@@ -118,8 +119,9 @@ class EnvironmentConfigService
     /**
      * Validate environment configuration
      *
-     * @param array $config Configuration to validate
+     * @param  array  $config  Configuration to validate
      * @return bool True if valid
+     *
      * @throws ValidationException If validation fails
      */
     public function validateEnvironmentConfig(array $config): bool
@@ -149,8 +151,9 @@ class EnvironmentConfigService
     /**
      * Synchronize environment to Dokploy
      *
-     * @param string $environmentId Environment ID
+     * @param  string  $environmentId  Environment ID
      * @return bool True if successful
+     *
      * @throws Exception If sync fails
      */
     public function syncEnvironmentToDokploy(string $environmentId): bool
@@ -164,6 +167,7 @@ class EnvironmentConfigService
                     'environment_id' => $environmentId,
                     'project_id' => $environment->dokploy_project_id,
                 ]);
+
                 return true;
             }
 
@@ -314,10 +318,10 @@ class EnvironmentConfigService
      */
     public function clearCache(): void
     {
-        Cache::forget(self::CACHE_PREFIX . 'dev');
-        Cache::forget(self::CACHE_PREFIX . 'qa');
-        Cache::forget(self::CACHE_PREFIX . 'uat');
-        Cache::forget(self::CACHE_PREFIX . 'production');
+        Cache::forget(self::CACHE_PREFIX.'dev');
+        Cache::forget(self::CACHE_PREFIX.'qa');
+        Cache::forget(self::CACHE_PREFIX.'uat');
+        Cache::forget(self::CACHE_PREFIX.'production');
 
         Log::info('Cleared environment configuration cache');
     }

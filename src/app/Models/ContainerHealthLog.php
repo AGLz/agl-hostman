@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
 
 /**
  * Container Health Log Model
@@ -26,8 +26,6 @@ use Carbon\Carbon;
  * @property array|null $metrics
  * @property Carbon $created_at
  * @property Carbon $updated_at
- *
- * @package App\Models
  */
 class ContainerHealthLog extends Model
 {
@@ -71,7 +69,7 @@ class ContainerHealthLog extends Model
     public function scopeForContainer(Builder $query, string $node, int $vmid): Builder
     {
         return $query->where('node_code', $node)
-                     ->where('vmid', $vmid);
+            ->where('vmid', $vmid);
     }
 
     /**
@@ -142,7 +140,7 @@ class ContainerHealthLog extends Model
      */
     public function hasIssues(): bool
     {
-        return !empty($this->issues) && count($this->issues) > 0;
+        return ! empty($this->issues) && count($this->issues) > 0;
     }
 
     /**
@@ -150,7 +148,7 @@ class ContainerHealthLog extends Model
      */
     public function getFormattedUptimeAttribute(): string
     {
-        if (!$this->uptime_seconds) {
+        if (! $this->uptime_seconds) {
             return '0m';
         }
 
@@ -159,8 +157,13 @@ class ContainerHealthLog extends Model
         $hours = floor(($seconds % 86400) / 3600);
         $minutes = floor(($seconds % 3600) / 60);
 
-        if ($days > 0) return "{$days}d {$hours}h {$minutes}m";
-        if ($hours > 0) return "{$hours}h {$minutes}m";
+        if ($days > 0) {
+            return "{$days}d {$hours}h {$minutes}m";
+        }
+        if ($hours > 0) {
+            return "{$hours}h {$minutes}m";
+        }
+
         return "{$minutes}m";
     }
 }

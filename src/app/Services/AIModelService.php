@@ -2,15 +2,16 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
-use Exception;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AIModelService
 {
     protected array $models = [];
+
     protected array $config = [];
 
     public function __construct()
@@ -63,7 +64,7 @@ class AIModelService
      */
     public function query(string $model, string $prompt, array $options = []): array
     {
-        if (!isset($this->models[$model])) {
+        if (! isset($this->models[$model])) {
             return [
                 'success' => false,
                 'error' => "Model {$model} not found",
@@ -86,7 +87,7 @@ class AIModelService
                     throw new Exception("Handler not implemented for {$model}");
             }
         } catch (Exception $e) {
-            Log::error("AI Model query error", [
+            Log::error('AI Model query error', [
                 'model' => $model,
                 'error' => $e->getMessage(),
             ]);
@@ -104,7 +105,7 @@ class AIModelService
     protected function queryClaude(string $prompt, array $options = []): array
     {
         $apiKey = $this->config['claude']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('Claude API key not configured');
         }
 
@@ -116,13 +117,14 @@ class AIModelService
             'model' => $this->config['claude']['model'] ?? 'claude-3-opus-20240229',
             'max_tokens' => $options['max_tokens'] ?? 4096,
             'messages' => [
-                ['role' => 'user', 'content' => $prompt]
+                ['role' => 'user', 'content' => $prompt],
             ],
             'temperature' => $options['temperature'] ?? 0.7,
         ]);
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['content'][0]['text'] ?? '',
@@ -131,7 +133,7 @@ class AIModelService
             ];
         }
 
-        throw new Exception('Claude API request failed: ' . $response->body());
+        throw new Exception('Claude API request failed: '.$response->body());
     }
 
     /**
@@ -140,7 +142,7 @@ class AIModelService
     protected function queryGemini(string $prompt, array $options = []): array
     {
         $apiKey = $this->config['gemini']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('Gemini API key not configured');
         }
 
@@ -149,7 +151,7 @@ class AIModelService
             "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
             [
                 'contents' => [
-                    ['parts' => [['text' => $prompt]]]
+                    ['parts' => [['text' => $prompt]]],
                 ],
                 'generationConfig' => [
                     'temperature' => $options['temperature'] ?? 0.7,
@@ -160,6 +162,7 @@ class AIModelService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['candidates'][0]['content']['parts'][0]['text'] ?? '',
@@ -168,7 +171,7 @@ class AIModelService
             ];
         }
 
-        throw new Exception('Gemini API request failed: ' . $response->body());
+        throw new Exception('Gemini API request failed: '.$response->body());
     }
 
     /**
@@ -177,17 +180,17 @@ class AIModelService
     protected function queryOpenAI(string $prompt, array $options = []): array
     {
         $apiKey = $this->config['openai']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new Exception('OpenAI API key not configured');
         }
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
+            'Authorization' => 'Bearer '.$apiKey,
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
             'model' => $this->config['openai']['model'] ?? 'gpt-4-turbo-preview',
             'messages' => [
-                ['role' => 'user', 'content' => $prompt]
+                ['role' => 'user', 'content' => $prompt],
             ],
             'temperature' => $options['temperature'] ?? 0.7,
             'max_tokens' => $options['max_tokens'] ?? 4096,
@@ -195,6 +198,7 @@ class AIModelService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['choices'][0]['message']['content'] ?? '',
@@ -203,7 +207,7 @@ class AIModelService
             ];
         }
 
-        throw new Exception('OpenAI API request failed: ' . $response->body());
+        throw new Exception('OpenAI API request failed: '.$response->body());
     }
 
     /**
@@ -214,12 +218,12 @@ class AIModelService
         $apiKey = $this->config['abacusai']['api_key'] ?? null;
         $endpoint = $this->config['abacusai']['endpoint'] ?? null;
 
-        if (!$apiKey || !$endpoint) {
+        if (! $apiKey || ! $endpoint) {
             throw new Exception('AbacusAI configuration incomplete');
         }
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
+            'Authorization' => 'Bearer '.$apiKey,
             'Content-Type' => 'application/json',
         ])->post($endpoint, [
             'prompt' => $prompt,
@@ -229,6 +233,7 @@ class AIModelService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['response'] ?? '',
@@ -237,7 +242,7 @@ class AIModelService
             ];
         }
 
-        throw new Exception('AbacusAI API request failed: ' . $response->body());
+        throw new Exception('AbacusAI API request failed: '.$response->body());
     }
 
     /**
@@ -260,6 +265,7 @@ class AIModelService
 
         if ($response->successful()) {
             $data = $response->json();
+
             return [
                 'success' => true,
                 'content' => $data['response'] ?? '',
@@ -271,7 +277,7 @@ class AIModelService
             ];
         }
 
-        throw new Exception('Ollama API request failed: ' . $response->body());
+        throw new Exception('Ollama API request failed: '.$response->body());
     }
 
     /**
@@ -279,9 +285,9 @@ class AIModelService
      *
      * FIXED: Proper async execution using Http::pool()
      *
-     * @param array<string> $models List of models to query
-     * @param string $prompt The prompt to send
-     * @param array $options Query options
+     * @param  array<string>  $models  List of models to query
+     * @param  string  $prompt  The prompt to send
+     * @param  array  $options  Query options
      * @return array Results from all models
      */
     public function multiAgentQuery(array $models, string $prompt, array $options = []): array
@@ -294,12 +300,12 @@ class AIModelService
             $requests = [];
 
             foreach ($models as $model) {
-                if (!isset($this->models[$model])) {
+                if (! isset($this->models[$model])) {
                     continue;
                 }
 
                 // Build request for each model
-                $requests[$model] = match($model) {
+                $requests[$model] = match ($model) {
                     'claude' => $this->buildClaudePoolRequest($pool, $prompt, $options),
                     'gemini' => $this->buildGeminiPoolRequest($pool, $prompt, $options),
                     'openai' => $this->buildOpenAIPoolRequest($pool, $prompt, $options),
@@ -344,7 +350,7 @@ class AIModelService
         Log::info('Multi-agent query completed', [
             'models' => array_keys($results),
             'execution_time' => round($executionTime, 3),
-            'success_count' => count(array_filter($results, fn($r) => $r['success'] ?? false)),
+            'success_count' => count(array_filter($results, fn ($r) => $r['success'] ?? false)),
         ]);
 
         return [
@@ -362,7 +368,7 @@ class AIModelService
     private function buildClaudePoolRequest(Pool $pool, string $prompt, array $options)
     {
         $apiKey = $this->config['claude']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             return null;
         }
 
@@ -384,11 +390,12 @@ class AIModelService
     private function buildGeminiPoolRequest(Pool $pool, string $prompt, array $options)
     {
         $apiKey = $this->config['gemini']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             return null;
         }
 
         $model = $this->config['gemini']['model'] ?? 'gemini-pro';
+
         return $pool->post(
             "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
             [
@@ -407,12 +414,12 @@ class AIModelService
     private function buildOpenAIPoolRequest(Pool $pool, string $prompt, array $options)
     {
         $apiKey = $this->config['openai']['api_key'] ?? null;
-        if (!$apiKey) {
+        if (! $apiKey) {
             return null;
         }
 
         return $pool->withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
+            'Authorization' => 'Bearer '.$apiKey,
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
             'model' => $this->config['openai']['model'] ?? 'gpt-4-turbo-preview',
@@ -430,12 +437,12 @@ class AIModelService
         $apiKey = $this->config['abacusai']['api_key'] ?? null;
         $endpoint = $this->config['abacusai']['endpoint'] ?? null;
 
-        if (!$apiKey || !$endpoint) {
+        if (! $apiKey || ! $endpoint) {
             return null;
         }
 
         return $pool->withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
+            'Authorization' => 'Bearer '.$apiKey,
             'Content-Type' => 'application/json',
         ])->post($endpoint, [
             'prompt' => $prompt,
@@ -470,7 +477,7 @@ class AIModelService
     {
         $data = $response->json();
 
-        return match($model) {
+        return match ($model) {
             'claude' => [
                 'success' => true,
                 'content' => $data['content'][0]['text'] ?? '',
@@ -520,16 +527,16 @@ class AIModelService
 
             switch ($key) {
                 case 'claude':
-                    $configured = !empty($this->config['claude']['api_key']);
+                    $configured = ! empty($this->config['claude']['api_key']);
                     break;
                 case 'gemini':
-                    $configured = !empty($this->config['gemini']['api_key']);
+                    $configured = ! empty($this->config['gemini']['api_key']);
                     break;
                 case 'openai':
-                    $configured = !empty($this->config['openai']['api_key']);
+                    $configured = ! empty($this->config['openai']['api_key']);
                     break;
                 case 'abacusai':
-                    $configured = !empty($this->config['abacusai']['api_key']);
+                    $configured = ! empty($this->config['abacusai']['api_key']);
                     break;
                 case 'ollama':
                     $configured = true; // Always available if endpoint is reachable
@@ -564,7 +571,7 @@ class AIModelService
 
         // Check if selected model is configured
         $available = $this->getAvailableModels();
-        if (!$available[$selectedModel]['configured']) {
+        if (! $available[$selectedModel]['configured']) {
             // Fallback to first configured model
             foreach ($available as $key => $model) {
                 if ($model['configured']) {

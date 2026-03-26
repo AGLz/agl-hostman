@@ -31,7 +31,7 @@ class ArchonProjectUpdated implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'project' => $this->project
+            'project' => $this->project,
         ];
     }
 }

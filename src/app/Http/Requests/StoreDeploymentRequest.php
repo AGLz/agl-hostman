@@ -8,15 +8,11 @@ namespace App\Http\Requests;
  * Store Deployment Request
  *
  * Validation rules for triggering new deployments.
- *
- * @package App\Http\Requests
  */
 class StoreDeploymentRequest extends BaseFormRequest
 {
     /**
      * Get validation rules
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -36,8 +32,6 @@ class StoreDeploymentRequest extends BaseFormRequest
 
     /**
      * Get custom messages for deployment validation
-     *
-     * @return array
      */
     public function messages(): array
     {

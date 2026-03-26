@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Livewire\ServerHealthCard;
-use App\Services\MetricsCollector;
 use App\Models\ProxmoxServer;
+use App\Services\MetricsCollector;
 use Livewire\Livewire;
 
 beforeEach(function () {

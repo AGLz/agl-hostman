@@ -2,9 +2,9 @@
 
 namespace App\Listeners\Notifications;
 
-use App\Events\Notifications\DeploymentStarted;
 use App\Events\Notifications\DeploymentCompleted;
 use App\Events\Notifications\DeploymentFailed;
+use App\Events\Notifications\DeploymentStarted;
 use App\Services\Notifications\NotificationManager;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;

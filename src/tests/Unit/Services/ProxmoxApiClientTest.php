@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 describe('ProxmoxApiClient', function () {
     beforeEach(function () {
-        $this->client = new ProxmoxApiClient();
+        $this->client = new ProxmoxApiClient;
         $this->baseUrl = 'https://test.proxmox.local:8006/api2/json';
 
         // Mock successful authentication
@@ -38,7 +38,7 @@ describe('ProxmoxApiClient', function () {
             ->and($this->client->isAuthenticated())->toBeTrue();
 
         Http::assertSent(function ($request) {
-            return $request->url() === $this->baseUrl . '/access/ticket'
+            return $request->url() === $this->baseUrl.'/access/ticket'
                 && $request->data()['username'] === 'test@pam';
         });
     });

@@ -25,16 +25,17 @@ class ArchonHealthCheckCommand extends Command
 
         // Configuration
         $this->info('Configuration:');
-        $this->line('  Enabled: ' . (config('archon.enabled') ? '✓ Yes' : '✗ No'));
-        $this->line('  MCP URL: ' . config('archon.mcp_url'));
-        $this->line('  Web URL: ' . config('archon.web_url'));
-        $this->line('  Timeout: ' . config('archon.timeout') . 's');
-        $this->line('  Cache Enabled: ' . (config('archon.cache_enabled') ? 'Yes' : 'No'));
-        $this->line('  Sync Enabled: ' . (config('archon.sync_enabled') ? 'Yes' : 'No'));
+        $this->line('  Enabled: '.(config('archon.enabled') ? '✓ Yes' : '✗ No'));
+        $this->line('  MCP URL: '.config('archon.mcp_url'));
+        $this->line('  Web URL: '.config('archon.web_url'));
+        $this->line('  Timeout: '.config('archon.timeout').'s');
+        $this->line('  Cache Enabled: '.(config('archon.cache_enabled') ? 'Yes' : 'No'));
+        $this->line('  Sync Enabled: '.(config('archon.sync_enabled') ? 'Yes' : 'No'));
         $this->newLine();
 
-        if (!config('archon.enabled')) {
+        if (! config('archon.enabled')) {
             $this->warn('Archon integration is disabled');
+
             return self::SUCCESS;
         }
 
@@ -49,10 +50,12 @@ class ArchonHealthCheckCommand extends Command
                 $this->line("  ✓ Connection successful ({$duration}ms)");
             } else {
                 $this->error('  ✗ Connection failed');
+
                 return self::FAILURE;
             }
         } catch (\Exception $e) {
-            $this->error('  ✗ Connection failed: ' . $e->getMessage());
+            $this->error('  ✗ Connection failed: '.$e->getMessage());
+
             return self::FAILURE;
         }
         $this->newLine();
@@ -61,8 +64,8 @@ class ArchonHealthCheckCommand extends Command
         $this->info('Health Check:');
         try {
             $health = $archon->healthCheck();
-            $this->line('  Status: ' . ($health['status'] ?? 'unknown'));
-            $this->line('  Message: ' . ($health['message'] ?? 'N/A'));
+            $this->line('  Status: '.($health['status'] ?? 'unknown'));
+            $this->line('  Message: '.($health['message'] ?? 'N/A'));
 
             if ($this->option('detailed') && isset($health['details'])) {
                 $this->newLine();
@@ -72,7 +75,7 @@ class ArchonHealthCheckCommand extends Command
                 }
             }
         } catch (\Exception $e) {
-            $this->error('  ✗ Health check failed: ' . $e->getMessage());
+            $this->error('  ✗ Health check failed: '.$e->getMessage());
         }
         $this->newLine();
 
@@ -80,8 +83,8 @@ class ArchonHealthCheckCommand extends Command
         $this->info('System Status:');
         try {
             $status = $archon->getStatus();
-            $this->line('  Service: ' . ($status['service'] ?? 'unknown'));
-            $this->line('  Version: ' . ($status['version'] ?? 'unknown'));
+            $this->line('  Service: '.($status['service'] ?? 'unknown'));
+            $this->line('  Version: '.($status['version'] ?? 'unknown'));
 
             if (isset($status['features'])) {
                 $this->newLine();
@@ -96,12 +99,12 @@ class ArchonHealthCheckCommand extends Command
                 $this->newLine();
                 $this->line('  Knowledge Base:');
                 $kb = $status['knowledge_base'];
-                $this->line('    - Sources: ' . ($kb['sources_count'] ?? 0));
-                $this->line('    - Documents: ' . ($kb['documents_count'] ?? 0));
-                $this->line('    - Chunks: ' . ($kb['chunks_count'] ?? 0));
+                $this->line('    - Sources: '.($kb['sources_count'] ?? 0));
+                $this->line('    - Documents: '.($kb['documents_count'] ?? 0));
+                $this->line('    - Chunks: '.($kb['chunks_count'] ?? 0));
             }
         } catch (\Exception $e) {
-            $this->error('  ✗ Status check failed: ' . $e->getMessage());
+            $this->error('  ✗ Status check failed: '.$e->getMessage());
         }
         $this->newLine();
 
@@ -109,7 +112,7 @@ class ArchonHealthCheckCommand extends Command
         $this->info('Available MCP Tools:');
         $tools = config('archon.tools', []);
         foreach ($tools as $category => $categoryTools) {
-            $this->line("  {$category} (" . count($categoryTools) . ' tools)');
+            $this->line("  {$category} (".count($categoryTools).' tools)');
             if ($this->option('detailed')) {
                 foreach ($categoryTools as $tool) {
                     $this->line("    - {$tool}");

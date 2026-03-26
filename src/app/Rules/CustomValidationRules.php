@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\Rules;
 
 use Illuminate\Contracts\Validation\Rule;
-use Illuminate\Contracts\Validation\DataAwareRule;
-use Illuminate\Validation\Validator;
 
 /**
  * VMID Validation Rule
  *
  * Validates Proxmox VMID format and availability.
- *
- * @package App\Rules
  */
 class ValidVmid implements Rule
 {
@@ -22,12 +18,11 @@ class ValidVmid implements Rule
      *
      * @param  string  $attribute
      * @param  mixed  $value
-     * @return bool
      */
     public function passes($attribute, $value): bool
     {
         // VMID must be integer between 100 and 999999999
-        if (!is_numeric($value)) {
+        if (! is_numeric($value)) {
             return false;
         }
 
@@ -38,8 +33,6 @@ class ValidVmid implements Rule
 
     /**
      * Get the validation error message.
-     *
-     * @return string
      */
     public function message(): string
     {
@@ -51,8 +44,6 @@ class ValidVmid implements Rule
  * ValidHostname Validation Rule
  *
  * Validates hostname format according to RFC 1123.
- *
- * @package App\Rules
  */
 class ValidHostname implements Rule
 {
@@ -61,7 +52,6 @@ class ValidHostname implements Rule
      *
      * @param  string  $attribute
      * @param  mixed  $value
-     * @return bool
      */
     public function passes($attribute, $value): bool
     {
@@ -78,8 +68,6 @@ class ValidHostname implements Rule
 
     /**
      * Get the validation error message.
-     *
-     * @return string
      */
     public function message(): string
     {
@@ -91,8 +79,6 @@ class ValidHostname implements Rule
  * ValidIPAddress Validation Rule
  *
  * Validates IP address (IPv4 or IPv6) with optional CIDR notation.
- *
- * @package App\Rules
  */
 class ValidIPAddress implements Rule
 {
@@ -111,7 +97,6 @@ class ValidIPAddress implements Rule
      *
      * @param  string  $attribute
      * @param  mixed  $value
-     * @return bool
      */
     public function passes($attribute, $value): bool
     {
@@ -122,7 +107,7 @@ class ValidIPAddress implements Rule
         // Check if it's a valid IP address
         $isValidIp = filter_var($value, FILTER_VALIDATE_IP) !== false;
 
-        if (!$isValidIp) {
+        if (! $isValidIp) {
             return false;
         }
 
@@ -135,7 +120,7 @@ class ValidIPAddress implements Rule
         }
 
         // Check if IP is in allowed ranges
-        if (!empty($this->allowedRanges)) {
+        if (! empty($this->allowedRanges)) {
             return $this->isInAllowedRange($value);
         }
 
@@ -144,9 +129,6 @@ class ValidIPAddress implements Rule
 
     /**
      * Validate CIDR notation
-     *
-     * @param string $ip
-     * @return bool
      */
     private function isValidCidr(string $ip): bool
     {
@@ -155,9 +137,6 @@ class ValidIPAddress implements Rule
 
     /**
      * Check if IP is in allowed ranges
-     *
-     * @param string $ip
-     * @return bool
      */
     private function isInAllowedRange(string $ip): bool
     {
@@ -172,10 +151,6 @@ class ValidIPAddress implements Rule
 
     /**
      * Check if IP is in CIDR range
-     *
-     * @param string $ip
-     * @param string $range
-     * @return bool
      */
     private function ipInRange(string $ip, string $range): bool
     {
@@ -189,8 +164,6 @@ class ValidIPAddress implements Rule
 
     /**
      * Get the validation error message.
-     *
-     * @return string
      */
     public function message(): string
     {
@@ -202,8 +175,6 @@ class ValidIPAddress implements Rule
  * StrongPassword Validation Rule
  *
  * Validates password strength requirements.
- *
- * @package App\Rules
  */
 class StrongPassword implements Rule
 {
@@ -236,7 +207,6 @@ class StrongPassword implements Rule
      *
      * @param  string  $attribute
      * @param  mixed  $value
-     * @return bool
      */
     public function passes($attribute, $value): bool
     {
@@ -244,19 +214,19 @@ class StrongPassword implements Rule
             return false;
         }
 
-        if ($this->requireUppercase && !preg_match('/[A-Z]/', $value)) {
+        if ($this->requireUppercase && ! preg_match('/[A-Z]/', $value)) {
             return false;
         }
 
-        if ($this->requireLowercase && !preg_match('/[a-z]/', $value)) {
+        if ($this->requireLowercase && ! preg_match('/[a-z]/', $value)) {
             return false;
         }
 
-        if ($this->requireNumber && !preg_match('/[0-9]/', $value)) {
+        if ($this->requireNumber && ! preg_match('/[0-9]/', $value)) {
             return false;
         }
 
-        if ($this->requireSpecialChar && !preg_match('/[!@#$%^&*()_+\-=\[\]{};:"\\|,<\.>\/?]/', $value)) {
+        if ($this->requireSpecialChar && ! preg_match('/[!@#$%^&*()_+\-=\[\]{};:"\\|,<\.>\/?]/', $value)) {
             return false;
         }
 
@@ -265,8 +235,6 @@ class StrongPassword implements Rule
 
     /**
      * Get the validation error message.
-     *
-     * @return string
      */
     public function message(): string
     {
@@ -293,7 +261,7 @@ class StrongPassword implements Rule
         $prefix = 'The :attribute must ';
         $suffix = '.';
 
-        return $prefix . implode(' ', $messages) . $suffix;
+        return $prefix.implode(' ', $messages).$suffix;
     }
 }
 
@@ -301,8 +269,6 @@ class StrongPassword implements Rule
  * SafeUrl Validation Rule
  *
  * Validates URL to prevent SSRF attacks.
- *
- * @package App\Rules
  */
 class SafeUrl implements Rule
 {
@@ -318,7 +284,6 @@ class SafeUrl implements Rule
      *
      * @param  string  $attribute
      * @param  mixed  $value
-     * @return bool
      */
     public function passes($attribute, $value): bool
     {
@@ -327,18 +292,18 @@ class SafeUrl implements Rule
         }
 
         // Validate URL format
-        if (!filter_var($value, FILTER_VALIDATE_URL)) {
+        if (! filter_var($value, FILTER_VALIDATE_URL)) {
             return false;
         }
 
         $host = parse_url($value, PHP_URL_HOST);
 
-        if (!$host) {
+        if (! $host) {
             return false;
         }
 
         // Check if host is in allowed list
-        if (!empty($this->allowedHosts)) {
+        if (! empty($this->allowedHosts)) {
             return in_array($host, $this->allowedHosts);
         }
 
@@ -357,9 +322,6 @@ class SafeUrl implements Rule
 
     /**
      * Check if IP is private/internal
-     *
-     * @param string $host
-     * @return bool
      */
     private function isPrivateIp(string $host): bool
     {
@@ -389,10 +351,6 @@ class SafeUrl implements Rule
 
     /**
      * Check if IP is in CIDR range
-     *
-     * @param string $ip
-     * @param string $range
-     * @return bool
      */
     private function ipInRange(string $ip, string $range): bool
     {
@@ -406,8 +364,6 @@ class SafeUrl implements Rule
 
     /**
      * Get the validation error message.
-     *
-     * @return string
      */
     public function message(): string
     {
@@ -419,8 +375,6 @@ class SafeUrl implements Rule
  * ValidJson Validation Rule
  *
  * Validates JSON string.
- *
- * @package App\Rules
  */
 class ValidJson implements Rule
 {
@@ -429,7 +383,6 @@ class ValidJson implements Rule
      *
      * @param  string  $attribute
      * @param  mixed  $value
-     * @return bool
      */
     public function passes($attribute, $value): bool
     {
@@ -444,8 +397,6 @@ class ValidJson implements Rule
 
     /**
      * Get the validation error message.
-     *
-     * @return string
      */
     public function message(): string
     {

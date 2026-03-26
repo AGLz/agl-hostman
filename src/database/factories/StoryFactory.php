@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Story;
 use App\Models\Sprint;
+use App\Models\Story;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,7 +22,7 @@ class StoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => fake()->sentence() . ' as a ' . fake()->randomElement(['user', 'admin', 'developer', 'manager']),
+            'title' => fake()->sentence().' as a '.fake()->randomElement(['user', 'admin', 'developer', 'manager']),
             'description' => fake()->optional(0.7)->paragraphs(2),
             'acceptance_criteria' => fake()->optional(0.6)->randomElements([
                 'User can successfully log in',

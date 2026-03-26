@@ -13,18 +13,21 @@ use Illuminate\Queue\SerializesModels;
  *
  * Fired when AI predicts resource exhaustion for a container.
  * Allows proactive intervention before critical failures.
- *
- * @package App\Events
  */
 class ResourceExhaustionPredicted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public string $node;
+
     public int $vmid;
+
     public string $resourceType;
+
     public float $predictedUsage;
+
     public int $hoursAhead;
+
     public float $confidence;
 
     /**

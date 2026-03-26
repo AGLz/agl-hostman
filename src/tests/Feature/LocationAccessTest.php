@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\PhysicalLocation;
-use Laravel\Sanctum\Sanctum;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 class LocationAccessTest extends TestCase
 {
@@ -33,11 +33,11 @@ class LocationAccessTest extends TestCase
         // Assign locations
         $user->physicalLocations()->attach($aglsrv1->id, [
             'access_level' => 'admin',
-            'is_primary' => true
+            'is_primary' => true,
         ]);
         $user->physicalLocations()->attach($ct179->id, [
             'access_level' => 'manage',
-            'is_primary' => false
+            'is_primary' => false,
         ]);
 
         // Test hasAccessToLocation method
@@ -59,7 +59,7 @@ class LocationAccessTest extends TestCase
         $aglsrv1 = PhysicalLocation::where('code', 'AGLSRV1')->first();
         $user->physicalLocations()->attach($aglsrv1->id, [
             'access_level' => 'admin',
-            'is_primary' => true
+            'is_primary' => true,
         ]);
 
         Sanctum::actingAs($user);
@@ -78,7 +78,7 @@ class LocationAccessTest extends TestCase
         $aglsrv1 = PhysicalLocation::where('code', 'AGLSRV1')->first();
         $user->physicalLocations()->attach($aglsrv1->id, [
             'access_level' => 'admin',
-            'is_primary' => true
+            'is_primary' => true,
         ]);
 
         Sanctum::actingAs($user);
@@ -104,11 +104,11 @@ class LocationAccessTest extends TestCase
 
         $user->physicalLocations()->attach($aglsrv1->id, [
             'access_level' => 'admin',
-            'is_primary' => true
+            'is_primary' => true,
         ]);
         $user->physicalLocations()->attach($aglsrv6->id, [
             'access_level' => 'view',
-            'is_primary' => false
+            'is_primary' => false,
         ]);
 
         Sanctum::actingAs($user);
@@ -127,7 +127,7 @@ class LocationAccessTest extends TestCase
         $ct179 = PhysicalLocation::where('code', 'CT179')->first();
         $user->physicalLocations()->attach($ct179->id, [
             'access_level' => 'manage',  // Only manage, not admin
-            'is_primary' => true
+            'is_primary' => true,
         ]);
 
         Sanctum::actingAs($user);

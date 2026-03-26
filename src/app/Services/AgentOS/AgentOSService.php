@@ -2,9 +2,9 @@
 
 namespace App\Services\AgentOS;
 
-use App\Services\AgentOS\Contracts\MemoryInterface;
-use App\Services\AgentOS\Contracts\CoordinatorInterface;
 use App\Services\AgentOS\Contracts\ConsensusInterface;
+use App\Services\AgentOS\Contracts\CoordinatorInterface;
+use App\Services\AgentOS\Contracts\MemoryInterface;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -16,8 +16,11 @@ use Illuminate\Support\Facades\Log;
 class AgentOSService
 {
     protected MemoryInterface $memory;
+
     protected CoordinatorInterface $coordinator;
+
     protected ConsensusInterface $consensus;
+
     protected array $config;
 
     public function __construct(
@@ -36,7 +39,7 @@ class AgentOSService
      */
     public function remember(string $agentId, string $content, array $metadata = []): bool
     {
-        $key = "agent:{$agentId}:" . md5($content);
+        $key = "agent:{$agentId}:".md5($content);
         $embedding = $this->generateEmbedding($content);
 
         return $this->memory->store($key, $embedding, array_merge($metadata, [
@@ -54,7 +57,7 @@ class AgentOSService
         $results = $this->memory->searchByText($query, $k);
 
         if ($agentId) {
-            $results = $results->filter(fn($item) => ($item['metadata']['agent_id'] ?? null) === $agentId);
+            $results = $results->filter(fn ($item) => ($item['metadata']['agent_id'] ?? null) === $agentId);
         }
 
         return $results->values()->all();
@@ -175,7 +178,7 @@ class AgentOSService
      */
     public function learn(string $pattern, float $reward, array $context = []): bool
     {
-        if (!$this->config['memory']['reasoning_bank']['enabled']) {
+        if (! $this->config['memory']['reasoning_bank']['enabled']) {
             return false;
         }
 
@@ -202,8 +205,8 @@ class AgentOSService
         $results = $this->recall($query, $k * 2); // Get more to filter
 
         return collect($results)
-            ->filter(fn($item) => ($item['metadata']['reward'] ?? 0) >= $minReward)
-            ->filter(fn($item) => ($item['metadata']['type'] ?? null) === 'learning_pattern')
+            ->filter(fn ($item) => ($item['metadata']['reward'] ?? 0) >= $minReward)
+            ->filter(fn ($item) => ($item['metadata']['type'] ?? null) === 'learning_pattern')
             ->take($k)
             ->values()
             ->all();

@@ -2,26 +2,30 @@
 
 namespace App\Services\Monitoring;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class BuildPerformanceService
 {
     private const CACHE_KEY_LATEST = 'build:metrics:latest';
+
     private const CACHE_KEY_HISTORY = 'build:metrics:history';
+
     private const CACHE_KEY_TRENDS = 'build:metrics:trends';
 
     private const HISTORY_LIMIT = 100;
+
     private const CACHE_TTL_LATEST = 86400; // 24 hours
+
     private const CACHE_TTL_HISTORY = 604800; // 7 days
+
     private const CACHE_TTL_TRENDS = 3600; // 1 hour
 
     /**
      * Record build metrics for a deployment
      *
-     * @param array $metrics Build metrics data
-     * @return void
+     * @param  array  $metrics  Build metrics data
      */
     public function recordBuildMetrics(array $metrics): void
     {
@@ -29,7 +33,7 @@ class BuildPerformanceService
         $validated = $this->validateMetrics($metrics);
 
         // Add timestamp if not present
-        if (!isset($validated['timestamp'])) {
+        if (! isset($validated['timestamp'])) {
             $validated['timestamp'] = Carbon::now()->toIso8601String();
         }
 
@@ -54,8 +58,6 @@ class BuildPerformanceService
 
     /**
      * Get the latest build metrics
-     *
-     * @return array|null
      */
     public function getLatestMetrics(): ?array
     {
@@ -65,8 +67,7 @@ class BuildPerformanceService
     /**
      * Get build metrics history
      *
-     * @param int $limit Maximum number of builds to return
-     * @return array
+     * @param  int  $limit  Maximum number of builds to return
      */
     public function getHistory(int $limit = 50): array
     {
@@ -81,8 +82,6 @@ class BuildPerformanceService
 
     /**
      * Calculate performance improvements over baseline
-     *
-     * @return array
      */
     public function calculateImprovements(): array
     {
@@ -122,8 +121,6 @@ class BuildPerformanceService
 
     /**
      * Get build trends over time
-     *
-     * @return array
      */
     public function getTrends(): array
     {
@@ -137,10 +134,6 @@ class BuildPerformanceService
 
     /**
      * Get build metrics for a specific environment
-     *
-     * @param string $environment
-     * @param int $limit
-     * @return array
      */
     public function getEnvironmentMetrics(string $environment, int $limit = 20): array
     {
@@ -160,16 +153,13 @@ class BuildPerformanceService
 
     /**
      * Validate build metrics
-     *
-     * @param array $metrics
-     * @return array
      */
     private function validateMetrics(array $metrics): array
     {
         $required = ['build_time_seconds'];
 
         foreach ($required as $field) {
-            if (!isset($metrics[$field])) {
+            if (! isset($metrics[$field])) {
                 throw new \InvalidArgumentException("Missing required field: {$field}");
             }
         }
@@ -179,19 +169,16 @@ class BuildPerformanceService
 
     /**
      * Calculate derived metrics
-     *
-     * @param array $metrics
-     * @return array
      */
     private function calculateDerivedMetrics(array $metrics): array
     {
         // Calculate cache hit rate if not provided
-        if (!isset($metrics['cache_hit_rate'])) {
+        if (! isset($metrics['cache_hit_rate'])) {
             $metrics['cache_hit_rate'] = $metrics['cache_hit'] ?? false ? 100 : 0;
         }
 
         // Estimate layer reuse if not provided
-        if (!isset($metrics['layer_reuse_rate'])) {
+        if (! isset($metrics['layer_reuse_rate'])) {
             // Fast builds (< 180s) likely have good cache reuse
             if ($metrics['build_time_seconds'] < 180) {
                 $metrics['layer_reuse_rate'] = 90;
@@ -205,9 +192,6 @@ class BuildPerformanceService
 
     /**
      * Add metrics to history
-     *
-     * @param array $metrics
-     * @return void
      */
     private function addToHistory(array $metrics): void
     {
@@ -224,8 +208,6 @@ class BuildPerformanceService
 
     /**
      * Update trends cache
-     *
-     * @return void
      */
     private function updateTrends(): void
     {
@@ -248,9 +230,6 @@ class BuildPerformanceService
 
     /**
      * Calculate average metrics from builds
-     *
-     * @param array $builds
-     * @return array
      */
     private function calculateAverageMetrics(array $builds): array
     {
@@ -277,10 +256,6 @@ class BuildPerformanceService
 
     /**
      * Calculate percentage improvement
-     *
-     * @param float $before
-     * @param float $after
-     * @return float
      */
     private function calculatePercentageImprovement(float $before, float $after): float
     {
@@ -293,9 +268,6 @@ class BuildPerformanceService
 
     /**
      * Calculate average build time
-     *
-     * @param array $builds
-     * @return float
      */
     private function calculateAverageBuildTime(array $builds): float
     {
@@ -304,14 +276,12 @@ class BuildPerformanceService
         }
 
         $total = array_sum(array_column($builds, 'build_time_seconds'));
+
         return round($total / count($builds), 2);
     }
 
     /**
      * Calculate average cache hit rate
-     *
-     * @param array $builds
-     * @return float
      */
     private function calculateAverageCacheHitRate(array $builds): float
     {
@@ -331,9 +301,6 @@ class BuildPerformanceService
 
     /**
      * Calculate total time saved
-     *
-     * @param array $builds
-     * @return int
      */
     private function calculateTotalTimeSaved(array $builds): int
     {

@@ -3,10 +3,8 @@
 namespace Tests\Feature;
 
 use App\Events\Notifications\DeploymentStarted;
-use App\Events\Notifications\PROpened;
 use App\Models\Deployment;
 use App\Models\NotificationChannel;
-use App\Models\NotificationRule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;

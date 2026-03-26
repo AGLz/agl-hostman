@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Events\Notifications\OnCallRotation;
 use App\Models\OnCallSchedule;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 class OnCallScheduleController extends Controller
 {
@@ -40,7 +40,7 @@ class OnCallScheduleController extends Controller
     {
         $current = $this->getCurrentOnCall();
 
-        if (!$current) {
+        if (! $current) {
             return response()->json([
                 'message' => 'No one is currently on-call',
                 'current' => null,
@@ -49,7 +49,7 @@ class OnCallScheduleController extends Controller
 
         return response()->json([
             'current' => $current,
-            'time_remaining' => now()->diffInHours($current->end_time) . ' hours',
+            'time_remaining' => now()->diffInHours($current->end_time).' hours',
         ]);
     }
 

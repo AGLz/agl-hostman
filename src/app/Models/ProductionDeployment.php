@@ -72,7 +72,7 @@ class ProductionDeployment extends Model
      */
     public function isHealthy(): bool
     {
-        if (!$this->health_status) {
+        if (! $this->health_status) {
             return false;
         }
 
@@ -85,7 +85,7 @@ class ProductionDeployment extends Model
      */
     public function canRollback(): bool
     {
-        return !is_null($this->getInactiveVersion()) &&
+        return ! is_null($this->getInactiveVersion()) &&
                $this->last_deployment_at?->diffInMinutes(now()) <= 60;
     }
 

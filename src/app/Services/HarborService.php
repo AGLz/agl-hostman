@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTOs\Harbor\HarborArtifactDTO;
 use App\DTOs\Harbor\HarborProjectDTO;
 use App\DTOs\Harbor\HarborRepositoryDTO;
-use App\DTOs\Harbor\HarborArtifactDTO;
 use App\DTOs\Harbor\HarborVulnerabilityDTO;
 use App\Repositories\HarborRepository;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use Exception;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Harbor Service
@@ -45,7 +45,7 @@ class HarborService
             });
 
             return collect($data)
-                ->map(fn($project) => HarborProjectDTO::fromArray($project));
+                ->map(fn ($project) => HarborProjectDTO::fromArray($project));
         } catch (Exception $e) {
             Log::error('Failed to get Harbor projects', [
                 'error' => $e->getMessage(),
@@ -185,7 +185,7 @@ class HarborService
             });
 
             return collect($data)
-                ->map(fn($repo) => HarborRepositoryDTO::fromArray($repo));
+                ->map(fn ($repo) => HarborRepositoryDTO::fromArray($repo));
         } catch (Exception $e) {
             Log::error('Failed to get Harbor repositories', [
                 'project' => $projectName,
@@ -257,7 +257,7 @@ class HarborService
             );
 
             return collect($data)
-                ->map(fn($artifact) => HarborArtifactDTO::fromArray($artifact));
+                ->map(fn ($artifact) => HarborArtifactDTO::fromArray($artifact));
         } catch (Exception $e) {
             Log::error('Failed to get Harbor artifacts', [
                 'project' => $projectName,
@@ -377,7 +377,7 @@ class HarborService
         try {
             $artifact = $this->getArtifact($projectName, $repositoryName, $reference);
 
-            if (!isset($artifact->scanOverview)) {
+            if (! isset($artifact->scanOverview)) {
                 // Trigger scan if not available
                 $this->triggerScan($projectName, $repositoryName, $reference);
                 throw new Exception('Vulnerability scan not available. Scan triggered.');

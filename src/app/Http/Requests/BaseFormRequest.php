@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpException;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,15 +13,11 @@ use Illuminate\Support\Facades\Auth;
  * Base Form Request with enhanced validation
  *
  * Provides common validation logic and authorization for all API requests.
- *
- * @package App\Http\Requests
  */
 abstract class BaseFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -32,8 +28,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Get custom validation messages
-     *
-     * @return array
      */
     public function messages(): array
     {
@@ -65,8 +59,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Get custom attributes for validator error messages
-     *
-     * @return array
      */
     public function attributes(): array
     {
@@ -82,9 +74,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Handle a failed validation attempt.
-     *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return void
      */
     protected function failedValidation(Validator $validator): void
     {
@@ -101,9 +90,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Format validation errors for consistent API response
-     *
-     * @param array $errors
-     * @return array
      */
     protected function formatErrors(array $errors): array
     {
@@ -118,8 +104,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Prepare inputs for validation
-     *
-     * @return void
      */
     protected function prepareForValidation(): void
     {
@@ -129,8 +113,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Sanitize request inputs
-     *
-     * @return void
      */
     protected function sanitizeInputs(): void
     {
@@ -151,8 +133,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Get validation rules for pagination
-     *
-     * @return array
      */
     protected function getPaginationRules(): array
     {
@@ -166,8 +146,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Get common validation rules for IDs
-     *
-     * @return array
      */
     protected function getIdRules(): array
     {
@@ -178,9 +156,6 @@ abstract class BaseFormRequest extends FormRequest
 
     /**
      * Validate boolean fields
-     *
-     * @param string $field
-     * @return void
      */
     protected function validateBoolean(string $field): void
     {

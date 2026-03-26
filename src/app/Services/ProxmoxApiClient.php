@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\DTOs\ProxmoxApiResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use App\DTOs\ProxmoxApiResponse;
 
 /**
  * ProxmoxApiClient - API abstraction layer for Proxmox VE
@@ -18,12 +18,19 @@ use App\DTOs\ProxmoxApiResponse;
 class ProxmoxApiClient
 {
     protected string $baseUrl;
+
     protected string $username;
+
     protected string $password;
+
     protected ?string $apiToken = null;
+
     protected ?string $csrfToken = null;
+
     protected int $timeout = 30;
+
     protected int $maxRetries = 3;
+
     protected array $circuitBreaker = [
         'failures' => 0,
         'last_failure' => null,
@@ -34,11 +41,11 @@ class ProxmoxApiClient
     /**
      * Create Proxmox API client instance
      *
-     * @param string $host Proxmox host (e.g., '192.168.0.245' or 'pve1.local')
-     * @param int $port Proxmox API port (default: 8006)
-     * @param string $username Username (e.g., 'root@pam')
-     * @param string $password Password or API token
-     * @param bool $verifySSL Verify SSL certificates (default: false for self-signed)
+     * @param  string  $host  Proxmox host (e.g., '192.168.0.245' or 'pve1.local')
+     * @param  int  $port  Proxmox API port (default: 8006)
+     * @param  string  $username  Username (e.g., 'root@pam')
+     * @param  string  $password  Password or API token
+     * @param  bool  $verifySSL  Verify SSL certificates (default: false for self-signed)
      */
     public function __construct(
         string $host,
@@ -68,6 +75,7 @@ class ProxmoxApiClient
         // Check if circuit breaker is open
         if ($this->isCircuitBreakerOpen()) {
             Log::warning('Proxmox API circuit breaker is open, skipping authentication');
+
             return false;
         }
 
@@ -89,6 +97,7 @@ class ProxmoxApiClient
                 $this->resetCircuitBreaker();
 
                 Log::info('Proxmox API authenticated successfully');
+
                 return true;
             }
 
@@ -112,8 +121,6 @@ class ProxmoxApiClient
 
     /**
      * Get list of nodes in cluster
-     *
-     * @return ProxmoxApiResponse
      */
     public function getNodes(): ProxmoxApiResponse
     {
@@ -123,8 +130,7 @@ class ProxmoxApiClient
     /**
      * Get node status
      *
-     * @param string $node Node name (e.g., 'pve1')
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name (e.g., 'pve1')
      */
     public function getNodeStatus(string $node): ProxmoxApiResponse
     {
@@ -134,8 +140,7 @@ class ProxmoxApiClient
     /**
      * Get list of LXC containers on node
      *
-     * @param string $node Node name
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
      */
     public function getContainers(string $node): ProxmoxApiResponse
     {
@@ -145,9 +150,8 @@ class ProxmoxApiClient
     /**
      * Get container status
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID (e.g., 179)
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID (e.g., 179)
      */
     public function getContainerStatus(string $node, int $vmid): ProxmoxApiResponse
     {
@@ -157,9 +161,8 @@ class ProxmoxApiClient
     /**
      * Get container configuration
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID
      */
     public function getContainerConfig(string $node, int $vmid): ProxmoxApiResponse
     {
@@ -169,9 +172,8 @@ class ProxmoxApiClient
     /**
      * Start container
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID
      */
     public function startContainer(string $node, int $vmid): ProxmoxApiResponse
     {
@@ -181,9 +183,8 @@ class ProxmoxApiClient
     /**
      * Stop container
      *
-     * @param string $node Node name
-     * @param int $vmid Container ID
-     * @return ProxmoxApiResponse
+     * @param  string  $node  Node name
+     * @param  int  $vmid  Container ID
      */
     public function stopContainer(string $node, int $vmid): ProxmoxApiResponse
     {
@@ -193,22 +194,21 @@ class ProxmoxApiClient
     /**
      * Get cluster resources (overview of all VMs/containers)
      *
-     * @param string|null $type Filter by type (vm, storage, node)
-     * @return ProxmoxApiResponse
+     * @param  string|null  $type  Filter by type (vm, storage, node)
      */
     public function getClusterResources(?string $type = null): ProxmoxApiResponse
     {
         $params = $type ? ['type' => $type] : [];
+
         return $this->request('GET', '/cluster/resources', $params);
     }
 
     /**
      * Execute generic API request with retry logic
      *
-     * @param string $method HTTP method
-     * @param string $endpoint API endpoint
-     * @param array $params Request parameters
-     * @return ProxmoxApiResponse
+     * @param  string  $method  HTTP method
+     * @param  string  $endpoint  API endpoint
+     * @param  array  $params  Request parameters
      */
     protected function request(string $method, string $endpoint, array $params = []): ProxmoxApiResponse
     {
@@ -223,7 +223,7 @@ class ProxmoxApiClient
         }
 
         // Ensure authenticated
-        if (!$this->apiToken) {
+        if (! $this->apiToken) {
             $cachedToken = Cache::get('proxmox_auth_token');
             $cachedCsrf = Cache::get('proxmox_csrf_token');
 
@@ -231,7 +231,7 @@ class ProxmoxApiClient
                 $this->apiToken = $cachedToken;
                 $this->csrfToken = $cachedCsrf;
             } else {
-                if (!$this->authenticate()) {
+                if (! $this->authenticate()) {
                     return new ProxmoxApiResponse(
                         success: false,
                         data: [],
@@ -268,6 +268,7 @@ class ProxmoxApiClient
 
                     if ($this->authenticate()) {
                         $attempt++;
+
                         continue;
                     }
                 }
@@ -311,7 +312,7 @@ class ProxmoxApiClient
      */
     protected function executeRequest(string $method, string $endpoint, array $params = [])
     {
-        $url = $this->baseUrl . $endpoint;
+        $url = $this->baseUrl.$endpoint;
 
         $headers = [
             'Cookie' => "PVEAuthCookie={$this->apiToken}",
@@ -332,11 +333,12 @@ class ProxmoxApiClient
         }
 
         $lastFailure = $this->circuitBreaker['last_failure'];
-        if (!$lastFailure) {
+        if (! $lastFailure) {
             return false;
         }
 
         $elapsed = now()->diffInSeconds($lastFailure);
+
         return $elapsed < $this->circuitBreaker['timeout'];
     }
 
@@ -380,16 +382,17 @@ class ProxmoxApiClient
     /**
      * Convenience method for GET requests
      *
-     * @param string $endpoint API endpoint
-     * @param array $params Query parameters
+     * @param  string  $endpoint  API endpoint
+     * @param  array  $params  Query parameters
      * @return array Response data ['data' => mixed, 'status' => int]
+     *
      * @throws \Exception When the request fails
      */
     public function get(string $endpoint, array $params = []): array
     {
         $response = $this->request('GET', $endpoint, $params);
 
-        if (!$response->success) {
+        if (! $response->success) {
             throw new \Exception($response->error ?? 'Request failed');
         }
 
@@ -402,16 +405,17 @@ class ProxmoxApiClient
     /**
      * Convenience method for POST requests
      *
-     * @param string $endpoint API endpoint
-     * @param array $params Request body parameters
+     * @param  string  $endpoint  API endpoint
+     * @param  array  $params  Request body parameters
      * @return array Response data ['data' => mixed, 'status' => int]
+     *
      * @throws \Exception When the request fails
      */
     public function post(string $endpoint, array $params = []): array
     {
         $response = $this->request('POST', $endpoint, $params);
 
-        if (!$response->success) {
+        if (! $response->success) {
             throw new \Exception($response->error ?? 'Request failed');
         }
 

@@ -13,8 +13,6 @@ use Tests\TestCase;
  * Security Audit Log Model Test
  *
  * Tests for the SecurityAuditLog model.
- *
- * @package Tests\Unit\Models
  */
 class SecurityAuditLogTest extends TestCase
 {

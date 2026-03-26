@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Services\MetricsCollector;
 use App\Models\ProxmoxServer;
-use App\Models\LxcContainer;
 use App\Models\User;
+use App\Services\MetricsCollector;
 use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {

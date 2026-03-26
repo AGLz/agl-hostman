@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Services\MetricsCollector;
 use Illuminate\Support\Facades\Log;
+use Livewire\Component;
 
 /**
  * NetworkMetrics - WireGuard mesh network status display
@@ -25,8 +25,11 @@ use Illuminate\Support\Facades\Log;
 class NetworkMetrics extends Component
 {
     public ?array $metrics = null;
+
     public ?string $error = null;
+
     public bool $loading = true;
+
     public bool $showPeerDetails = false;
 
     protected MetricsCollector $metricsCollector;
@@ -50,13 +53,13 @@ class NetworkMetrics extends Component
             $this->loading = true;
             $this->metrics = $this->metricsCollector->collectNetworkMetrics();
 
-            if (!$this->metrics['success']) {
+            if (! $this->metrics['success']) {
                 $this->error = 'Failed to load network metrics';
             } else {
                 $this->error = null;
             }
         } catch (\Exception $e) {
-            Log::error("NetworkMetrics failed to load", [
+            Log::error('NetworkMetrics failed to load', [
                 'error' => $e->getMessage(),
             ]);
             $this->error = 'Failed to load network metrics';
@@ -71,7 +74,7 @@ class NetworkMetrics extends Component
      */
     public function togglePeerDetails(): void
     {
-        $this->showPeerDetails = !$this->showPeerDetails;
+        $this->showPeerDetails = ! $this->showPeerDetails;
     }
 
     /**
@@ -88,7 +91,7 @@ class NetworkMetrics extends Component
      */
     public function getHealthBadgeColor(): string
     {
-        if (!$this->metrics) {
+        if (! $this->metrics) {
             return 'gray';
         }
 
@@ -134,7 +137,7 @@ class NetworkMetrics extends Component
      */
     public function getConnectionPercentage(): int
     {
-        if (!$this->metrics || !isset($this->metrics['summary'])) {
+        if (! $this->metrics || ! isset($this->metrics['summary'])) {
             return 0;
         }
 

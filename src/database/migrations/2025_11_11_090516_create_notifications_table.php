@@ -23,7 +23,7 @@ return new class extends Migration
             $table->boolean('read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index('type');
             $table->index('priority');
             $table->index('user_id');

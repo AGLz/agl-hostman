@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Models\PhysicalLocation;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -171,7 +171,7 @@ Route::prefix('location-test')->middleware(['web'])->group(function () {
             $location->id => [
                 'access_level' => $request->access_level,
                 'is_primary' => $request->is_primary ?? false,
-            ]
+            ],
         ]);
 
         return response()->json([

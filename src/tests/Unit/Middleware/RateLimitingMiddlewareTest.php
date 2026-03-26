@@ -6,7 +6,6 @@ namespace Tests\Unit\Middleware;
 
 use App\Http\Middleware\RateLimiting;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -17,8 +16,6 @@ use Tests\TestCase;
  * Rate Limiting Middleware Test
  *
  * Tests for the RateLimiting middleware.
- *
- * @package Tests\Unit\Middleware
  */
 class RateLimitingMiddlewareTest extends TestCase
 {
@@ -35,7 +32,7 @@ class RateLimitingMiddlewareTest extends TestCase
     public function test_rate_limits_authenticated_user(): void
     {
         $user = User::factory()->create();
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->setUserResolver(fn () => $user);
 
@@ -60,7 +57,7 @@ class RateLimitingMiddlewareTest extends TestCase
      */
     public function test_rate_limits_unauthenticated_user_by_ip(): void
     {
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->server->set('REMOTE_ADDR', '192.168.1.1');
 
@@ -85,7 +82,7 @@ class RateLimitingMiddlewareTest extends TestCase
      */
     public function test_different_rate_limit_types(): void
     {
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->server->set('REMOTE_ADDR', '192.168.1.2');
 
@@ -114,7 +111,7 @@ class RateLimitingMiddlewareTest extends TestCase
     public function test_rate_limit_headers_added(): void
     {
         $user = User::factory()->create();
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->setUserResolver(fn () => $user);
 
@@ -136,7 +133,7 @@ class RateLimitingMiddlewareTest extends TestCase
     public function test_rate_limit_response_format(): void
     {
         $user = User::factory()->create();
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->setUserResolver(fn () => $user);
 
@@ -164,7 +161,7 @@ class RateLimitingMiddlewareTest extends TestCase
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
 
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
 
         $request1 = Request::create('/api/test', 'GET');
         $request1->setUserResolver(fn () => $user1);
@@ -196,7 +193,7 @@ class RateLimitingMiddlewareTest extends TestCase
     public function test_rate_limit_decay_after_time(): void
     {
         $user = User::factory()->create();
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->setUserResolver(fn () => $user);
 
@@ -226,7 +223,7 @@ class RateLimitingMiddlewareTest extends TestCase
      */
     public function test_per_ip_rate_limiting(): void
     {
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
 
         $request1 = Request::create('/api/test', 'GET');
         $request1->server->set('REMOTE_ADDR', '192.168.1.10');
@@ -256,7 +253,7 @@ class RateLimitingMiddlewareTest extends TestCase
      */
     public function test_rate_limit_whitelist(): void
     {
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->server->set('REMOTE_ADDR', '127.0.0.1');
 
@@ -279,7 +276,7 @@ class RateLimitingMiddlewareTest extends TestCase
     public function test_custom_decay_time(): void
     {
         $user = User::factory()->create();
-        $middleware = new RateLimiting();
+        $middleware = new RateLimiting;
         $request = Request::create('/api/test', 'GET');
         $request->setUserResolver(fn () => $user);
 

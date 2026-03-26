@@ -29,22 +29,22 @@ class ArchonProjectController extends Controller
                 );
 
                 $project['tasks_count'] = count($tasks);
-                $project['tasks_todo_count'] = count(array_filter($tasks, fn($t) => $t['status'] === 'todo'));
-                $project['tasks_doing_count'] = count(array_filter($tasks, fn($t) => $t['status'] === 'doing'));
-                $project['tasks_review_count'] = count(array_filter($tasks, fn($t) => $t['status'] === 'review'));
-                $project['tasks_done_count'] = count(array_filter($tasks, fn($t) => $t['status'] === 'done'));
+                $project['tasks_todo_count'] = count(array_filter($tasks, fn ($t) => $t['status'] === 'todo'));
+                $project['tasks_doing_count'] = count(array_filter($tasks, fn ($t) => $t['status'] === 'doing'));
+                $project['tasks_review_count'] = count(array_filter($tasks, fn ($t) => $t['status'] === 'review'));
+                $project['tasks_done_count'] = count(array_filter($tasks, fn ($t) => $t['status'] === 'done'));
             }
 
             return Inertia::render('Archon/Projects', [
-                'projects' => $projects
+                'projects' => $projects,
             ]);
         } catch (\Exception $e) {
             logger()->error('Projects list error', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return Inertia::render('Archon/Projects', [
-                'projects' => []
+                'projects' => [],
             ]);
         }
     }
@@ -57,7 +57,7 @@ class ArchonProjectController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'github_repo' => 'nullable|url|max:500'
+            'github_repo' => 'nullable|url|max:500',
         ]);
 
         try {
@@ -75,11 +75,11 @@ class ArchonProjectController extends Controller
         } catch (\Exception $e) {
             logger()->error('Project creation error', [
                 'error' => $e->getMessage(),
-                'data' => $validated
+                'data' => $validated,
             ]);
 
             return back()
-                ->withErrors(['error' => 'Failed to create project: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Failed to create project: '.$e->getMessage()])
                 ->withInput();
         }
     }
@@ -92,7 +92,7 @@ class ArchonProjectController extends Controller
         try {
             $project = $this->archonService->getProject($id);
 
-            if (!$project) {
+            if (! $project) {
                 abort(404, 'Project not found');
             }
 
@@ -103,12 +103,12 @@ class ArchonProjectController extends Controller
 
             return Inertia::render('Archon/ProjectShow', [
                 'project' => $project,
-                'tasks' => $tasks
+                'tasks' => $tasks,
             ]);
         } catch (\Exception $e) {
             logger()->error('Project show error', [
                 'error' => $e->getMessage(),
-                'project_id' => $id
+                'project_id' => $id,
             ]);
 
             abort(500, 'Failed to load project');
@@ -123,7 +123,7 @@ class ArchonProjectController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'github_repo' => 'nullable|url|max:500'
+            'github_repo' => 'nullable|url|max:500',
         ]);
 
         try {
@@ -137,11 +137,11 @@ class ArchonProjectController extends Controller
             logger()->error('Project update error', [
                 'error' => $e->getMessage(),
                 'project_id' => $id,
-                'data' => $validated
+                'data' => $validated,
             ]);
 
             return back()
-                ->withErrors(['error' => 'Failed to update project: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Failed to update project: '.$e->getMessage()])
                 ->withInput();
         }
     }
@@ -162,11 +162,11 @@ class ArchonProjectController extends Controller
         } catch (\Exception $e) {
             logger()->error('Project delete error', [
                 'error' => $e->getMessage(),
-                'project_id' => $id
+                'project_id' => $id,
             ]);
 
             return back()
-                ->withErrors(['error' => 'Failed to delete project: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Failed to delete project: '.$e->getMessage()]);
         }
     }
 
@@ -178,7 +178,7 @@ class ArchonProjectController extends Controller
         try {
             $project = $this->archonService->getProject($id);
 
-            if (!$project) {
+            if (! $project) {
                 abort(404, 'Project not found');
             }
 
@@ -189,12 +189,12 @@ class ArchonProjectController extends Controller
 
             return Inertia::render('Archon/TaskBoard', [
                 'project' => $project,
-                'tasks' => $tasks
+                'tasks' => $tasks,
             ]);
         } catch (\Exception $e) {
             logger()->error('Task board error', [
                 'error' => $e->getMessage(),
-                'project_id' => $id
+                'project_id' => $id,
             ]);
 
             abort(500, 'Failed to load task board');

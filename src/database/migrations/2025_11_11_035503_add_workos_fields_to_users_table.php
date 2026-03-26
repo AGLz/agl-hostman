@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('avatar_url')->nullable()->after('password');
             $table->timestamp('last_login_at')->nullable()->after('remember_token');
             $table->boolean('is_active')->default(true)->after('last_login_at');
-            
+
             $table->index('workos_id');
             $table->index('is_active');
         });

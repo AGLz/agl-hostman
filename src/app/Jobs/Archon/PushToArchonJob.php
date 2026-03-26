@@ -22,6 +22,7 @@ class PushToArchonJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 60;
 
     public function __construct(
@@ -32,8 +33,9 @@ class PushToArchonJob implements ShouldQueue
 
     public function handle(ArchonMcpService $archon): void
     {
-        if (!config('archon.sync_enabled')) {
+        if (! config('archon.sync_enabled')) {
             Log::info('Archon sync disabled, skipping push');
+
             return;
         }
 
@@ -70,6 +72,7 @@ class PushToArchonJob implements ShouldQueue
                 $archon->deleteProject($sprint->archon_project_id);
                 $sprint->update(['archon_project_id' => null]);
             }
+
             return;
         }
 
@@ -99,11 +102,12 @@ class PushToArchonJob implements ShouldQueue
     {
         $task = Task::with('sprint')->findOrFail($this->entityId);
 
-        if (!$task->sprint?->archon_project_id) {
+        if (! $task->sprint?->archon_project_id) {
             Log::warning('Cannot push task: Sprint has no Archon project ID', [
                 'task_id' => $this->entityId,
                 'sprint_id' => $task->sprint_id,
             ]);
+
             return;
         }
 
@@ -112,6 +116,7 @@ class PushToArchonJob implements ShouldQueue
                 $archon->deleteTask($task->archon_task_id);
                 $task->update(['archon_task_id' => null]);
             }
+
             return;
         }
 

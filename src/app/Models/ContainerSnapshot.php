@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 /**
  * Container Snapshot Model
@@ -26,7 +26,6 @@ use Illuminate\Database\Eloquent\Casts\AsArrayObject;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- *
  * @property-read LxcContainer $container
  */
 class ContainerSnapshot extends Model
@@ -126,9 +125,10 @@ class ContainerSnapshot extends Model
         if ($days === 0) {
             $hours = $this->created_at->diffInHours(now());
             if ($hours === 0) {
-                return $this->created_at->diffInMinutes(now()) . ' minutes ago';
+                return $this->created_at->diffInMinutes(now()).' minutes ago';
             }
-            return $hours . ' hours ago';
+
+            return $hours.' hours ago';
         }
 
         if ($days === 1) {
@@ -136,14 +136,14 @@ class ContainerSnapshot extends Model
         }
 
         if ($days < 7) {
-            return $days . ' days ago';
+            return $days.' days ago';
         }
 
         if ($days < 30) {
-            return floor($days / 7) . ' weeks ago';
+            return floor($days / 7).' weeks ago';
         }
 
-        return floor($days / 30) . ' months ago';
+        return floor($days / 30).' months ago';
     }
 
     /**
@@ -151,7 +151,7 @@ class ContainerSnapshot extends Model
      */
     public function getFormattedSize(): string
     {
-        if (!$this->size_mb) {
+        if (! $this->size_mb) {
             return 'Unknown';
         }
 

@@ -7,7 +7,7 @@ use App\Models\ProxmoxServer;
 
 describe('LxcContainer Model', function () {
     it('has correct fillable attributes', function () {
-        $container = new LxcContainer();
+        $container = new LxcContainer;
 
         expect($container->getFillable())->toContain('vmid', 'name', 'status', 'proxmox_server_id');
     });

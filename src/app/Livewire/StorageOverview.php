@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Services\MetricsCollector;
 use Illuminate\Support\Facades\Log;
+use Livewire\Component;
 
 /**
  * StorageOverview - NFS storage usage monitoring
@@ -25,8 +25,11 @@ use Illuminate\Support\Facades\Log;
 class StorageOverview extends Component
 {
     public ?array $metrics = null;
+
     public ?string $error = null;
+
     public bool $loading = true;
+
     public bool $showMountDetails = false;
 
     protected MetricsCollector $metricsCollector;
@@ -50,13 +53,13 @@ class StorageOverview extends Component
             $this->loading = true;
             $this->metrics = $this->metricsCollector->collectStorageMetrics();
 
-            if (!$this->metrics['success']) {
+            if (! $this->metrics['success']) {
                 $this->error = 'Failed to load storage metrics';
             } else {
                 $this->error = null;
             }
         } catch (\Exception $e) {
-            Log::error("StorageOverview failed to load", [
+            Log::error('StorageOverview failed to load', [
                 'error' => $e->getMessage(),
             ]);
             $this->error = 'Failed to load storage metrics';
@@ -71,7 +74,7 @@ class StorageOverview extends Component
      */
     public function toggleMountDetails(): void
     {
-        $this->showMountDetails = !$this->showMountDetails;
+        $this->showMountDetails = ! $this->showMountDetails;
     }
 
     /**
@@ -88,7 +91,7 @@ class StorageOverview extends Component
      */
     public function getHealthBadgeColor(): string
     {
-        if (!$this->metrics) {
+        if (! $this->metrics) {
             return 'gray';
         }
 
@@ -137,7 +140,7 @@ class StorageOverview extends Component
      */
     public function getOverallUsagePercentage(): int
     {
-        if (!$this->metrics || !isset($this->metrics['summary'])) {
+        if (! $this->metrics || ! isset($this->metrics['summary'])) {
             return 0;
         }
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Database\Seeders;
 
-use App\Models\User;
+use App\Models\ContainerHealthLog;
 use App\Models\LxcContainer;
 use App\Models\ProxmoxServer;
-use App\Models\ContainerHealthLog;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class TestDatabaseSeeder extends Seeder

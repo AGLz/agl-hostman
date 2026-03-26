@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\MonitoringService;
-use App\Services\MetricsCollector;
 use App\Services\AlertService;
-use Illuminate\Http\Request;
+use App\Services\MetricsCollector;
+use App\Services\MonitoringService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
 /**
@@ -17,13 +17,13 @@ use OpenApi\Annotations as OA;
  *
  * Provides REST API for infrastructure monitoring, metrics,
  * health status, and alert management.
- *
- * @package App\Http\Controllers\Api
  */
 class MonitoringController extends Controller
 {
     protected MonitoringService $monitoringService;
+
     protected MetricsCollector $metricsCollector;
+
     protected AlertService $alertService;
 
     public function __construct(
@@ -44,24 +44,31 @@ class MonitoringController extends Controller
      *     description="Retrieve comprehensive metrics from all infrastructure sources",
      *     operationId="getMonitoringMetrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="refresh",
      *         in="query",
      *         description="Force refresh metrics from source",
      *         required=false,
+     *
      *         @OA\Schema(type="boolean", default=false)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="server",
      *         in="query",
      *         description="Filter by server code",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Metrics retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="servers", type="array", @OA\Items(type="object")),
      *             @OA\Property(property="containers", type="array", @OA\Items(type="object")),
@@ -71,6 +78,7 @@ class MonitoringController extends Controller
      *             @OA\Property(property="timestamp", type="string", format="date-time")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -108,10 +116,13 @@ class MonitoringController extends Controller
      *     description="Get comprehensive health status of all infrastructure components",
      *     operationId="getHealthStatus",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Health status retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="overall_health", type="string", example="healthy"),
      *             @OA\Property(property="servers", type="object"),
      *             @OA\Property(property="containers", type="object"),
@@ -121,6 +132,7 @@ class MonitoringController extends Controller
      *             @OA\Property(property="last_collected", type="string", format="date-time")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -139,43 +151,55 @@ class MonitoringController extends Controller
      *     description="Retrieve alerts with optional filtering",
      *     operationId="getMonitoringAlerts",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="status",
      *         in="query",
      *         description="Filter by alert status",
      *         required=false,
+     *
      *         @OA\Schema(type="string", enum={"active", "acknowledged", "resolved"})
      *     ),
+     *
      *     @OA\Parameter(
      *         name="type",
      *         in="query",
      *         description="Filter by alert type",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="source",
      *         in="query",
      *         description="Filter by source",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="limit",
      *         in="query",
      *         description="Limit number of results",
      *         required=false,
+     *
      *         @OA\Schema(type="integer", default=100)
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Alerts retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
      *             @OA\Property(property="total", type="integer"),
      *             @OA\Property(property="stats", type="object")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -221,21 +245,28 @@ class MonitoringController extends Controller
      *     description="Mark one or more alerts as acknowledged",
      *     operationId="markAlertsRead",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="alert_ids", type="array", @OA\Items(type="string"), description="Array of alert IDs to acknowledge"),
      *             @OA\Property(property="all", type="boolean", description="Acknowledge all active alerts")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Alerts acknowledged successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean"),
      *             @OA\Property(property="acknowledged", type="integer", description="Number of alerts acknowledged")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=422, description="Validation error")
      * )
@@ -274,27 +305,36 @@ class MonitoringController extends Controller
      *     description="Mark an alert as resolved",
      *     operationId="resolveAlert",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="alertId",
      *         in="path",
      *         description="Alert ID",
      *         required=true,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\RequestBody(
      *         required=false,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="resolution_notes", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Alert resolved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean"),
      *             @OA\Property(property="message", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=404, description="Alert not found")
      * )
@@ -306,7 +346,7 @@ class MonitoringController extends Controller
 
         $success = $this->alertService->resolveAlert($alertId, $userId);
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to resolve alert. Alert may not exist.',
@@ -327,10 +367,13 @@ class MonitoringController extends Controller
      *     description="Manually trigger metrics collection and alert evaluation",
      *     operationId="collectMetrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Collection completed",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean"),
      *             @OA\Property(property="metrics_collected", type="boolean"),
      *             @OA\Property(property="alerts_generated", type="integer"),
@@ -338,6 +381,7 @@ class MonitoringController extends Controller
      *             @OA\Property(property="timestamp", type="string", format="date-time")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -356,36 +400,46 @@ class MonitoringController extends Controller
      *     description="Retrieve performance trend analysis",
      *     operationId="getPerformanceTrends",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="resource_type",
      *         in="query",
      *         description="Filter by resource type (ProxmoxServer, LxcContainer, Network, Storage)",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="resource_id",
      *         in="query",
      *         description="Filter by resource ID",
      *         required=false,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="hours",
      *         in="query",
      *         description="Time period in hours",
      *         required=false,
+     *
      *         @OA\Schema(type="integer", default=24)
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Trends retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="cpu_usage", type="object"),
      *             @OA\Property(property="memory_usage", type="object"),
      *             @OA\Property(property="load_average", type="object")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -412,14 +466,18 @@ class MonitoringController extends Controller
      *     description="Clear cache and refresh all metrics from source",
      *     operationId="refreshMonitoring",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Refresh completed",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean"),
      *             @OA\Property(property="message", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -443,23 +501,29 @@ class MonitoringController extends Controller
      *     description="Retrieve detailed metrics for a specific server",
      *     operationId="getServerMetrics",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="serverCode",
      *         in="path",
      *         description="Server code (e.g., aglsrv1)",
      *         required=true,
+     *
      *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Server metrics retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean"),
      *             @OA\Property(property="server", type="object"),
      *             @OA\Property(property="metrics", type="object"),
      *             @OA\Property(property="health_status", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=404, description="Server not found")
      * )
@@ -468,7 +532,7 @@ class MonitoringController extends Controller
     {
         $metrics = $this->metricsCollector->collectServerMetrics($serverCode);
 
-        if (!$metrics['success'] && $metrics['health_status'] === 'unknown') {
+        if (! $metrics['success'] && $metrics['health_status'] === 'unknown') {
             return response()->json([
                 'success' => false,
                 'message' => $metrics['error'] ?? 'Server not found',
@@ -486,15 +550,19 @@ class MonitoringController extends Controller
      *     description="Get aggregated monitoring statistics",
      *     operationId="getMonitoringStats",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Statistics retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="alerts", type="object"),
      *             @OA\Property(property="infrastructure", type="object"),
      *             @OA\Property(property="trends", type="object")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */

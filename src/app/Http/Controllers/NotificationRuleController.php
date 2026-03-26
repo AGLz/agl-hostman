@@ -21,8 +21,8 @@ class NotificationRuleController extends Controller
     public function index(Request $request): JsonResponse
     {
         $rules = NotificationRule::query()
-            ->when($request->enabled !== null, fn($q) => $q->where('enabled', $request->boolean('enabled')))
-            ->when($request->event_type, fn($q, $type) => $q->where('event_type', $type))
+            ->when($request->enabled !== null, fn ($q) => $q->where('enabled', $request->boolean('enabled')))
+            ->when($request->event_type, fn ($q, $type) => $q->where('event_type', $type))
             ->orderBy('priority', 'desc')
             ->orderBy('name')
             ->with('channel')
@@ -82,7 +82,7 @@ class NotificationRuleController extends Controller
     public function update(Request $request, NotificationRule $rule): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255|unique:notification_rules,name,' . $rule->id,
+            'name' => 'sometimes|string|max:255|unique:notification_rules,name,'.$rule->id,
             'conditions' => 'sometimes|array',
             'actions' => 'sometimes|array',
             'actions.*.type' => 'sometimes|in:notify,escalate,suppress',

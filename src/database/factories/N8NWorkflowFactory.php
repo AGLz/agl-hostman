@@ -9,8 +9,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * N8N Workflow Factory
- *
- * @package Database\Factories
  */
 class N8NWorkflowFactory extends Factory
 {
@@ -23,8 +21,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
     public function definition(): array
     {
@@ -71,8 +67,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow is active
-     *
-     * @return static
      */
     public function active(): static
     {
@@ -83,8 +77,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow is inactive
-     *
-     * @return static
      */
     public function inactive(): static
     {
@@ -95,8 +87,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow is for automation
-     *
-     * @return static
      */
     public function automation(): static
     {
@@ -108,8 +98,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow is for monitoring
-     *
-     * @return static
      */
     public function monitoring(): static
     {
@@ -121,8 +109,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow is for deployment
-     *
-     * @return static
      */
     public function deployment(): static
     {
@@ -134,8 +120,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow has been recently synced
-     *
-     * @return static
      */
     public function recentlySynced(): static
     {
@@ -146,8 +130,6 @@ class N8NWorkflowFactory extends Factory
 
     /**
      * Indicate that the workflow has high execution count
-     *
-     * @return static
      */
     public function frequentlyUsed(): static
     {

@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Models\LxcContainer;
+use App\Models\ProxmoxServer;
 use App\Services\MetricsCollector;
 use App\Services\ProxmoxApiClient;
-use App\Models\ProxmoxServer;
-use App\Models\LxcContainer;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
     $this->apiClient = Mockery::mock(ProxmoxApiClient::class);
@@ -84,7 +83,7 @@ describe('MetricsCollector - Server Metrics', function () {
             'health_status' => 'healthy',
         ];
 
-        Cache::put("metrics:server:aglsrv1", $cachedData, now()->addSeconds(10));
+        Cache::put('metrics:server:aglsrv1', $cachedData, now()->addSeconds(10));
 
         // API should not be called
         $this->apiClient->shouldReceive('get')->never();

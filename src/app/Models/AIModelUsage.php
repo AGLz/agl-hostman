@@ -26,16 +26,22 @@ class AIModelUsage extends Model
      * Task types
      */
     public const TASK_PREDICTION = 'prediction';
+
     public const TASK_ANALYSIS = 'analysis';
+
     public const TASK_RECOMMENDATION = 'recommendation';
+
     public const TASK_CHAT = 'chat';
+
     public const TASK_CODE_GENERATION = 'code_generation';
 
     /**
      * Providers
      */
     public const PROVIDER_OPENAI = 'openai';
+
     public const PROVIDER_CLAUDE = 'claude';
+
     public const PROVIDER_OLLAMA = 'ollama';
 
     protected $fillable = [

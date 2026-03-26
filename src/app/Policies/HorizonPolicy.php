@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class HorizonPolicy
 {

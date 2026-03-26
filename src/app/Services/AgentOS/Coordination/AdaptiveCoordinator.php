@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Log;
 class AdaptiveCoordinator implements CoordinatorInterface
 {
     protected array $sessions = [];
+
     protected array $config;
+
     protected array $coordinators = [];
 
     public function __construct()
@@ -23,8 +25,8 @@ class AdaptiveCoordinator implements CoordinatorInterface
         $this->config = config('agent-os.coordination.topologies.adaptive');
 
         // Initialize sub-coordinators
-        $this->coordinators['hierarchical'] = new HierarchicalCoordinator();
-        $this->coordinators['mesh'] = new MeshCoordinator();
+        $this->coordinators['hierarchical'] = new HierarchicalCoordinator;
+        $this->coordinators['mesh'] = new MeshCoordinator;
     }
 
     /**
@@ -92,6 +94,7 @@ class AdaptiveCoordinator implements CoordinatorInterface
 
         // Get best coordinator for this mechanism
         $coordinator = $this->getBestCoordinatorForMechanism($mechanism);
+
         return $coordinator->attend($outputs, $mechanism);
     }
 
@@ -100,7 +103,7 @@ class AdaptiveCoordinator implements CoordinatorInterface
      */
     public function status(string $sessionId): array
     {
-        if (!isset($this->sessions[$sessionId])) {
+        if (! isset($this->sessions[$sessionId])) {
             return ['error' => 'Session not found'];
         }
 
@@ -130,6 +133,7 @@ class AdaptiveCoordinator implements CoordinatorInterface
         }
 
         unset($this->sessions[$sessionId]);
+
         return true;
     }
 
@@ -208,6 +212,7 @@ class AdaptiveCoordinator implements CoordinatorInterface
         // Check if we should switch (respect cooldown)
         if ($this->shouldSwitchTopology($sessionId, $selected)) {
             $this->sessions[$sessionId]['switch_count']++;
+
             return $selected;
         }
 
@@ -275,7 +280,7 @@ class AdaptiveCoordinator implements CoordinatorInterface
         }
 
         $mean = array_sum($capabilities) / count($capabilities);
-        $variance = array_sum(array_map(fn($c) => pow($c - $mean, 2), $capabilities)) / count($capabilities);
+        $variance = array_sum(array_map(fn ($c) => pow($c - $mean, 2), $capabilities)) / count($capabilities);
 
         return min(1, $variance / 100); // Normalize to 0-1
     }
@@ -298,7 +303,7 @@ class AdaptiveCoordinator implements CoordinatorInterface
         $session = $this->sessions[$sessionId];
 
         // Always switch first time
-        if (!$session['selected_topology']) {
+        if (! $session['selected_topology']) {
             return true;
         }
 

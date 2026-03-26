@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\PerformanceTrend;
 use App\Models\LxcContainer;
+use App\Models\PerformanceTrend;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Performance Trend Factory
- *
- * @package Database\Factories
  */
 class PerformanceTrendFactory extends Factory
 {
@@ -24,8 +22,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
     public function definition(): array
     {
@@ -45,8 +41,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend is for CPU metric
-     *
-     * @return static
      */
     public function cpu(): static
     {
@@ -59,8 +53,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend is for memory metric
-     *
-     * @return static
      */
     public function memory(): static
     {
@@ -73,8 +65,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend is for disk metric
-     *
-     * @return static
      */
     public function disk(): static
     {
@@ -87,8 +77,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend is for network metric
-     *
-     * @return static
      */
     public function network(): static
     {
@@ -101,8 +89,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend is for a container
-     *
-     * @return static
      */
     public function forContainer(LxcContainer $container): static
     {
@@ -114,8 +100,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend is recent (last N hours)
-     *
-     * @return static
      */
     public function recent(int $hours = 24): static
     {
@@ -126,8 +110,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend has high value (warning level)
-     *
-     * @return static
      */
     public function high(): static
     {
@@ -138,8 +120,6 @@ class PerformanceTrendFactory extends Factory
 
     /**
      * Indicate that the trend has critical value
-     *
-     * @return static
      */
     public function critical(): static
     {

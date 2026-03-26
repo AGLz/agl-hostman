@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Services\ProxmoxApiClient;
-use App\Models\LxcContainer;
 use App\Models\ProxmoxServer;
+use App\Services\ProxmoxApiClient;
 use Illuminate\Support\Facades\Http;
 
 describe('Proxmox API Integration', function () {
@@ -14,7 +13,7 @@ describe('Proxmox API Integration', function () {
             'port' => 8006,
         ]);
 
-        $this->client = new ProxmoxApiClient();
+        $this->client = new ProxmoxApiClient;
 
         // Record HTTP interactions for VCR-like behavior
         Http::preventStrayRequests();
@@ -173,7 +172,7 @@ describe('Proxmox Cluster Integration', function () {
             ], 200),
         ]);
 
-        $client = new ProxmoxApiClient();
+        $client = new ProxmoxApiClient;
         $client->authenticate('test@pam', 'password');
 
         $resources = $client->getClusterResources();

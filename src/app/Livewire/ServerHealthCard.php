@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Services\MetricsCollector;
 use Illuminate\Support\Facades\Log;
+use Livewire\Component;
 
 /**
  * ServerHealthCard - Display individual server health metrics
@@ -26,9 +26,13 @@ use Illuminate\Support\Facades\Log;
 class ServerHealthCard extends Component
 {
     public string $serverCode;
+
     public bool $showDetails = false;
+
     public ?array $metrics = null;
+
     public ?string $error = null;
+
     public bool $loading = true;
 
     protected MetricsCollector $metricsCollector;
@@ -76,7 +80,7 @@ class ServerHealthCard extends Component
      */
     public function toggleDetails(): void
     {
-        $this->showDetails = !$this->showDetails;
+        $this->showDetails = ! $this->showDetails;
     }
 
     /**
@@ -93,7 +97,7 @@ class ServerHealthCard extends Component
      */
     public function getHealthBadgeColor(): string
     {
-        if (!$this->metrics) {
+        if (! $this->metrics) {
             return 'gray';
         }
 
@@ -111,7 +115,7 @@ class ServerHealthCard extends Component
      */
     public function getHealthStatusText(): string
     {
-        if (!$this->metrics) {
+        if (! $this->metrics) {
             return 'Unknown';
         }
 
@@ -129,7 +133,7 @@ class ServerHealthCard extends Component
      */
     public function getCpuUsageClass(): string
     {
-        if (!isset($this->metrics['metrics']['cpu']['usage_percent'])) {
+        if (! isset($this->metrics['metrics']['cpu']['usage_percent'])) {
             return 'text-gray-600';
         }
 
@@ -151,7 +155,7 @@ class ServerHealthCard extends Component
      */
     public function getMemoryUsageClass(): string
     {
-        if (!isset($this->metrics['metrics']['memory']['usage_percent'])) {
+        if (! isset($this->metrics['metrics']['memory']['usage_percent'])) {
             return 'text-gray-600';
         }
 

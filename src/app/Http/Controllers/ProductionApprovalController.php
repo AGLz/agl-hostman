@@ -9,7 +9,6 @@ use App\Services\DeploymentWorkflowService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class ProductionApprovalController extends Controller
 {
@@ -122,7 +121,7 @@ class ProductionApprovalController extends Controller
             $user = $request->user();
 
             // Verify user has required role
-            if (!$user->hasRole($approval->approver_role)) {
+            if (! $user->hasRole($approval->approver_role)) {
                 return response()->json([
                     'success' => false,
                     'message' => "You must have the '{$approval->approver_role}' role to approve this deployment",
@@ -130,7 +129,7 @@ class ProductionApprovalController extends Controller
             }
 
             // Check if already approved or expired
-            if (!$approval->isPending()) {
+            if (! $approval->isPending()) {
                 return response()->json([
                     'success' => false,
                     'message' => "This approval is already {$approval->status}",
@@ -145,7 +144,7 @@ class ProductionApprovalController extends Controller
                 ->where('deployment_version', $approval->deployment_version)
                 ->get();
 
-            $allApproved = $allApprovals->every(fn($a) => $a->status === 'approved');
+            $allApproved = $allApprovals->every(fn ($a) => $a->status === 'approved');
 
             $response = [
                 'success' => true,
@@ -160,7 +159,7 @@ class ProductionApprovalController extends Controller
                 $response['message'] = 'All approvals complete. Deployment can proceed.';
                 $response['data']['deployment_ready'] = true;
             } else {
-                $pendingCount = $allApprovals->filter(fn($a) => $a->isPending())->count();
+                $pendingCount = $allApprovals->filter(fn ($a) => $a->isPending())->count();
                 $response['data']['pending_approvals'] = $pendingCount;
             }
 
@@ -195,7 +194,7 @@ class ProductionApprovalController extends Controller
             $user = $request->user();
 
             // Verify user has required role
-            if (!$user->hasRole($approval->approver_role)) {
+            if (! $user->hasRole($approval->approver_role)) {
                 return response()->json([
                     'success' => false,
                     'message' => "You must have the '{$approval->approver_role}' role to reject this deployment",
@@ -258,9 +257,9 @@ class ProductionApprovalController extends Controller
                 ], 404);
             }
 
-            $allApproved = $approvals->every(fn($a) => $a->status === 'approved');
-            $anyRejected = $approvals->contains(fn($a) => $a->status === 'rejected');
-            $anyExpired = $approvals->contains(fn($a) => $a->isExpired());
+            $allApproved = $approvals->every(fn ($a) => $a->status === 'approved');
+            $anyRejected = $approvals->contains(fn ($a) => $a->status === 'rejected');
+            $anyExpired = $approvals->contains(fn ($a) => $a->isExpired());
 
             return response()->json([
                 'success' => true,
@@ -273,11 +272,11 @@ class ProductionApprovalController extends Controller
                         'approved' => $approvals->where('status', 'approved')->count(),
                         'pending' => $approvals->where('status', 'pending')->count(),
                         'rejected' => $approvals->where('status', 'rejected')->count(),
-                        'expired' => $approvals->filter(fn($a) => $a->isExpired())->count(),
+                        'expired' => $approvals->filter(fn ($a) => $a->isExpired())->count(),
                         'all_approved' => $allApproved,
                         'any_rejected' => $anyRejected,
                         'any_expired' => $anyExpired,
-                        'deployment_ready' => $allApproved && !$anyRejected && !$anyExpired,
+                        'deployment_ready' => $allApproved && ! $anyRejected && ! $anyExpired,
                     ],
                 ],
             ]);
@@ -314,7 +313,7 @@ class ProductionApprovalController extends Controller
             }
 
             // Refresh to get updated statuses
-            $approvals = $approvals->reject(fn($a) => $a->status === 'expired');
+            $approvals = $approvals->reject(fn ($a) => $a->status === 'expired');
 
             return response()->json([
                 'success' => true,

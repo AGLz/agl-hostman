@@ -6,7 +6,6 @@ use App\Services\AgentOS\Contracts\MemoryInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * Agent OS v3 Memory Service
@@ -17,8 +16,11 @@ use Illuminate\Support\Str;
 class MemoryService implements MemoryInterface
 {
     protected array $index = [];
+
     protected array $metadata = [];
+
     protected array $config;
+
     protected string $cacheKey = 'agent_os_memory_index';
 
     public function __construct()
@@ -73,7 +75,7 @@ class MemoryService implements MemoryInterface
         }
 
         // Sort by similarity and take top k
-        usort($results, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
+        usort($results, fn ($a, $b) => $b['similarity'] <=> $a['similarity']);
         $results = array_slice($results, 0, $k);
 
         return collect($results);
@@ -85,6 +87,7 @@ class MemoryService implements MemoryInterface
     public function searchByText(string $query, int $k = 10): Collection
     {
         $embedding = $this->generateEmbedding($query);
+
         return $this->search($embedding, $k);
     }
 
@@ -93,7 +96,7 @@ class MemoryService implements MemoryInterface
      */
     public function get(string $key): ?array
     {
-        if (!isset($this->index[$key])) {
+        if (! isset($this->index[$key])) {
             return null;
         }
 
@@ -108,7 +111,7 @@ class MemoryService implements MemoryInterface
      */
     public function delete(string $key): bool
     {
-        if (!isset($this->index[$key])) {
+        if (! isset($this->index[$key])) {
             return false;
         }
 
@@ -160,6 +163,7 @@ class MemoryService implements MemoryInterface
         }
 
         $this->persistIndex();
+
         return true;
     }
 
@@ -173,7 +177,7 @@ class MemoryService implements MemoryInterface
 
         foreach ($vector as $i => $value) {
             // Product quantization: compress by ratio
-            if ($i % (int)(1 / $ratio) === 0) {
+            if ($i % (int) (1 / $ratio) === 0) {
                 $quantized[] = $value;
             }
         }
@@ -209,6 +213,7 @@ class MemoryService implements MemoryInterface
         }
 
         arsort($candidates);
+
         return array_slice(array_keys($candidates), 0, $ef, true);
     }
 
@@ -258,9 +263,9 @@ class MemoryService implements MemoryInterface
         }
 
         // Normalize
-        $magnitude = sqrt(array_sum(array_map(fn($x) => $x ** 2, $embedding)));
+        $magnitude = sqrt(array_sum(array_map(fn ($x) => $x ** 2, $embedding)));
         if ($magnitude > 0) {
-            $embedding = array_map(fn($x) => $x / $magnitude, $embedding);
+            $embedding = array_map(fn ($x) => $x / $magnitude, $embedding);
         }
 
         return $embedding;
@@ -295,6 +300,7 @@ class MemoryService implements MemoryInterface
     protected function calculateIndexSize(): float
     {
         $size = strlen(serialize(['index' => $this->index, 'metadata' => $this->metadata]));
+
         return round($size / 1024 / 1024, 2);
     }
 

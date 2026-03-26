@@ -3,11 +3,10 @@
 declare(strict_types=1);
 
 use App\Livewire\ContainerGrid;
-use App\Services\MetricsCollector;
-use App\Models\ProxmoxServer;
 use App\Models\LxcContainer;
+use App\Models\ProxmoxServer;
+use App\Services\MetricsCollector;
 use Livewire\Livewire;
-use Illuminate\Support\Collection;
 
 beforeEach(function () {
     $this->metricsCollector = Mockery::mock(MetricsCollector::class);

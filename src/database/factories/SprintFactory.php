@@ -24,7 +24,7 @@ class SprintFactory extends Factory
         $endDate = (clone $startDate)->modify('+'.rand(7, 21).' days');
 
         return [
-            'name' => 'Sprint ' . fake()->numberBetween(1, 50),
+            'name' => 'Sprint '.fake()->numberBetween(1, 50),
             'goal' => fake()->optional(0.7)->sentence(),
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),

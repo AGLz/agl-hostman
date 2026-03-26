@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\LxcContainer;
-use App\Models\DokployDeployment;
-use App\Models\DokployApplication;
-use App\Models\PerformanceTrend;
 use App\Models\Alert;
+use App\Models\DokployDeployment;
+use App\Models\LxcContainer;
+use App\Models\PerformanceTrend;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -19,16 +18,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Provides optimized query methods to prevent N+1 problems,
  * reduce database load, and improve query performance.
- *
- * @package App\Services
  */
 class DatabaseQueryOptimizer
 {
     /**
      * Get containers with optimized eager loading
-     *
-     * @param array $filters
-     * @return Collection
      */
     public function getContainersOptimized(array $filters = []): Collection
     {
@@ -38,11 +32,11 @@ class DatabaseQueryOptimizer
                 $query->latest()->limit(10);  // Limit related records
             },
         ])
-        ->select([
-            'id', 'vmid', 'name', 'hostname', 'status',
-            'cores', 'memory_mb', 'disk_gb',
-            'proxmox_server_id', 'created_at', 'updated_at'
-        ]);
+            ->select([
+                'id', 'vmid', 'name', 'hostname', 'status',
+                'cores', 'memory_mb', 'disk_gb',
+                'proxmox_server_id', 'created_at', 'updated_at',
+            ]);
 
         // Apply filters
         if (isset($filters['status'])) {
@@ -55,9 +49,9 @@ class DatabaseQueryOptimizer
 
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('hostname', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('vmid', 'like', '%' . $filters['search'] . '%');
+                $q->where('name', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('hostname', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('vmid', 'like', '%'.$filters['search'].'%');
             });
         }
 
@@ -67,8 +61,6 @@ class DatabaseQueryOptimizer
     /**
      * Get deployments with optimized eager loading
      *
-     * @param array $filters
-     * @param int $perPage
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function getDeploymentsOptimized(array $filters = [], int $perPage = 15)
@@ -77,12 +69,12 @@ class DatabaseQueryOptimizer
             'application:id,name,type,project_id',
             'application.user:id,name,email',
         ])
-        ->select([
-            'id', 'application_id', 'status', 'title',
-            'commit_hash', 'branch', 'triggered_by',
-            'duration_seconds', 'started_at', 'completed_at',
-            'created_at', 'updated_at'
-        ]);
+            ->select([
+                'id', 'application_id', 'status', 'title',
+                'commit_hash', 'branch', 'triggered_by',
+                'duration_seconds', 'started_at', 'completed_at',
+                'created_at', 'updated_at',
+            ]);
 
         // Apply filters
         if (isset($filters['status'])) {
@@ -105,9 +97,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Get user with all relationships optimized
-     *
-     * @param int $userId
-     * @return User|null
      */
     public function getUserWithRelationships(int $userId): ?User
     {
@@ -117,24 +106,18 @@ class DatabaseQueryOptimizer
             'physicalLocations:id,name,access_level',
             'apiKeys' => function ($query) {
                 $query->select('id', 'user_id', 'name', 'last_used_at', 'is_active')
-                      ->where('is_active', true);
+                    ->where('is_active', true);
             },
         ])
-        ->select([
-            'id', 'name', 'email', 'avatar_url', 'is_active',
-            'last_login_at', 'created_at'
-        ])
-        ->find($userId);
+            ->select([
+                'id', 'name', 'email', 'avatar_url', 'is_active',
+                'last_login_at', 'created_at',
+            ])
+            ->find($userId);
     }
 
     /**
      * Get performance trends with optimization
-     *
-     * @param string $resourceType
-     * @param string $resourceId
-     * @param string $metricType
-     * @param int $hours
-     * @return Collection
      */
     public function getPerformanceTrendsOptimized(
         string $resourceType,
@@ -153,15 +136,12 @@ class DatabaseQueryOptimizer
 
     /**
      * Get alerts with optimized queries
-     *
-     * @param array $filters
-     * @return Collection
      */
     public function getAlertsOptimized(array $filters = []): Collection
     {
         $query = Alert::select([
             'id', 'severity', 'title', 'message', 'resource_type',
-            'resource_id', 'is_resolved', 'created_at'
+            'resource_id', 'is_resolved', 'created_at',
         ]);
 
         // Apply filters
@@ -179,15 +159,13 @@ class DatabaseQueryOptimizer
 
         // Order by severity and created_at
         $query->orderByRaw('FIELD(severity, "critical", "high", "medium", "low")')
-              ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc');
 
         return $query->get();
     }
 
     /**
      * Count containers by status (optimized single query)
-     *
-     * @return array
      */
     public function getContainerStatusCounts(): array
     {
@@ -200,9 +178,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Get deployment statistics (optimized single query)
-     *
-     * @param int $days
-     * @return array
      */
     public function getDeploymentStatistics(int $days = 30): array
     {
@@ -230,9 +205,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Get recent activity across all resources (optimized with UNION)
-     *
-     * @param int $limit
-     * @return Collection
      */
     public function getRecentActivity(int $limit = 50): Collection
     {
@@ -267,7 +239,7 @@ class DatabaseQueryOptimizer
             now()->subDays(7), $limit,
             now()->subDays(7), $limit,
             now()->subDays(7), $limit,
-            $limit
+            $limit,
         ]);
 
         return collect($results);
@@ -276,7 +248,6 @@ class DatabaseQueryOptimizer
     /**
      * Batch insert or update containers (upsert)
      *
-     * @param array $containers
      * @return int Number of affected rows
      */
     public function upsertContainers(array $containers): int
@@ -313,11 +284,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Chunked processing for large datasets
-     *
-     * @param Builder $query
-     * @param int $chunkSize
-     * @param callable $callback
-     * @return void
      */
     public function chunkedProcessing(Builder $query, int $chunkSize, callable $callback): void
     {
@@ -328,9 +294,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Optimize subquery with JOIN instead of WHERE IN
-     *
-     * @param array $serverIds
-     * @return Collection
      */
     public function getContainersByServersJoin(array $serverIds): Collection
     {
@@ -343,12 +306,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Get aggregate metrics in single query
-     *
-     * @param string $resourceType
-     * @param string $resourceId
-     * @param string $metricType
-     * @param int $hours
-     * @return array
      */
     public function getAggregateMetrics(
         string $resourceType,
@@ -378,11 +335,6 @@ class DatabaseQueryOptimizer
 
     /**
      * Paginated results with cursor-based pagination (better for large datasets)
-     *
-     * @param Builder $query
-     * @param int $perPage
-     * @param string|null $cursor
-     * @return array
      */
     public function cursorPaginate(Builder $query, int $perPage = 50, ?string $cursor = null): array
     {

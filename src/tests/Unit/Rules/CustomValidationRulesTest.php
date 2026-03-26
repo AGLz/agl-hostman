@@ -11,8 +11,6 @@ use Tests\TestCase;
  * Custom Validation Rules Test
  *
  * Tests for custom validation rules.
- *
- * @package Tests\Unit\Rules
  */
 class CustomValidationRulesTest extends TestCase
 {
@@ -21,7 +19,7 @@ class CustomValidationRulesTest extends TestCase
      */
     public function test_valid_vmid_rule(): void
     {
-        $rule = new CustomValidationRules\ValidVmid();
+        $rule = new CustomValidationRules\ValidVmid;
 
         // Valid VMIDs
         $this->assertTrue($rule->passes('vmid', 100));
@@ -47,7 +45,7 @@ class CustomValidationRulesTest extends TestCase
      */
     public function test_valid_hostname_rule(): void
     {
-        $rule = new CustomValidationRules\ValidHostname();
+        $rule = new CustomValidationRules\ValidHostname;
 
         // Valid hostnames
         $this->assertTrue($rule->passes('hostname', 'localhost'));
@@ -66,10 +64,10 @@ class CustomValidationRulesTest extends TestCase
 
         // Long label (max 63 characters)
         $longLabel = str_repeat('a', 63);
-        $this->assertTrue($rule->passes('hostname', $longLabel . '.com'));
+        $this->assertTrue($rule->passes('hostname', $longLabel.'.com'));
 
         $tooLongLabel = str_repeat('a', 64);
-        $this->assertFalse($rule->passes('hostname', $tooLongLabel . '.com'));
+        $this->assertFalse($rule->passes('hostname', $tooLongLabel.'.com'));
 
         // Check message
         $this->assertStringContainsString('valid hostname', $rule->message());
@@ -120,7 +118,7 @@ class CustomValidationRulesTest extends TestCase
      */
     public function test_strong_password_rule(): void
     {
-        $rule = new CustomValidationRules\StrongPassword();
+        $rule = new CustomValidationRules\StrongPassword;
 
         // Strong passwords
         $this->assertTrue($rule->passes('password', 'MyStr0ng!Pass'));
@@ -157,7 +155,7 @@ class CustomValidationRulesTest extends TestCase
      */
     public function test_safe_url_rule(): void
     {
-        $rule = new CustomValidationRules\SafeUrl();
+        $rule = new CustomValidationRules\SafeUrl;
 
         // Safe URLs
         $this->assertTrue($rule->passes('url', 'https://example.com'));
@@ -193,7 +191,7 @@ class CustomValidationRulesTest extends TestCase
      */
     public function test_valid_json_rule(): void
     {
-        $rule = new CustomValidationRules\ValidJson();
+        $rule = new CustomValidationRules\ValidJson;
 
         // Valid JSON
         $this->assertTrue($rule->passes('data', '{"key":"value"}'));
@@ -223,7 +221,7 @@ class CustomValidationRulesTest extends TestCase
      */
     public function test_validation_rule_with_attribute(): void
     {
-        $rule = new CustomValidationRules\ValidVmid();
+        $rule = new CustomValidationRules\ValidVmid;
 
         $rule->setAttribute('vmid');
 

@@ -21,7 +21,9 @@ class ProcessAIRequest implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $timeout = 120; // 2 minutes max per AI request
+
     public $tries = 2;
+
     public $backoff = [10, 30]; // Retry after 10s, then 30s
 
     /**

@@ -91,6 +91,7 @@ class HarborProject extends Model
         if ($this->storage_quota && $this->storage_quota > 0) {
             return round(($this->storage_used / $this->storage_quota) * 100, 2);
         }
+
         return 0;
     }
 

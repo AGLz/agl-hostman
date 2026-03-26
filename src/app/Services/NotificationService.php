@@ -3,16 +3,16 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
     protected array $channels = [];
+
     protected array $config;
-    
+
     public function __construct()
     {
         $this->config = config('notifications', [
@@ -31,7 +31,7 @@ class NotificationService
                 'low' => ['email'],
             ],
         ]);
-        
+
         $this->initializeChannels();
     }
 
@@ -54,14 +54,14 @@ class NotificationService
     {
         $results = [];
         $channels = $this->determineChannels($notification['priority'] ?? 'medium');
-        
+
         foreach ($channels as $channel) {
-            if (!isset($this->channels[$channel])) {
+            if (! isset($this->channels[$channel])) {
                 continue;
             }
-            
+
             try {
-                $method = 'send' . ucfirst($channel);
+                $method = 'send'.ucfirst($channel);
                 if (method_exists($this, $method)) {
                     $results[$channel] = $this->$method($notification);
                 }
@@ -76,10 +76,10 @@ class NotificationService
                 ];
             }
         }
-        
+
         // Store notification in database
         $this->storeNotification($notification, $results);
-        
+
         return $results;
     }
 
@@ -91,14 +91,14 @@ class NotificationService
         $to = $notification['to'] ?? config('notifications.default_email');
         $subject = $notification['subject'] ?? 'AGL Infrastructure Notification';
         $content = $notification['content'] ?? '';
-        
+
         try {
             Mail::raw($content, function ($message) use ($to, $subject) {
                 $message->to($to)
-                        ->subject($subject)
-                        ->priority(1);
+                    ->subject($subject)
+                    ->priority(1);
             });
-            
+
             return ['success' => true, 'message' => 'Email sent successfully'];
         } catch (\Exception $e) {
             throw $e;
@@ -111,11 +111,11 @@ class NotificationService
     protected function sendSlack(array $notification): array
     {
         $webhookUrl = config('notifications.slack.webhook_url');
-        
-        if (!$webhookUrl) {
+
+        if (! $webhookUrl) {
             throw new \Exception('Slack webhook URL not configured');
         }
-        
+
         $payload = [
             'text' => $notification['subject'] ?? 'Infrastructure Alert',
             'attachments' => [
@@ -129,13 +129,13 @@ class NotificationService
                 ],
             ],
         ];
-        
+
         if (isset($notification['channel'])) {
             $payload['channel'] = $notification['channel'];
         }
-        
+
         $response = Http::post($webhookUrl, $payload);
-        
+
         if ($response->successful()) {
             return ['success' => true, 'message' => 'Slack notification sent'];
         } else {
@@ -149,11 +149,11 @@ class NotificationService
     protected function sendDiscord(array $notification): array
     {
         $webhookUrl = config('notifications.discord.webhook_url');
-        
-        if (!$webhookUrl) {
+
+        if (! $webhookUrl) {
             throw new \Exception('Discord webhook URL not configured');
         }
-        
+
         $embed = [
             'title' => $notification['title'] ?? 'Infrastructure Alert',
             'description' => $notification['content'] ?? '',
@@ -163,7 +163,7 @@ class NotificationService
                 'text' => 'AGL Infrastructure Monitor',
             ],
         ];
-        
+
         if (isset($notification['fields'])) {
             $embed['fields'] = array_map(function ($field) {
                 return [
@@ -173,14 +173,14 @@ class NotificationService
                 ];
             }, $notification['fields']);
         }
-        
+
         $payload = [
             'username' => 'AGL Bot',
             'embeds' => [$embed],
         ];
-        
+
         $response = Http::post($webhookUrl, $payload);
-        
+
         if ($response->successful()) {
             return ['success' => true, 'message' => 'Discord notification sent'];
         } else {
@@ -195,29 +195,29 @@ class NotificationService
     {
         $botToken = config('notifications.telegram.bot_token');
         $chatId = config('notifications.telegram.chat_id');
-        
-        if (!$botToken || !$chatId) {
+
+        if (! $botToken || ! $chatId) {
             throw new \Exception('Telegram bot token or chat ID not configured');
         }
-        
+
         $text = "*{$notification['title']}*\n\n";
         $text .= $notification['content'] ?? '';
-        
+
         if (isset($notification['fields'])) {
             $text .= "\n\n";
             foreach ($notification['fields'] as $field) {
                 $text .= "*{$field['title']}:* {$field['value']}\n";
             }
         }
-        
+
         $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
-        
+
         $response = Http::post($url, [
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
         ]);
-        
+
         if ($response->successful()) {
             return ['success' => true, 'message' => 'Telegram notification sent'];
         } else {
@@ -231,21 +231,21 @@ class NotificationService
     protected function sendWebhook(array $notification): array
     {
         $webhookUrl = $notification['webhook_url'] ?? config('notifications.webhook.default_url');
-        
-        if (!$webhookUrl) {
+
+        if (! $webhookUrl) {
             throw new \Exception('Webhook URL not provided');
         }
-        
+
         $headers = $notification['headers'] ?? [];
         $headers['Content-Type'] = 'application/json';
-        
+
         if ($secret = config('notifications.webhook.secret')) {
             $payload = json_encode($notification);
             $headers['X-Webhook-Signature'] = hash_hmac('sha256', $payload, $secret);
         }
-        
+
         $response = Http::withHeaders($headers)->post($webhookUrl, $notification);
-        
+
         if ($response->successful()) {
             return ['success' => true, 'message' => 'Webhook notification sent'];
         } else {
@@ -259,11 +259,11 @@ class NotificationService
     public function sendBatch(array $notifications): array
     {
         $results = [];
-        
+
         foreach ($notifications as $key => $notification) {
             $results[$key] = $this->send($notification);
         }
-        
+
         return $results;
     }
 
@@ -273,12 +273,12 @@ class NotificationService
     public function notifyUser(User $user, array $notification): array
     {
         $notification['to'] = $user->email;
-        
+
         // Add user preferences
         if ($user->notification_preferences) {
             $notification['channels'] = $user->notification_preferences['channels'] ?? [];
         }
-        
+
         return $this->send($notification);
     }
 
@@ -289,12 +289,12 @@ class NotificationService
     {
         $notification = [
             'priority' => $this->determineAlertPriority($alert),
-            'title' => 'Infrastructure Alert: ' . ($alert['server'] ?? 'Unknown'),
+            'title' => 'Infrastructure Alert: '.($alert['server'] ?? 'Unknown'),
             'subject' => 'Infrastructure Alert',
             'content' => $this->formatAlertContent($alert),
             'fields' => $this->formatAlertFields($alert),
         ];
-        
+
         return $this->send($notification);
     }
 
@@ -305,11 +305,11 @@ class NotificationService
     {
         $status = $deployment['status'] ?? 'unknown';
         $app = $deployment['application'] ?? 'Unknown';
-        
+
         $notification = [
             'priority' => $status === 'failed' ? 'high' : 'medium',
             'title' => "Deployment {$status}: {$app}",
-            'subject' => "Deployment Notification",
+            'subject' => 'Deployment Notification',
             'content' => $this->formatDeploymentContent($deployment),
             'fields' => [
                 ['title' => 'Application', 'value' => $app],
@@ -318,7 +318,7 @@ class NotificationService
                 ['title' => 'Status', 'value' => ucfirst($status)],
             ],
         ];
-        
+
         return $this->send($notification);
     }
 
@@ -336,7 +336,7 @@ class NotificationService
     protected function determineAlertPriority(array $alert): string
     {
         $severity = $alert['severity'] ?? 'medium';
-        
+
         $priorityMap = [
             'critical' => 'critical',
             'high' => 'high',
@@ -345,7 +345,7 @@ class NotificationService
             'warning' => 'medium',
             'error' => 'high',
         ];
-        
+
         return $priorityMap[$severity] ?? 'medium';
     }
 
@@ -355,20 +355,20 @@ class NotificationService
     protected function formatAlertContent(array $alert): string
     {
         $content = "An infrastructure alert has been triggered.\n\n";
-        
+
         if (isset($alert['message'])) {
             $content .= "Message: {$alert['message']}\n";
         }
-        
+
         if (isset($alert['details'])) {
             $content .= "\nDetails:\n";
             foreach ($alert['details'] as $key => $value) {
                 $content .= "  - {$key}: {$value}\n";
             }
         }
-        
-        $content .= "\nTimestamp: " . now()->toIso8601String();
-        
+
+        $content .= "\nTimestamp: ".now()->toIso8601String();
+
         return $content;
     }
 
@@ -378,25 +378,25 @@ class NotificationService
     protected function formatAlertFields(array $alert): array
     {
         $fields = [];
-        
+
         if (isset($alert['server'])) {
             $fields[] = ['title' => 'Server', 'value' => $alert['server']];
         }
-        
+
         if (isset($alert['severity'])) {
             $fields[] = ['title' => 'Severity', 'value' => ucfirst($alert['severity'])];
         }
-        
+
         if (isset($alert['type'])) {
             $fields[] = ['title' => 'Type', 'value' => $alert['type']];
         }
-        
+
         if (isset($alert['metrics'])) {
             foreach ($alert['metrics'] as $metric => $value) {
                 $fields[] = ['title' => ucfirst($metric), 'value' => $value];
             }
         }
-        
+
         return $fields;
     }
 
@@ -405,26 +405,26 @@ class NotificationService
      */
     protected function formatDeploymentContent(array $deployment): string
     {
-        $content = "Deployment " . ($deployment['status'] ?? 'update') . ":\n\n";
-        
+        $content = 'Deployment '.($deployment['status'] ?? 'update').":\n\n";
+
         if (isset($deployment['message'])) {
-            $content .= $deployment['message'] . "\n\n";
+            $content .= $deployment['message']."\n\n";
         }
-        
+
         if (isset($deployment['commit'])) {
             $content .= "Commit: {$deployment['commit']}\n";
         }
-        
+
         if (isset($deployment['branch'])) {
             $content .= "Branch: {$deployment['branch']}\n";
         }
-        
+
         if (isset($deployment['user'])) {
             $content .= "Deployed by: {$deployment['user']}\n";
         }
-        
-        $content .= "\nTimestamp: " . now()->toIso8601String();
-        
+
+        $content .= "\nTimestamp: ".now()->toIso8601String();
+
         return $content;
     }
 
@@ -439,7 +439,7 @@ class NotificationService
             'medium' => '#FFCC00',
             'low' => '#00CC00',
         ];
-        
+
         return $colors[$priority] ?? '#808080';
     }
 
@@ -454,7 +454,7 @@ class NotificationService
             'medium' => 0xFFCC00,
             'low' => 0x00CC00,
         ];
-        
+
         return $colors[$priority] ?? 0x808080;
     }
 
@@ -485,20 +485,20 @@ class NotificationService
      */
     public function getStatistics(string $period = '24h'): array
     {
-        $since = match($period) {
+        $since = match ($period) {
             '1h' => now()->subHour(),
             '24h' => now()->subDay(),
             '7d' => now()->subWeek(),
             '30d' => now()->subMonth(),
             default => now()->subDay(),
         };
-        
+
         $stats = \DB::table('notifications')
             ->where('created_at', '>=', $since)
             ->selectRaw('priority, COUNT(*) as count')
             ->groupBy('priority')
             ->get();
-        
+
         return [
             'period' => $period,
             'total' => $stats->sum('count'),

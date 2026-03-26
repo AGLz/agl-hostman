@@ -11,7 +11,7 @@ arch('services')
 arch('services use dependency injection')
     ->expect('App\Services')
     ->toHaveConstructor()
-    ->when(fn ($class) => !str_ends_with($class, 'Client'));
+    ->when(fn ($class) => ! str_ends_with($class, 'Client'));
 
 arch('services are not used in models')
     ->expect('App\Services')

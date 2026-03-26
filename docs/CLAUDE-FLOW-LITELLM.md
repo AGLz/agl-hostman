@@ -75,7 +75,7 @@ claude --model kimi "Resuma este documento longo"
 | `deepseek`     | DeepSeek   | deepseek-chat (V3.2)      | 128k     | Código               |
 | `r1`           | DeepSeek   | deepseek-reasoner         | 128k     | Raciocínio           |
 | `gpt`          | OpenAI     | gpt-5.4                   | ~1.05M   | Frontier OpenAI      |
-| `gpt-5.3-instant` | OpenAI  | gpt-5.3-chat-latest       | 128K     | Alias Instant / proxy Cursor |
+| `gpt-5.3-instant` / `openai/gpt-5.3-chat-latest` | OpenAI | **gpt-5.4-mini** (API) | ~400K | Aliases LiteLLM; Cursor/Composer usa mini |
 | `gpt-4o`       | OpenAI     | gpt-4o                    | 128k     | Fallback robusto     |
 | `gpt-mini`     | OpenAI     | gpt-4o-mini               | 128k     | Rápido               |
 | `gemini`       | Google     | gemini-2.5-flash          | 1M       | Default Gemini       |
@@ -86,8 +86,9 @@ claude --model kimi "Resuma este documento longo"
 | `openrouter-llama-3.2-3b-free` | OpenRouter | llama-3.2-3b-instruct:free | 131k | \$0 — variante :free |
 | `groq-llama-33` | Groq    | llama-3.3-70b-versatile   | 131k     | Latência baixa       |
 | `groq-gpt-oss-120b` | Groq | openai/gpt-oss-120b       | 131k     | OSS rápido           |
-| `qwen-coder` | OpenRouter | qwen-3-coder              | 64k      | Código               |
-| `qwen3.5-plus` | OpenRouter | qwen3.5-plus-02-15      | 1M       | Contexto longo       |
+| `qwen-coder` | DashScope | **qwen3-coder-plus** | 1M | Código (compat OpenAI) |
+| `qwen3.5-plus` | DashScope | **qwen3.5-plus-2026-02-15** (compat OpenAI) | 1M | Preferir DASHSCOPE_API_KEY |
+| `qwen3.5-or` | OpenRouter | **qwen/qwen3.5-plus-02-15** | 1M | Fallback OR (slug próprio) |
 
 ---
 

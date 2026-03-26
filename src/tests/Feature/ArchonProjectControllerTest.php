@@ -19,22 +19,21 @@ describe('Project List', function () {
             ->once()
             ->andReturn([
                 ['id' => 'proj-1', 'title' => 'Project 1'],
-                ['id' => 'proj-2', 'title' => 'Project 2']
+                ['id' => 'proj-2', 'title' => 'Project 2'],
             ]);
 
         $this->archonService->shouldReceive('findTasks')
             ->times(2)
             ->andReturn([
                 ['id' => '1', 'status' => 'todo'],
-                ['id' => '2', 'status' => 'done']
+                ['id' => '2', 'status' => 'done'],
             ]);
 
         $response = $this->get('/archon/projects');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/Projects')
-                ->has('projects', 2)
+        $response->assertInertia(fn ($page) => $page->component('Archon/Projects')
+            ->has('projects', 2)
         );
     });
 
@@ -46,9 +45,8 @@ describe('Project List', function () {
         $response = $this->get('/archon/projects');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/Projects')
-                ->has('projects', 0)
+        $response->assertInertia(fn ($page) => $page->component('Archon/Projects')
+            ->has('projects', 0)
         );
     });
 });
@@ -62,7 +60,7 @@ describe('Project Creation', function () {
                 'id' => 'proj-123',
                 'title' => 'New Project',
                 'description' => 'Description',
-                'github_repo' => 'https://github.com/user/repo'
+                'github_repo' => 'https://github.com/user/repo',
             ]);
 
         Event::fake();
@@ -70,7 +68,7 @@ describe('Project Creation', function () {
         $response = $this->post('/archon/projects', [
             'title' => 'New Project',
             'description' => 'Description',
-            'github_repo' => 'https://github.com/user/repo'
+            'github_repo' => 'https://github.com/user/repo',
         ]);
 
         $response->assertRedirect('/archon/projects');
@@ -79,7 +77,7 @@ describe('Project Creation', function () {
 
     it('validates required fields', function () {
         $response = $this->post('/archon/projects', [
-            'description' => 'Description without title'
+            'description' => 'Description without title',
         ]);
 
         $response->assertStatus(302);
@@ -88,7 +86,7 @@ describe('Project Creation', function () {
 
     it('validates title length', function () {
         $response = $this->post('/archon/projects', [
-            'title' => str_repeat('a', 256) // Too long
+            'title' => str_repeat('a', 256), // Too long
         ]);
 
         $response->assertSessionHasErrors(['title']);
@@ -97,7 +95,7 @@ describe('Project Creation', function () {
     it('validates github_repo URL format', function () {
         $response = $this->post('/archon/projects', [
             'title' => 'Project',
-            'github_repo' => 'not-a-url'
+            'github_repo' => 'not-a-url',
         ]);
 
         $response->assertSessionHasErrors(['github_repo']);
@@ -109,7 +107,7 @@ describe('Project Creation', function () {
             ->andThrow(new Exception('MCP error'));
 
         $response = $this->post('/archon/projects', [
-            'title' => 'Test Project'
+            'title' => 'Test Project',
         ]);
 
         $response->assertRedirect();
@@ -124,7 +122,7 @@ describe('Project Show', function () {
             ->with('proj-1')
             ->andReturn([
                 'id' => 'proj-1',
-                'title' => 'Project 1'
+                'title' => 'Project 1',
             ]);
 
         $this->archonService->shouldReceive('findTasks')
@@ -132,16 +130,15 @@ describe('Project Show', function () {
             ->with(null, null, null, null, null, 'proj-1', true, 1, 10)
             ->andReturn([
                 ['id' => '1', 'title' => 'Task 1', 'status' => 'todo'],
-                ['id' => '2', 'title' => 'Task 2', 'status' => 'doing']
+                ['id' => '2', 'title' => 'Task 2', 'status' => 'doing'],
             ]);
 
         $response = $this->get('/archon/projects/proj-1');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/ProjectShow')
-                ->has('project')
-                ->has('tasks', 2)
+        $response->assertInertia(fn ($page) => $page->component('Archon/ProjectShow')
+            ->has('project')
+            ->has('tasks', 2)
         );
     });
 
@@ -164,13 +161,13 @@ describe('Project Update', function () {
             ->with('proj-1', ['title' => 'Updated Title'])
             ->andReturn([
                 'id' => 'proj-1',
-                'title' => 'Updated Title'
+                'title' => 'Updated Title',
             ]);
 
         Event::fake();
 
         $response = $this->put('/archon/projects/proj-1', [
-            'title' => 'Updated Title'
+            'title' => 'Updated Title',
         ]);
 
         $response->assertRedirect();
@@ -179,7 +176,7 @@ describe('Project Update', function () {
 
     it('validates update fields', function () {
         $response = $this->put('/archon/projects/proj-1', [
-            'title' => str_repeat('a', 256)
+            'title' => str_repeat('a', 256),
         ]);
 
         $response->assertSessionHasErrors(['title']);
@@ -219,7 +216,7 @@ describe('Task Board', function () {
             ->with('proj-1')
             ->andReturn([
                 'id' => 'proj-1',
-                'title' => 'Project 1'
+                'title' => 'Project 1',
             ]);
 
         $this->archonService->shouldReceive('findTasks')
@@ -228,16 +225,15 @@ describe('Task Board', function () {
                 ['id' => '1', 'status' => 'todo'],
                 ['id' => '2', 'status' => 'doing'],
                 ['id' => '3', 'status' => 'review'],
-                ['id' => '4', 'status' => 'done']
+                ['id' => '4', 'status' => 'done'],
             ]);
 
         $response = $this->get('/archon/projects/proj-1/tasks/board');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) =>
-            $page->component('Archon/TaskBoard')
-                ->has('project')
-                ->has('tasks', 4)
+        $response->assertInertia(fn ($page) => $page->component('Archon/TaskBoard')
+            ->has('project')
+            ->has('tasks', 4)
         );
     });
 });

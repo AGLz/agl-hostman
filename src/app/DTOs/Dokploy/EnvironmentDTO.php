@@ -38,7 +38,7 @@ readonly class EnvironmentDTO
             'applicationId' => $this->applicationId,
             'env' => $this->env,
             'buildArgs' => $this->buildArgs,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 
     /**
@@ -50,11 +50,11 @@ readonly class EnvironmentDTO
         array $buildArgs = []
     ): self {
         $envString = collect($env)
-            ->map(fn($value, $key) => "$key=$value")
+            ->map(fn ($value, $key) => "$key=$value")
             ->implode("\n");
 
         $buildArgsString = collect($buildArgs)
-            ->map(fn($value, $key) => "$key=$value")
+            ->map(fn ($value, $key) => "$key=$value")
             ->implode("\n");
 
         return new self(
@@ -71,7 +71,7 @@ readonly class EnvironmentDTO
      */
     public function parseEnv(): Collection
     {
-        if (!$this->env) {
+        if (! $this->env) {
             return collect();
         }
 
@@ -79,6 +79,7 @@ readonly class EnvironmentDTO
             ->filter()
             ->mapWithKeys(function ($line) {
                 $parts = explode('=', $line, 2);
+
                 return count($parts) === 2 ? [$parts[0] => $parts[1]] : [];
             });
     }
@@ -88,7 +89,7 @@ readonly class EnvironmentDTO
      */
     public function parseBuildArgs(): Collection
     {
-        if (!$this->buildArgs) {
+        if (! $this->buildArgs) {
             return collect();
         }
 
@@ -96,6 +97,7 @@ readonly class EnvironmentDTO
             ->filter()
             ->mapWithKeys(function ($line) {
                 $parts = explode('=', $line, 2);
+
                 return count($parts) === 2 ? [$parts[0] => $parts[1]] : [];
             });
     }

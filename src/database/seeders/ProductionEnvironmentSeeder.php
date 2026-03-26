@@ -64,11 +64,11 @@ class ProductionEnvironmentSeeder extends Seeder
         ]);
 
         $this->command->info('✅ Production environment configured:');
-        $this->command->info('   - Environment: ' . $production->name);
-        $this->command->info('   - Type: ' . $production->type);
-        $this->command->info('   - Auto-deploy: ' . ($production->auto_deploy ? 'Yes' : 'No'));
+        $this->command->info('   - Environment: '.$production->name);
+        $this->command->info('   - Type: '.$production->type);
+        $this->command->info('   - Auto-deploy: '.($production->auto_deploy ? 'Yes' : 'No'));
         $this->command->info('   - Replicas: 2 (HA)');
         $this->command->info('   - Deployment: Blue-Green');
-        $this->command->info('   - Domains: ' . implode(', ', $production->domains));
+        $this->command->info('   - Domains: '.implode(', ', $production->domains));
     }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\PhysicalLocation;
 
 /**
  * CheckLocationAccess Middleware
@@ -24,10 +23,8 @@ class CheckLocationAccess
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      * @param  string  ...$params  Middleware parameters (Laravel splits by comma, so we use variadic to catch all)
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next, string ...$params): Response
     {
@@ -36,20 +33,21 @@ class CheckLocationAccess
         $locations = implode(',', $params);
 
         // Check authentication
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Unauthenticated',
-                    'message' => 'Authentication required for location-based access control'
+                    'message' => 'Authentication required for location-based access control',
                 ], 401);
             }
+
             return redirect()->route('login');
         }
 
         $user = auth()->user();
 
         // Check if user is active
-        if (!$user->isActive()) {
+        if (! $user->isActive()) {
             abort(403, 'Your account has been deactivated.');
         }
 
@@ -64,7 +62,7 @@ class CheckLocationAccess
         // Check location access
         $hasAccess = $this->checkLocationAccess($user, $locationList, $logic, $accessLevel);
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Forbidden',
@@ -92,7 +90,6 @@ class CheckLocationAccess
      *   "AGLSRV1|admin" → [["AGLSRV1"], "any", "admin"]
      *   "AGLSRV1,CT179|all|admin" → [["AGLSRV1", "CT179"], "all", "admin"]
      *
-     * @param string $locations
      * @return array [locationList, logic, accessLevel]
      */
     protected function parseLocations(string $locations): array
@@ -122,21 +119,18 @@ class CheckLocationAccess
     /**
      * Check if user has access to locations based on logic and access level
      *
-     * @param User $user
-     * @param array $locationList
-     * @param string $logic
-     * @param string $accessLevel
-     * @return bool
+     * @param  User  $user
      */
     protected function checkLocationAccess($user, array $locationList, string $logic, string $accessLevel): bool
     {
         if ($logic === 'all') {
             // User must have access to ALL specified locations
             foreach ($locationList as $locationCode) {
-                if (!$user->hasAccessToLocation($locationCode, $accessLevel)) {
+                if (! $user->hasAccessToLocation($locationCode, $accessLevel)) {
                     return false;
                 }
             }
+
             return true;
         } else {
             // User must have access to ANY of the specified locations (default)
@@ -145,6 +139,7 @@ class CheckLocationAccess
                     return true;
                 }
             }
+
             return false;
         }
     }
@@ -156,8 +151,6 @@ class CheckLocationAccess
      * - view: Read-only access
      * - manage: Modify and configure
      * - admin: Full administrative access
-     *
-     * @return array
      */
     public static function getAccessLevels(): array
     {

@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
-use App\Models\ApiKey;
-use App\Models\User;
 use App\Models\SecurityAuditLog;
-use App\Services\SecurityAuditService;
-use App\Services\SecurityComplianceService;
+use App\Models\User;
 use Illuminate\Support\Facades\Process;
 use Tests\TestCase;
 
@@ -16,12 +13,9 @@ use Tests\TestCase;
  * Security API Endpoints Comprehensive Test
  *
  * Comprehensive tests for security-related API endpoints.
- *
- * @package Tests\Feature\Api
  */
 class SecurityEndpointsComprehensiveTest extends TestCase
 {
-
     /**
      * Test running security audit endpoint
      */

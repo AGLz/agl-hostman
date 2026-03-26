@@ -41,14 +41,19 @@ Plataforma de administração de infraestrutura AGL: multi-IA (incl. Hive-Mind),
 - **Dashboard em Tempo Real**
 - **Alertas Inteligentes** com análise AI
 
-### 5. **Scrum Board Completo**
+### 5. **Memória diária (sessões com IA)**
+- **URL:** `/daily-memory` (autenticado)
+- Registo de **resumos por dia** com etiquetas de **projeto** e **tópicos**, pesquisa e filtros por data
+- Build front: `npm run build` (ou `npm run dev`) para o entry `resources/js/app-inertia.jsx`
+
+### 6. **Scrum Board Completo**
 - **Sprints**: Planejamento, execução e revisão
 - **Tasks com Drag & Drop**: Kanban board interativo
 - **Story Points**: Estimativa com IA
 - **Burndown Charts**: Visualização de progresso
 - **Velocity Tracking**: Métricas de performance
 
-### 6. **Tecnologias utilizadas**
+### 7. **Tecnologias utilizadas**
 - **Backend**: Laravel 12 (`laravel/framework` ^12), PHP ^8.2 (ver `composer.json`)
 - **Frontend**: Inertia + React + Vite + shadcn/ui + Tailwind
 - **Databases**: MySQL + Redis
@@ -79,7 +84,15 @@ composer install
 ```
 Inclui **`inertiajs/inertia-laravel`** ^2 (servidor Inertia para `Inertia::render`).
 
-3. **Ambiente (`.env`)**
+3. **Dependências Node (front-end)** — na pasta `src/`, com **devDependencies** (Vite):
+```bash
+npm install
+# Se o teu npm tiver `omit=dev` global, usa: npm install --include=dev
+npm run build
+```
+O ficheiro **`src/.npmrc`** define `omit=` para o projeto instalar sempre o Vite e plugins.
+
+4. **Ambiente (`.env`)**
 ```bash
 cp .env.example .env
 touch database/database.sqlite   # se usar SQLite como no exemplo
@@ -87,7 +100,7 @@ php artisan key:generate         # preenche APP_KEY
 ```
 O ficheiro **`.env.example`** inclui valores mínimos Laravel + variáveis HOSTMAN/Proxmox/LiteLLM. Para MySQL/Redis via Docker, ver comentários no próprio exemplo e `docker-compose.yml`.
 
-4. **Configure as variáveis de ambiente (alternativa MySQL / Compose)**
+5. **Configure as variáveis de ambiente (alternativa MySQL / Compose)**
 ```env
 # Banco de dados
 DB_CONNECTION=mysql
@@ -118,23 +131,23 @@ OPENAI_API_KEY=seu_openai_key
 ABACUSAI_API_KEY=seu_abacusai_key
 ```
 
-5. **Inicie os containers**
+6. **Inicie os containers**
 ```bash
 docker-compose up -d
 ```
 
-6. **Execute as migrações**
+7. **Execute as migrações**
 ```bash
 docker-compose exec app php artisan migrate --seed
 ```
 
-7. **Instale dependências do frontend**
+8. **Build do frontend (se usares só Docker depois ou alterares JS/CSS)**
 ```bash
 npm install
 npm run build
 ```
 
-8. **Acesse a aplicação**
+9. **Acesse a aplicação**
 ```
 http://localhost
 ```

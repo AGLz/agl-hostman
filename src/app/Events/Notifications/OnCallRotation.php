@@ -31,7 +31,7 @@ class OnCallRotation
         return [
             'type' => 'on_call',
             'subtype' => 'rotation',
-            'title' => "🔄 On-Call Rotation",
+            'title' => '🔄 On-Call Rotation',
             'message' => $message,
             'data' => [
                 'schedule_id' => $this->schedule->id,

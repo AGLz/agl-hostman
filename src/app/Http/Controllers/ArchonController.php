@@ -26,7 +26,7 @@ class ArchonController extends Controller
 
             $stats = [
                 'total_projects' => count($projects),
-                'active_tasks' => count(array_filter($tasks, fn($t) => in_array($t['status'], ['todo', 'doing', 'review']))),
+                'active_tasks' => count(array_filter($tasks, fn ($t) => in_array($t['status'], ['todo', 'doing', 'review']))),
                 'knowledge_sources' => count($sources),
                 'total_documents' => 0, // TODO: Add document count from MCP
                 'recent_tasks' => array_slice($tasks, 0, 5),
@@ -36,12 +36,12 @@ class ArchonController extends Controller
             ];
 
             return Inertia::render('Archon/Index', [
-                'stats' => $stats
+                'stats' => $stats,
             ]);
         } catch (\Exception $e) {
             logger()->error('Archon dashboard error', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return Inertia::render('Archon/Index', [
@@ -54,7 +54,7 @@ class ArchonController extends Controller
                     'mcp_status' => 'error',
                     'mcp_endpoint' => config('services.archon.endpoint'),
                     'last_sync' => null,
-                ]
+                ],
             ]);
         }
     }
@@ -69,16 +69,16 @@ class ArchonController extends Controller
 
             return Inertia::render('Archon/KnowledgeBase', [
                 'sources' => $sources,
-                'initialResults' => []
+                'initialResults' => [],
             ]);
         } catch (\Exception $e) {
             logger()->error('Knowledge base page error', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return Inertia::render('Archon/KnowledgeBase', [
                 'sources' => [],
-                'initialResults' => []
+                'initialResults' => [],
             ]);
         }
     }
@@ -92,7 +92,7 @@ class ArchonController extends Controller
             'query' => 'required|string|max:500',
             'source_id' => 'nullable|string',
             'match_count' => 'nullable|integer|min:1|max:50',
-            'return_mode' => 'nullable|in:pages,chunks'
+            'return_mode' => 'nullable|in:pages,chunks',
         ]);
 
         try {
@@ -106,18 +106,18 @@ class ArchonController extends Controller
             return response()->json([
                 'success' => true,
                 'results' => $results,
-                'query' => $validated['query']
+                'query' => $validated['query'],
             ]);
         } catch (\Exception $e) {
             logger()->error('Knowledge search error', [
                 'error' => $e->getMessage(),
-                'query' => $validated['query']
+                'query' => $validated['query'],
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Search failed: ' . $e->getMessage(),
-                'results' => []
+                'message' => 'Search failed: '.$e->getMessage(),
+                'results' => [],
             ], 500);
         }
     }
@@ -129,33 +129,33 @@ class ArchonController extends Controller
     {
         $validated = $request->validate([
             'query' => 'required|string|max:100',
-            'limit' => 'nullable|integer|min:1|max:10'
+            'limit' => 'nullable|integer|min:1|max:10',
         ]);
 
         try {
             // Simple implementation: Get recent searches or popular queries
             // TODO: Implement proper autocomplete with MCP
             $suggestions = [
-                "WireGuard mesh network",
-                "Docker container setup",
-                "Laravel deployment",
-                "React components",
-                "Authentication flow"
+                'WireGuard mesh network',
+                'Docker container setup',
+                'Laravel deployment',
+                'React components',
+                'Authentication flow',
             ];
 
             // Filter based on query
-            $filtered = array_filter($suggestions, function($suggestion) use ($validated) {
+            $filtered = array_filter($suggestions, function ($suggestion) use ($validated) {
                 return stripos($suggestion, $validated['query']) !== false;
             });
 
             return response()->json([
                 'success' => true,
-                'suggestions' => array_values(array_slice($filtered, 0, $validated['limit'] ?? 5))
+                'suggestions' => array_values(array_slice($filtered, 0, $validated['limit'] ?? 5)),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'suggestions' => []
+                'suggestions' => [],
             ]);
         }
     }
@@ -167,7 +167,7 @@ class ArchonController extends Controller
     {
         $validated = $request->validate([
             'page_id' => 'nullable|string',
-            'url' => 'nullable|string'
+            'url' => 'nullable|string',
         ]);
 
         try {
@@ -178,18 +178,18 @@ class ArchonController extends Controller
 
             return response()->json([
                 'success' => true,
-                'page' => $page
+                'page' => $page,
             ]);
         } catch (\Exception $e) {
             logger()->error('Get page error', [
                 'error' => $e->getMessage(),
                 'page_id' => $validated['page_id'] ?? null,
-                'url' => $validated['url'] ?? null
+                'url' => $validated['url'] ?? null,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load page: ' . $e->getMessage()
+                'message' => 'Failed to load page: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -204,12 +204,12 @@ class ArchonController extends Controller
 
             return response()->json([
                 'success' => true,
-                'sources' => $sources
+                'sources' => $sources,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'sources' => []
+                'sources' => [],
             ], 500);
         }
     }
@@ -223,7 +223,7 @@ class ArchonController extends Controller
             'query' => 'nullable|string|max:500',
             'language' => 'nullable|string|max:50',
             'source_id' => 'nullable|string',
-            'match_count' => 'nullable|integer|min:1|max:50'
+            'match_count' => 'nullable|integer|min:1|max:50',
         ]);
 
         try {
@@ -235,17 +235,17 @@ class ArchonController extends Controller
 
             return response()->json([
                 'success' => true,
-                'results' => $results
+                'results' => $results,
             ]);
         } catch (\Exception $e) {
             logger()->error('Code search error', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Code search failed: ' . $e->getMessage(),
-                'results' => []
+                'message' => 'Code search failed: '.$e->getMessage(),
+                'results' => [],
             ], 500);
         }
     }

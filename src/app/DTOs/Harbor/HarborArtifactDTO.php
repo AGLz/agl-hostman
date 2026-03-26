@@ -36,7 +36,7 @@ class HarborArtifactDTO implements Arrayable
     {
         return new self(
             digest: $data['digest'] ?? null,
-            tag: isset($data['tags']) && !empty($data['tags'])
+            tag: isset($data['tags']) && ! empty($data['tags'])
                 ? $data['tags'][0]['name']
                 : 'latest',
             manifestMediaType: $data['manifest_media_type'] ?? null,
@@ -72,6 +72,6 @@ class HarborArtifactDTO implements Arrayable
             'annotations' => $this->annotations,
             'references' => $this->references,
             'icon' => $this->icon,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 }

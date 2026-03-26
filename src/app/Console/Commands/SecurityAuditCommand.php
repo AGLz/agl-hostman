@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\File;
  * Security Audit Command
  *
  * Runs comprehensive security audit and compliance checks.
- *
- * @package App\Console\Commands
  */
 class SecurityAuditCommand extends Command
 {
@@ -38,23 +36,17 @@ class SecurityAuditCommand extends Command
 
     /**
      * The security audit service instance.
-     *
-     * @var SecurityAuditService
      */
     protected SecurityAuditService $auditService;
 
     /**
      * The security compliance service instance.
-     *
-     * @var SecurityComplianceService
      */
     protected SecurityComplianceService $complianceService;
 
     /**
      * Create a new command instance.
      *
-     * @param SecurityAuditService $auditService
-     * @param SecurityComplianceService $complianceService
      * @return void
      */
     public function __construct(
@@ -69,8 +61,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle(): int
     {
@@ -113,7 +103,7 @@ class SecurityAuditCommand extends Command
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('❌ Security audit failed: ' . $e->getMessage());
+            $this->error('❌ Security audit failed: '.$e->getMessage());
 
             return Command::FAILURE;
         }
@@ -121,8 +111,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Run full security audit
-     *
-     * @return array
      */
     protected function runFullAudit(): array
     {
@@ -141,8 +129,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Run quick audit
-     *
-     * @return array
      */
     protected function runQuickAudit(): array
     {
@@ -169,8 +155,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Run dependency audit
-     *
-     * @return array
      */
     protected function runDependencyAudit(): array
     {
@@ -187,8 +171,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Run code audit
-     *
-     * @return array
      */
     protected function runCodeAudit(): array
     {
@@ -205,8 +187,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Run compliance check
-     *
-     * @return array
      */
     protected function runComplianceCheck(): array
     {
@@ -223,10 +203,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Output results
-     *
-     * @param array $results
-     * @param string $output
-     * @return void
      */
     protected function outputResults(array $results, string $output): void
     {
@@ -246,9 +222,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Output to console
-     *
-     * @param array $results
-     * @return void
      */
     protected function outputConsole(array $results): void
     {
@@ -271,7 +244,7 @@ class SecurityAuditCommand extends Command
         }
 
         // Display findings
-        if (isset($results['audit']['findings']) && !empty($results['audit']['findings'])) {
+        if (isset($results['audit']['findings']) && ! empty($results['audit']['findings'])) {
             $this->newLine();
             $this->warn('⚠️  SECURITY FINDINGS');
             $this->newLine();
@@ -282,9 +255,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Display audit summary
-     *
-     * @param array $summary
-     * @return void
      */
     protected function displaySummary(array $summary): void
     {
@@ -313,9 +283,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Display compliance results
-     *
-     * @param array $summary
-     * @return void
      */
     protected function displayCompliance(array $summary): void
     {
@@ -329,9 +296,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Get compliance color
-     *
-     * @param float $percentage
-     * @return string
      */
     protected function getComplianceColor(float $percentage): string
     {
@@ -346,9 +310,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Display findings
-     *
-     * @param array $findings
-     * @return void
      */
     protected function displayFindings(array $findings): void
     {
@@ -381,9 +342,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Output JSON
-     *
-     * @param array $results
-     * @return void
      */
     protected function outputJson(array $results): void
     {
@@ -392,13 +350,10 @@ class SecurityAuditCommand extends Command
 
     /**
      * Output to file
-     *
-     * @param array $results
-     * @return void
      */
     protected function outputFile(array $results): void
     {
-        $path = $this->option('path') ?? storage_path('security-audit-' . now()->format('Y-m-d-His') . '.json');
+        $path = $this->option('path') ?? storage_path('security-audit-'.now()->format('Y-m-d-His').'.json');
 
         File::put($path, json_encode($results, JSON_PRETTY_PRINT));
 
@@ -407,9 +362,6 @@ class SecurityAuditCommand extends Command
 
     /**
      * Auto-fix issues
-     *
-     * @param array $results
-     * @return void
      */
     protected function autoFixIssues(array $results): void
     {
@@ -431,9 +383,10 @@ class SecurityAuditCommand extends Command
         // Add APP_KEY to .gitignore if not present
         $gitignorePath = base_path('.gitignore');
         $gitignoreContent = File::get($gitignorePath);
-        if (!str_contains($gitignoreContent, '.env')) {
-            $this->task('Add .env to .gitignore', function () use ($gitignorePath, $gitignoreContent) {
+        if (! str_contains($gitignoreContent, '.env')) {
+            $this->task('Add .env to .gitignore', function () use ($gitignorePath) {
                 File::append($gitignorePath, "\n.env\n.env.*\n");
+
                 return true;
             });
         }

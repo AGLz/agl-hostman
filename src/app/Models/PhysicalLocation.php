@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class PhysicalLocation extends Model
@@ -66,7 +66,7 @@ class PhysicalLocation extends Model
      */
     public function getTypeLabel(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             'headquarters' => 'Headquarters',
             'datacenter' => 'Data Center',
             'container' => 'Container',
@@ -122,7 +122,7 @@ class PhysicalLocation extends Model
      */
     public function hasIpRange(): bool
     {
-        return !empty($this->ip_range);
+        return ! empty($this->ip_range);
     }
 
     /**
@@ -130,7 +130,7 @@ class PhysicalLocation extends Model
      */
     public function isIpInRange(string $ip): bool
     {
-        if (!$this->hasIpRange()) {
+        if (! $this->hasIpRange()) {
             return false;
         }
 

@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Security Audit Log Factory
- *
- * @package Database\Factories
  */
 class SecurityAuditLogFactory extends Factory
 {
@@ -24,8 +22,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
     public function definition(): array
     {
@@ -70,8 +66,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Indicate that the log is critical severity
-     *
-     * @return static
      */
     public function critical(): static
     {
@@ -82,8 +76,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Indicate that the log is high severity
-     *
-     * @return static
      */
     public function high(): static
     {
@@ -94,8 +86,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Indicate that the log is medium severity
-     *
-     * @return static
      */
     public function medium(): static
     {
@@ -106,8 +96,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Indicate that the log is auth event
-     *
-     * @return static
      */
     public function auth(): static
     {
@@ -122,8 +110,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Indicate that the log is security alert
-     *
-     * @return static
      */
     public function alert(): static
     {
@@ -136,8 +122,6 @@ class SecurityAuditLogFactory extends Factory
 
     /**
      * Indicate that the log is for a user
-     *
-     * @return static
      */
     public function forUser(User $user): static
     {

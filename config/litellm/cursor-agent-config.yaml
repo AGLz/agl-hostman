@@ -9,21 +9,21 @@
 # GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
 
 model_list:
-  # Proxy Composer 2 Fast: ID API OpenAI = gpt-5.3-chat-latest (Instant)
+  # Composer Fast → openai/gpt-5.4-mini (mesmo backend que config.yaml)
   - model_name: cursor-composer
     litellm_params:
-      model: openai/gpt-5.3-chat-latest
+      model: openai/gpt-5.4-mini
       api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Proxy Composer 2 Fast (OpenAI gpt-5.3-chat-latest)"
+      description: "Proxy Composer 2 Fast (gpt-5.4-mini)"
       max_tokens: 16384
 
   - model_name: cursor-composer-2-fast
     litellm_params:
-      model: openai/gpt-5.3-chat-latest
+      model: openai/gpt-5.4-mini
       api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Alias cursor-composer-2-fast"
+      description: "Alias cursor-composer-2-fast (gpt-5.4-mini)"
       max_tokens: 16384
 
   - model_name: cursor-claude-sonnet
@@ -63,22 +63,14 @@ model_list:
       description: "DeepSeek V3.2 - Excellent for code"
       max_tokens: 8192
 
-  - model_name: cursor-gpt-4o
-    litellm_params:
-      model: gpt-4o
-      api_key: os.environ/OPENAI_API_KEY
-    model_info:
-      description: "GPT-4o - Reliable fallback"
-      max_tokens: 8192
-
 # Fallbacks for Cursor Agent
 fallbacks:
   - model_name: cursor-claude-sonnet
     fallbacks: [cursor-claude-opus, cursor-glm-5, cursor-deepseek]
   - model_name: cursor-claude-opus
-    fallbacks: [cursor-claude-sonnet, cursor-gpt-4o]
+    fallbacks: [cursor-claude-sonnet, cursor-glm-5, cursor-deepseek]
   - model_name: cursor-glm-5
-    fallbacks: [cursor-deepseek, cursor-gpt-4o]
+    fallbacks: [cursor-deepseek, cursor-claude-sonnet]
 
 # Router settings for Cursor
 router_settings:

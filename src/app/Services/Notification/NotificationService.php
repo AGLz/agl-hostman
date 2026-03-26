@@ -7,8 +7,8 @@ namespace App\Services\Notification;
 use App\Models\Promotion;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Notification Service
@@ -62,7 +62,7 @@ class NotificationService
     public function notifyPromotionDeploying(Promotion $promotion): void
     {
         $message = sprintf(
-            "⚙️ Deploying: %s → %s (v%s)",
+            '⚙️ Deploying: %s → %s (v%s)',
             $promotion->sourceEnvironment->type,
             $promotion->targetEnvironment->type,
             $promotion->source_version
@@ -176,12 +176,13 @@ class NotificationService
         try {
             $webhookUrl = config('alerts.slack.webhook_url');
 
-            if (!$webhookUrl) {
+            if (! $webhookUrl) {
                 Log::warning('Slack webhook URL not configured');
+
                 return;
             }
 
-            $color = match($level) {
+            $color = match ($level) {
                 'success' => '#36a64f',
                 'error' => '#d73a49',
                 'warning' => '#fbca04',
@@ -192,7 +193,7 @@ class NotificationService
                 'attachments' => [[
                     'color' => $color,
                     'text' => $message,
-                    'fields' => array_map(fn($k, $v) => [
+                    'fields' => array_map(fn ($k, $v) => [
                         'title' => $k,
                         'value' => is_array($v) ? json_encode($v) : $v,
                         'short' => true,
@@ -202,7 +203,7 @@ class NotificationService
                 ]],
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Slack notification failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
@@ -226,16 +227,17 @@ class NotificationService
         try {
             $webhookUrl = config('alerts.discord.webhook_url');
 
-            if (!$webhookUrl) {
+            if (! $webhookUrl) {
                 Log::warning('Discord webhook URL not configured');
+
                 return;
             }
 
-            $color = match($level) {
-                'success' => 0x36a64f,
-                'error' => 0xd73a49,
-                'warning' => 0xfbca04,
-                default => 0x0366d6,
+            $color = match ($level) {
+                'success' => 0x36A64F,
+                'error' => 0xD73A49,
+                'warning' => 0xFBCA04,
+                default => 0x0366D6,
             };
 
             $response = Http::post($webhookUrl, [
@@ -249,7 +251,7 @@ class NotificationService
                 ]],
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Discord notification failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
@@ -275,6 +277,7 @@ class NotificationService
 
             if (empty($recipients)) {
                 Log::warning('Email recipients not configured');
+
                 return;
             }
 
@@ -295,7 +298,7 @@ class NotificationService
      */
     public function testChannel(string $channel): array
     {
-        $message = "Test notification from AGL Deployment System";
+        $message = 'Test notification from AGL Deployment System';
 
         try {
             switch ($channel) {

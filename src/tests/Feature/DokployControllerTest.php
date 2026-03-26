@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
-use App\Models\DokployProject;
 use App\Models\DokployApplication;
 use App\Models\DokployDeployment;
+use App\Models\DokployProject;
+use App\Models\User;
 use App\Services\DokployService;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
@@ -22,7 +23,7 @@ test('dashboard renders successfully', function () {
     $response = get(route('dokploy.index'));
 
     $response->assertOk();
-    $response->assertInertia(fn($page) => $page
+    $response->assertInertia(fn ($page) => $page
         ->component('Dokploy/Index')
         ->has('projects')
         ->has('stats')
@@ -37,7 +38,7 @@ test('project show page renders successfully', function () {
     $response = get(route('dokploy.projects.show', $project->id));
 
     $response->assertOk();
-    $response->assertInertia(fn($page) => $page
+    $response->assertInertia(fn ($page) => $page
         ->component('Dokploy/ProjectShow')
         ->has('project')
         ->has('applications')
@@ -53,7 +54,7 @@ test('application show page renders successfully', function () {
     $response = get(route('dokploy.applications.show', $application->id));
 
     $response->assertOk();
-    $response->assertInertia(fn($page) => $page
+    $response->assertInertia(fn ($page) => $page
         ->component('Dokploy/ApplicationShow')
         ->has('application')
         ->has('deployments')
@@ -70,7 +71,7 @@ test('deployment history renders successfully', function () {
     $response = get(route('dokploy.deployments.history'));
 
     $response->assertOk();
-    $response->assertInertia(fn($page) => $page
+    $response->assertInertia(fn ($page) => $page
         ->component('Dokploy/DeploymentHistory')
         ->has('deployments')
         ->has('filters')
@@ -182,7 +183,7 @@ test('deployment history filters work correctly', function () {
     $response = get(route('dokploy.deployments.history', ['status' => 'done']));
 
     $response->assertOk();
-    $response->assertInertia(fn($page) => $page
+    $response->assertInertia(fn ($page) => $page
         ->component('Dokploy/DeploymentHistory')
         ->where('filters.status', 'done')
     );

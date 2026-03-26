@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Services\MonitoringService;
 use App\Services\AlertService;
+use App\Services\MonitoringService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -15,15 +14,15 @@ use Illuminate\Support\Facades\Cache;
  *
  * Collects infrastructure metrics, evaluates alerts, and records trends.
  * Designed to be run via Laravel scheduler every minute.
- *
- * @package App\Console\Commands
  */
 class CollectMetricsCommand extends Command
 {
     protected $signature = 'monitoring:collect {--force : Force collection regardless of interval}';
+
     protected $description = 'Collect infrastructure metrics and generate alerts';
 
     protected MonitoringService $monitoringService;
+
     protected AlertService $alertService;
 
     public function __construct(MonitoringService $monitoringService, AlertService $alertService)
@@ -39,7 +38,7 @@ class CollectMetricsCommand extends Command
         $startTime = microtime(true);
 
         // Check if collection is needed (unless forced)
-        if (!$this->option('force')) {
+        if (! $this->option('force')) {
             $lastCollection = Cache::get('monitoring:last_collection_time');
             $collectionInterval = (int) config('monitoring.collection_interval', 60);
 
@@ -47,6 +46,7 @@ class CollectMetricsCommand extends Command
                 $this->info('Metrics collection skipped (interval not elapsed)');
                 $this->info("Last collection: {$lastCollection->toIso8601String()}");
                 $this->info("Next collection: {$lastCollection->addSeconds($collectionInterval)->toIso8601String()}");
+
                 return self::SUCCESS;
             }
         }
@@ -67,13 +67,13 @@ class CollectMetricsCommand extends Command
                 ['Metrics Collected', $result['metrics_collected'] ? '✓' : '✗'],
                 ['Alerts Generated', $result['alerts_generated']],
                 ['Trends Recorded', $result['trends_recorded']],
-                ['Duration', round(microtime(true) - $startTime, 2) . 's'],
+                ['Duration', round(microtime(true) - $startTime, 2).'s'],
                 ['Timestamp', $result['timestamp']],
             ]
         );
 
         // Display errors if any
-        if (!empty($result['errors'])) {
+        if (! empty($result['errors'])) {
             $this->newLine();
             $this->error('Errors encountered:');
             foreach ($result['errors'] as $error) {
@@ -103,9 +103,11 @@ class CollectMetricsCommand extends Command
 
         if ($result['success']) {
             $this->info('✅ Metrics collection completed successfully');
+
             return self::SUCCESS;
         } else {
             $this->error('❌ Metrics collection completed with errors');
+
             return self::FAILURE;
         }
     }

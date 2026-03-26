@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Performance;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
 
 /**
  * Performance Profiler Service
@@ -17,8 +17,11 @@ use Illuminate\Http\Request;
 class PerformanceProfiler
 {
     private array $queries = [];
+
     private float $startTime;
+
     private array $metrics = [];
+
     private bool $enabled;
 
     public function __construct()
@@ -32,7 +35,7 @@ class PerformanceProfiler
      */
     public function start(Request $request): self
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return $this;
         }
 
@@ -57,7 +60,7 @@ class PerformanceProfiler
      */
     public function stop(): array
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return [];
         }
 
@@ -114,7 +117,7 @@ class PerformanceProfiler
      */
     public function detectNPlusOne(): array
     {
-        if (!$this->enabled || empty($this->queries)) {
+        if (! $this->enabled || empty($this->queries)) {
             return [];
         }
 
@@ -160,7 +163,7 @@ class PerformanceProfiler
         return [
             'current_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
             'peak_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
-            'limit_mb' => round(ini_get('memory_limit') === '-1' ? PHP_INT_MAX : (int)ini_get('memory_limit'), 2),
+            'limit_mb' => round(ini_get('memory_limit') === '-1' ? PHP_INT_MAX : (int) ini_get('memory_limit'), 2),
         ];
     }
 

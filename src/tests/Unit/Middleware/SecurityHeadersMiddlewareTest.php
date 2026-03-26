@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Middleware;
 
 use App\Http\Middleware\SecurityHeaders;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Tests\TestCase;
@@ -14,8 +13,6 @@ use Tests\TestCase;
  * Security Headers Middleware Test
  *
  * Tests for the SecurityHeaders middleware.
- *
- * @package Tests\Unit\Middleware
  */
 class SecurityHeadersMiddlewareTest extends TestCase
 {
@@ -24,7 +21,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_security_headers_added(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -42,7 +39,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_x_content_type_options_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -55,7 +52,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_x_frame_options_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -68,7 +65,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_x_xss_protection_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -81,7 +78,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_strict_transport_security_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -99,7 +96,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_content_security_policy_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -118,7 +115,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_referrer_policy_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -132,7 +129,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_permissions_policy_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -149,7 +146,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_x_permitted_cross_domain_policies_header(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -162,7 +159,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_server_information_removed(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -176,7 +173,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_does_not_modify_existing_headers(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $existingResponse = new Response('Content');
@@ -192,7 +189,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_csp_allows_data_images(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -207,7 +204,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_csp_allows_data_fonts(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Content'));
@@ -222,7 +219,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_applies_to_api_routes(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/api/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('API Content'));
@@ -236,7 +233,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_applies_to_web_routes(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = $middleware->handle($request, fn () => new Response('Web Content'));
@@ -250,7 +247,7 @@ class SecurityHeadersMiddlewareTest extends TestCase
      */
     public function test_multiple_calls_dont_duplicate_headers(): void
     {
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $request = Request::create('/test', 'GET');
 
         $response = new Response('Content');

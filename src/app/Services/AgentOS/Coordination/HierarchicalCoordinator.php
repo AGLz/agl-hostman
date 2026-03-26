@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 class HierarchicalCoordinator implements CoordinatorInterface
 {
     protected array $sessions = [];
+
     protected array $config;
 
     public function __construct()
@@ -90,7 +91,7 @@ class HierarchicalCoordinator implements CoordinatorInterface
      */
     public function status(string $sessionId): array
     {
-        if (!isset($this->sessions[$sessionId])) {
+        if (! isset($this->sessions[$sessionId])) {
             return ['error' => 'Session not found'];
         }
 
@@ -111,6 +112,7 @@ class HierarchicalCoordinator implements CoordinatorInterface
     public function terminate(string $sessionId): bool
     {
         unset($this->sessions[$sessionId]);
+
         return true;
     }
 
@@ -220,7 +222,7 @@ class HierarchicalCoordinator implements CoordinatorInterface
         }
 
         // Normalize
-        return array_map(fn($w) => $w / $sum, $weights);
+        return array_map(fn ($w) => $w / $sum, $weights);
     }
 
     /**
@@ -324,7 +326,7 @@ class HierarchicalCoordinator implements CoordinatorInterface
         // Normalize each row
         foreach ($attention as &$row) {
             $sum = array_sum($row);
-            $row = array_map(fn($x) => $x / $sum, $row);
+            $row = array_map(fn ($x) => $x / $sum, $row);
         }
 
         $duration = (microtime(true) - $startTime) * 1000;

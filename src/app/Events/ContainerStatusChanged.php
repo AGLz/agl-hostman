@@ -38,8 +38,8 @@ class ContainerStatusChanged implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('infrastructure.container.' . $this->vmid),
-            new Channel('infrastructure.server.' . $this->serverCode),
+            new Channel('infrastructure.container.'.$this->vmid),
+            new Channel('infrastructure.server.'.$this->serverCode),
         ];
     }
 

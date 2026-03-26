@@ -14,8 +14,6 @@ use Tests\TestCase;
  *
  * Tests for secrets management including hardcoded credentials,
  * environment variable usage, and secrets storage security.
- *
- * @package Tests\Feature\Security
  */
 class SecretsManagementTest extends TestCase
 {
@@ -39,7 +37,7 @@ class SecretsManagementTest extends TestCase
         ];
 
         foreach ($sourceDirs as $dir) {
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 continue;
             }
 
@@ -56,7 +54,7 @@ class SecretsManagementTest extends TestCase
                     $matches = [];
                     preg_match($pattern, $content, $matches);
 
-                    if (!empty($matches)) {
+                    if (! empty($matches)) {
                         $envVarPattern = '/env\([\'"]([^\'"]+)[\'"]\)/';
                         $hasEnvVar = preg_match($envVarPattern, $content) > 0;
 
@@ -87,7 +85,7 @@ class SecretsManagementTest extends TestCase
         foreach ($configFiles as $configFile) {
             $path = base_path("src/config/{$configFile}");
 
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 continue;
             }
 
@@ -101,7 +99,7 @@ class SecretsManagementTest extends TestCase
                 preg_match_all($hardcodedPattern, $content, $matches);
 
                 foreach ($matches[0] ?? [] as $match) {
-                    if (!str_contains($match, 'example')) {
+                    if (! str_contains($match, 'example')) {
                         $this->assertStringContainsString('env(', $content, "{$key} should use env()");
                     }
                 }
@@ -118,8 +116,9 @@ class SecretsManagementTest extends TestCase
     {
         $gitIgnorePath = base_path('.gitignore');
 
-        if (!File::exists($gitIgnorePath)) {
+        if (! File::exists($gitIgnorePath)) {
             $this->assertTrue(true);
+
             return;
         }
 
@@ -137,7 +136,7 @@ class SecretsManagementTest extends TestCase
     {
         $exampleEnvPath = base_path('.env.example');
 
-        if (!File::exists($exampleEnvPath)) {
+        if (! File::exists($exampleEnvPath)) {
             $exampleEnvPath = base_path('src/.env.example');
         }
 
@@ -160,7 +159,7 @@ class SecretsManagementTest extends TestCase
         ];
 
         foreach ($exampleEnvPaths as $path) {
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 continue;
             }
 
@@ -268,8 +267,9 @@ class SecretsManagementTest extends TestCase
     {
         $configPath = base_path('src/config/services.php');
 
-        if (!File::exists($configPath)) {
+        if (! File::exists($configPath)) {
             $this->assertTrue(true);
+
             return;
         }
 
@@ -293,8 +293,9 @@ class SecretsManagementTest extends TestCase
     {
         $logDir = storage_path('logs');
 
-        if (!is_dir($logDir)) {
+        if (! is_dir($logDir)) {
             $this->assertTrue(true);
+
             return;
         }
 
@@ -353,9 +354,9 @@ class SecretsManagementTest extends TestCase
     public function test_sensitive_data_not_in_cache_keys(): void
     {
         $this->assertTrue(
-            !str_contains(\Cache::getPrefix(), 'password') &&
-            !str_contains(\Cache::getPrefix(), 'secret') &&
-            !str_contains(\Cache::getPrefix(), 'token')
+            ! str_contains(\Cache::getPrefix(), 'password') &&
+            ! str_contains(\Cache::getPrefix(), 'secret') &&
+            ! str_contains(\Cache::getPrefix(), 'token')
         );
     }
 
@@ -394,7 +395,7 @@ class SecretsManagementTest extends TestCase
                 $matches = [];
                 preg_match($pattern, $content, $matches);
 
-                if (!empty($matches)) {
+                if (! empty($matches)) {
                     $hasEnv = str_contains($content, 'env(');
                     $this->assertTrue(
                         $hasEnv || str_contains($path, 'example'),
@@ -444,8 +445,9 @@ class SecretsManagementTest extends TestCase
     {
         $configCache = base_path('bootstrap/cache/config.php');
 
-        if (!File::exists($configCache)) {
+        if (! File::exists($configCache)) {
             $this->assertTrue(true);
+
             return;
         }
 

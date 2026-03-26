@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 /**
  * Proxmox Server Model
@@ -32,7 +32,6 @@ use Illuminate\Database\Eloquent\Casts\AsArrayObject;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- *
  * @property-read PhysicalLocation|null $location
  * @property-read \Illuminate\Database\Eloquent\Collection<int, LxcContainer> $containers
  */
@@ -182,7 +181,7 @@ class ProxmoxServer extends Model
      */
     public function getDisplayName(): string
     {
-        return $this->name . ' (' . $this->code . ')';
+        return $this->name.' ('.$this->code.')';
     }
 
     /**

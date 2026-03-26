@@ -80,6 +80,6 @@ class HarborProjectDTO implements Arrayable
             'storage_used' => $this->storageUsed,
             'creation_time' => $this->createdAt,
             'update_time' => $this->updatedAt,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 }

@@ -14,8 +14,6 @@ use Tests\TestCase;
  *
  * Tests for Cross-Site Request Forgery protection including
  * token validation and same-site cookie enforcement.
- *
- * @package Tests\Feature\Security
  */
 class CsrfProtectionTest extends TestCase
 {

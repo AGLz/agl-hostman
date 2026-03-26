@@ -8,20 +8,18 @@ namespace App\DTO;
  * Container Clone Configuration DTO
  *
  * Immutable data transfer object for container cloning parameters.
- *
- * @package App\DTO
  */
 readonly class ContainerCloneDTO
 {
     /**
-     * @param int $sourceVmid Source container VMID
-     * @param int $targetVmid Target container VMID
-     * @param string $hostname New hostname for cloned container
-     * @param bool $full Full clone (true) or linked clone (false)
-     * @param string|null $storage Target storage for full clone
-     * @param string|null $description Description for cloned container
-     * @param bool $startAfterClone Start container after clone completion
-     * @param array<string, mixed> $metadata Custom metadata tags
+     * @param  int  $sourceVmid  Source container VMID
+     * @param  int  $targetVmid  Target container VMID
+     * @param  string  $hostname  New hostname for cloned container
+     * @param  bool  $full  Full clone (true) or linked clone (false)
+     * @param  string|null  $storage  Target storage for full clone
+     * @param  string|null  $description  Description for cloned container
+     * @param  bool  $startAfterClone  Start container after clone completion
+     * @param  array<string, mixed>  $metadata  Custom metadata tags
      */
     public function __construct(
         public int $sourceVmid,
@@ -39,19 +37,18 @@ readonly class ContainerCloneDTO
     /**
      * Create from array
      *
-     * @param array<string, mixed> $data
-     * @return self
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
-            sourceVmid: (int)($data['source_vmid'] ?? $data['vmid'] ?? throw new \InvalidArgumentException('source_vmid is required')),
-            targetVmid: (int)($data['target_vmid'] ?? $data['newid'] ?? throw new \InvalidArgumentException('target_vmid is required')),
+            sourceVmid: (int) ($data['source_vmid'] ?? $data['vmid'] ?? throw new \InvalidArgumentException('source_vmid is required')),
+            targetVmid: (int) ($data['target_vmid'] ?? $data['newid'] ?? throw new \InvalidArgumentException('target_vmid is required')),
             hostname: $data['hostname'] ?? throw new \InvalidArgumentException('hostname is required'),
-            full: (bool)($data['full'] ?? $data['full_clone'] ?? true),
+            full: (bool) ($data['full'] ?? $data['full_clone'] ?? true),
             storage: $data['storage'] ?? 'local-lvm',
             description: $data['description'] ?? null,
-            startAfterClone: (bool)($data['start'] ?? $data['start_after_clone'] ?? false),
+            startAfterClone: (bool) ($data['start'] ?? $data['start_after_clone'] ?? false),
             metadata: $data['metadata'] ?? [],
         );
     }
@@ -100,19 +97,17 @@ readonly class ContainerCloneDTO
         }
 
         // Validate hostname format
-        if (!preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/i', $this->hostname)) {
+        if (! preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/i', $this->hostname)) {
             throw new \InvalidArgumentException("Invalid hostname format: {$this->hostname}");
         }
 
-        if ($this->full && !$this->storage) {
-            throw new \InvalidArgumentException("Storage is required for full clone");
+        if ($this->full && ! $this->storage) {
+            throw new \InvalidArgumentException('Storage is required for full clone');
         }
     }
 
     /**
      * Get clone type
-     *
-     * @return string
      */
     public function getCloneType(): string
     {

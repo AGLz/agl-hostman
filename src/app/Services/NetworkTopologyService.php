@@ -2,16 +2,17 @@
 
 namespace App\Services;
 
-use App\Services\Proxmox\ProxmoxApiClient;
 use App\Services\Container\ContainerLifecycleService;
+use App\Services\Proxmox\ProxmoxApiClient;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class NetworkTopologyService
 {
     private ProxmoxApiClient $proxmoxService;
+
     private ContainerLifecycleService $containerService;
+
     private const CACHE_TTL = 300; // 5 minutes
 
     public function __construct(
@@ -220,11 +221,11 @@ class NetworkTopologyService
     private function buildWireGuardEdges(array $nodes): array
     {
         $edges = [];
-        $wgNodes = array_filter($nodes, fn($n) => !empty($n['ips']['wireguard']));
+        $wgNodes = array_filter($nodes, fn ($n) => ! empty($n['ips']['wireguard']));
 
         // Hub-and-spoke topology
-        $hub = array_values(array_filter($nodes, fn($n) => $n['id'] === 'wg-hub'))[0] ?? null;
-        if (!$hub) {
+        $hub = array_values(array_filter($nodes, fn ($n) => $n['id'] === 'wg-hub'))[0] ?? null;
+        if (! $hub) {
             return $edges;
         }
 
@@ -257,10 +258,10 @@ class NetworkTopologyService
         ];
 
         foreach ($meshPairs as [$source, $target]) {
-            $sourceNode = array_values(array_filter($nodes, fn($n) => $n['id'] === $source))[0] ?? null;
-            $targetNode = array_values(array_filter($nodes, fn($n) => $n['id'] === $target))[0] ?? null;
+            $sourceNode = array_values(array_filter($nodes, fn ($n) => $n['id'] === $source))[0] ?? null;
+            $targetNode = array_values(array_filter($nodes, fn ($n) => $n['id'] === $target))[0] ?? null;
 
-            if ($sourceNode && $targetNode && !empty($sourceNode['ips']['wireguard']) && !empty($targetNode['ips']['wireguard'])) {
+            if ($sourceNode && $targetNode && ! empty($sourceNode['ips']['wireguard']) && ! empty($targetNode['ips']['wireguard'])) {
                 $health = $this->getConnectionHealth($source, $target);
                 $edges[] = [
                     'id' => "wg_{$source}_{$target}",
@@ -287,11 +288,11 @@ class NetworkTopologyService
     private function buildLANEdges(array $nodes): array
     {
         $edges = [];
-        $lanNodes = array_filter($nodes, fn($n) => !empty($n['ips']['lan']));
+        $lanNodes = array_filter($nodes, fn ($n) => ! empty($n['ips']['lan']));
 
         // All LAN nodes connect to their parent server
         foreach ($lanNodes as $node) {
-            if ($node['type'] === 'container' && !empty($node['parent'])) {
+            if ($node['type'] === 'container' && ! empty($node['parent'])) {
                 $edges[] = [
                     'id' => "lan_{$node['parent']}_{$node['id']}",
                     'source' => $node['parent'],
@@ -316,7 +317,7 @@ class NetworkTopologyService
     private function buildTailscaleEdges(array $nodes): array
     {
         $edges = [];
-        $tsNodes = array_filter($nodes, fn($n) => !empty($n['ips']['tailscale']));
+        $tsNodes = array_filter($nodes, fn ($n) => ! empty($n['ips']['tailscale']));
 
         // Tailscale creates a full mesh, but we'll show only critical connections
         // to avoid cluttering the visualization
@@ -326,10 +327,10 @@ class NetworkTopologyService
         ];
 
         foreach ($criticalPairs as [$source, $target]) {
-            $sourceNode = array_values(array_filter($nodes, fn($n) => $n['id'] === $source))[0] ?? null;
-            $targetNode = array_values(array_filter($nodes, fn($n) => $n['id'] === $target))[0] ?? null;
+            $sourceNode = array_values(array_filter($nodes, fn ($n) => $n['id'] === $source))[0] ?? null;
+            $targetNode = array_values(array_filter($nodes, fn ($n) => $n['id'] === $target))[0] ?? null;
 
-            if ($sourceNode && $targetNode && !empty($sourceNode['ips']['tailscale']) && !empty($targetNode['ips']['tailscale'])) {
+            if ($sourceNode && $targetNode && ! empty($sourceNode['ips']['tailscale']) && ! empty($targetNode['ips']['tailscale'])) {
                 $health = $this->getConnectionHealth($source, $target, 'tailscale');
                 $edges[] = [
                     'id' => "ts_{$source}_{$target}",
@@ -363,10 +364,10 @@ class NetworkTopologyService
      */
     private function getGraphMetadata(array $nodes, array $edges): array
     {
-        $onlineNodes = count(array_filter($nodes, fn($n) => $n['status'] === 'online'));
+        $onlineNodes = count(array_filter($nodes, fn ($n) => $n['status'] === 'online'));
         $totalNodes = count($nodes);
 
-        $healthyEdges = count(array_filter($edges, fn($e) => $e['status'] === 'online'));
+        $healthyEdges = count(array_filter($edges, fn ($e) => $e['status'] === 'online'));
         $totalEdges = count($edges);
 
         $latencies = array_column($edges, 'latency_ms');
@@ -548,10 +549,10 @@ class NetworkTopologyService
         // Build adjacency list
         $adjacency = [];
         foreach ($graph['edges'] as $edge) {
-            if (!isset($adjacency[$edge['source']])) {
+            if (! isset($adjacency[$edge['source']])) {
                 $adjacency[$edge['source']] = [];
             }
-            if (!isset($adjacency[$edge['target']])) {
+            if (! isset($adjacency[$edge['target']])) {
                 $adjacency[$edge['target']] = [];
             }
 
@@ -583,7 +584,7 @@ class NetworkTopologyService
 
         $distances[$from] = 0;
 
-        while (!empty($unvisited)) {
+        while (! empty($unvisited)) {
             // Find unvisited node with minimum distance
             $minNode = null;
             $minDistance = INF;

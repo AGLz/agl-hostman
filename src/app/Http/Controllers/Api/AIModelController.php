@@ -24,12 +24,16 @@ class AIModelController extends Controller
      *     description="Get list of all available AI models and their status",
      *     operationId="listAIModels",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="List of AI models",
+     *
      *         @OA\JsonContent(
      *             type="array",
+     *
      *             @OA\Items(
+     *
      *                 @OA\Property(property="id", type="string", example="claude-3"),
      *                 @OA\Property(property="name", type="string", example="Claude 3"),
      *                 @OA\Property(property="provider", type="string", example="anthropic"),
@@ -45,6 +49,7 @@ class AIModelController extends Controller
     public function index()
     {
         $models = $this->aiModelService->listModels();
+
         return response()->json($models);
     }
 
@@ -56,10 +61,13 @@ class AIModelController extends Controller
      *     description="Execute a task using specified AI model or orchestrated multi-model approach",
      *     operationId="executeAIModel",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"prompt"},
+     *
      *             @OA\Property(property="prompt", type="string", description="The prompt or task to execute"),
      *             @OA\Property(property="model", type="string", example="claude-3", description="Specific model to use"),
      *             @OA\Property(property="orchestrate", type="boolean", example=true, description="Use multi-model orchestration"),
@@ -68,10 +76,13 @@ class AIModelController extends Controller
      *             @OA\Property(property="context", type="object", description="Additional context for the model")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Execution result",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="response", type="string", description="Model response"),
      *             @OA\Property(property="model_used", type="string", example="claude-3"),
      *             @OA\Property(property="tokens_used", type="integer", example=1523),
@@ -83,9 +94,11 @@ class AIModelController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=400,
      *         description="Invalid request",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/Error")
      *     )
      * )
@@ -98,7 +111,7 @@ class AIModelController extends Controller
             'orchestrate' => 'boolean',
             'max_tokens' => 'integer|min:1|max:100000',
             'temperature' => 'numeric|min:0|max:2',
-            'context' => 'array|nullable'
+            'context' => 'array|nullable',
         ]);
 
         if ($request->input('orchestrate', false)) {
@@ -119,19 +132,25 @@ class AIModelController extends Controller
      *     description="Perform AI-powered analysis on provided data",
      *     operationId="analyzeWithAI",
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"data", "analysis_type"},
+     *
      *             @OA\Property(property="data", type="object", description="Data to analyze"),
      *             @OA\Property(property="analysis_type", type="string", enum={"sentiment", "classification", "summary", "prediction", "anomaly"}, example="anomaly"),
      *             @OA\Property(property="model", type="string", example="gpt-4", description="Preferred model for analysis")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Analysis results",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="analysis_type", type="string", example="anomaly"),
      *             @OA\Property(property="results", type="object"),
      *             @OA\Property(property="confidence", type="number", example=0.92),
@@ -146,7 +165,7 @@ class AIModelController extends Controller
         $validated = $request->validate([
             'data' => 'required|array',
             'analysis_type' => 'required|string|in:sentiment,classification,summary,prediction,anomaly',
-            'model' => 'string|nullable'
+            'model' => 'string|nullable',
         ]);
 
         $result = $this->aiModelService->analyzeData(

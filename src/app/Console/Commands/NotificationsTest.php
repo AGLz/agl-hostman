@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class NotificationsTest extends Command
 {
     protected $signature = 'notifications:test {channel} {--message=Test notification}';
+
     protected $description = 'Test notification delivery to specified channel';
 
     public function __construct(
@@ -37,9 +38,11 @@ class NotificationsTest extends Command
             ]);
 
             $this->info('✅ Test notification sent successfully');
+
             return self::SUCCESS;
         } catch (\Exception $e) {
             $this->error("❌ Test notification failed: {$e->getMessage()}");
+
             return self::FAILURE;
         }
     }

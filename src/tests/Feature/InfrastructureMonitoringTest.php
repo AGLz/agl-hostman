@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
 use App\Models\ProxmoxServer;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 describe('Infrastructure Monitoring', function () {
@@ -43,7 +43,7 @@ describe('Infrastructure Monitoring', function () {
 
         // Act
         $response = $this->actingAs($this->user)
-            ->get("/api/infrastructure/servers/AGLSRV1/metrics");
+            ->get('/api/infrastructure/servers/AGLSRV1/metrics');
 
         // Assert
         $response->assertOk()

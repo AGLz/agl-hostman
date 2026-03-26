@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 
 describe('N8NService', function () {
     beforeEach(function () {
-        $this->service = new N8NService();
+        $this->service = new N8NService;
     });
 
     it('sends webhook successfully', function () {

@@ -55,7 +55,7 @@ class Role extends SpatieRole
      */
     public function canBeDeleted(): bool
     {
-        return !$this->is_system;
+        return ! $this->is_system;
     }
 
     /**

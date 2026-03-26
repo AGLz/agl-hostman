@@ -2,27 +2,25 @@
 
 namespace App\Jobs;
 
+use App\Models\LxcContainer;
+use App\Models\ProxmoxServer;
+use App\Models\SecurityAuditLog;
+use App\Services\AlertService;
 use App\Services\SecurityAuditService;
 use App\Services\SecurityComplianceService;
-use App\Services\AlertService;
-use App\Models\ProxmoxServer;
-use App\Models\LxcContainer;
-use App\Models\SecurityAuditLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Security Scan Job
  *
  * Runs comprehensive security scans across infrastructure.
  * Performs vulnerability checks, compliance validation, and security audits.
- *
- * @package App\Jobs
  */
 class SecurityScanJob implements ShouldQueue
 {
@@ -90,7 +88,7 @@ class SecurityScanJob implements ShouldQueue
         AlertService $alertService
     ): void {
         $startTime = microtime(true);
-        $scanId = 'scan_' . now()->format('Ymd_His') . '_' . Str::random(8);
+        $scanId = 'scan_'.now()->format('Ymd_His').'_'.Str::random(8);
 
         Log::info('Starting security scan', [
             'scan_id' => $scanId,
@@ -287,10 +285,10 @@ class SecurityScanJob implements ShouldQueue
             'target' => $this->target,
             'findings' => json_encode($findings),
             'compliance_results' => json_encode($complianceResults),
-            'critical_count' => count(array_filter($findings, fn($f) => $f['severity'] === 'critical')),
-            'high_count' => count(array_filter($findings, fn($f) => $f['severity'] === 'high')),
-            'medium_count' => count(array_filter($findings, fn($f) => $f['severity'] === 'medium')),
-            'low_count' => count(array_filter($findings, fn($f) => $f['severity'] === 'low')),
+            'critical_count' => count(array_filter($findings, fn ($f) => $f['severity'] === 'critical')),
+            'high_count' => count(array_filter($findings, fn ($f) => $f['severity'] === 'high')),
+            'medium_count' => count(array_filter($findings, fn ($f) => $f['severity'] === 'medium')),
+            'low_count' => count(array_filter($findings, fn ($f) => $f['severity'] === 'low')),
             'performed_by' => $this->userId,
             'performed_at' => now(),
         ]);
@@ -301,16 +299,16 @@ class SecurityScanJob implements ShouldQueue
      */
     protected function createAlertsForFindings(array $findings, AlertService $alertService, string $scanId): void
     {
-        $criticalFindings = array_filter($findings, fn($f) => $f['severity'] === 'critical');
-        $highFindings = array_filter($findings, fn($f) => $f['severity'] === 'high');
+        $criticalFindings = array_filter($findings, fn ($f) => $f['severity'] === 'critical');
+        $highFindings = array_filter($findings, fn ($f) => $f['severity'] === 'high');
 
         // Create summary alert for critical findings
-        if (!empty($criticalFindings)) {
+        if (! empty($criticalFindings)) {
             $alertService->createAlert([
                 'type' => 'security',
                 'severity' => 'critical',
                 'title' => "Critical Security Vulnerabilities Found - Scan {$scanId}",
-                'description' => count($criticalFindings) . " critical security vulnerabilities were detected during the security scan.",
+                'description' => count($criticalFindings).' critical security vulnerabilities were detected during the security scan.',
                 'metadata' => [
                     'scan_id' => $scanId,
                     'findings' => $criticalFindings,
@@ -319,12 +317,12 @@ class SecurityScanJob implements ShouldQueue
         }
 
         // Create summary alert for high findings
-        if (!empty($highFindings)) {
+        if (! empty($highFindings)) {
             $alertService->createAlert([
                 'type' => 'security',
                 'severity' => 'high',
                 'title' => "High Priority Security Issues Found - Scan {$scanId}",
-                'description' => count($highFindings) . " high priority security issues were detected during the security scan.",
+                'description' => count($highFindings).' high priority security issues were detected during the security scan.',
                 'metadata' => [
                     'scan_id' => $scanId,
                     'findings' => $highFindings,

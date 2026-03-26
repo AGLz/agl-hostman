@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 /**
  * Container Backup Model
@@ -30,7 +30,6 @@ use Illuminate\Database\Eloquent\Casts\AsArrayObject;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- *
  * @property-read LxcContainer $container
  */
 class ContainerBackup extends Model
@@ -153,7 +152,7 @@ class ContainerBackup extends Model
      */
     public function getDurationSeconds(): ?int
     {
-        if (!$this->completed_at || !$this->created_at) {
+        if (! $this->completed_at || ! $this->created_at) {
             return null;
         }
 
@@ -191,7 +190,7 @@ class ContainerBackup extends Model
      */
     public function getBackupSpeed(): ?float
     {
-        if (!$this->size_mb || !$this->getDurationSeconds()) {
+        if (! $this->size_mb || ! $this->getDurationSeconds()) {
             return null;
         }
 
@@ -203,7 +202,7 @@ class ContainerBackup extends Model
      */
     public function getFormattedSize(): string
     {
-        if (!$this->size_mb) {
+        if (! $this->size_mb) {
             return 'Unknown';
         }
 

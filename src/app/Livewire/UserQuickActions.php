@@ -18,7 +18,9 @@ class UserQuickActions extends Component
     protected UserRepository $userRepository;
 
     public User $user;
+
     public bool $confirmingAction = false;
+
     public string $actionType = '';
 
     public function boot(UserRepository $userRepository)
@@ -119,13 +121,15 @@ class UserQuickActions extends Component
     {
         $this->authorize('admin-access');
 
-        if (!$this->user->isActive()) {
+        if (! $this->user->isActive()) {
             session()->flash('error', __('Cannot impersonate inactive user.'));
+
             return;
         }
 
-        if ($this->user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+        if ($this->user->isSuperAdmin() && ! auth()->user()->isSuperAdmin()) {
             session()->flash('error', __('Cannot impersonate super admin.'));
+
             return;
         }
 

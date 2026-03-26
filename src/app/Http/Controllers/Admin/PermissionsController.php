@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class PermissionsController extends Controller
 {
@@ -61,7 +61,7 @@ class PermissionsController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        $permissionName = $request->module . '.' . $request->name;
+        $permissionName = $request->module.'.'.$request->name;
 
         $existing = Permission::where('name', $permissionName)->first();
         if ($existing) {
@@ -103,7 +103,7 @@ class PermissionsController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        $newPermissionName = $request->module . '.' . $request->name;
+        $newPermissionName = $request->module.'.'.$request->name;
 
         $existing = Permission::where('name', $newPermissionName)
             ->where('id', '!=', $permission->id)

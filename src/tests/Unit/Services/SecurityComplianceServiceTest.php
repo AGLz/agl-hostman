@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\SecurityComplianceService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
  * Security Compliance Service Test
  *
  * Tests for the SecurityComplianceService class.
- *
- * @package Tests\Unit\Services
  */
 class SecurityComplianceServiceTest extends TestCase
 {
@@ -25,7 +21,7 @@ class SecurityComplianceServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->complianceService = new SecurityComplianceService();
+        $this->complianceService = new SecurityComplianceService;
     }
 
     /**
@@ -91,7 +87,7 @@ class SecurityComplianceServiceTest extends TestCase
         Config::set('app.url', 'https://example.com');
         Config::set('session.encrypt', true);
         Config::set('hashing.driver', 'bcrypt');
-        Config::set('app.key', 'base64:' . str_repeat('a', 44));
+        Config::set('app.key', 'base64:'.str_repeat('a', 44));
 
         $result = $this->complianceService->checkCryptographicFailures();
 

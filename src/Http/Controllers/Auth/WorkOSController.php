@@ -21,7 +21,7 @@ class WorkOSController extends Controller
         $request->session()->put('workos_state', $state);
 
         // Store intended URL for redirect after login
-        if (!$request->session()->has('url_intended')) {
+        if (! $request->session()->has('url_intended')) {
             $request->session()->put('url_intended', $request->query('redirect', route('dashboard')));
         }
 
@@ -58,7 +58,7 @@ class WorkOSController extends Controller
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $profile->email],
                 [
-                    'name' => trim($profile->firstName . ' ' . $profile->lastName),
+                    'name' => trim($profile->firstName.' '.$profile->lastName),
                     'workos_id' => $profile->id,
                     'email_verified_at' => now(),
                     'password' => bcrypt(str_random(32)), // Random password (not used with OAuth)
@@ -78,11 +78,11 @@ class WorkOSController extends Controller
             $intendedUrl = $request->session()->pull('url_intended', route('dashboard'));
 
             return redirect($intendedUrl)
-                ->with('success', 'Welcome back, ' . $user->name . '!');
+                ->with('success', 'Welcome back, '.$user->name.'!');
 
         } catch (\Exception $e) {
             return redirect()->route('login')
-                ->with('error', 'Authentication failed: ' . $e->getMessage());
+                ->with('error', 'Authentication failed: '.$e->getMessage());
         }
     }
 

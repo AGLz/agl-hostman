@@ -7,7 +7,6 @@ namespace App\Http\Middleware;
 use App\Models\SecurityAuditLog;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,8 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Provides comprehensive security controls for Model Context Protocol (MCP) servers.
  * Implements API key authentication, rate limiting, IP whitelisting, and audit logging.
- *
- * @package App\Http\Middleware
  */
 class McpSecurity
 {
@@ -25,7 +22,6 @@ class McpSecurity
      * Handle an incoming request to MCP server.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -53,8 +49,6 @@ class McpSecurity
     /**
      * Validate request content type.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      *
      * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      */
@@ -63,7 +57,7 @@ class McpSecurity
         $allowedTypes = config('mcp.validation.allowed_content_types', ['application/json']);
         $contentType = $request->header('Content-Type');
 
-        if ($contentType && !in_array($contentType, $allowedTypes)) {
+        if ($contentType && ! in_array($contentType, $allowedTypes)) {
             abort(415, 'Unsupported Media Type');
         }
     }
@@ -71,8 +65,6 @@ class McpSecurity
     /**
      * Validate request size.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      *
      * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      */
@@ -89,14 +81,12 @@ class McpSecurity
     /**
      * Check if client IP is whitelisted.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      *
      * @throws \Symfony\Component\HttpKernel\Exception\ForbiddenHttpException
      */
     protected function checkIpWhitelist(Request $request): void
     {
-        if (!config('mcp.ip_whitelist.enabled', false)) {
+        if (! config('mcp.ip_whitelist.enabled', false)) {
             return;
         }
 
@@ -115,7 +105,7 @@ class McpSecurity
             }
         }
 
-        if (!$isAllowed) {
+        if (! $isAllowed) {
             SecurityAuditLog::logSecurityEvent(
                 auth()->user(),
                 'mcp_ip_blocked',
@@ -134,8 +124,6 @@ class McpSecurity
     /**
      * Authenticate API key and determine role.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      *
      * @throws \Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException
      */
@@ -143,11 +131,12 @@ class McpSecurity
     {
         $apiKey = $this->extractApiKey($request);
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             // Allow authenticated users to proceed without API key
             if (auth()->check()) {
                 $request->attributes->set('mcp_service', 'user');
                 $request->attributes->set('mcp_role', auth()->user()->getPrimaryRoleAttribute()?->name ?? 'viewer');
+
                 return;
             }
             abort(401, 'API key required');
@@ -167,7 +156,7 @@ class McpSecurity
             }
         }
 
-        if (!$isValid) {
+        if (! $isValid) {
             SecurityAuditLog::alert('Invalid MCP API key provided', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -179,9 +168,6 @@ class McpSecurity
 
     /**
      * Get role for MCP service.
-     *
-     * @param  string  $service
-     * @return string
      */
     protected function getRoleForService(string $service): string
     {
@@ -197,14 +183,12 @@ class McpSecurity
     /**
      * Apply rate limiting based on role.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      *
      * @throws \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException
      */
     protected function applyRateLimiting(Request $request): void
     {
-        if (!config('mcp.rate_limiting.enabled', true)) {
+        if (! config('mcp.rate_limiting.enabled', true)) {
             return;
         }
 
@@ -219,7 +203,7 @@ class McpSecurity
 
         $maxAttempts = $roleLimits[$role] ?? config('mcp.rate_limiting.max_attempts', 60);
         $decayMinutes = config('mcp.rate_limiting.decay_minutes', 1);
-        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
+        $key = 'mcp:rbac:'.$role.':'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($key);
@@ -235,7 +219,7 @@ class McpSecurity
                 ]
             );
 
-            abort(429, 'Too many requests. Try again in ' . $seconds . ' seconds.');
+            abort(429, 'Too many requests. Try again in '.$seconds.' seconds.');
         }
 
         RateLimiter::hit($key, $decayMinutes * 60);
@@ -243,10 +227,6 @@ class McpSecurity
 
     /**
      * Add security headers to response.
-     *
-     * @param  \Symfony\Component\HttpFoundation\Response  $response
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      */
     protected function addSecurityHeaders(Response $response, Request $request): void
     {
@@ -265,7 +245,7 @@ class McpSecurity
             'viewer' => 100,
         ];
         $maxAttempts = $roleLimits[$role] ?? 60;
-        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
+        $key = 'mcp:rbac:'.$role.':'.$request->ip();
 
         $response->headers->set('X-RateLimit-Limit', (string) $maxAttempts);
         $response->headers->set('X-RateLimit-Remaining', (string) max(0, $maxAttempts - RateLimiter::attempts($key)));
@@ -274,15 +254,10 @@ class McpSecurity
 
     /**
      * Log audit event for MCP request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Symfony\Component\HttpFoundation\Response  $response
-     * @param  float  $duration
-     * @return void
      */
     protected function logAuditEvent(Request $request, Response $response, float $duration): void
     {
-        if (!config('mcp.audit_logging.enabled', true)) {
+        if (! config('mcp.audit_logging.enabled', true)) {
             return;
         }
 
@@ -307,9 +282,6 @@ class McpSecurity
 
     /**
      * Extract API key from request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return string|null
      */
     protected function extractApiKey(Request $request): ?string
     {
@@ -336,10 +308,6 @@ class McpSecurity
 
     /**
      * Check if IP is in range (supports CIDR notation).
-     *
-     * @param  string  $ip
-     * @param  string  $range
-     * @return bool
      */
     protected function ipInRange(string $ip, string $range): bool
     {

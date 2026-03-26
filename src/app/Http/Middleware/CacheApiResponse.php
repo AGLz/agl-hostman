@@ -15,8 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Caches GET API responses in Redis to improve performance.
  * Supports cache tags, TTL strategies, and intelligent invalidation.
- *
- * @package App\Http\Middleware
  */
 class CacheApiResponse
 {
@@ -53,10 +51,6 @@ class CacheApiResponse
 
     /**
      * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -96,9 +90,6 @@ class CacheApiResponse
 
     /**
      * Check if route should be excluded from caching
-     *
-     * @param string $path
-     * @return bool
      */
     private function shouldExclude(string $path): bool
     {
@@ -113,24 +104,21 @@ class CacheApiResponse
 
     /**
      * Generate cache key from request
-     *
-     * @param Request $request
-     * @return string
      */
     private function generateCacheKey(Request $request): string
     {
         $path = $request->getPathInfo();
         $query = $request->getQueryString();
 
-        $key = 'api_response:' . str_replace('/', '_', $path);
+        $key = 'api_response:'.str_replace('/', '_', $path);
 
         if ($query) {
-            $key .= ':' . md5($query);
+            $key .= ':'.md5($query);
         }
 
         // Include user-specific data if authenticated
         if ($request->user()) {
-            $key .= ':user_' . $request->user()->id;
+            $key .= ':user_'.$request->user()->id;
         }
 
         return $key;
@@ -138,9 +126,6 @@ class CacheApiResponse
 
     /**
      * Determine TTL strategy for endpoint
-     *
-     * @param string $path
-     * @return string
      */
     private function determineTtl(string $path): string
     {
@@ -155,9 +140,6 @@ class CacheApiResponse
 
     /**
      * Get cached response
-     *
-     * @param string $key
-     * @return array|null
      */
     private function getCachedResponse(string $key): ?array
     {
@@ -168,9 +150,6 @@ class CacheApiResponse
 
     /**
      * Build response from cached data
-     *
-     * @param array $cached
-     * @return Response
      */
     private function buildCachedResponse(array $cached): Response
     {
@@ -192,9 +171,6 @@ class CacheApiResponse
 
     /**
      * Check if response should be cached
-     *
-     * @param Response $response
-     * @return bool
      */
     private function shouldCacheResponse(Response $response): bool
     {
@@ -213,11 +189,6 @@ class CacheApiResponse
 
     /**
      * Cache response
-     *
-     * @param string $key
-     * @param Response $response
-     * @param string $ttl
-     * @return void
      */
     private function cacheResponse(string $key, Response $response, string $ttl): void
     {
@@ -235,13 +206,10 @@ class CacheApiResponse
 
     /**
      * Resolve TTL strategy to seconds
-     *
-     * @param string $ttl
-     * @return int
      */
     private function resolveTtl(string $ttl): int
     {
-        return match($ttl) {
+        return match ($ttl) {
             'short' => 300,      // 5 minutes
             'medium' => 1800,    // 30 minutes
             'long' => 3600,      // 1 hour

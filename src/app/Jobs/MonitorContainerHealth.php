@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Services\ContainerHealthMonitor;
 use App\Models\ProxmoxServer;
+use App\Services\ContainerHealthMonitor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,8 +16,6 @@ use Illuminate\Support\Facades\Log;
  *
  * Background job that monitors container health across all Proxmox nodes.
  * Runs periodically via Laravel Horizon scheduler.
- *
- * @package App\Jobs
  */
 class MonitorContainerHealth implements ShouldQueue
 {
@@ -49,6 +47,7 @@ class MonitorContainerHealth implements ShouldQueue
 
             if ($servers->isEmpty()) {
                 Log::warning('No online Proxmox servers found for monitoring');
+
                 return;
             }
 
@@ -78,7 +77,7 @@ class MonitorContainerHealth implements ShouldQueue
             }
 
         } catch (\Exception $e) {
-            Log::error('Container health monitoring failed: ' . $e->getMessage(), [
+            Log::error('Container health monitoring failed: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
 

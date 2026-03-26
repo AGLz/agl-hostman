@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
-use App\Models\LxcContainer;
-use App\Models\ProxmoxServer;
-use App\Models\ContainerHealthLog;
-use App\Models\PerformanceTrend;
 use App\Models\Alert;
+use App\Models\ContainerHealthLog;
+use App\Models\LxcContainer;
+use App\Models\PerformanceTrend;
+use App\Models\ProxmoxServer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,8 +16,6 @@ use Tests\TestCase;
  * LXC Container Model Test
  *
  * Tests for the LxcContainer model.
- *
- * @package Tests\Unit\Models
  */
 class ContainerModelTest extends TestCase
 {
@@ -342,7 +340,7 @@ class ContainerModelTest extends TestCase
      */
     public function test_fillable_attributes(): void
     {
-        $container = new LxcContainer();
+        $container = new LxcContainer;
 
         $expectedFillable = [
             'vmid',
@@ -373,7 +371,7 @@ class ContainerModelTest extends TestCase
      */
     public function test_casts_configuration(): void
     {
-        $container = new LxcContainer();
+        $container = new LxcContainer;
 
         $expectedCasts = [
             'network_config' => 'array',

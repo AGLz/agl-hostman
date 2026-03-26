@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class OnCallCurrent extends Command
 {
     protected $signature = 'oncall:current';
+
     protected $description = 'Display current on-call engineer';
 
     public function handle(): int
@@ -18,8 +19,9 @@ class OnCallCurrent extends Command
             ->orderBy('is_override', 'desc')
             ->first();
 
-        if (!$current) {
+        if (! $current) {
             $this->warn('No one is currently on-call');
+
             return self::SUCCESS;
         }
 

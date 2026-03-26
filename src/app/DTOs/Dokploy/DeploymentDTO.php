@@ -62,7 +62,7 @@ readonly class DeploymentDTO
             'completedAt' => $this->completedAt,
             'errorMessage' => $this->errorMessage,
             'metadata' => $this->metadata,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 
     public static function forDeploy(

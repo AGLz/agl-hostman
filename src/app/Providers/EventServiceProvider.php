@@ -2,16 +2,16 @@
 
 namespace App\Providers;
 
-use App\Events\Notifications\DeploymentStarted;
 use App\Events\Notifications\DeploymentCompleted;
 use App\Events\Notifications\DeploymentFailed;
-use App\Events\Notifications\PROpened;
-use App\Events\Notifications\PRMerged;
-use App\Events\Notifications\PRCommented;
+use App\Events\Notifications\DeploymentStarted;
 use App\Events\Notifications\OnCallRotation;
+use App\Events\Notifications\PRCommented;
+use App\Events\Notifications\PRMerged;
+use App\Events\Notifications\PROpened;
 use App\Listeners\Notifications\SendDeploymentNotification;
-use App\Listeners\Notifications\SendPRNotification;
 use App\Listeners\Notifications\SendOnCallNotification;
+use App\Listeners\Notifications\SendPRNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -30,24 +30,24 @@ class EventServiceProvider extends ServiceProvider
 
         // Deployment notifications
         DeploymentStarted::class => [
-            SendDeploymentNotification::class . '@handleStarted',
+            SendDeploymentNotification::class.'@handleStarted',
         ],
         DeploymentCompleted::class => [
-            SendDeploymentNotification::class . '@handleCompleted',
+            SendDeploymentNotification::class.'@handleCompleted',
         ],
         DeploymentFailed::class => [
-            SendDeploymentNotification::class . '@handleFailed',
+            SendDeploymentNotification::class.'@handleFailed',
         ],
 
         // PR notifications
         PROpened::class => [
-            SendPRNotification::class . '@handleOpened',
+            SendPRNotification::class.'@handleOpened',
         ],
         PRMerged::class => [
-            SendPRNotification::class . '@handleMerged',
+            SendPRNotification::class.'@handleMerged',
         ],
         PRCommented::class => [
-            SendPRNotification::class . '@handleCommented',
+            SendPRNotification::class.'@handleCommented',
         ],
 
         // On-call notifications
