@@ -2,6 +2,9 @@
 # Gera ~/.openclaw/openclaw.env para o systemd (variáveis que o daemon precisa)
 # Rodar no host onde o gateway OpenClaw está: ./scripts/openclaw-systemd-env.sh
 # Ou via deploy: ssh root@agldv03 'bash -s' < scripts/openclaw-systemd-env.sh
+#
+# Chaves só no ~/.zshrc: preferir scripts/openclaw/sync-systemd-openclaw-env.sh (faz grep export …)
+# ou exportar antes: set -a && source ~/.zshrc && set +a
 
 set -e
 ENV_FILE="${OPENCLAW_ENV_FILE:-$HOME/.openclaw/openclaw.env}"
@@ -31,6 +34,9 @@ GEMINI_URL=${GEMINI_URL:-https://generativelanguage.googleapis.com/v1beta}
 GEMINI_AUTH=${GEMINI_AUTH:-}
 GEMINI_API_KEY=${GEMINI_API_KEY:-$GEMINI_AUTH}
 OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+CEREBRAS_API_KEY=${CEREBRAS_API_KEY:-}
+GROQ_API_KEY=${GROQ_API_KEY:-}
+GROQ_API_KEY2=${GROQ_API_KEY2:-}
 EOF
 
 chmod 600 "$ENV_FILE"

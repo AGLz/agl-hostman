@@ -23,9 +23,9 @@ Fallbacks e aliases multi-modelo: `config/openclaw/openclaw-patch.json` e agente
 
 **Skills (Linux / gateway):** `skills.allowBundled` em `openclaw.json` limita skills *bundled* a entradas sem dependências macOS ou CLIs opcionais; skills do *workspace* (`~/.openclaw/workspace/skills`) não são afectadas. Ver [Skills Config](https://docs.openclaw.ai/tools/skills-config) (`docs/tools/skills-config.md` no pacote npm).
 
-**Telegram “All models failed”:** (1) `ANTHROPIC_BASE_URL` no systemd não deve apontar para LiteLLM (`:4000`) em modo direct — `sync-systemd-openclaw-env.sh` omite proxy e placeholders `sk-optional` / `sk-litellm-default`. Se o *manager* `--user` ainda exportar `LITELLM_*` / `ANTHROPIC_*` (ver `systemctl --user show-environment`), usar `systemctl --user unset-environment …` e o drop-in `config/openclaw/openclaw-gateway.service.d-env.conf` (`bash scripts/openclaw/install-openclaw-gateway-dropin.sh`). (2) `DEEPSEEK_URL` deve ser `https://api.deepseek.com/v1` (OpenAI-compat), não `/anthropic`. (3) O catálogo `openclaw-models-direct.providers.json` inclui bloco `deepseek` explícito para `deepseek/deepseek-chat` ser resolvido. (4) Validar chaves reais em DashScope, créditos OpenRouter e quotas OpenAI/Google/Moonshot.
+**Telegram “All models failed”:** (1) `ANTHROPIC_BASE_URL` no systemd não deve apontar para LiteLLM (`:4000`) em modo direct — `sync-systemd-openclaw-env.sh` omite proxy e placeholders `sk-optional` / `sk-litellm-default`. Se o *manager* `--user` ainda exportar `LITELLM_*` / `ANTHROPIC_*` (ver `systemctl --user show-environment`), usar `systemctl --user unset-environment …` e o drop-in `config/openclaw/openclaw-gateway.service.d-env.conf` (`bash scripts/openclaw/install-openclaw-gateway-dropin.sh`). (2) `DEEPSEEK_URL` só interessa a outras ferramentas/LiteLLM; o catálogo **direct** não usa provider `api.deepseek.com` — DeepSeek vai por **OpenRouter** (`openrouter/deepseek/deepseek-chat`, `OPENROUTER_API_KEY`). (3) O catálogo `openclaw-models-direct.providers.json` lista `deepseek/deepseek-chat` e `deepseek/deepseek-r1` dentro do provider **openrouter**. (4) Validar chaves reais em DashScope, créditos OpenRouter e quotas OpenAI/Google/Moonshot.
 
-**Claude Desktop Pro vs OpenClaw:** a subscrição da app desktop **não** fornece `ANTHROPIC_API_KEY` utilizável pelo gateway. Para Claude via HTTP no OpenClaw usa-se **chave API Anthropic** (paga) ou um modelo **Claude agregado no OpenRouter** (ex. variantes `:free` quando disponíveis). O patch AGL sem créditos Google/OpenAI/Moonshot usa **Z.AI + DeepSeek + OpenRouter free + DashScope intl**.
+**Claude Desktop Pro vs OpenClaw:** a subscrição da app desktop **não** fornece `ANTHROPIC_API_KEY` utilizável pelo gateway. Para Claude via HTTP no OpenClaw usa-se **chave API Anthropic** (paga) ou um modelo **Claude agregado no OpenRouter** (ex. variantes `:free` quando disponíveis). O patch AGL sem créditos Google/OpenAI/Moonshot usa **Z.AI + OpenRouter (DeepSeek V3 Chat + modelos :free) + DashScope intl**.
 
 **DashScope:** chaves da consola **internacional** (`dashscope-intl`) devem usar `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` (não o host `dashscope.aliyuncs.com` só China). O `.zshrc` pode definir `DASHSCOPE_URL`; o `sync-systemd-openclaw-env.sh` exporta também essa variável para o systemd.
 
@@ -513,6 +513,24 @@ openclaw doctor
 
 Reaplicar env + reinício seguro: `bash scripts/openclaw/fix-openclaw-agldv03-fgsrv06.sh` (a partir do repo, com SSH aos hosts).
 
+### Deploy OpenClaw **direct** (Z.AI `glm-4.7-flash`, sem LiteLLM) no agldv03
+
+O catálogo direct (`models.providers` com URLs oficiais, sem `:4000`) e o primário **`zai/glm-4.7-flash`** aplicam-se com os scripts abaixo após `git pull` no repo do CT.
+
+| Passo | Comando |
+|-------|---------|
+| 1 | `cd /mnt/overpower/apps/dev/agl/agl-hostman && git pull --rebase` |
+| 2 | `bash scripts/openclaw/sync-openclaw-direct-host.sh` |
+| 3 | `systemctl --user restart openclaw-gateway` e `systemctl --user is-active openclaw-gateway` |
+
+**A partir de outro host com SSH** (ex. posto com Tailscale): `bash scripts/openclaw/deploy-agldv03-openclaw-direct.sh` — usa por defeito `AGLDV03=root@100.94.221.87` e `AGL_HOSTMAN_REPO=/mnt/overpower/apps/dev/agl/agl-hostman`.
+
+**Limitação típica**: sandboxes/CI **sem** rota ao IP Tailscale **não** conseguem abrir SSH ao agldv03; corre estes comandos no próprio CT ou numa máquina da mesh.
+
+**Variáveis** (resolver avisos `Missing env var` no gateway): pelo menos **`ZAI_API_KEY`**; para `memorySearch` com OpenAI, **`OPENAI_API_KEY`**; fallbacks opcionais (`DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`, `DASHSCOPE_API_KEY`, `MOONSHOT_API_KEY`, `ANTHROPIC_API_KEY`, …) em `~/.config/environment.d/openclaw.conf` ou `.env` carregado pelo systemd — ver secção *Doctor / “missing env var”* acima.
+
+Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; pode estar desfasado face ao modo direct actual).
+
 ### Arquivos no repositório (agl-hostman)
 
 | Arquivo | Descrição |
@@ -542,6 +560,10 @@ Reaplicar env + reinício seguro: `bash scripts/openclaw/fix-openclaw-agldv03-fg
 | `scripts/openclaw/vm104-verify-overpower-repo.sh` | Via `qm guest exec`: confirma se o `.ps1` existe no caminho Windows (default `U:\\apps\\dev\\agl\\agl-hostman`; ver limitação sessão no `AGLWK45-SETUP.md`) |
 | `scripts/openclaw/vm104-qemu-verify-all.sh` | **aglwk45**: bateria de checks via SSH ao AGLSRV1 + `qm guest exec` (ping LiteLLM, liveliness, `openclaw.json`, gateway 18789, tarefa agendada, clone `package.json`; guest = **SYSTEM**) |
 | `scripts/openclaw/verify-openclaw-agldv03-remote.sh` | SSH ao agldv03: gateway, `openclaw.json`, `agents.list`, LiteLLM `/v1/models`, logs em `~/.openclaw/logs` |
+| `scripts/openclaw/sync-openclaw-direct-host.sh` | **Modo direct**: `merge-openclaw-json-patch.py` + `apply-openclaw-direct-providers.py` (`--all-agents`, primário flash); corre **no host** onde está o `openclaw.json` |
+| `scripts/openclaw/deploy-agldv03-openclaw-direct.sh` | **agldv03**: `git pull` no repo + `sync-openclaw-direct-host.sh` + restart `openclaw-gateway` (requer SSH de uma máquina com rota ao CT) |
+| `scripts/openclaw/apply-openclaw-direct-providers.py` | Substitui `models.providers` pelo template `openclaw-models-direct.providers.json` (merge com `ollama` local); opcional `--no-agl-primary-flash` |
+| `config/openclaw/openclaw-models-direct.providers.json` | Template providers direct (Z.AI Anthropic API, DeepSeek, Moonshot, DashScope, OpenRouter, Anthropic, Google, OpenAI) |
 | `scripts/openclaw/fix-openclaw-agldv03-fgsrv06.sh` | **agldv03 + fgsrv06**: regen `openclaw.conf` (`sync-systemd-openclaw-env.sh`), `chmod 600` em `openclaw.json`, restart `openclaw-gateway`. Opcional: `DOCTOR=1` (com timeout) para `openclaw doctor --yes` |
 | `scripts/openclaw/invoke-remote-openclaw-upgrade.sh` | **agldv03 + fgsrv06**: `npm install -g openclaw@latest` + `openclaw gateway install --force` + restart (usa `remote-openclaw-upgrade-gateway.sh` via scp) |
 | `scripts/openclaw/remote-openclaw-upgrade-gateway.sh` | Script copiado para `/tmp/` no host; não correr localmente (é para o tarball remoto) |
@@ -572,7 +594,8 @@ Reaplicar env + reinício seguro: `bash scripts/openclaw/fix-openclaw-agldv03-fg
 | Config não recarregado | Gateway ainda com config antigo | `source ~/.zshrc && openclaw gateway restart` |
 | `Unhandled stop reason: model_context_window_exceeded` | Contexto da sessão (ou sessão **embedded** heartbeat/cron) excedeu o limite do modelo; em versões antigas o stop reason não disparava compactação automática ([issue #35868](https://github.com/openclaw/openclaw/issues/35868)) | **Curto prazo**: `/new` ou `/reset` no canal, ou apagar sessão inchada em `~/.openclaw/**/sessions/*.jsonl` e `systemctl --user restart openclaw-gateway`. **Definitivo**: `npm install -g openclaw@latest` (build com fix do stop reason). Manter `compaction` ativo; reduzir histórico anexado em tarefas periódicas. |
 | `Context overflow: prompt too large for the model` (Telegram / canal) | O **histórico da sessão** (ficheiro `*.jsonl` em `~/.openclaw/agents/<agente>/sessions/`) acumulou mais tokens que o **context window** do modelo na sessão (ex.: ~137k tokens vs 125k limite no `sessions.json`). Comum em conversas longas sem `/reset`. | No chat: **`/reset`** ou **`/new`**. No servidor: fazer backup do `sessions.json` + `*.jsonl` gigante, remover a entrada do peer em `sessions.json` (ex. `agent:main:main`) e arquivar o `.jsonl`, depois `systemctl --user restart openclaw-gateway`. Verificar `compaction.mode` em `agents.defaults` se o problema voltar. |
-| `404 No endpoints found for google/gemini-2.5-flash-lite:free` (**fgsrv06** / Telegram) | Muitas vezes o **GLM principal falha**: OpenClaw pede `zai/glm-5` mas o proxy só tinha `glm-5` → fallbacks até Gemini e erro confuso. | 1) LiteLLM com `model_name` **`zai/glm-5`** (e `zai/glm-4.7*`) no `config.yaml`; `./scripts/litellm/replicate-all-hosts.sh`. 2) `curl` de teste com `"model":"zai/glm-5"`. 3) `baseUrl` → `http://127.0.0.1:4000`. Ver `docs/LITELLM-TROUBLESHOOTING.md` §11. |
+| `404 No endpoints found for google/gemini-2.5-flash-lite:free` (**agldv03** / Telegram / Jarvis) | O slug **`:free`** não existe no catálogo OpenRouter (ou o pedido vai direto ao OpenRouter sem LiteLLM a mapear o alias). Muitas vezes é **fallback** após falha do modelo principal (`zai/glm-5`, rede, quota). | 1) Garantir primário: `ZAI_API_KEY`, `openclaw models test zai/glm-5`. 2) Corrigir JSON local: `python3 scripts/openclaw/replace-openrouter-gemini-free-fallback.py ~/.openclaw/openclaw.json` (substitui `google/...:free` e `openrouter/google/...:free` → `zai/glm-4.7-flash`) + `systemctl --user restart openclaw-gateway`. 3) Modo LiteLLM: aliases em `config/litellm/config.yaml`, ver `docs/LITELLM-TROUBLESHOOTING.md` §11. |
+| `LLM error api_error: Internal Network Failure` | Falha transitória ou bloqueio na rota até **OpenRouter**, **Z.AI**, **Google** ou **DNS** a partir do host; por vezes acompanha **rate limit** ou indisponibilidade do fornecedor. | `curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://openrouter.ai/api/v1/models` (com API key se aplicável); mesmo para `api.z.ai`; rever `openclaw logs gateway` e pedidos no mesmo intervalo do `request_id`. Repetir após minutos ou mudar modelo/fallback. |
 | `(node:…) [DEP0040] DeprecationWarning: punycode` ao subir o gateway | Dependências ainda usam o módulo **integrado** `punycode` do Node (deprecated). Não é erro do teu `openclaw.json`. | **Windows (wk45)**: `cd` à raiz do repo `agl-hostman`, depois `powershell -ExecutionPolicy Bypass -File .\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1` (ou `-File "C:\…\agl-hostman\scripts\openclaw\wk45-patch-gateway-nodeopts.ps1"`). Reinicia o gateway. **Linux**: export `NODE_OPTIONS=--disable-warning=DEP0040` antes de `openclaw gateway` ou no unit systemd. Definitivo: upgrades Node/OpenClaw quando upstream remover o uso. |
 | Linhas `[telegram] autoSelectFamily=…` / `dnsResultOrder=…` | **Informativas** (stack de rede Node/undici), não são erros. | Ignorar ou reduzir verbosidade nas opções do OpenClaw se existirem. |
 

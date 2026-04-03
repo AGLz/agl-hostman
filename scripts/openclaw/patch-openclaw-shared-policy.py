@@ -2,7 +2,7 @@
 """
 Aplica políticas partilhadas OpenClaw (alinhadas aglwk45) num openclaw.json:
   - agents.defaults.compaction (safeguard + zai/glm-4.7-flash)
-  - agents.defaults.memorySearch → LiteLLM /v1/ + mesma apiKey que providers (fallback local)
+  - agents.defaults.memorySearch → OpenAI embeddings (api.openai.com/v1) ou OPENCLAW_EMBEDDINGS_BASE
   - tools.web.search → duckduckgo + limites de cache/timeout
   - plugins.entries.duckduckgo (região configurável)
   - plugins.entries.brave.enabled → false se existir entrada brave
@@ -14,8 +14,8 @@ Uso:
 
 Ambiente opcional:
   OPENCLAW_DDG_REGION=pt-pt
-  OPENCLAW_LITELLM_V1_BASE=https://proxy.example:4000/v1/  (sobrepor URL de embeddings)
-  OPENCLAW_LITELLM_MASTER_KEY=sk-...  (se não existir apiKey nos providers)
+  OPENCLAW_EMBEDDINGS_BASE=https://api.openai.com  (ou LiteLLM só se quiseres proxy explícito)
+  OPENAI_API_KEY=sk-...  (gravada no JSON; senão usa placeholder ${OPENAI_API_KEY})
 """
 from __future__ import annotations
 
@@ -37,35 +37,6 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def _infer_master_key(data: dict[str, Any]) -> str:
-    env = os.environ.get("OPENCLAW_LITELLM_MASTER_KEY", "").strip()
-    if env:
-        return env
-    providers = data.get("models", {}).get("providers", {})
-    for prov in providers.values():
-        if not isinstance(prov, dict):
-            continue
-        k = prov.get("apiKey")
-        if isinstance(k, str) and k.startswith("sk-"):
-            return k
-    return "sk-your-secure-master-key"
-
-
-def _infer_litellm_v1_base(data: dict[str, Any]) -> str:
-    env = os.environ.get("OPENCLAW_LITELLM_V1_BASE", "").strip()
-    if env:
-        e = env.rstrip("/")
-        if e.endswith("/v1"):
-            return e + "/"
-        return e + "/v1/"
-    zai = data.get("models", {}).get("providers", {}).get("zai", {})
-    base = zai.get("baseUrl", "") if isinstance(zai, dict) else ""
-    base = str(base).rstrip("/")
-    if base:
-        return base + "/v1/"
-    return "http://100.94.221.87:4000/v1/"
 
 
 def _patch_agent_models(agent: dict[str, Any]) -> None:
@@ -92,10 +63,23 @@ def main() -> int:
 
     data = _read_json(target)
     ddg_region = os.environ.get("OPENCLAW_DDG_REGION", "pt-pt").strip() or "pt-pt"
-    master = _infer_master_key(data)
-    v1 = _infer_litellm_v1_base(data)
+    emb_base = (
+        os.environ.get("OPENCLAW_EMBEDDINGS_BASE", "").strip()
+        or os.environ.get("OPENCLAW_LITELLM_V1_BASE", "").strip()
+    ).rstrip("/")
+    if emb_base:
+        if not emb_base.endswith("/v1"):
+            emb_base = emb_base.rstrip("/") + "/v1"
+        v1 = emb_base + "/"
+    else:
+        v1 = "https://api.openai.com/v1/"
     if not v1.endswith("/"):
         v1 += "/"
+    emb_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if emb_key:
+        remote_key: str = emb_key
+    else:
+        remote_key = "${OPENAI_API_KEY}"
 
     defaults = data.setdefault("agents", {}).setdefault("defaults", {})
     comp = defaults.setdefault("compaction", {})
@@ -105,7 +89,7 @@ def main() -> int:
     defaults["memorySearch"] = {
         "provider": "openai",
         "model": "text-embedding-3-small",
-        "remote": {"baseUrl": v1, "apiKey": master},
+        "remote": {"baseUrl": v1, "apiKey": remote_key},
         "fallback": "local",
     }
 

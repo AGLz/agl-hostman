@@ -389,11 +389,12 @@ Located: `/root/.openclaw/workspace/skills/`
 
 **Model:** `zai/glm-5` (alias: `glm`)
 
-**Fallbacks:**
-1. `zai/glm-4.7-flash` (fallback#1)
-2. `deepseek/deepseek-chat` (fallback#2)
-3. `openrouter/google/gemini-2.5-flash-lite:free` (fallback#3)
-4. `openrouter/meta-llama/llama-3.3-70b-instruct:free` (fallback#4)
+**Fallbacks (patch repo):**
+1. `openrouter/deepseek/deepseek-chat` (DeepSeek V3 Chat via OpenRouter)
+2. `openrouter/meta-llama/llama-3.3-70b-instruct:free`
+3. `openrouter/z-ai/glm-4.5-air:free`
+4. `zai/glm-5`
+5. `dashscope/qwen-plus`
 
 ### Available Models
 
@@ -401,7 +402,7 @@ Located: `/root/.openclaw/workspace/skills/`
 - **Anthropic**: Claude Opus, Sonnet, Haiku
 - **OpenAI**: GPT-4.1, GPT-4o, GPT-4o-mini
 - **Google**: Gemini 3.1 Pro, 2.5 Pro, 2.5 Flash
-- **DeepSeek**: DeepSeek Chat, DeepSeek Reasoner (R1)
+- **DeepSeek (OpenClaw direct)**: via OpenRouter — `openrouter/deepseek/deepseek-chat`, `openrouter/deepseek/deepseek-r1`
 - **Moonshot**: Kimi K2.5, Kimi K2 Thinking
 - **OpenRouter**: Multiple free models
 

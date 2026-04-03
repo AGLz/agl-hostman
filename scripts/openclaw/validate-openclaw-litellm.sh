@@ -13,7 +13,7 @@ LITELLM_URL="${LITELLM_URL:-http://127.0.0.1:4000}"
 OPT_ENV="${LITELLM_OPT_ENV:-/opt/litellm/.env}"
 OC_JSON="${OPENCLAW_JSON:-$HOME/.openclaw/openclaw.json}"
 OC_CONF="${OPENCLAW_SYSTEMD_ENV:-$HOME/.config/environment.d/openclaw.conf}"
-MODEL="${VALIDATE_LITELLM_MODEL:-glm-4.7-flash}"
+MODEL="${VALIDATE_LITELLM_MODEL:-openrouter/openrouter/free}"
 
 fail() { echo "ERRO: $*" >&2; exit 1; }
 
@@ -32,7 +32,7 @@ if [[ "$K" == "sk-your-secure-master-key" ]]; then
 fi
 
 echo "=== 1) LiteLLM POST /v1/chat/completions model=$MODEL ==="
-body="$(jq -nc --arg m "$MODEL" '{model:$m,messages:[{role:"user",content:"Responde só: OK"}],max_tokens:16}')"
+body="$(jq -nc --arg m "$MODEL" '{model:$m,messages:[{role:"user",content:"Responde só: OK"}],max_tokens:256}')"
 # shellcheck disable=SC2086
 resp="$(curl -sS --max-time 120 -H "Authorization: Bearer $K" -H "Content-Type: application/json" \
   "$LITELLM_URL/v1/chat/completions" -d "$body")"
@@ -40,10 +40,10 @@ if echo "$resp" | jq -e '.error' >/dev/null 2>&1; then
   echo "$resp" | jq .
   fail "LiteLLM devolveu erro"
 fi
-_txt="$(echo "$resp" | jq -r '.choices[0].message.content // empty')"
+_txt="$(echo "$resp" | jq -r '(.choices[0].message.content // .choices[0].message.reasoning_content // empty)')"
 if [[ -z "${_txt// }" ]]; then
   echo "$resp" | jq .
-  fail "LiteLLM: resposta vazia (content)"
+  fail "LiteLLM: resposta vazia (content e reasoning_content)"
 fi
 echo "OK LiteLLM: ${_txt:0:120}"
 

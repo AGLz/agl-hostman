@@ -16,9 +16,10 @@
           "primary": "zai/glm-4.7-flash",
           "fallbacks": [
             "deepseek",
-            "openai/gpt-4o",
-            "claude-sonnet-4-6",
-            "zai/glm-5"
+            "or-llama-free",
+            "or-glm-air-free",
+            "glm",
+            "qwen-plus"
           ]
         },
         "groupChat": {
@@ -31,8 +32,10 @@
         "model": {
           "primary": "zai/glm-4.7-flash",
           "fallbacks": [
+            "deepseek",
+            "or-llama-free",
             "gemini-lite",
-            "deepseek"
+            "glm"
           ]
         },
         "groupChat": {
@@ -43,8 +46,8 @@
         "id": "harbor",
         "workspace": "~/.openclaw/workspace-harbor",
         "model": {
-          "primary": "deepseek",
-          "fallbacks": ["zai/glm-5", "moonshot/kimi-k2.5"]
+          "primary": "zai/glm-4.7-flash",
+          "fallbacks": ["deepseek", "or-llama-free", "glm"]
         },
         "groupChat": {
           "mentionPatterns": ["@harbor", "\\bregistry\\b", "\\bharbor\\b"]
@@ -54,8 +57,8 @@
         "id": "net",
         "workspace": "~/.openclaw/workspace-net",
         "model": {
-          "primary": "gemini-lite",
-          "fallbacks": ["zai/glm-4.7-flash", "deepseek"]
+          "primary": "zai/glm-4.7-flash",
+          "fallbacks": ["deepseek", "or-llama-free", "gemini-lite"]
         },
         "groupChat": {
           "mentionPatterns": ["@net", "\\bwg\\b", "\\btailscale\\b"]

@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const CONFIG = path.join(__dirname, '../../config/litellm/config.yaml');
 
-test('LiteLLM: cursor-composer aponta para gpt-5.3-chat-latest (proxy Composer 2 Fast)', () => {
+test('LiteLLM: cursor-composer usa Z.AI GLM-4.7-Flash (anthropic/glm-4.7-flash)', () => {
   const yaml = fs.readFileSync(CONFIG, 'utf8');
   assert.match(yaml, /model_name:\s*"cursor-composer"/);
   assert.match(yaml, /model_name:\s*"cursor-composer-2-fast"/);
@@ -16,6 +16,6 @@ test('LiteLLM: cursor-composer aponta para gpt-5.3-chat-latest (proxy Composer 2
   )];
   assert.ok(composerBlocks.length >= 2, 'esperado cursor-composer e cursor-composer-2-fast');
   for (const m of composerBlocks) {
-    assert.strictEqual(m[1], 'openai/gpt-5.3-chat-latest');
+    assert.strictEqual(m[1], 'anthropic/glm-4.7-flash');
   }
 });

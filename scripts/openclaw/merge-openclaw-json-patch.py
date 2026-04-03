@@ -62,8 +62,12 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true", help="Mostra diff de chaves de topo apenas")
     args = ap.parse_args()
 
-    repo = Path(__file__).resolve().parents[2]
-    patch_path = args.patch or (repo / "config" / "openclaw" / "openclaw-patch.json")
+    if args.patch is not None:
+        patch_path = args.patch
+    else:
+        script = Path(__file__).resolve()
+        repo = script.parents[2] if len(script.parents) > 2 else script.parent
+        patch_path = repo / "config" / "openclaw" / "openclaw-patch.json"
     if not patch_path.is_file():
         raise SystemExit(f"Patch em falta: {patch_path}")
 
@@ -86,7 +90,7 @@ def main() -> None:
 
     _backup(target)
     _save(target, merged)
-    print(f"OK: fundido {patch_path.name} → {target}")
+    print(f"OK: fundido {patch_path.name} -> {target}")
 
 
 if __name__ == "__main__":

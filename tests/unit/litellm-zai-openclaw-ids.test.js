@@ -1,7 +1,8 @@
 'use strict';
 
 /**
- * OpenClaw (openclaw-patch.json) usa IDs zai/glm-5, zai/glm-4.7, zai/glm-4.7-flash.
+ * OpenClaw (fallback GLM): zai/glm-4.7-flash, zai/glm-5, zai/glm-4.7, zai/glm-4.5-flash
+ * e corpos sem prefixo glm-4.5-flash / glm-4.7-flash.
  * O LiteLLM deve expor o mesmo model_name ou /chat/completions falha e o gateway
  * cai nos fallbacks (ex.: mensagem confusa com gemini ... :free).
  */
@@ -16,7 +17,9 @@ const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.y
 function assertZaiIds(yaml, label) {
   assert.match(yaml, /model_name:\s*"zai\/glm-5"/, `${label}: zai/glm-5`);
   assert.match(yaml, /model_name:\s*"zai\/glm-4\.7"/, `${label}: zai/glm-4.7`);
+  assert.match(yaml, /model_name:\s*"zai\/glm-4\.5-flash"/, `${label}: zai/glm-4.5-flash`);
   assert.match(yaml, /model_name:\s*"zai\/glm-4\.7-flash"/, `${label}: zai/glm-4.7-flash`);
+  assert.match(yaml, /model_name:\s*"glm-4\.5-flash"/, `${label}: glm-4.5-flash (OpenClaw zai sem prefixo)`);
   assert.match(yaml, /model_name:\s*"glm-4\.7-flash"/, `${label}: glm-4.7-flash (OpenClaw zai sem prefixo)`);
 }
 

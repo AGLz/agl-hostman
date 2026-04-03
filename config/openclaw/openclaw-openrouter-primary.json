@@ -1,0 +1,181 @@
+{
+  "gateway": {
+    "mode": "local"
+  },
+  "commands": {
+    "bash": false,
+    "restart": false,
+    "config": false,
+    "debug": false
+  },
+  "channels": {
+    "defaults": {
+      "heartbeat": {
+        "showOk": false,
+        "showAlerts": true,
+        "useIndicator": true
+      }
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    },
+    "allowBundled": [
+      "coding-agent",
+      "gemini",
+      "gh-issues",
+      "github",
+      "healthcheck",
+      "node-connect",
+      "openai-image-gen",
+      "openai-whisper-api",
+      "session-logs",
+      "skill-creator",
+      "tmux",
+      "weather"
+    ]
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "zai/glm-4.7-flash",
+        "fallbacks": [
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+          "openrouter/minimax/minimax-m2.5:free",
+          "openrouter/google/gemma-3-27b-it:free",
+          "openrouter/mistralai/mistral-small-3.1-24b-instruct:free",
+          "openrouter/nousresearch/hermes-3-llama-3.1-405b:free"
+        ]
+      },
+      "imageModel": {
+        "primary": "zai/glm-4.7-flash",
+        "fallbacks": [
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          "openrouter/google/gemma-3-4b-it:free"
+        ]
+      },
+      "timeoutSeconds": 600,
+      "maxConcurrent": 3
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "zai": {
+        "baseUrl": "https://api.z.ai/api/anthropic",
+        "api": "anthropic-messages",
+        "apiKey": "${ZAI_API_KEY}",
+        "models": [
+          {
+            "id": "glm-4.7-flash",
+            "name": "GLM 4.7 Flash",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "api": "openai-completions",
+        "apiKey": "os.environ/OPENROUTER_API_KEY",
+        "models": [
+          {
+            "id": "meta-llama/llama-3.3-70b-instruct:free",
+            "name": "Meta Llama 3.3 70B (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 64000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "nvidia/nemotron-3-super-120b-a12b:free",
+            "name": "NVIDIA Nemotron 3 Super (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 262000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "minimax/minimax-m2.5:free",
+            "name": "MiniMax M2.5 (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 196000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "google/gemma-3-27b-it:free",
+            "name": "Google Gemma 3 27B (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "google/gemma-3-12b-it:free",
+            "name": "Google Gemma 3 12B (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "google/gemma-3-4b-it:free",
+            "name": "Google Gemma 3 4B (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "mistralai/mistral-small-3.1-24b-instruct:free",
+            "name": "Mistral Small 3.1 24B (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "nousresearch/hermes-3-llama-3.1-405b:free",
+            "name": "NousResearch Hermes 3 (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "stepfun/step-3.5-flash:free",
+            "name": "StepFun Step 3.5 Flash (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "openrouter/free",
+            "name": "OpenRouter Free Router (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 200000,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  }
+}

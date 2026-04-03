@@ -1,0 +1,104 @@
+{
+  "gateway": {
+    "mode": "local"
+  },
+  "commands": {
+    "bash": false,
+    "restart": false,
+    "config": false,
+    "debug": false
+  },
+  "channels": {
+    "defaults": {
+      "heartbeat": {
+        "showOk": false,
+        "showAlerts": true,
+        "useIndicator": true
+      }
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    },
+    "allowBundled": [
+      "coding-agent",
+      "gemini",
+      "gh-issues",
+      "github",
+      "healthcheck",
+      "node-connect",
+      "openai-image-gen",
+      "openai-whisper-api",
+      "session-logs",
+      "skill-creator",
+      "tmux",
+      "weather"
+    ]
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "zai/glm-4.7-flash",
+        "fallbacks": [
+          "openai/qwen-plus",
+          "openai/qwen-turbo"
+        ]
+      },
+      "imageModel": {
+        "primary": "zai/glm-4.7-flash",
+        "fallbacks": [
+          "openai/qwen-turbo"
+        ]
+      },
+      "timeoutSeconds": 600,
+      "maxConcurrent": 3
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "zai": {
+        "baseUrl": "https://api.z.ai/api/anthropic",
+        "api": "anthropic-messages",
+        "apiKey": "${ZAI_API_KEY}",
+        "models": [
+          {
+            "id": "glm-4.7-flash",
+            "name": "GLM 4.7 Flash",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "openai": {
+        "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+        "api": "openai-completions",
+        "apiKey": "${DASHSCOPE_API_KEY}",
+        "models": [
+          {
+            "id": "qwen-plus",
+            "name": "Qwen Plus (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "qwen-turbo",
+            "name": "Qwen Turbo (FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  }
+}

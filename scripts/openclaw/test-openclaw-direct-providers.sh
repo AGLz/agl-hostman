@@ -93,17 +93,19 @@ else
   check_http "z.ai (${_m})" "${_b}" /tmp/oc-test-zai.json
 fi
 
-# DeepSeek (OpenAI-compatible)
-if [[ -z "${DEEPSEEK_API_KEY:-}" ]]; then
-  skip "deepseek (sem DEEPSEEK_API_KEY)"
+# DeepSeek via OpenRouter (API direta deepseek.com desativada no catálogo OpenClaw)
+if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+  skip "openrouter deepseek (sem OPENROUTER_API_KEY)"
 else
-  _m="${TEST_DEEPSEEK_MODEL:-deepseek-chat}"
-  _b="$(curl -sS -o /tmp/oc-test-deepseek.json -w '%{http_code}' \
-    -H "Authorization: Bearer ${DEEPSEEK_API_KEY}" \
+  _m="${TEST_OPENROUTER_DEEPSEEK_MODEL:-deepseek/deepseek-chat}"
+  _b="$(curl -sS -o /tmp/oc-test-deepseek-or.json -w '%{http_code}' \
+    -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+    -H "HTTP-Referer: https://github.com/agl-hostman/openclaw" \
+    -H "X-Title: agl-hostman direct-providers test" \
     -H "content-type: application/json" \
     -d "{\"model\":\"${_m}\",\"max_tokens\":8,\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}]}" \
-    "https://api.deepseek.com/v1/chat/completions")" || true
-  check_http "deepseek (${_m})" "${_b}" /tmp/oc-test-deepseek.json
+    "https://openrouter.ai/api/v1/chat/completions")" || true
+  check_http "openrouter/deepseek (${_m})" "${_b}" /tmp/oc-test-deepseek-or.json
 fi
 
 # Moonshot

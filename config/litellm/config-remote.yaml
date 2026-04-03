@@ -2,7 +2,7 @@
 # Integração com agl-hostman (OpenClaw model list)
 # Ref: https://github.com/ruvnet/claude-flow/wiki/litellm-integration
 # Última atualização modelos: 2026-03-13
-# Env vars: ANTHROPIC_API_KEY, ZAI_API_KEY, MOONSHOT_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, DASHSCOPE_API_KEY (Qwen direto)
+# Env vars: ANTHROPIC_API_KEY, ZAI_API_KEY, MOONSHOT_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, DASHSCOPE_API_KEY, GROQ_API_KEY, GROQ_API_KEY2 (opcional), CEREBRAS_API_KEY; primário FREE: GLM-4.7-Flash Z.AI
 #
 # ATUALIZAÇÕES 2026-03-13:
 # - Claude: Opus 4.6 (1M ctx), Sonnet 4.6, Haiku 4.5 - confirmados
@@ -51,6 +51,21 @@ model_list:
   # ============================================================
   # ACESSO DIRETO (preferir sempre)
   # ============================================================
+
+  # === Alias primário AGL = GLM-4.7-Flash Z.AI (FREE) ===
+  - model_name: "agl-primary"
+    litellm_params:
+      model: "anthropic/glm-4.7-flash"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 30
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      context_window: 131072
+      access: direct
+      free_tier: true
 
   # === Anthropic Claude (conta PRO) ===
   # Opus 4.6 (Feb 2026): 1M context beta, Agent Teams, state-of-the-art coding
@@ -231,9 +246,34 @@ model_list:
       context_window: 203000
       access: direct
 
+  - model_name: "zai/glm-4.5-flash"
+    litellm_params:
+      model: "anthropic/glm-4.5-flash"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      context_window: 131072
+      access: direct
+      free_tier: true
+
   - model_name: "zai/glm-4.7-flash"
     litellm_params:
       model: "anthropic/glm-4.7-flash"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  # OpenClaw (provider zai): body model= sem prefixo zai/ — mesmo backend que zai/glm-4.5-flash
+  - model_name: "glm-4.5-flash"
+    litellm_params:
+      model: "anthropic/glm-4.5-flash"
       api_key: os.environ/ZAI_API_KEY
       api_base: "https://api.z.ai/api/anthropic"
       timeout: 90
@@ -398,27 +438,33 @@ model_list:
   # cursor-composer / cursor-composer-2-fast: nomes públicos no Cursor (custom model)
   - model_name: "cursor-composer"
     litellm_params:
-      model: "openai/gpt-5.4-mini"
-      api_key: os.environ/OPENAI_API_KEY
+      model: "anthropic/glm-4.7-flash"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 30
     model_info:
-      description: "Proxy Composer 2 Fast → GPT-5.4 mini (OpenAI); Composer 2 real só na Cursor"
+      description: "Composer → Z.AI GLM-4.7-Flash (FREE)"
       max_tokens: 16384
-      input_cost_per_token: 0.00000075  # $0.75/1M (mar/2026)
-      output_cost_per_token: 0.0000045  # $4.50/1M
-      context_window: 400000
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      context_window: 131072
       access: direct
+      free_tier: true
 
   - model_name: "cursor-composer-2-fast"
     litellm_params:
-      model: "openai/gpt-5.4-mini"
-      api_key: os.environ/OPENAI_API_KEY
+      model: "anthropic/glm-4.7-flash"
+      api_key: os.environ/ZAI_API_KEY
+      api_base: "https://api.z.ai/api/anthropic"
+      timeout: 30
     model_info:
-      description: "Alias Composer 2 Fast → GPT-5.4 mini"
+      description: "Composer 2 Fast → Z.AI GLM-4.7-Flash (FREE)"
       max_tokens: 16384
-      input_cost_per_token: 0.00000075
-      output_cost_per_token: 0.0000045
-      context_window: 400000
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      context_window: 131072
       access: direct
+      free_tier: true
 
   # === OpenAI (apenas aliases com quota OK no último teste) ===
   - model_name: "gpt"
@@ -499,6 +545,26 @@ model_list:
       max_tokens: 65536
       context_window: 1048576
       access: direct
+
+  - model_name: "google/gemini-2.5-flash-lite:free"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash-lite"
+      api_key: os.environ/GEMINI_API_KEY
+    model_info:
+      max_tokens: 65536
+      context_window: 1048576
+      access: direct
+      free_tier: true
+
+  - model_name: "openrouter/google/gemini-2.5-flash-lite:free"
+    litellm_params:
+      model: "openrouter/google/gemini-2.5-flash-lite:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+    model_info:
+      max_tokens: 8192
+      context_window: 1048576
+      access: openrouter
+      free_tier: true
 
   - model_name: "google/gemini-2.5-flash"
     litellm_params:
@@ -617,6 +683,89 @@ model_list:
       access: direct
 
   # ============================================================
+  # GROQ — API nativa (GROQ_API_KEY; GROQ_API_KEY2 nos aliases *-k2)
+  # ============================================================
+  - model_name: "groq-llama-33"
+    litellm_params:
+      model: "groq/llama-3.3-70b-versatile"
+      api_key: os.environ/GROQ_API_KEY
+      timeout: 60
+    model_info:
+      max_tokens: 32768
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  - model_name: "groq-gpt-oss-120b"
+    litellm_params:
+      model: "groq/openai/gpt-oss-120b"
+      api_key: os.environ/GROQ_API_KEY
+      timeout: 120
+    model_info:
+      max_tokens: 65536
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  - model_name: "groq-llama-31-8b"
+    litellm_params:
+      model: "groq/llama-3.1-8b-instant"
+      api_key: os.environ/GROQ_API_KEY
+      timeout: 45
+    model_info:
+      max_tokens: 8192
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  - model_name: "groq-llama-33-k2"
+    litellm_params:
+      model: "groq/llama-3.3-70b-versatile"
+      api_key: os.environ/GROQ_API_KEY2
+      timeout: 60
+    model_info:
+      max_tokens: 32768
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  - model_name: "groq-gpt-oss-120b-k2"
+    litellm_params:
+      model: "groq/openai/gpt-oss-120b"
+      api_key: os.environ/GROQ_API_KEY2
+      timeout: 120
+    model_info:
+      max_tokens: 65536
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  # ============================================================
+  # CEREBRAS — API nativa (CEREBRAS_API_KEY)
+  # ============================================================
+  - model_name: "cerebras-llama-33"
+    litellm_params:
+      model: "cerebras/llama-3.3-70b"
+      api_key: os.environ/CEREBRAS_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  - model_name: "cerebras-gpt-oss-120b"
+    litellm_params:
+      model: "cerebras/gpt-oss-120b"
+      api_key: os.environ/CEREBRAS_API_KEY
+      timeout: 120
+    model_info:
+      max_tokens: 65536
+      context_window: 131072
+      access: direct
+      free_tier: true
+
+  # ============================================================
   # OPENROUTER — tier :free (IDs confirmados openrouter.ai/api/v1/models, 2026-03)
   # Chave: OPENROUTER_API_KEY; no shell pode estar como OPENROUTER_AUTH (export OPENROUTER_API_KEY="$OPENROUTER_AUTH")
   # ============================================================
@@ -624,6 +773,7 @@ model_list:
     litellm_params:
       model: "openrouter/openrouter/free"
       api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 2048
     model_info:
       max_tokens: 8192
       access: openrouter
@@ -667,6 +817,18 @@ model_list:
       free_tier: true
       note: "gpt-oss-20b:free removido — exige data policy específica no OpenRouter"
 
+  - model_name: "openrouter/openrouter/free"
+    litellm_params:
+      model: "openrouter/openrouter/free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 2048
+    model_info:
+      max_tokens: 8192
+      context_window: 200000
+      access: openrouter
+      free_tier: true
+      note: "Mesmo model_name que o OpenClaw qualificado (openrouter/openrouter/free)"
+
 # Configurações LiteLLM (fallbacks nativos)
 litellm_settings:
   num_retries: 2
@@ -679,6 +841,8 @@ litellm_settings:
   # ============================================================
   # Latência referência: qwen3.5-plus ~0.8s, deepseek ~1.4s, glm-flash ~1.6s, glm-5 ~2.4s
   fallbacks:
+    - agl-primary: [glm-flash, qwen3.5-plus, deepseek, gemini]
+
     # === Claude fallbacks (só cloud) ===
     - claude-opus: [glm, deepseek, qwen3.5-plus, gemini]
     - claude-opus-4-6: [glm, deepseek, qwen3.5-plus, gemini]
@@ -689,9 +853,11 @@ litellm_settings:
     - claude-haiku-4-5-20251001: [glm-flash, deepseek, qwen3.5-plus, gemini]
 
     # OpenClaw: modelos pedidos como zai/* — sem grupo o router não faz fallback; Z.AI rate limit → cloud
+    - zai/glm-4.5-flash: [deepseek, qwen3.5-plus, gemini]
     - zai/glm-4.7-flash: [deepseek, qwen3.5-plus, gemini]
     - zai/glm-5: [deepseek, qwen3.5-plus, gemini]
     - zai/glm-4.7: [deepseek, qwen3.5-plus, gemini]
+    - glm-4.5-flash: [deepseek, qwen3.5-plus, gemini]
     - glm-4.7-flash: [deepseek, qwen3.5-plus, gemini]
     - kimi/moonshot-v1-128k: [qwen3.5-plus, deepseek, glm, kimi]
     - moonshot-v1-128k: [qwen3.5-plus, deepseek, glm, kimi]
@@ -702,10 +868,9 @@ litellm_settings:
     - glm-flash: [qwen3.5-plus, deepseek, kimi, gemini]
     - glm-air: [glm-flash, qwen3.5-plus, deepseek, gemini]  # glm-4.5-air pode falhar via /v1/messages
 
-    # === Cursor Agent fallbacks (Ask/Plan modes) ===
-    # Sem encadear os dois aliases composer (mesmo backend OpenAI)
-    - cursor-composer: [cursor-claude-sonnet, cursor-claude-opus, cursor-glm-5, cursor-deepseek]
-    - cursor-composer-2-fast: [cursor-claude-sonnet, cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+    # === Cursor Agent — Z.AI flash → GLM-5 / cloud ===
+    - cursor-composer: [cursor-glm-5, glm-flash, cursor-deepseek, deepseek]
+    - cursor-composer-2-fast: [cursor-glm-5, glm-flash, cursor-deepseek, deepseek]
     - cursor-claude-sonnet: [cursor-composer, cursor-composer-2-fast, cursor-claude-opus, cursor-glm-5, cursor-deepseek]
     - cursor-claude-opus: [cursor-claude-sonnet, cursor-composer, cursor-composer-2-fast, cursor-glm-5, cursor-deepseek]
     - cursor-glm-5: [cursor-deepseek, cursor-claude-sonnet]
@@ -731,6 +896,9 @@ litellm_settings:
     - qwen3-max: [glm, deepseek, gemini, or-qwen3-coder-free]
     - qwen-plus: [glm, deepseek, gemini, or-qwen3-coder-free]
     - qwen-coder: [glm, deepseek, gemini, or-qwen3-coder-free]
+
+    - openrouter/openrouter/free: [zai/glm-4.7-flash, deepseek, or-llama-3.3-70b-free, glm-flash]
+    - openrouter-free: [zai/glm-4.7-flash, deepseek, or-llama-3.3-70b-free, glm-flash]
 
   # Fallback por contexto excedido (modelos com mais tokens)
   context_window_fallbacks:

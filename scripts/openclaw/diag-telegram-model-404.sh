@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Diagnóstico: 404 google/gemini-2.5-flash-lite:free no Telegram/OpenClaw (agldv03).
+# Diagnóstico: 404 em modelo OpenRouter :free obsoleto (ex.: gemini-*:free) no Telegram/OpenClaw.
 set -euo pipefail
 OC=/root/.openclaw/openclaw.json
 ENV=/opt/litellm/.env
@@ -20,7 +20,7 @@ curl -sS "http://127.0.0.1:4000/v1/models" -H "Authorization: Bearer ${K}" \
 
 echo ""
 echo "=== POST /v1/chat/completions (stream off, min tokens) ==="
-payload='{"model":"google/gemini-2.5-flash-lite:free","messages":[{"role":"user","content":"ping"}],"max_tokens":5}'
+payload='{"model":"openrouter/meta-llama/llama-3.3-70b-instruct:free","messages":[{"role":"user","content":"ping"}],"max_tokens":5}'
 code="$(curl -sS -o /tmp/llm_resp.txt -w "%{http_code}" -X POST "http://127.0.0.1:4000/v1/chat/completions" \
   -H "Authorization: Bearer ${K}" -H "Content-Type: application/json" -d "$payload")"
 echo "HTTP $code"
