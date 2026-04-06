@@ -28,12 +28,14 @@ for arg in "$@"; do
     --local-only) MODE="local" ;;
     --remote-only) MODE="remote" ;;
     --dry-run) MODE="dry-run" ;;
+    --full-sync) MODE="full-sync" ;;
     --help|-h)
-      echo "Usage: $0 [--local-only|--remote-only|--dry-run]"
+      echo "Usage: $0 [--local-only|--remote-only|--dry-run|--full-sync]"
       echo ""
       echo "  --local-only   Deploy only to macOS local"
       echo "  --remote-only  Deploy only to remote hosts"
       echo "  --dry-run      Show what would be deployed without making changes"
+      echo "  --full-sync    Sync ALL macOS skills (~/.qwen + ~/.claude) to all hosts"
       exit 0
       ;;
   esac
@@ -320,6 +322,59 @@ fi
 if [[ "$MODE" == "remote" || "$MODE" == "all" ]]; then
   for host_name in "${!HOST_IPS[@]}"; do
     deploy_to_host "$host_name"
+  done
+fi
+
+if [[ "$MODE" == "full-sync" ]]; then
+  echo ""
+  echo -e "${BOLD}=============================================${NC}"
+  echo -e "${BOLD}  Full Sync: macOS → All Hosts${NC}"
+  echo -e "${BOLD}=============================================${NC}"
+  echo ""
+  echo -e "  Syncing ALL ~/.qwen/skills/ and ~/.claude/skills/"
+  echo -e "  from macOS to all reachable hosts."
+  echo ""
+  
+  for host_name in "${!HOST_IPS[@]}"; do
+    host_ip="${HOST_IPS[$host_name]}"
+    ssh_opts="${HOST_KEYS[$host_name]:-}"
+    
+    echo -e "${BOLD}=== $host_name ($host_ip) ===${NC}"
+    
+    # Test connectivity
+    if ! ssh $ssh_opts -o ConnectTimeout=5 "root@$host_ip" "echo OK" > /dev/null 2>&1; then
+      log_error "UNREACHABLE - skipping"
+      echo ""
+      continue
+    fi
+    
+    ssh $ssh_opts "root@$host_ip" "mkdir -p /root/.qwen/skills /root/.claude/skills"
+    
+    # Sync Qwen skills
+    qwen_count=0
+    for skill_dir in "$HOME/.qwen/skills"/*/; do
+      [ -d "$skill_dir" ] || continue
+      skill=$(basename "$skill_dir")
+      [[ "$skill" == *.backup.* ]] && continue
+      [ -f "$skill_dir/SKILL.md" ] || continue
+      
+      scp -rq "$skill_dir" "root@$host_ip:/root/.qwen/skills/" 2>/dev/null && qwen_count=$((qwen_count + 1))
+    done
+    
+    # Sync Claude skills
+    claude_count=0
+    for skill_dir in "$HOME/.claude/skills"/*/; do
+      [ -d "$skill_dir" ] || continue
+      skill=$(basename "$skill_dir")
+      [[ "$skill" == *.backup.* ]] && continue
+      has_content=$(find "$skill_dir" -maxdepth 1 \( -name "SKILL.md" -o -name "*.md" \) 2>/dev/null | head -1)
+      [ -n "$has_content" ] || continue
+      
+      scp -rq "$skill_dir" "root@$host_ip:/root/.claude/skills/" 2>/dev/null && claude_count=$((claude_count + 1))
+    done
+    
+    log_success "Synced: $qwen_count Qwen, $claude_count Claude"
+    echo ""
   done
 fi
 
