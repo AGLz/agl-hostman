@@ -81,12 +81,38 @@ Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de s
 - Queries parametrizadas; saída escapada onde houver HTML.
 - Caminhos validados antes de I/O.
 
-## Memória (Claude Flow CLI)
+## Orquestração Ruflo / compat Claude Flow
+
+O produto evoluiu para **Ruflo** (CLI `ruflo`); o binário `claude-flow` passa a vir do pacote **`@claude-flow/cli`** (mesmo motor que `ruflo`). **Não** uses o pacote npm antigo só `claude-flow` (versão desalinhada).
+
+**Instalação global (recomendado no host dev, ex. agldv03):**
 
 ```bash
-npx @claude-flow/cli memory store --key "nome" --value "descrição" --namespace patterns
-npx @claude-flow/cli memory search --query "termos" --namespace patterns
+npm i -g ruflo@latest @claude-flow/cli@latest
 ```
+
+**Casos de uso típicos (no diretório do projeto):**
+
+```bash
+ruflo doctor                    # diagnóstico (Node, Git, daemon, memória)
+ruflo init --minimal            # .claude-flow + integração Claude Code
+ruflo status                    # swarm / agentes / tarefas
+ruflo memory store --key "nome" --value "descrição" --namespace patterns
+ruflo memory search --query "termos" --namespace patterns
+# Equivalente (MCP / docs antigos): npx @claude-flow/cli memory …
+```
+
+**Referências:** [ruvnet/ruflo](https://github.com/ruvnet/ruflo) · [ruvnet/claude-flow](https://github.com/ruvnet/claude-flow) (repo legado/nome histórico)
+
+**ruv-swarm MCP (`mcp__ruv-swarm__swarm_status`) — erro `getGlobalMetrics` de `null`:** bug conhecido em `ruv-swarm` ≤1.0.20: o servidor MCP despachava ferramentas no singleton sem `RuvSwarm` inicializado. Correr após cada `npm i -g ruv-swarm`:
+
+`python3 scripts/ruflo/apply-ruv-swarm-mcp-fix.py`
+
+**Workers headless (root / ruflo):** o `@claude-flow/cli` invocava `claude --print` sem `--dangerously-skip-permissions`, e o processo MCP muitas vezes **não herda** `IS_SANDBOX` do `~/.zshrc` (Cursor/systemd). Em versões recentes pode aparecer `[INFO] Skipping --dangerously-skip-permissions (not allowed with root/sudo)` porque o **check corre no processo Node** antes do `spawn`, não só no `claude`. Sem `IS_SANDBOX=1` no pai, a flag nem é passada. Workaround documentado na comunidade Anthropic: [claude-code#3490](https://github.com/anthropics/claude-code/issues/3490), [claude-code#927](https://github.com/anthropics/claude-code/issues/927). O script abaixo: DSP no headless, `IS_SANDBOX` no `env` do filho, **default de `IS_SANDBOX` no início de `spawnClaudeCodeInstance`**, e remove a linha `printInfo('Skipping…')` se existir. Correr após cada `npm i -g @claude-flow/cli` (ou `ruflo`):
+
+`python3 scripts/ruflo/apply-claude-flow-headless-dsp.py`
+
+**429 / código 1302 “Rate limit”** ao usar hive-mind: limite do fornecedor do modelo (ex. Z.AI); aguardar, reduzir pedidos paralelos ou usar outro alias no LiteLLM.
 
 ## Infra AGL (operações)
 
@@ -136,7 +162,8 @@ O modelo **Composer 2** na Cursor é proprietário; no proxy, **`cursor-composer
 
 ## Ligações
 
-- Claude Flow: https://github.com/ruvnet/claude-flow  
+- Ruflo (orquestração): https://github.com/ruvnet/ruflo  
+- Claude Flow (histórico / MCP): https://github.com/ruvnet/claude-flow  
 - LiteLLM Cursor: https://docs.litellm.ai/docs/tutorials/cursor_integration  
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:full hash:d4f96305 -->

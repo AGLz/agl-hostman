@@ -1,0 +1,37 @@
+{
+  "models": [
+    { "id": "cursor-composer", "runFor": ["quick", "standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
+    { "id": "cursor-composer-2-fast", "runFor": ["standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
+    { "id": "cursor-claude-sonnet", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 24, "expectUsage": true },
+    { "id": "cursor-claude-opus", "runFor": ["standard", "full"], "timeoutSec": 85, "maxTokens": 24, "expectUsage": true },
+    { "id": "cursor-glm-5", "runFor": ["standard", "full"], "timeoutSec": 60, "maxTokens": 24, "expectUsage": true },
+    { "id": "cursor-deepseek", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 24, "expectUsage": true },
+    { "id": "openrouter-free", "runFor": ["standard", "full"], "timeoutSec": 150, "maxTokens": 256, "expectUsage": true, "optional": true },
+    { "id": "or-qwen3-coder-free", "runFor": ["standard", "full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
+    { "id": "or-gemma-3-4b-free", "runFor": ["standard", "full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
+    { "id": "glm", "runFor": ["standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
+    { "id": "glm-flash", "runFor": ["quick", "standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
+    { "id": "deepseek", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 24, "expectUsage": true },
+    { "id": "qwen3.5-plus", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 32, "expectUsage": true },
+    { "id": "qwen3-max", "runFor": ["standard", "full"], "timeoutSec": 90, "maxTokens": 32, "expectUsage": true },
+    { "id": "qwen-plus", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 32, "expectUsage": true },
+
+    { "id": "ollama-qwen3-4b", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 32, "expectUsage": false, "optional": true },
+
+    { "id": "zai/glm-4.7-flash", "runFor": ["full"], "timeoutSec": 60, "maxTokens": 32, "expectUsage": true, "optional": true },
+    { "id": "google/gemini-2.5-flash-lite", "runFor": ["full"], "timeoutSec": 75, "maxTokens": 32, "expectUsage": true, "optional": true },
+    { "id": "google/gemini-2.5-flash-lite:free", "runFor": ["full"], "timeoutSec": 90, "maxTokens": 48, "expectUsage": true, "optional": true },
+    { "id": "groq-llama-33", "runFor": ["full"], "timeoutSec": 55, "maxTokens": 32, "expectUsage": true, "optional": true },
+    { "id": "groq-gpt-oss-120b", "runFor": ["full"], "timeoutSec": 95, "maxTokens": 48, "expectUsage": true, "optional": true },
+    { "id": "groq-llama-33-k2", "runFor": ["full"], "timeoutSec": 55, "maxTokens": 32, "expectUsage": true, "optional": true },
+    { "id": "groq-gpt-oss-120b-k2", "runFor": ["full"], "timeoutSec": 95, "maxTokens": 48, "expectUsage": true, "optional": true },
+    { "id": "cerebras-llama-33", "runFor": ["full"], "timeoutSec": 95, "maxTokens": 48, "expectUsage": true, "optional": true },
+    { "id": "cerebras-gpt-oss-120b", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": true, "optional": true },
+    { "id": "ollama-qwen3-8b", "runFor": ["full"], "timeoutSec": 180, "maxTokens": 48, "expectUsage": false, "optional": true },
+    { "id": "ollama-qwen25-coder-7b", "runFor": ["full"], "timeoutSec": 180, "maxTokens": 48, "expectUsage": false, "optional": true },
+    { "id": "ollama-gemma2-9b", "runFor": ["full"], "timeoutSec": 180, "maxTokens": 48, "expectUsage": false, "optional": true },
+    { "id": "or-glm-4.5-air-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
+    { "id": "or-llama-3.3-70b-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
+    { "id": "or-gemma-3-12b-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true }
+  ]
+}

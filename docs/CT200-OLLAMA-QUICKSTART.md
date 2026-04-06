@@ -35,11 +35,19 @@ After deployment completes:
 
 ### Web Interfaces
 
+**Ollama API (CT200)** — usar o que tiveres roteado; ordem típica AGL:
+
+| Caminho | Base URL |
+|---------|----------|
+| **Tailscale** (recomendado remoto) | `http://100.116.57.111:11434` — hostname TS `aglsrv1-ollama-gpu` |
+| **LAN** | `http://192.168.0.200:11434` |
+| **WireGuard** (mesh) | `http://10.6.0.17:11434` |
+
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **Open WebUI** | http://10.6.0.17:3000 | ChatGPT-like interface |
-| **Ollama API** | http://10.6.0.17:11434 | LLM API endpoint |
-| **LiteLLM Proxy** | http://10.6.0.17:4000 | Unified API gateway |
+| **Open WebUI** | http://10.6.0.17:3000 (WG) ou via IP TS/LAN do CT | ChatGPT-like interface |
+| **Ollama API** | ver tabela acima | LLM API endpoint |
+| **LiteLLM Proxy** | http://10.6.0.17:4000 (stack no CT; ajustar se outro host) | Unified API gateway |
 
 ### First Steps
 
@@ -50,7 +58,8 @@ After deployment completes:
 
 2. **Test API**:
    ```bash
-   curl http://10.6.0.17:11434/api/tags
+   curl http://100.116.57.111:11434/api/tags   # Tailscale
+   # curl http://192.168.0.200:11434/api/tags # LAN
    ```
 
 3. **Check Status**:
@@ -78,6 +87,31 @@ nvidia-smi
 
 # List models
 ollama list
+
+# Verificar API (version + tags) — Tailscale primeiro
+OLLAMA_HOST=100.116.57.111:11434 ./scripts/ollama-stack/verify-ollama.sh
+# ./scripts/ollama-stack/verify-ollama.sh http://192.168.0.200:11434
+# ./scripts/ollama-stack/verify-ollama.sh http://10.6.0.17:11434
+```
+
+### Qwen pequenos / rápidos (2026)
+
+A [library `qwen3`](https://ollama.com/library/qwen3) no Ollama inclui desde **0.6B (~523MB)** até 235B. Para **GPU modesta** (ex. RTX 3060 12GB) o melhor balanço custo/latência costuma ser:
+
+| Tag | Tamanho aprox. | Notas |
+|-----|----------------|--------|
+| `qwen3:0.6b` | ~523 MB | Mínima latência, tarefas simples |
+| `qwen3:1.7b` | ~1.4 GB | Passo intermédio |
+| **`qwen3:4b`** | **~2.5 GB** | **256K context** no catálogo; boa capacidade para o tamanho |
+| `qwen3:8b` | ~5.2 GB | Forte em 12GB VRAM se não carregares 32B em paralelo |
+| `qwen2.5-coder:7b` | (legado) | Foco código; ver quickstart abaixo |
+
+Referência projeto: `config/ollama-stack/litellm-config.yaml` expõe aliases `qwen3-4b`, `qwen3-8b`, etc. Para puxar os blobs no host:
+
+```bash
+cd /mnt/overpower/apps/dev/agl/agl-hostman
+./scripts/ollama-stack/pull-small-qwen-models.sh          # Qwen3 + Qwen2.5 3/7b + coder
+./scripts/ollama-stack/pull-small-qwen-models.sh --minimal # só qwen3 0.6 / 1.7 / 4b
 ```
 
 ---
@@ -93,8 +127,8 @@ ollama run qwen2.5:32b "Explain Docker in one sentence"
 ### Chat via API
 
 ```bash
-curl http://10.6.0.17:11434/api/generate -d '{
-  "model": "qwen2.5:32b",
+curl http://100.116.57.111:11434/api/generate -d '{
+  "model": "qwen3:4b",
   "prompt": "What is Kubernetes?",
   "stream": false
 }'
@@ -289,7 +323,7 @@ docker restart open-webui
 After deployment, verify:
 
 - [ ] All 3 containers running: `docker compose ps`
-- [ ] Ollama API responsive: `curl http://10.6.0.17:11434/api/tags`
+- [ ] Ollama API responsive: `curl http://100.116.57.111:11434/api/tags` (ou LAN `192.168.0.200`)
 - [ ] Open WebUI accessible: http://10.6.0.17:3000
 - [ ] LiteLLM proxy working: `curl http://10.6.0.17:4000/health`
 - [ ] GPU detected: `nvidia-smi`

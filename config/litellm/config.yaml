@@ -2,7 +2,7 @@
 # Integração com agl-hostman (OpenClaw model list)
 # Ref: https://github.com/ruvnet/claude-flow/wiki/litellm-integration
 # Última atualização modelos: 2026-03-28
-# Env vars: ZAI_API_KEY, DASHSCOPE_API_KEY, OPENROUTER_API_KEY, GROQ_API_KEY, GROQ_API_KEY2 (opcional), CEREBRAS_API_KEY, GEMINI_API_KEY, … (primário FREE: GLM-4.7-Flash Z.AI)
+# Env vars: ZAI_API_KEY, DASHSCOPE_API_KEY, OPENROUTER_API_KEY, GROQ_API_KEY, GROQ_API_KEY2 (opcional), CEREBRAS_API_KEY, GEMINI_API_KEY, OLLAMA_HOST (opcional; substituir api_base nas entradas ollama/ se necessário) … (primário FREE: GLM-4.7-Flash Z.AI)
 #
 # CONFIGURAÇÃO FREE TIER (agldv03, fgsrv06, aglwk45)
 # - GLM-4.7-Flash (ZAI) - FREE via api.z.ai
@@ -760,6 +760,89 @@ model_list:
       max_tokens: 65536
       context_window: 131072
       access: direct
+      free_tier: true
+
+  # ============================================================
+  # OLLAMA — CT200 (LiteLLM local: LAN 192.168.0.200; Tailscale em config-remote.yaml)
+  # api_base fixo no YAML; override via OLLAMA_HOST se fizeres merge de env (ver .env.example)
+  # Ref: docs/CT200-OLLAMA-QUICKSTART.md, config/ollama-stack/litellm-config.yaml
+  # ============================================================
+  - model_name: "ollama-qwen3-8b"
+    litellm_params:
+      model: "ollama/qwen3:8b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 180
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+      note: "Prioridade custo/qualidade no CT200"
+
+  - model_name: "ollama-qwen3-4b"
+    litellm_params:
+      model: "ollama/qwen3:4b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 120
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+
+  - model_name: "ollama-qwen25-coder-7b"
+    litellm_params:
+      model: "ollama/qwen2.5-coder:7b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 180
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+
+  - model_name: "ollama-gemma2-9b"
+    litellm_params:
+      model: "ollama/gemma2:9b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 180
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+
+  - model_name: "ollama-llama32-3b"
+    litellm_params:
+      model: "ollama/llama3.2:3b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 90
+      stream: true
+    model_info:
+      max_tokens: 4096
+      access: ollama
+      free_tier: true
+
+  - model_name: "ollama-mistral-7b-q4"
+    litellm_params:
+      model: "ollama/mistral:7b-instruct-q4_0"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 120
+      stream: true
+    model_info:
+      max_tokens: 4096
+      access: ollama
+      free_tier: true
+
+  - model_name: "ollama-phi3-mini"
+    litellm_params:
+      model: "ollama/phi3:mini"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 90
+      stream: true
+    model_info:
+      max_tokens: 2048
+      access: ollama
       free_tier: true
 
   # ============================================================

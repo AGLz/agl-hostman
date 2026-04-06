@@ -57,7 +57,7 @@ lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 | aglsrv6 | 10.6.0.12 | Mesh member |
 | CT111 (aluzdivina) | 10.6.0.20 | - |
 | CT113 (man6-pbs) | 10.6.0.14 | - |
-| CT115 (pihole6) | 10.6.0.58 | - |
+| CT117 (pihole6) | 10.6.0.58 | LAN 192.168.0.117 (migrado de CT115, 2026-04-04) |
 | CT121 (wireguard-aglsrv6) | 10.6.0.3 | Gateway |
 
 ---

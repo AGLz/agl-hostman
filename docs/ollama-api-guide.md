@@ -1,8 +1,12 @@
-# Ollama API Guide - CT200 (192.168.0.200)
+# Ollama API Guide - CT200 (ollama-gpu)
 
-**Last Updated**: 2025-10-27
+**Last Updated**: 2026-04-03
 **Ollama Version**: 0.12.2
-**Base URL**: http://192.168.0.200:11434
+**Base URL** (usar conforme a rede):
+- **Tailscale** (recomendado fora da LAN): `http://100.116.57.111:11434`
+- **LAN**: `http://192.168.0.200:11434`
+
+Nos exemplos abaixo, `OLLAMA_BASE` = uma das URLs acima.
 
 ---
 
@@ -21,7 +25,7 @@
 
 ### Test API Availability
 ```bash
-curl http://192.168.0.200:11434/api/tags
+curl "${OLLAMA_BASE:-http://100.116.57.111:11434}/api/tags"
 ```
 
 ### Quick Inference

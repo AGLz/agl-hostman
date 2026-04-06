@@ -59,8 +59,9 @@ No **LiteLLM** deste repo os aliases Cursor aparecem como entradas em `config/li
 
 ## Stack de orquestração (opcional / Ruflo)
 
-- Orquestração: `npx ruflo@latest` (quando o projeto usar Ruflo)  
-- Memória: bd (beads), AgentDB conforme tooling instalado  
+- Orquestração: **`ruflo`** (global: `npm i -g ruflo@latest @claude-flow/cli@latest`) ou `npx ruflo@latest` no projeto  
+- Binário **`claude-flow`**: pacote **`@claude-flow/cli`** (alinhado com `ruflo`); evitar o pacote npm antigo só `claude-flow`  
+- Memória: bd (beads), AgentDB / `ruflo memory` conforme tooling instalado  
 - Grafo de código: GitNexus (`npx gitnexus analyze` no root do repo)  
 - OpenSpec / plugins: ver documentação Ruflo se ativo na tua máquina  
 

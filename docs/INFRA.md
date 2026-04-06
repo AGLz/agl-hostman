@@ -29,7 +29,7 @@
 ### LiteLLM Gateway
 - **URL**: http://100.94.221.87:4000 (agldv03 CT179)
 - **Providers**: zai, anthropic, openai, google, deepseek, moonshot, ollama
-- **Local Ollama**: http://192.168.0.200:11434/v1 (CT200 GPU)
+- **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
 
 ### Daily Memory System (agl-hostman)
 - **Dashboard**: /daily-memory
@@ -240,11 +240,12 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 | Tailscale | 100.98.108.66 | tailscale0 | ✅ Fallback |
 
 **Resources**:
-- Containers: 11 (CT101-114, CT121)
+- Containers: CT101–114, CT117, CT121 (+ CT116 parado, CT107/104 parados)
 - VMs: 6 (VM100, VM103, VM105-106, VM112, VM200)
 - Storage: 954GB (bb), 3.9TB (usb4tb), 1.2TB (PBS)
 
 **Key Services**:
+- DNS: **CT117 (pihole6)** — LAN **192.168.0.117** (migrado de CT115 em 2026-04-04; evita conflito com equipamento TP-LINK em `.115`)
 - Storage: CT111 (aluzdivina) - NFS server (10.6.0.20)
 - Backup: CT113 (PBS), CT172 (PBS)
 - Development: CT108 (agldv06)
@@ -786,6 +787,7 @@ zpool status -v local-zfs
 | 101 | cloudflared6 | TS: 100.120.181.108 | Cloudflare tunnel |
 | 102 | meshcentral6 | - | Remote management |
 | 114 | cloudflared6b | - | Cloudflare tunnel |
+| **117** | **pihole6** | **LAN: 192.168.0.117** | **Pi-hole DNS** (ex-CT115, 2026-04-04) |
 | 121 | wireguard | WG: 10.6.0.3 | WireGuard node |
 
 #### Storage & Backup

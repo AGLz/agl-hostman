@@ -50,11 +50,12 @@ The agl-hostman system is a sophisticated **Proxmox-based infrastructure managem
 **Network Access**: WireGuard (10.6.0.12 - PRIMARY) + Tailscale (100.98.108.66)
 
 **Resources**:
-- Containers: 11 (CT101-114, CT121)
+- Containers: CT101–114, CT117, CT121 (+ parados conforme `pct list`)
 - VMs: 6 (VM100, VM103, VM105-106, VM112, VM200)
 - Storage: 954GB (bb), 3.9TB (usb4tb), 1.2TB (PBS)
 
 **Key Services**:
+- DNS: CT117 (**pihole6**) — LAN **192.168.0.117** (migrado de CT115, 2026-04-04)
 - Storage: CT111 (aluzdivina) - NFS server (10.6.0.20)
 - Backup: CT113 (PBS), CT172 (PBS)
 - Development: CT108 (agldv06)
