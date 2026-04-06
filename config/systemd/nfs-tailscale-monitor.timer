@@ -1,0 +1,15 @@
+[Unit]
+Description=Hourly NFS & Tailscale Health Monitor Timer
+Requires=nfs-tailscale-monitor.service
+
+[Timer]
+# Run 5 minutes after boot
+OnBootSec=5min
+# Run every hour
+OnUnitActiveSec=1h
+# Randomize delay to avoid thundering herd
+RandomizedDelaySec=300
+Unit=nfs-tailscale-monitor.service
+
+[Install]
+WantedBy=timers.target

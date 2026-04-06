@@ -1,0 +1,24 @@
+[Unit]
+Description=AGL NFS & Tailscale Health Monitor for FileServer5
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/mnt/overpower/apps/dev/agl/agl-hostman
+ExecStart=/mnt/overpower/apps/dev/agl/agl-hostman/scripts/monitoring/nfs-tailscale-monitor.sh --verbose
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nfs-tailscale-monitor
+
+# Security hardening
+NoNewPrivileges=false
+ProtectSystem=false
+PrivateTmp=false
+
+# Timeout settings (recovery can take time)
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target
