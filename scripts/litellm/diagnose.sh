@@ -23,10 +23,10 @@ echo "  HTTP $code"
 [[ "$code" == "200" ]] && echo "  Modelos: $(jq -r '.data | length' /tmp/litellm-models.json 2>/dev/null || echo "?")" || echo "  Resposta: $(head -c 200 /tmp/litellm-models.json 2>/dev/null)"
 echo ""
 
-echo "3. Chat (qwen3-4b, 15s timeout):"
+echo "3. Chat (ollama-qwen3-4b, 15s timeout):"
 resp=$(curl -s --max-time 15 -X POST "$GATEWAY/chat/completions" \
   -H "Content-Type: application/json" -H "Authorization: Bearer $KEY" \
-  -d '{"model":"qwen3-4b","messages":[{"role":"user","content":"1"}],"max_tokens":2}' 2>/dev/null)
+  -d '{"model":"ollama-qwen3-4b","messages":[{"role":"user","content":"1"}],"max_tokens":2}' 2>/dev/null)
 if echo "$resp" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
   echo "  OK: $(echo "$resp" | jq -r '.choices[0].message.content')"
 else

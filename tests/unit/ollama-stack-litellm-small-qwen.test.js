@@ -14,8 +14,8 @@ test('ollama-stack litellm-config: Qwen3/Qwen2.5 pequenos e fallbacks', () => {
   assert.match(y, /ollama\/qwen3:4b/);
   assert.match(y, /ollama\/qwen3:0\.6b/);
   assert.match(y, /ollama\/qwen2\.5:7b/);
-  assert.match(y, /qwen3-4b:\s*\[qwen2\.5-7b/);
-  assert.match(y, /qwen2\.5-32b:\s*\[qwen3-8b/);
+  assert.match(y, /ollama-qwen3-4b:\s*\[ollama-qwen2\.5-7b/);
+  assert.match(y, /qwen2\.5-32b:\s*\[ollama-qwen3-8b/);
 });
 
 test('scripts ollama-stack verify + pull existem', () => {

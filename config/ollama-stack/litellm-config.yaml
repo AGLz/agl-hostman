@@ -9,7 +9,7 @@ model_list:
   # Qwen3 (library): https://ollama.com/library/qwen3 — 4B ~2.5GB, 256K ctx; 0.6B ~523MB
   # Blog Qwen3: modelo 4B comparável à linha Qwen2.5-72B-Instruct em vários eixos (ver readme Ollama).
 
-  - model_name: qwen3-0.6b
+  - model_name: ollama-qwen3-0.6b
     litellm_params:
       model: ollama/qwen3:0.6b
       api_base: http://host.docker.internal:11434
@@ -20,7 +20,7 @@ model_list:
       supports_function_calling: false
       supports_vision: false
 
-  - model_name: qwen3-1.7b
+  - model_name: ollama-qwen3-1.7b
     litellm_params:
       model: ollama/qwen3:1.7b
       api_base: http://host.docker.internal:11434
@@ -31,7 +31,7 @@ model_list:
       supports_function_calling: false
       supports_vision: false
 
-  - model_name: qwen3-4b
+  - model_name: ollama-qwen3-4b
     litellm_params:
       model: ollama/qwen3:4b
       api_base: http://host.docker.internal:11434
@@ -43,7 +43,7 @@ model_list:
       supports_vision: false
       note: "Melhor custo/desempenho pequeno Qwen3; 256K context no catálogo Ollama"
 
-  - model_name: qwen3-8b
+  - model_name: ollama-qwen3-8b
     litellm_params:
       model: ollama/qwen3:8b
       api_base: http://host.docker.internal:11434
@@ -54,7 +54,7 @@ model_list:
       supports_function_calling: false
       supports_vision: false
 
-  - model_name: qwen2.5-3b
+  - model_name: ollama-qwen2.5-3b
     litellm_params:
       model: ollama/qwen2.5:3b
       api_base: http://host.docker.internal:11434
@@ -65,7 +65,7 @@ model_list:
       supports_function_calling: false
       supports_vision: false
 
-  - model_name: qwen2.5-7b
+  - model_name: ollama-qwen2.5-7b
     litellm_params:
       model: ollama/qwen2.5:7b
       api_base: http://host.docker.internal:11434
@@ -182,12 +182,12 @@ router_settings:
 
   # Fallback models (Qwen3 pequenos primeiro — latência/VRAM)
   fallbacks:
-    - qwen2.5-32b: [qwen3-8b, qwen3-4b, llama3.3, mistral-7b]
-    - llama3.3: [qwen3-4b, qwen2.5-32b, mistral-7b]
-    - deepseek-r1-32b: [qwen3-4b, qwen2.5-32b, mistral-7b]
-    - qwen3-8b: [qwen3-4b, qwen2.5-7b, mistral-7b]
-    - qwen3-4b: [qwen2.5-7b, qwen3-1.7b, mistral-7b]
-    - mistral-7b: [qwen3-4b, qwen2.5-7b, qwen3-1.7b]
+    - qwen2.5-32b: [ollama-qwen3-8b, ollama-qwen3-4b, llama3.3, mistral-7b]
+    - llama3.3: [ollama-qwen3-4b, qwen2.5-32b, mistral-7b]
+    - deepseek-r1-32b: [ollama-qwen3-4b, qwen2.5-32b, mistral-7b]
+    - ollama-qwen3-8b: [ollama-qwen3-4b, ollama-qwen2.5-7b, mistral-7b]
+    - ollama-qwen3-4b: [ollama-qwen2.5-7b, ollama-qwen3-1.7b, mistral-7b]
+    - mistral-7b: [ollama-qwen3-4b, ollama-qwen2.5-7b, ollama-qwen3-1.7b]
 
   # Allowed fails before circuit breaker
   allowed_fails: 3
@@ -204,7 +204,7 @@ general_settings:
   database_url: ${DATABASE_URL}
 
   # Completion settings
-  completion_model: qwen2.5-32b  # Default model
+  completion_model: ollama-qwen3-8b  # Default model
 
   # Max parallel requests
   max_parallel_requests: 100
@@ -252,9 +252,9 @@ litellm_settings:
   # Context window fallbacks
   context_window_fallbacks:
     - model: qwen2.5-32b
-      fallback_model: qwen3-4b
-    - model: qwen3-8b
-      fallback_model: qwen3-4b
+      fallback_model: ollama-qwen3-4b
+    - model: ollama-qwen3-8b
+      fallback_model: ollama-qwen3-4b
 
 # ============================================================================
 # Environment Variables (Reference)
@@ -275,7 +275,7 @@ litellm_settings:
 #   -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
 #   -H "Content-Type: application/json" \
 #   -d '{
-#     "model": "qwen2.5-32b",
+#     "model": "ollama-qwen3-8b",
 #     "messages": [{"role": "user", "content": "Hello!"}],
 #     "stream": false
 #   }'
@@ -283,7 +283,7 @@ litellm_settings:
 # 2. Python SDK:
 # from litellm import completion
 # response = completion(
-#     model="qwen2.5-32b",
+#     model="ollama-qwen3-8b",
 #     messages=[{"role": "user", "content": "Hello!"}],
 #     api_base="http://10.6.0.17:4000",
 #     api_key="${LITELLM_MASTER_KEY}"
