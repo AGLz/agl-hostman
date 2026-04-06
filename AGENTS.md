@@ -107,7 +107,28 @@ Resumo — detalhe em `docs/INFRA.md`:
 | agldv03 | `100.94.221.87` — gateway OpenClaw ativo (fonte) |
 | agldv12 | `100.71.217.115` — **OpenClaw desligado** (clone do CT dev; evitar bots duplicados) |
 | fgsrv06 | `100.83.51.9` |
-| aglwk45 | Via `192.168.0.245` / guest exec |
+| aglwk45 | VM104 no AGLSRV1 — LAN `192.168.0.33`, Tailscale `100.117.146.21` |
+
+### AGLSRV1 Troubleshooting (2026-04-06)
+
+**Problema mais frequente**: aglwk45 (VM104) inacessível via RDP.
+
+**Causa raiz recorrente**: meshagent memory leak no host AGLSRV1 (30+ instâncias, 3 podem vazar para 10-22GB cada).
+
+**Diagnóstico rápido** (SSH via Tailscale `100.107.113.33`):
+```bash
+# 1. Verificar VM
+qm status 104 && qm agent 104 ping
+
+# 2. Verificar meshagents com leak (>1GB RSS)
+ps aux | grep meshagent | grep -v grep | awk '{if ($6 > 1000000) print "LEAK: PID "$2" RSS "int($6/1024)"MB"}'
+
+# 3. Se leak confirmado → matar + reboot VM
+ps aux | grep meshagent | grep -v grep | awk '{if ($6 > 1000000) print $2}' | xargs -r kill -9
+qm stop 104 && sleep 3 && qm start 104
+```
+
+**Detalhe completo**: `docs/AGLWK45-SETUP.md`, `docs/aglsrv1-key-findings.md`
 
 ## LiteLLM + Cursor (Composer)
 

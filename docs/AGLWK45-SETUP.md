@@ -3,7 +3,46 @@
 > **Host**: aglwk45 (VM Windows 11 Pro)
 > **Proxmox ID**: 104 (aglsrv1)
 > **IP Tailscale**: 100.117.146.21
-> **Última atualização**: 2026-03-07
+> **IP LAN**: 192.168.0.33
+> **Última atualização**: 2026-04-06
+
+## Incidente 2026-04-06 — RDP Inacessível + CPU 2122%
+
+**Sintoma**: RDP inacessível, VM consumindo 2122% CPU (~21 de 24 cores), QEMU Guest Agent inativo, rede Tailscale sem resposta.
+
+**Causa raiz**: Sobrecarga de memória no host AGLSRV1 — 3 instâncias de meshagent com memory leak consumindo ~49GB RAM (PIDs 1827260, 57783, 2468815), levando o host a 146+ load average e colapso do stack de rede.
+
+**Resolução aplicada**:
+1. `qm stop 104` → `qm start 104` (reboot forçado)
+2. Removida ISO do Sergei Strelec de `ide0`: `qm set 104 --ide0 none,media=cdrom`
+3. Kill dos meshagents com leak: `kill -9 1827260 57783 2468815`
+4. Resultado: CPU baixou para 224%, RDP:3389 aberto, Guest Agent OK, ping 0.6ms
+
+**Comandos de emergência (via SSH ao AGLSRV1 — Tailscale `100.107.113.33` ou LAN `192.168.0.245`)**:
+
+```bash
+# Verificar estado da VM
+ssh root@100.107.113.33 'qm status 104 && qm agent 104 ping'
+
+# Reboot forçado da VM104
+ssh root@100.107.113.33 'qm stop 104 && sleep 3 && qm start 104'
+
+# Verificar CPU da VM104
+ssh root@100.107.113.33 'ps aux | grep "kvm.*-id 104 " | grep -v grep | awk "{print \$3\"%\"}"'
+
+# Verificar meshagents com memory leak (>1GB RSS)
+ssh root@100.107.113.33 'ps aux | grep meshagent | grep -v grep | awk "{if (\$6 > 1000000) print \"LEAK: PID \"\$2\" RSS \"int(\$6/1024)\"MB\"}"'
+
+# Matar meshagents com leak
+ssh root@100.107.113.33 'ps aux | grep meshagent | grep -v grep | awk "{if (\$6 > 1000000) print \$2}" | xargs -r kill -9'
+
+# Verificar memória do host
+ssh root@100.107.113.33 'free -h && uptime'
+```
+
+**Config atual da VM104**: 24 cores, 32GB RAM (`balloon: 16384`), `cache=directsync`, `aio=threads`.
+
+**Nota importante**: O host AGLSRV1 tem 125GB RAM e 24 cores. Com 30+ instâncias de meshagent + múltiplas VMs, a memória esgota rapidamente. **Se o RDP falhar novamente, verificar primeiro os meshagents no host.**
 
 ## Modelo Padrão: GLM-5
 

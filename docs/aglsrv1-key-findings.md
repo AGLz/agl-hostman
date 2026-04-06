@@ -2,6 +2,30 @@
 
 **Date**: 2025-10-21 23:00
 **Diagnostician**: Service Diagnostics Agent (Hive-Mind)
+**Updated**: 2026-04-06 — Incidente VM104 + meshagent memory leak
+
+---
+
+## Incidente 2026-04-06 — VM104 RDP Inacessível + Host Colapso
+
+**Sintoma**: aglwk45 (VM104) com RDP inacessível, CPU 2122%, QEMU Guest Agent inativo.
+
+**Causa raiz**: 3 instâncias de **meshagent** com memory leak (~49GB RAM total):
+| PID | RSS | Início |
+|-----|-----|--------|
+| 1827260 | 22GB | Mar16 |
+| 57783 | 14GB | Mar15 |
+| 2468815 | 13GB | Mar27 |
+
+**Impacto**: Host com load 146+ (24 cores), 116GB/125GB RAM, 66GB/79GB swap, stack de rede colapsou (Tailscale + LAN timeout).
+
+**Resolução**:
+1. `qm stop 104` → `qm start 104`
+2. `kill -9 1827260 57783 2468815`
+3. `qm set 104 --ide0 none,media=cdrom` (remover ISO desnecessária)
+4. Resultado: CPU 224%, RDP aberto, GA OK, load 33
+
+**Risco persistente**: 30+ instâncias de meshagent ainda ativas (~20-27MB cada). Recomenda-se auditoria e consolidação.
 
 ---
 
