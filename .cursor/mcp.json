@@ -3,30 +3,20 @@
     "laravel-boost": {
       "type": "stdio",
       "command": "php",
-      "args": [
-        "artisan",
-        "boost:mcp"
-      ],
+      "args": ["artisan", "boost:mcp"],
       "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src",
-      "env": {
-        "COMPOSER_ALLOW_SUPERUSER": "1"
-      }
+      "env": { "COMPOSER_ALLOW_SUPERUSER": "1" }
     },
     "shadcn": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "shadcn@latest",
-        "mcp"
-      ],
+      "args": ["shadcn@latest", "mcp"],
       "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src"
     },
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "@playwright/mcp"
-      ],
+      "args": ["@playwright/mcp@latest"],
       "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman",
       "env": {
         "NODE_ENV": "development",
@@ -37,6 +27,119 @@
       "type": "sse",
       "url": "http://192.168.0.183:8051/mcp",
       "description": "Archon MCP server for project management, PRP workflows, and task automation"
+    },
+    "archon-tailscale": {
+      "type": "sse",
+      "url": "http://100.80.30.59:8051/mcp",
+      "description": "Archon via Tailscale (fallback)"
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "description": "GitHub repository operations, PRs, issues"
+    },
+    "context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/mcp",
+      "description": "Library documentation search"
+    },
+    "docker": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["docker-mcp"],
+      "description": "Docker container and image management"
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem"],
+      "description": "Filesystem access with configurable allowed dirs"
+    },
+    "proxmox": {
+      "type": "stdio",
+      "command": "/usr/local/bin/proxmox-mcp-wrapper.sh",
+      "description": "Proxmox VM/CT management (AGLSRV1)"
+    },
+    "portainer": {
+      "type": "stdio",
+      "command": "/usr/local/bin/portainer-mcp",
+      "description": "Portainer container management"
+    },
+    "cloudflare-dns": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@cloudflare/mcp-server-cloudflare"],
+      "description": "Cloudflare DNS and zone management"
+    },
+    "sqlite": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["mcp-server-sqlite-npx"],
+      "description": "SQLite database access"
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"],
+      "description": "Knowledge graph memory system"
+    },
+    "web-reader": {
+      "type": "sse",
+      "url": "https://api.z.ai/api/mcp/web_reader/mcp",
+      "description": "Web page content extraction"
+    },
+    "web-search-prime": {
+      "type": "sse",
+      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+      "description": "Web search (Z.AI)"
+    },
+    "zai-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@z_ai/mcp-server"],
+      "description": "Z.AI media services"
+    },
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["exa-mcp-server"],
+      "description": "Exa web search"
+    },
+    "zread": {
+      "type": "sse",
+      "url": "https://api.z.ai/api/mcp/zread/mcp",
+      "description": "Z.AI code reading service"
+    },
+    "harbor": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["mcp-harbor"],
+      "description": "Harbor container registry"
+    },
+    "dokploy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@ahdev/dokploy-mcp"],
+      "description": "Dokploy deployment management"
+    },
+    "claude-flow": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["claude-flow@alpha"],
+      "description": "Claude Flow multi-agent orchestration"
+    },
+    "ruv-swarm": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["ruv-swarm@latest"],
+      "description": "Ruv swarm coordination"
+    },
+    "flow-nexus": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["flow-nexus@latest"],
+      "description": "Flow Nexus orchestration platform"
     }
   }
 }

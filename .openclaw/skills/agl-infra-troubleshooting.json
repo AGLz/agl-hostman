@@ -1,0 +1,72 @@
+{
+  "name": "agl-infra-troubleshooting",
+  "description": "AGL Infrastructure troubleshooting — Proxmox VMs, meshagent leaks, AGLSRV1 diagnostics, VM104 RDP recovery",
+  "version": "1.0.0",
+  "triggers": [
+    "aglwk45",
+    "vm104",
+    "aglsrv1",
+    "rdp inaccessible",
+    "meshagent",
+    "memory leak",
+    "proxmox troubleshooting"
+  ],
+  "knowledge": {
+    "hosts": {
+      "aglsrv1": {
+        "type": "Proxmox",
+        "tailscale": "100.107.113.33",
+        "lan": "192.168.0.245",
+        "ram": "125GB",
+        "cores": 24
+      },
+      "aglwk45": {
+        "type": "Windows 11 VM",
+        "vmid": 104,
+        "tailscale": "100.117.146.21",
+        "lan": "192.168.0.33",
+        "ram": "32GB",
+        "cores": 24,
+        "rdp_port": 3389
+      }
+    },
+    "known_issues": [
+      {
+        "id": "meshagent-leak",
+        "symptom": "Host overload, RDP inaccessible, network timeout",
+        "root_cause": "30+ meshagent instances, 3 can leak 10-22GB RAM each",
+        "detection": "ps aux | grep meshagent | awk '$6 > 1000000'",
+        "resolution": "kill -9 leaking PIDs, then qm stop 104 && qm start 104"
+      }
+    ]
+  },
+  "runbook": {
+    "diagnose_aglwk45": [
+      "ssh root@100.107.113.33 'qm status 104 && qm agent 104 ping'",
+      "ssh root@100.107.113.33 'ps aux | grep meshagent | grep -v grep | awk \"{if ($6 > 1000000) print \\\"LEAK: PID \\\"$2\\\" RSS \\\"int($6/1024)\\\"MB\\\"}\"'",
+      "ssh root@100.107.113.33 'free -h && uptime'"
+    ],
+    "fix_meshagent_leak": [
+      "ssh root@100.107.113.33 'ps aux | grep meshagent | grep -v grep | awk \"{if ($6 > 1000000) print $2}\" | xargs -r kill -9'",
+      "ssh root@100.107.113.33 'qm stop 104 && sleep 3 && qm start 104'",
+      "ssh root@100.107.113.33 'qm agent 104 ping && ping -c 2 -W 2 192.168.0.33'"
+    ],
+    "fix_vm_cpu_spike": [
+      "ssh root@100.107.113.33 'ps aux | grep \"kvm.*-id 104 \" | grep -v grep | awk \"{print \\\"CPU: \\\"$3\\\"%\\\"}\"'",
+      "If CPU > 1000% sustained: ssh root@100.107.113.33 'qm stop 104 && sleep 3 && qm start 104'"
+    ]
+  },
+  "thresholds": {
+    "host_load_average": 30,
+    "host_ram_available_gb": 10,
+    "meshagent_rss_leak_gb": 1,
+    "swap_usage_gb": 70,
+    "vm_cpu_alert_percent": 1000
+  },
+  "reference_docs": [
+    "docs/AGLWK45-SETUP.md",
+    "docs/AGLSRV1-TROUBLESHOOTING.md",
+    "docs/aglsrv1-key-findings.md",
+    "docs/INFRA.md"
+  ]
+}
