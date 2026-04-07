@@ -121,6 +121,13 @@ bd update <id> --claim --json
 bd close <id> --reason "..." --json
 ```
 
+## Skills Instaladas
+
+| Skill | Local | Descrição |
+|-------|-------|-----------|
+| `github-actions-expert` | `.qwen/skills/github-actions-expert/`, `.claude/skills/github-actions-expert/` | CI/CD pipeline optimization, workflow automation, custom actions, security |
+| `github-actions-validator` | Built-in | Valida, lint, audita workflows `.github/workflows` |
+
 ## Integração LiteLLM + Cursor
 
 - **`cursor-composer`** / **`cursor-composer-2-fast`** → `gpt-5.4-mini`
