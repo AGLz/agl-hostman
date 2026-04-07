@@ -94,24 +94,30 @@ OLLAMA_HOST=100.116.57.111:11434 ./scripts/ollama-stack/verify-ollama.sh
 # ./scripts/ollama-stack/verify-ollama.sh http://10.6.0.17:11434
 ```
 
-### Qwen pequenos / rápidos (2026)
+### Modelos recomendados (2026)
 
-A [library `qwen3`](https://ollama.com/library/qwen3) no Ollama inclui desde **0.6B (~523MB)** até 235B. Para **GPU modesta** (ex. RTX 3060 12GB) o melhor balanço custo/latência costuma ser:
+**Qwen3** — [library](https://ollama.com/library/qwen3) do Ollama inclui desde **0.6B (~523MB)** até 235B.
+**Gemma 4** — [library](https://ollama.com/library/gemma4) (Google, 2026-03-31); E2B/E4B/26B-MoE/31B.
+
+Para **GPU modesta** (ex. RTX 3060 12GB) o melhor balanço custo/latência:
 
 | Tag | Tamanho aprox. | Notas |
 |-----|----------------|--------|
 | `qwen3:0.6b` | ~523 MB | Mínima latência, tarefas simples |
-| `qwen3:1.7b` | ~1.4 GB | Passo intermédio |
-| **`qwen3:4b`** | **~2.5 GB** | **256K context** no catálogo; boa capacidade para o tamanho |
+| `gemma4:e2b` | **~1.5 GB** | **Melhor qualidade vs Qwen3 0.6B** |
+| `qwen3:1.7b` | ~1.4 GB | Passo intermédio Qwen3 |
+| **`qwen3:4b`** | **~2.5 GB** | **256K context** no catálogo |
+| **`gemma4:e4b`** | **~2.8 GB** | **Coding/razão superiores a Qwen3-4b** |
 | `qwen3:8b` | ~5.2 GB | Forte em 12GB VRAM se não carregares 32B em paralelo |
+| `gemma4:26b-a4b` | ~15 GB | MoE 3.8B ativo; lento em single 3060 (offload CPU) |
 | `qwen2.5-coder:7b` | (legado) | Foco código; ver quickstart abaixo |
 
-Referência projeto: `config/ollama-stack/litellm-config.yaml` expõe aliases `qwen3-4b`, `qwen3-8b`, etc. Para puxar os blobs no host:
+Referência projeto: `config/ollama-stack/litellm-config.yaml` expõe aliases `ollama-gemma4-e4b`, `ollama-qwen3-8b`, etc. Para puxar os blobs no host:
 
 ```bash
 cd /mnt/overpower/apps/dev/agl/agl-hostman
-./scripts/ollama-stack/pull-small-qwen-models.sh          # Qwen3 + Qwen2.5 3/7b + coder
-./scripts/ollama-stack/pull-small-qwen-models.sh --minimal # só qwen3 0.6 / 1.7 / 4b
+./scripts/ollama-stack/pull-small-qwen-models.sh          # Qwen3 + Gemma4 e2b/e4b + Qwen2.5 3/7b + coder
+./scripts/ollama-stack/pull-small-qwen-models.sh --minimal # qwen3 0.6/1.7/4b + gemma4:e2b
 ```
 
 ---

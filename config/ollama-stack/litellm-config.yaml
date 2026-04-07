@@ -9,6 +9,46 @@ model_list:
   # Qwen3 (library): https://ollama.com/library/qwen3 — 4B ~2.5GB, 256K ctx; 0.6B ~523MB
   # Blog Qwen3: modelo 4B comparável à linha Qwen2.5-72B-Instruct em vários eixos (ver readme Ollama).
 
+  # --- Gemma 4 (Google, 2026-03-31) — https://ollama.com/library/gemma4 ---
+  # E2B: ~1.5GB, E4B: ~2.8GB, 26B-MoE: ~15GB (3.8B active), 31B: ~19GB (denso, exige multi-GPU / CPU offload)
+
+  - model_name: ollama-gemma4-e2b
+    litellm_params:
+      model: ollama/gemma4:e2b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+
+  - model_name: ollama-gemma4-e4b
+    litellm_params:
+      model: ollama/gemma4:e4b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+      note: "Melhor balanço Gemma4 em GPU 12GB; coding e raciocínio superiores a Qwen3-4b"
+
+  - model_name: ollama-gemma4-26b-moe
+    litellm_params:
+      model: ollama/gemma4:26b-a4b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+      note: "MoE — 3.8B params ativos; exige 15GB+ VRAM ou offload (lento em single 3060)"
+
+  # --- Qwen3 ---
+
   - model_name: ollama-qwen3-0.6b
     litellm_params:
       model: ollama/qwen3:0.6b
@@ -180,14 +220,15 @@ router_settings:
   num_retries: 3
   timeout: 600  # 10 minutes for long generations
 
-  # Fallback models (Qwen3 pequenos primeiro — latência/VRAM)
+  # Fallback models (Qwen3 pequenos primeiro, Gemma4 como alternativa — latência/VRAM)
   fallbacks:
-    - qwen2.5-32b: [ollama-qwen3-8b, ollama-qwen3-4b, llama3.3, mistral-7b]
-    - llama3.3: [ollama-qwen3-4b, qwen2.5-32b, mistral-7b]
-    - deepseek-r1-32b: [ollama-qwen3-4b, qwen2.5-32b, mistral-7b]
-    - ollama-qwen3-8b: [ollama-qwen3-4b, ollama-qwen2.5-7b, mistral-7b]
-    - ollama-qwen3-4b: [ollama-qwen2.5-7b, ollama-qwen3-1.7b, mistral-7b]
-    - mistral-7b: [ollama-qwen3-4b, ollama-qwen2.5-7b, ollama-qwen3-1.7b]
+    - qwen2.5-32b: [ollama-qwen3-8b, ollama-gemma4-e4b, ollama-qwen3-4b, llama3.3, mistral-7b]
+    - llama3.3: [ollama-gemma4-e4b, ollama-qwen3-4b, qwen2.5-32b, mistral-7b]
+    - deepseek-r1-32b: [ollama-gemma4-e4b, ollama-qwen3-4b, qwen2.5-32b, mistral-7b]
+    - ollama-qwen3-8b: [ollama-qwen3-4b, ollama-gemma4-e4b, ollama-qwen2.5-7b, mistral-7b]
+    - ollama-qwen3-4b: [ollama-gemma4-e4b, ollama-qwen2.5-7b, ollama-qwen3-1.7b, mistral-7b]
+    - ollama-gemma4-e4b: [ollama-qwen3-4b, ollama-qwen2.5-7b, ollama-qwen3-1.7b, mistral-7b]
+    - mistral-7b: [ollama-qwen3-4b, ollama-gemma4-e4b, ollama-qwen2.5-7b, ollama-qwen3-1.7b]
 
   # Allowed fails before circuit breaker
   allowed_fails: 3
