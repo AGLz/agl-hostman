@@ -30,7 +30,7 @@
 - **URL**: http://100.94.221.87:4000 (agldv03 CT179)
 - **Providers**: zai, anthropic, openai, google, deepseek, moonshot, ollama
 - **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
-- **Ollama Models**: Qwen3 (0.6B–8B), Qwen2.5 (3B–32B), Gemma 4 (e2b, e4b, 26B-MoE), Gemma2 9B, Llama3.2 3B, Mistral 7B, Phi3 Mini, DeepSeek R1 32B
+- **Ollama Models (GTX 1650 4GB)**: Qwen3 (0.6B, 1.7B, 4B borderline), Gemma 4 (e2b), Qwen2.5 32B (CPU offload)
 
 ### Daily Memory System (agl-hostman)
 - **Dashboard**: /daily-memory

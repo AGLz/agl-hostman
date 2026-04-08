@@ -767,6 +767,7 @@ model_list:
 
   # ============================================================
   # OLLAMA — CT200 (LiteLLM remote: Tailscale 100.116.57.111; LAN em config.yaml)
+  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só e2b cabe confortavelmente.
   # ============================================================
   - model_name: "ollama-gemma4-e2b"
     litellm_params:
@@ -778,30 +779,6 @@ model_list:
       max_tokens: 4096
       access: ollama
       free_tier: true
-
-  - model_name: "ollama-gemma4-e4b"
-    litellm_params:
-      model: "ollama/gemma4:e4b"
-      api_base: "http://100.116.57.111:11434"
-      timeout: 120
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-      note: "Balanço coding/latência em GPU 12GB"
-
-  - model_name: "ollama-gemma4-26b-moe"
-    litellm_params:
-      model: "ollama/gemma4:26b-a4b"
-      api_base: "http://100.116.57.111:11434"
-      timeout: 180
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-      note: "MoE 3.8B active; lento em single 3060 12GB"
 
   - model_name: "ollama-qwen3-8b"
     litellm_params:

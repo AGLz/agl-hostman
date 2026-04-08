@@ -766,7 +766,8 @@ model_list:
   # OLLAMA — CT200 (LiteLLM local: LAN 192.168.0.200; Tailscale em config-remote.yaml)
   # api_base fixo no YAML; override via OLLAMA_HOST se fizeres merge de env (ver .env.example)
   # Ref: docs/CT200-OLLAMA-QUICKSTART.md, config/ollama-stack/litellm-config.yaml
-  # Gemma 4: https://ollama.com/library/gemma4 (2026-03-31)
+  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só modelos ≤~3GB.
+  # Gemma 4: https://ollama.com/library/gemma4 (2026-03-31) — só e2b
   # ============================================================
   - model_name: "ollama-gemma4-e2b"
     litellm_params:
@@ -779,29 +780,27 @@ model_list:
       access: ollama
       free_tier: true
 
-  - model_name: "ollama-gemma4-e4b"
+  - model_name: "ollama-qwen3-0.6b"
     litellm_params:
-      model: "ollama/gemma4:e4b"
+      model: "ollama/qwen3:0.6b"
       api_base: "http://192.168.0.200:11434"
-      timeout: 120
+      timeout: 60
       stream: true
     model_info:
-      max_tokens: 8192
+      max_tokens: 2048
       access: ollama
       free_tier: true
-      note: "Balanço coding/latência em GPU 12GB"
 
-  - model_name: "ollama-gemma4-26b-moe"
+  - model_name: "ollama-qwen3-1.7b"
     litellm_params:
-      model: "ollama/gemma4:26b-a4b"
+      model: "ollama/qwen3:1.7b"
       api_base: "http://192.168.0.200:11434"
-      timeout: 180
+      timeout: 90
       stream: true
     model_info:
-      max_tokens: 8192
+      max_tokens: 4096
       access: ollama
       free_tier: true
-      note: "MoE 3.8B active; lento em single 3060 12GB"
 
   - model_name: "ollama-qwen3-8b"
     litellm_params:

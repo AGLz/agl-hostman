@@ -14,12 +14,11 @@ const TS_OLLAMA = '100.116.57.111:11434';
 function assertOllamaModels(yaml, label) {
   assert.match(yaml, /model_name:\s*"ollama-qwen3-8b"/, label);
   assert.match(yaml, /model:\s*"ollama\/qwen3:8b"/, label);
-  assert.match(yaml, /ollama\/qwen2\.5-coder:7b/, label);
-  assert.match(yaml, /ollama\/gemma2:9b/, label);
-  // Gemma 4 (2026-03-31)
-  assert.match(yaml, /ollama-gemma4-e4b/, label);
+  // Gemma 4 (2026-03-31) — só e2b (4GB VRAM GTX 1650)
   assert.match(yaml, /ollama-gemma4-e2b/, label);
-  assert.match(yaml, /ollama\/gemma4:e4b/, label);
+  assert.match(yaml, /ollama\/gemma4:e2b/, label);
+  // Não deve ter gemma4-e4b (excede 4GB)
+  assert.doesNotMatch(yaml, /ollama-gemma4-e4b/, label);
 }
 
 function escapeForRegex(ipHost) {
