@@ -94,31 +94,28 @@ OLLAMA_HOST=100.116.57.111:11434 ./scripts/ollama-stack/verify-ollama.sh
 # ./scripts/ollama-stack/verify-ollama.sh http://10.6.0.17:11434
 ```
 
-### Modelos recomendados (2026)
+### Modelos de reasoning (2026) — SOMENTE thinking mode
 
-**Qwen3** — [library](https://ollama.com/library/qwen3) do Ollama inclui desde **0.6B (~523MB)** até 235B.
-**Gemma 4** — [library](https://ollama.com/library/gemma4) (Google, 2026-03-31); E2B/E4B.
-**Nemotron-3-Nano 4B** — [library](https://ollama.com/library/nemotron-3-nano) (NVIDIA, 2025-10); 4B, 2.8GB Q4_K_M.
+Para **GTX 1650 4GB** (CT200) — só reasoning models que caibam em VRAM:
 
-Para **GTX 1650 4GB** (CT200) — só modelos que caibam em VRAM:
+| Tag | Tamanho aprox. | Tipo | Notas |
+|-----|----------------|------|-------|
+| **`qwen3:1.7b`** | **~1.4 GB** | Qwen3 thinking | **Principal — melhor equilíbrio** |
+| `qwen3:0.6b` | ~523 MB | Qwen3 thinking | Mínimo latência, tarefas simples |
+| `deepseek-r1:1.5b` | ~1.1 GB | DeepSeek R1 | Reasoning puro, forte em matemática/lógica |
 
-| Tag | Tamanho aprox. | Notas |
-|-----|----------------|--------|
-| `qwen3:0.6b` | ~523 MB | ✅ Mínima latência |
-| `gemma4:e2b` | ~1.5 GB | ✅ Boa qualidade |
-| `qwen3:1.7b` | ~1.4 GB | ✅ Passo intermédio |
-| **`nemotron-3-nano:4b`** | **~2.8 GB** | **✅ Modelo principal — boa performance, baixa alucinação** |
+> **Todos os modelos acima suportam thinking mode** (`--think` no CLI).
 
-> **Excluídos (excedem 4GB VRAM da GTX 1650):**
-> `gemma4:e4b` (~2.8GB borderline), `qwen3:4b` (~2.5GB), `qwen3:8b` (~5.2GB),
-> `gemma2:9b` (~5.5GB), `gemma4:26b-a4b` (~15GB), `qwen2.5:32b` (~19GB), `gemma4:31b` (~19GB).
+Para usar com thinking mode:
+```bash
+ollama run qwen3:1.7b --think
+ollama run deepseek-r1:1.5b
+```
 
-Referência projeto: `config/ollama-stack/litellm-config.yaml` usa `ollama-nemotron-3-nano-4b` como default. Para puxar os blobs no host:
-
+Para puxar os blobs no host:
 ```bash
 cd /mnt/overpower/apps/dev/agl/agl-hostman
-./scripts/ollama-stack/pull-small-qwen-models.sh          # qwen3 0.6b/1.7b + gemma4:e2b + nemotron-3-nano:4b
-./scripts/ollama-stack/pull-small-qwen-models.sh --minimal # só 0.6b + 1.7b + gemma4:e2b + nemotron
+./scripts/ollama-stack/pull-small-qwen-models.sh
 ```
 
 ---

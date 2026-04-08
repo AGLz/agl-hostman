@@ -1,20 +1,31 @@
 # LiteLLM Configuration for CT200 Ollama Stack
-# Provides unified API for local and remote LLM access
+# GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM).
+# SOMENTE modelos com reasoning (thinking mode) configurados aqui.
 
 # ============================================================================
-# Model Definitions
+# Model Definitions — Reasoning models only
 # ============================================================================
 model_list:
-  # --- Ollama Models (Local on CT200) ---
-  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só cabem modelos ≤~3.5GB.
-  # Ref: docs/ct200-gpu-setup-summary.md — "GeForce GTX 1650, 4096 MiB"
 
-  # --- NVIDIA Nemotron-3-Nano 4B — modelo principal (2.8GB Q4_K_M) ---
-  # Boa performance, baixa alucinação. https://ollama.com/library/nemotron-3-nano
+  # --- Qwen3 (Alibaba) — thinking mode nativo (--think) ---
+  # Ref: https://ollama.com/library/qwen3
+  # 0.6B: ~523MB | 1.7B: ~1.4GB — ambos cabem em 4GB VRAM
 
-  - model_name: ollama-nemotron-3-nano-4b
+  - model_name: ollama-qwen3-0.6b
     litellm_params:
-      model: ollama/nemotron-3-nano:4b
+      model: ollama/qwen3:0.6b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+      note: "Reasoning — 0.6B, ~523MB, mínimo latência"
+
+  - model_name: ollama-qwen3-1.7b
+    litellm_params:
+      model: ollama/qwen3:1.7b
       api_base: http://host.docker.internal:11434
       stream: true
       max_tokens: 8192
@@ -22,184 +33,59 @@ model_list:
       mode: chat
       supports_function_calling: false
       supports_vision: false
-      note: "Modelo principal — 2.8GB Q4_K_M, boa performance, baixa alucinação"
+      note: "Reasoning — 1.7B, ~1.4GB, melhor equilíbrio tamanho/capacidade"
 
-  # --- Gemma 4 (Google, 2026-03-31) — https://ollama.com/library/gemma4 ---
-  # E2B: ~1.5GB ✅ | E4B: ~2.8GB (borderline em 4GB)
-  # 4B+ excluídos: excedem 4GB VRAM da GTX 1650.
+  # --- DeepSeek-R1-Distill (reasoning puro) ---
+  # Ref: https://ollama.com/library/deepseek-r1
+  # 1.5B: ~1.1GB — cabe em 4GB VRAM
 
-  - model_name: ollama-gemma4-e2b
+  - model_name: ollama-deepseek-r1-1.5b
     litellm_params:
-      model: ollama/gemma4:e2b
+      model: ollama/deepseek-r1:1.5b
       api_base: http://host.docker.internal:11434
       stream: true
-      max_tokens: 4096
+      max_tokens: 8192
     model_info:
       mode: chat
       supports_function_calling: false
       supports_vision: false
-
-  # --- Qwen3 ---
-  # 0.6B: ~523MB ✅ | 1.7B: ~1.4GB ✅ | 4B+: excedem 4GB VRAM
-
-  - model_name: ollama-qwen3-0.6b
-    litellm_params:
-      model: ollama/qwen3:0.6b
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 2048
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  - model_name: ollama-qwen3-1.7b
-    litellm_params:
-      model: ollama/qwen3:1.7b
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 4096
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  # --- Qwen 2.5 32B — borderline em 4GB; manter com quantização q4 se necessário ---
-  - model_name: qwen2.5-32b
-    litellm_params:
-      model: ollama/qwen2.5:32b
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 4096
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  # Llama 3.3 70B - Large general model
-  - model_name: llama3.3
-    litellm_params:
-      model: ollama/llama3.3:latest
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 4096
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  # DeepSeek R1 32B - Reasoning model
-  - model_name: deepseek-r1-32b
-    litellm_params:
-      model: ollama/deepseek-r1:32b
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 4096
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  # DeepSeek Coder 33B - Code generation
-  - model_name: deepseek-coder-33b
-    litellm_params:
-      model: ollama/deepseek-coder:33b
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 4096
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  # Mistral 7B - Fast general model
-  - model_name: mistral-7b
-    litellm_params:
-      model: ollama/mistral:7b
-      api_base: http://host.docker.internal:11434
-      stream: true
-      max_tokens: 4096
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_vision: false
-
-  # Nomic Embed Text - Embeddings for RAG
-  - model_name: nomic-embed-text
-    litellm_params:
-      model: ollama/nomic-embed-text
-      api_base: http://host.docker.internal:11434
-    model_info:
-      mode: embedding
-      supports_function_calling: false
-      supports_vision: false
-
-  # --- External Models (Optional) ---
-  # Uncomment and configure if you want to use external APIs
-
-  # OpenAI GPT-4 (requires API key)
-  # - model_name: gpt-4
-  #   litellm_params:
-  #     model: gpt-4
-  #     api_key: ${OPENAI_API_KEY}
-  #   model_info:
-  #     mode: chat
-  #     supports_function_calling: true
-  #     supports_vision: false
-
-  # Anthropic Claude (requires API key)
-  # - model_name: claude-3-sonnet
-  #   litellm_params:
-  #     model: anthropic/claude-3-sonnet-20240229
-  #     api_key: ${ANTHROPIC_API_KEY}
-  #   model_info:
-  #     mode: chat
-  #     supports_function_calling: true
-  #     supports_vision: true
+      note: "Reasoning — DeepSeek R1 1.5B, ~1.1GB, forte em matemática/lógica"
 
 # ============================================================================
 # Router Settings
 # ============================================================================
 router_settings:
   # Load balancing strategy
-  routing_strategy: simple-shuffle  # Options: simple-shuffle, least-busy, latency-based
+  routing_strategy: simple-shuffle
 
   # Retry logic
   num_retries: 3
-  timeout: 600  # 10 minutes for long generations
+  timeout: 600
 
-  # Fallback models (prioridade modelos pequenos que cabem em 4GB VRAM)
+  # Fallback models (todos reasoning, do maior para o menor)
   fallbacks:
-    - ollama-nemotron-3-nano-4b: [ollama-qwen3-1.7b, ollama-gemma4-e2b, ollama-qwen3-0.6b]
-    - qwen2.5-32b: [ollama-nemotron-3-nano-4b, ollama-qwen3-1.7b, ollama-gemma4-e2b]
-    - ollama-gemma4-e2b: [ollama-qwen3-1.7b, ollama-qwen3-0.6b]
-    - ollama-qwen3-1.7b: [ollama-gemma4-e2b, ollama-qwen3-0.6b]
+    - ollama-qwen3-1.7b: [ollama-deepseek-r1-1.5b, ollama-qwen3-0.6b]
+    - ollama-deepseek-r1-1.5b: [ollama-qwen3-1.7b, ollama-qwen3-0.6b]
+    - ollama-qwen3-0.6b: [ollama-qwen3-1.7b, ollama-deepseek-r1-1.5b]
 
   # Allowed fails before circuit breaker
   allowed_fails: 3
-  cooldown_time: 60  # seconds
+  cooldown_time: 60
 
 # ============================================================================
 # General Settings
 # ============================================================================
 general_settings:
-  # Master key for admin access
   master_key: ${LITELLM_MASTER_KEY}
-
-  # Database connection
   database_url: ${DATABASE_URL}
 
-  # Completion settings
-  completion_model: ollama-nemotron-3-nano-4b  # Default model — melhor qualidade/sem alucinação
+  # Default model — melhor reasoning em 4GB VRAM
+  completion_model: ollama-qwen3-1.7b
 
-  # Max parallel requests
   max_parallel_requests: 100
-
-  # Global rate limit (requests per minute)
   global_max_parallel_requests: 1000
   rpm_limit: 1000
 
-  # Enable/disable features
   disable_spend_logs: false
   disable_master_key_return: false
   disable_reset_budget: false
@@ -209,48 +95,23 @@ general_settings:
 # LiteLLM Settings
 # ============================================================================
 litellm_settings:
-  # Logging
   set_verbose: true
   json_logs: true
-
-  # Drop unsupported params
   drop_params: true
-
-  # Add request metadata
   add_user_information_to_metadata: true
 
-  # Success/failure callbacks
   success_callback: []
   failure_callback: []
 
-  # Cache
   cache: false
-  cache_params:
-    type: redis
-    host: localhost
-    port: 6379
-    ttl: 600
 
-  # Retry logic
   num_retries: 3
   request_timeout: 600
 
   # Context window fallbacks
   context_window_fallbacks:
-    - model: ollama-nemotron-3-nano-4b
-      fallback_model: ollama-qwen3-1.7b
-    - model: qwen2.5-32b
-      fallback_model: ollama-nemotron-3-nano-4b
-
-# ============================================================================
-# Environment Variables (Reference)
-# ============================================================================
-# Set these in .env file:
-# - LITELLM_MASTER_KEY: Master API key for admin access
-# - LITELLM_SALT_KEY: Salt for hashing
-# - DATABASE_URL: SQLite database path
-# - OPENAI_API_KEY: (optional) If using OpenAI
-# - ANTHROPIC_API_KEY: (optional) If using Anthropic
+    - model: ollama-qwen3-1.7b
+      fallback_model: ollama-qwen3-0.6b
 
 # ============================================================================
 # Usage Examples
@@ -261,25 +122,11 @@ litellm_settings:
 #   -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
 #   -H "Content-Type: application/json" \
 #   -d '{
-#     "model": "ollama-nemotron-3-nano-4b",
-#     "messages": [{"role": "user", "content": "Hello!"}],
+#     "model": "ollama-qwen3-1.7b",
+#     "messages": [{"role": "user", "content": "Explain Docker in one sentence."}],
 #     "stream": false
 #   }'
 #
-# 2. Python SDK:
-# from litellm import completion
-# response = completion(
-#     model="ollama-nemotron-3-nano-4b",
-#     messages=[{"role": "user", "content": "Hello!"}],
-#     api_base="http://10.6.0.17:4000",
-#     api_key="${LITELLM_MASTER_KEY}"
-# )
-#
-# 3. Embeddings:
-# curl -X POST http://10.6.0.17:4000/embeddings \
-#   -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
-#   -H "Content-Type: application/json" \
-#   -d '{
-#     "model": "nomic-embed-text",
-#     "input": "Text to embed"
-#   }'
+# 2. Via Ollama CLI (com thinking mode):
+# ollama run qwen3:1.7b --think
+# ollama run deepseek-r1:1.5b

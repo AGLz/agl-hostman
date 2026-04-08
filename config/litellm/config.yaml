@@ -764,34 +764,9 @@ model_list:
 
   # ============================================================
   # OLLAMA — CT200 (LiteLLM local: LAN 192.168.0.200; Tailscale em config-remote.yaml)
-  # api_base fixo no YAML; override via OLLAMA_HOST se fizeres merge de env (ver .env.example)
-  # Ref: docs/CT200-OLLAMA-QUICKSTART.md, config/ollama-stack/litellm-config.yaml
-  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só modelos ≤~3GB.
-  # Nemotron-3-Nano 4B: https://ollama.com/library/nemotron-3-nano (2.8GB Q4_K_M) — modelo principal
+  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM).
+  # SOMENTE modelos com reasoning (thinking mode).
   # ============================================================
-
-  - model_name: "ollama-nemotron-3-nano-4b"
-    litellm_params:
-      model: "ollama/nemotron-3-nano:4b"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 120
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-      note: "Modelo principal — 2.8GB Q4_K_M, boa performance, baixa alucinação"
-
-  - model_name: "ollama-gemma4-e2b"
-    litellm_params:
-      model: "ollama/gemma4:e2b"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 90
-      stream: true
-    model_info:
-      max_tokens: 4096
-      access: ollama
-      free_tier: true
 
   - model_name: "ollama-qwen3-0.6b"
     litellm_params:
@@ -800,9 +775,10 @@ model_list:
       timeout: 60
       stream: true
     model_info:
-      max_tokens: 2048
+      max_tokens: 4096
       access: ollama
       free_tier: true
+      note: "Reasoning — 0.6B, ~523MB, mínimo latência"
 
   - model_name: "ollama-qwen3-1.7b"
     litellm_params:
@@ -811,88 +787,22 @@ model_list:
       timeout: 90
       stream: true
     model_info:
-      max_tokens: 4096
-      access: ollama
-      free_tier: true
-
-  # Modelos preexistentes (mantidos para compat; ⚠️ podem exceder 4GB VRAM)
-  - model_name: "ollama-qwen3-8b"
-    litellm_params:
-      model: "ollama/qwen3:8b"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 180
-      stream: true
-    model_info:
       max_tokens: 8192
       access: ollama
       free_tier: true
-      note: "Prioridade custo/qualidade no CT200"
+      note: "Reasoning — 1.7B, ~1.4GB, melhor equilíbrio"
 
-  - model_name: "ollama-qwen3-4b"
+  - model_name: "ollama-deepseek-r1-1.5b"
     litellm_params:
-      model: "ollama/qwen3:4b"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 120
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-
-  - model_name: "ollama-qwen25-coder-7b"
-    litellm_params:
-      model: "ollama/qwen2.5-coder:7b"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 180
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-
-  - model_name: "ollama-gemma2-9b"
-    litellm_params:
-      model: "ollama/gemma2:9b"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 180
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-
-  - model_name: "ollama-llama32-3b"
-    litellm_params:
-      model: "ollama/llama3.2:3b"
+      model: "ollama/deepseek-r1:1.5b"
       api_base: "http://192.168.0.200:11434"
       timeout: 90
       stream: true
     model_info:
-      max_tokens: 4096
+      max_tokens: 8192
       access: ollama
       free_tier: true
-
-  - model_name: "ollama-mistral-7b-q4"
-    litellm_params:
-      model: "ollama/mistral:7b-instruct-q4_0"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 120
-      stream: true
-    model_info:
-      max_tokens: 4096
-      access: ollama
-      free_tier: true
-
-  - model_name: "ollama-phi3-mini"
-    litellm_params:
-      model: "ollama/phi3:mini"
-      api_base: "http://192.168.0.200:11434"
-      timeout: 90
-      stream: true
-    model_info:
-      max_tokens: 2048
-      access: ollama
-      free_tier: true
+      note: "Reasoning — R1 1.5B, ~1.1GB, forte em matemática/lógica"
 
   # ============================================================
   # OPENROUTER — tier :free (IDs confirmados openrouter.ai/api/v1/models, 2026-03)
