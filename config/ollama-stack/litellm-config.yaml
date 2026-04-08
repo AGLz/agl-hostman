@@ -6,11 +6,26 @@
 # ============================================================================
 model_list:
   # --- Ollama Models (Local on CT200) ---
-  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só cabem modelos ≤~3.5GB (q4 quant).
+  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só cabem modelos ≤~3.5GB.
   # Ref: docs/ct200-gpu-setup-summary.md — "GeForce GTX 1650, 4096 MiB"
 
+  # --- NVIDIA Nemotron-3-Nano 4B — modelo principal (2.8GB Q4_K_M) ---
+  # Boa performance, baixa alucinação. https://ollama.com/library/nemotron-3-nano
+
+  - model_name: ollama-nemotron-3-nano-4b
+    litellm_params:
+      model: ollama/nemotron-3-nano:4b
+      api_base: http://host.docker.internal:11434
+      stream: true
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_vision: false
+      note: "Modelo principal — 2.8GB Q4_K_M, boa performance, baixa alucinação"
+
   # --- Gemma 4 (Google, 2026-03-31) — https://ollama.com/library/gemma4 ---
-  # E2B: ~1.5GB ✅ | E4B: ~2.8GB ✅ (com quantização)
+  # E2B: ~1.5GB ✅ | E4B: ~2.8GB (borderline em 4GB)
   # 4B+ excluídos: excedem 4GB VRAM da GTX 1650.
 
   - model_name: ollama-gemma4-e2b
@@ -155,7 +170,8 @@ router_settings:
 
   # Fallback models (prioridade modelos pequenos que cabem em 4GB VRAM)
   fallbacks:
-    - qwen2.5-32b: [ollama-qwen3-1.7b, ollama-gemma4-e2b, ollama-qwen3-0.6b]
+    - ollama-nemotron-3-nano-4b: [ollama-qwen3-1.7b, ollama-gemma4-e2b, ollama-qwen3-0.6b]
+    - qwen2.5-32b: [ollama-nemotron-3-nano-4b, ollama-qwen3-1.7b, ollama-gemma4-e2b]
     - ollama-gemma4-e2b: [ollama-qwen3-1.7b, ollama-qwen3-0.6b]
     - ollama-qwen3-1.7b: [ollama-gemma4-e2b, ollama-qwen3-0.6b]
 
@@ -174,7 +190,7 @@ general_settings:
   database_url: ${DATABASE_URL}
 
   # Completion settings
-  completion_model: ollama-gemma4-e2b  # Default model (melhor qualidade em 4GB VRAM)
+  completion_model: ollama-nemotron-3-nano-4b  # Default model — melhor qualidade/sem alucinação
 
   # Max parallel requests
   max_parallel_requests: 100
@@ -221,8 +237,10 @@ litellm_settings:
 
   # Context window fallbacks
   context_window_fallbacks:
-    - model: qwen2.5-32b
+    - model: ollama-nemotron-3-nano-4b
       fallback_model: ollama-qwen3-1.7b
+    - model: qwen2.5-32b
+      fallback_model: ollama-nemotron-3-nano-4b
 
 # ============================================================================
 # Environment Variables (Reference)
@@ -243,7 +261,7 @@ litellm_settings:
 #   -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
 #   -H "Content-Type: application/json" \
 #   -d '{
-#     "model": "ollama-gemma4-e2b",
+#     "model": "ollama-nemotron-3-nano-4b",
 #     "messages": [{"role": "user", "content": "Hello!"}],
 #     "stream": false
 #   }'
@@ -251,7 +269,7 @@ litellm_settings:
 # 2. Python SDK:
 # from litellm import completion
 # response = completion(
-#     model="ollama-gemma4-e2b",
+#     model="ollama-nemotron-3-nano-4b",
 #     messages=[{"role": "user", "content": "Hello!"}],
 #     api_base="http://10.6.0.17:4000",
 #     api_key="${LITELLM_MASTER_KEY}"

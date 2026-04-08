@@ -12,8 +12,9 @@ const LAN_OLLAMA = '192.168.0.200:11434';
 const TS_OLLAMA = '100.116.57.111:11434';
 
 function assertOllamaModels(yaml, label) {
-  assert.match(yaml, /model_name:\s*"ollama-qwen3-8b"/, label);
-  assert.match(yaml, /model:\s*"ollama\/qwen3:8b"/, label);
+  // Nemotron-3-Nano 4B — modelo principal
+  assert.match(yaml, /ollama-nemotron-3-nano-4b/, label);
+  assert.match(yaml, /ollama\/nemotron-3-nano:4b/, label);
   // Gemma 4 (2026-03-31) — só e2b (4GB VRAM GTX 1650)
   assert.match(yaml, /ollama-gemma4-e2b/, label);
   assert.match(yaml, /ollama\/gemma4:e2b/, label);

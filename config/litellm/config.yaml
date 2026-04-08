@@ -767,8 +767,21 @@ model_list:
   # api_base fixo no YAML; override via OLLAMA_HOST se fizeres merge de env (ver .env.example)
   # Ref: docs/CT200-OLLAMA-QUICKSTART.md, config/ollama-stack/litellm-config.yaml
   # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM). Só modelos ≤~3GB.
-  # Gemma 4: https://ollama.com/library/gemma4 (2026-03-31) — só e2b
+  # Nemotron-3-Nano 4B: https://ollama.com/library/nemotron-3-nano (2.8GB Q4_K_M) — modelo principal
   # ============================================================
+
+  - model_name: "ollama-nemotron-3-nano-4b"
+    litellm_params:
+      model: "ollama/nemotron-3-nano:4b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 120
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+      note: "Modelo principal — 2.8GB Q4_K_M, boa performance, baixa alucinação"
+
   - model_name: "ollama-gemma4-e2b"
     litellm_params:
       model: "ollama/gemma4:e2b"
@@ -802,6 +815,7 @@ model_list:
       access: ollama
       free_tier: true
 
+  # Modelos preexistentes (mantidos para compat; ⚠️ podem exceder 4GB VRAM)
   - model_name: "ollama-qwen3-8b"
     litellm_params:
       model: "ollama/qwen3:8b"

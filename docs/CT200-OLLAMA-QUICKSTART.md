@@ -97,27 +97,28 @@ OLLAMA_HOST=100.116.57.111:11434 ./scripts/ollama-stack/verify-ollama.sh
 ### Modelos recomendados (2026)
 
 **Qwen3** — [library](https://ollama.com/library/qwen3) do Ollama inclui desde **0.6B (~523MB)** até 235B.
-**Gemma 4** — [library](https://ollama.com/library/gemma4) (Google, 2026-03-31); E2B/E4B/26B-MoE/31B.
+**Gemma 4** — [library](https://ollama.com/library/gemma4) (Google, 2026-03-31); E2B/E4B.
+**Nemotron-3-Nano 4B** — [library](https://ollama.com/library/nemotron-3-nano) (NVIDIA, 2025-10); 4B, 2.8GB Q4_K_M.
 
 Para **GTX 1650 4GB** (CT200) — só modelos que caibam em VRAM:
 
 | Tag | Tamanho aprox. | Notas |
 |-----|----------------|--------|
-| `qwen3:0.6b` | **~523 MB** | ✅ Mínima latência |
-| `gemma4:e2b` | **~1.5 GB** | ✅ **Melhor qualidade vs Qwen3 0.6B** |
+| `qwen3:0.6b` | ~523 MB | ✅ Mínima latência |
+| `gemma4:e2b` | ~1.5 GB | ✅ Boa qualidade |
 | `qwen3:1.7b` | ~1.4 GB | ✅ Passo intermédio |
-| `qwen3:4b` | ~2.5 GB | ⚠️ Borderline; ok se modelo único carregado |
+| **`nemotron-3-nano:4b`** | **~2.8 GB** | **✅ Modelo principal — boa performance, baixa alucinação** |
 
 > **Excluídos (excedem 4GB VRAM da GTX 1650):**
-> `gemma4:e4b` (~2.8GB), `qwen3:8b` (~5.2GB), `gemma2:9b` (~5.5GB),
-> `qwen2.5-coder:7b` (~4.5GB), `gemma4:26b-a4b` (~15GB), `qwen2.5:32b` (~19GB fp16), `gemma4:31b` (~19GB).
+> `gemma4:e4b` (~2.8GB borderline), `qwen3:4b` (~2.5GB), `qwen3:8b` (~5.2GB),
+> `gemma2:9b` (~5.5GB), `gemma4:26b-a4b` (~15GB), `qwen2.5:32b` (~19GB), `gemma4:31b` (~19GB).
 
-Referência projeto: `config/ollama-stack/litellm-config.yaml` expõe aliases `ollama-gemma4-e2b`, `ollama-qwen3-1.7b`, etc. Para puxar os blobs no host:
+Referência projeto: `config/ollama-stack/litellm-config.yaml` usa `ollama-nemotron-3-nano-4b` como default. Para puxar os blobs no host:
 
 ```bash
 cd /mnt/overpower/apps/dev/agl/agl-hostman
-./scripts/ollama-stack/pull-small-qwen-models.sh          # qwen3 0.6b/1.7b + gemma4:e2b + (opcional qwen3:4b)
-./scripts/ollama-stack/pull-small-qwen-models.sh --minimal # só 0.6b + 1.7b + gemma4:e2b
+./scripts/ollama-stack/pull-small-qwen-models.sh          # qwen3 0.6b/1.7b + gemma4:e2b + nemotron-3-nano:4b
+./scripts/ollama-stack/pull-small-qwen-models.sh --minimal # só 0.6b + 1.7b + gemma4:e2b + nemotron
 ```
 
 ---

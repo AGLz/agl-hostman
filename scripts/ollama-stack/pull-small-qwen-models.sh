@@ -32,6 +32,9 @@ pull qwen3:1.7b
 # Gemma 4 (Google 2026-03-31; qualidade superior a Qwen3 de tamanho similar)
 pull gemma4:e2b
 
+# NVIDIA Nemotron-3-Nano 4B — modelo principal (2.8GB Q4_K_M, baixa alucinação)
+pull nemotron-3-nano:4b
+
 if [[ "$MINIMAL" -eq 0 ]]; then
   # qwen3:4b ~2.5GB — borderline em 4GB; ok se não houver outro modelo carregado
   pull qwen3:4b
