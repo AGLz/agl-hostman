@@ -10,7 +10,7 @@ set -euo pipefail
 # Configuration
 # ============================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/../../logs/nfs-monitor"
+LOG_DIR="${NFS_MONITOR_LOG_DIR:-${SCRIPT_DIR}/../../logs/nfs-monitor}"
 LOG_FILE="${LOG_DIR}/recovery-$(date +%Y%m%d).log"
 RECOVERY_LOCK="/tmp/nfs-recovery.lock"
 RECOVERY_COOLDOWN=300  # 5 minutes
@@ -25,7 +25,7 @@ MOUNT_POINTS=(
   "/mnt/fgsrv4-nfs-ts"
 )
 
-ISSUE_TYPE="${1:-manual}"
+ISSUE_TYPE="${ISSUE_TYPE:-${1:-manual}}"
 
 # ============================================================
 # Utility functions

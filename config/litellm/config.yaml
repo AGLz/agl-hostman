@@ -46,8 +46,25 @@ model_list:
   # ACESSO DIRETO (preferir sempre)
   # ============================================================
 
-  # === Alias primário AGL = GLM-4.7-Flash Z.AI (FREE, OpenClaw/LiteLLM) ===
+  # === Alias primário AGL = Ollama Nemotron-3-Nano 4B (CT200 LAN) — OpenClaw/LiteLLM ===
+  # Nome Ollama oficial: nemotron-3-nano:4b (equiv. NVIDIA Nemotron-3-Nano-4B). Requer Ollama recente no CT200.
   - model_name: "agl-primary"
+    litellm_params:
+      model: "ollama/nemotron-3-nano:4b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 120
+      stream: true
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+      context_window: 131072
+      access: ollama
+      free_tier: true
+      note: "Primário AGL agldv03 — fallback Z.AI em fallbacks do router"
+
+  # Alias GLM flash (ex.: quando Ollama indisponível ou pedido explícito)
+  - model_name: "agl-primary-zai-glm-flash"
     litellm_params:
       model: "anthropic/glm-4.7-flash"
       api_key: os.environ/ZAI_API_KEY
@@ -804,6 +821,30 @@ model_list:
       free_tier: true
       note: "Reasoning — R1 1.5B, ~1.1GB, forte em matemática/lógica"
 
+  - model_name: "ollama-nemotron-3-nano-4b"
+    litellm_params:
+      model: "ollama/nemotron-3-nano:4b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 120
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+      note: "NVIDIA Nemotron-3-Nano 4B via Ollama (ollama.com/library/nemotron-3-nano:4b)"
+
+  # OpenClaw (provider openai + id curto) — mesmo backend que ollama-nemotron-3-nano-4b
+  - model_name: "openai/ollama-nemotron-3-nano-4b"
+    litellm_params:
+      model: "ollama/nemotron-3-nano:4b"
+      api_base: "http://192.168.0.200:11434"
+      timeout: 120
+      stream: true
+    model_info:
+      max_tokens: 8192
+      access: ollama
+      free_tier: true
+
   # ============================================================
   # OPENROUTER — tier :free (IDs confirmados openrouter.ai/api/v1/models, 2026-03)
   # Chave: OPENROUTER_API_KEY; no shell pode estar como OPENROUTER_AUTH (export OPENROUTER_API_KEY="$OPENROUTER_AUTH")
@@ -1054,9 +1095,11 @@ litellm_settings:
   # Latência referência: qwen3.5-plus ~0.8s, deepseek ~1.4s, glm-flash ~1.6s, glm-5 ~2.4s
   fallbacks:
     # ============================================================
-    # Primário AGL: Z.AI GLM-4.7-Flash (FREE) — mesmo stack que OpenClaw
+    # Primário AGL: Ollama nemotron-3-nano:4b (CT200) → fallback glm-4.7-flash / Ollama qwen / cloud
     # ============================================================
-    - agl-primary: [qwen-coder, qwen3.5-plus, or-nemotron-free, or-llama-free]
+    - agl-primary: [glm-4.7-flash, ollama-qwen3-1.7b, ollama-qwen3-0.6b, qwen-coder, or-nemotron-free]
+    - openai/ollama-nemotron-3-nano-4b: [glm-4.7-flash, ollama-qwen3-1.7b, ollama-qwen3-0.6b, qwen-coder, or-nemotron-free]
+    - ollama-nemotron-3-nano-4b: [glm-4.7-flash, ollama-qwen3-1.7b, qwen-coder, or-nemotron-free]
 
     # ============================================================
     # FALLBACKS FREE TIER (agldv03, fgsrv06, aglwk45)

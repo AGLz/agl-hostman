@@ -1,0 +1,19 @@
+[Unit]
+Description=AGL remount leve NFS (CT138) no AGLSRV5
+After=network-online.target pve-cluster.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=NFS_MONITOR_LOG_DIR=/var/log/agl-nfs-monitor
+ExecStart=/usr/local/lib/agl-nfs-monitor/nfs-aglsrv5-local-remount.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agl-nfs-aglsrv5-local
+
+# Remount pode demorar se NFS estiver lento
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

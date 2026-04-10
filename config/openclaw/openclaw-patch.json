@@ -39,18 +39,19 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "zai/glm-4.7-flash",
+        "primary": "openai/ollama-nemotron-3-nano-4b",
         "fallbacks": [
+          "zai/glm-4.7-flash",
           "openrouter/deepseek/deepseek-chat",
           "openrouter/meta-llama/llama-3.3-70b-instruct:free",
-          "openrouter/z-ai/glm-4.5-air:free",
           "zai/glm-5",
           "dashscope/qwen-plus"
         ]
       },
       "imageModel": {
-        "primary": "zai/glm-4.7-flash",
+        "primary": "openai/ollama-nemotron-3-nano-4b",
         "fallbacks": [
+          "zai/glm-4.7-flash",
           "openrouter/deepseek/deepseek-chat",
           "openrouter/meta-llama/llama-3.3-70b-instruct:free",
           "zai/glm-5"
@@ -76,7 +77,8 @@
         "google/gemini-3.1-pro-preview": { "alias": "gemini" },
         "dashscope/qwen-plus": { "alias": "qwen-plus" },
         "openrouter/z-ai/glm-4.5-air:free": { "alias": "or-glm-air-free" },
-        "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "or-llama-free" }
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "or-llama-free" },
+        "openai/ollama-nemotron-3-nano-4b": { "alias": "nemotron-local" }
       }
     }
   }

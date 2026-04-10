@@ -174,13 +174,16 @@ Host AGLSRV5
 Host aglsrv5
   HostName 100.119.223.113  # Tailscale IP
   User root
+  IdentityFile ~/.ssh/id_rsa
   StrictHostKeyChecking no
+  # Obrigatório em CTs/agldv03 com Tailscale em userspace (sem /dev/net/tun):
+  ProxyCommand tailscale nc %h %p
 ```
 
 **Physical Server**: AGLSRV5 (192.168.15.222)
 
 **Available Routes** (same machine):
-1. `ssh aglsrv5` - Tailscale 100.119.223.113 (✅ recommended, working)
+1. `ssh aglsrv5` - Tailscale 100.119.223.113 (✅ recomendado; com `ProxyCommand` acima a partir de agldv03)
 2. `ssh AGLSRV5` - LAN 192.168.15.222 (local network only)
 3. `ssh root@10.6.0.17` - WireGuard IP
 

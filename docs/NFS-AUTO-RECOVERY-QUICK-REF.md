@@ -22,8 +22,29 @@ sudo scripts/monitoring/nfs-tailscale-monitor.sh --verbose
 ### Manual Recovery
 
 ```bash
-# Trigger full recovery
-sudo scripts/monitoring/nfs-tailscale-recovery.sh manual
+# No Proxmox local: o recovery tem de correr no AGLSRV5 (usa pct). Desde 2026-04-09 o monitor
+# remoto invoca isto por SSH; para manual:
+ssh root@100.119.223.113 '/usr/local/lib/agl-nfs-monitor/nfs-tailscale-recovery.sh manual'
+# Ou, com repo copiado para o host:
+ssh root@100.119.223.113 'bash -s manual' < scripts/monitoring/nfs-tailscale-recovery.sh
+```
+
+### Timer no AGLSRV5 (reconexão periódica sem depender do monitor remoto)
+
+Instala remount leve a cada ~15 min (útil quando FGSRV4 volta e os mounts ficam stale):
+
+```bash
+# A partir de uma máquina com SSH ao aglsrv5
+chmod +x scripts/monitoring/install-nfs-local-aglsrv5.sh
+./scripts/monitoring/install-nfs-local-aglsrv5.sh root@100.119.223.113
+```
+
+No **AGLSRV5**:
+
+```bash
+systemctl list-timers agl-nfs-aglsrv5-local.timer
+journalctl -u agl-nfs-aglsrv5-local.service -n 50
+tail -f /var/log/agl-nfs-monitor/aglsrv5-local-$(date +%Y%m%d).log
 ```
 
 ## 📊 Status Checks
@@ -48,8 +69,8 @@ journalctl -u nfs-tailscale-monitor.service -f
 # Quick fix: remount
 ssh root@100.119.223.113 'pct exec 138 -- mount -a'
 
-# Or trigger full recovery
-sudo scripts/monitoring/nfs-tailscale-recovery.sh nfs-connectivity-critical
+# Ou recovery completo no Proxmox
+ssh root@100.119.223.113 '/usr/local/lib/agl-nfs-monitor/nfs-tailscale-recovery.sh nfs-connectivity-critical'
 ```
 
 ### Tailscale Down
@@ -81,8 +102,11 @@ ssh root@100.119.223.113 'pct start 138'
 | File | Purpose |
 |------|---------|
 | `scripts/monitoring/nfs-tailscale-monitor.sh` | Health check script |
-| `scripts/monitoring/nfs-tailscale-recovery.sh` | Automated recovery |
-| `config/systemd/nfs-tailscale-monitor.timer` | Hourly schedule |
+| `scripts/monitoring/nfs-tailscale-recovery.sh` | Automated recovery (Proxmox / pct) |
+| `scripts/monitoring/nfs-aglsrv5-local-remount.sh` | Remount leve no AGLSRV5 |
+| `scripts/monitoring/install-nfs-local-aglsrv5.sh` | Deploy timer no AGLSRV5 |
+| `config/systemd/nfs-tailscale-monitor.timer` | Hourly schedule (host de gestão) |
+| `config/systemd/agl-nfs-aglsrv5-local.timer` | ~15 min no AGLSRV5 |
 | `logs/nfs-monitor/monitor-YYYYMMDD.log` | Daily logs |
 | `docs/NFS-TAILSCALE-AUTO-RECOVERY.md` | Full documentation |
 
@@ -103,4 +127,4 @@ If automated recovery fails:
 
 ---
 
-**Last Updated**: 2026-04-06
+**Last Updated**: 2026-04-09

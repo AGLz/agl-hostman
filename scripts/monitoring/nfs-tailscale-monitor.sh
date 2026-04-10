@@ -299,13 +299,21 @@ run_health_checks() {
 # ============================================================
 # Trigger recovery if needed
 # ============================================================
+recovery_runs_on_proxmox_host() {
+  command -v pct &>/dev/null && pct status "${CT_ID}" &>/dev/null
+}
+
 trigger_recovery() {
   local issue_type="$1"
 
   log_warn "Triggering automated recovery for: ${issue_type}"
 
   if [[ "${DRY_RUN}" == "true" ]]; then
-    log_info "[DRY RUN] Would execute: ${RECOVERY_SCRIPT} ${issue_type}"
+    if recovery_runs_on_proxmox_host; then
+      log_info "[DRY RUN] Would execute locally: ${RECOVERY_SCRIPT} ${issue_type}"
+    else
+      log_info "[DRY RUN] Would execute on ${AGLSRV5_HOST}: ${RECOVERY_SCRIPT} ${issue_type}"
+    fi
     return 0
   fi
 
@@ -315,18 +323,48 @@ trigger_recovery() {
   fi
 
   log_info "Executing recovery script..."
-  "${RECOVERY_SCRIPT}" "${issue_type}" 2>&1 | while read -r line; do
-    log_info "[RECOVERY] ${line}"
-  done
+  local recovery_status=0
+  local recovery_out
+  set +e
+  if recovery_runs_on_proxmox_host; then
+    recovery_out=$("${RECOVERY_SCRIPT}" "${issue_type}" 2>&1)
+    recovery_status=$?
+  else
+    # Reason: recovery usa pct/exec — tem de correr no Proxmox AGLSRV5, não no host de monitorização.
+    local remote_bin="/usr/local/lib/agl-nfs-monitor/nfs-tailscale-recovery.sh"
+    if ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no \
+      root@"${AGLSRV5_HOST}" "test -x ${remote_bin}" 2>/dev/null; then
+      recovery_out=$(ssh -o ConnectTimeout=120 -o StrictHostKeyChecking=no root@"${AGLSRV5_HOST}" \
+        "export NFS_MONITOR_LOG_DIR=/var/log/agl-nfs-monitor; ${remote_bin} $(printf '%q' "${issue_type}")" 2>&1)
+      recovery_status=$?
+    else
+      log_warn "Script remoto em falta (${remote_bin}); a enviar cópia temporária..."
+      if scp -o ConnectTimeout=30 -o StrictHostKeyChecking=no \
+        "${RECOVERY_SCRIPT}" root@"${AGLSRV5_HOST}":/tmp/nfs-tailscale-recovery-run.sh 2>/dev/null; then
+        recovery_out=$(ssh -o ConnectTimeout=120 -o StrictHostKeyChecking=no root@"${AGLSRV5_HOST}" \
+          "export NFS_MONITOR_LOG_DIR=/var/log/agl-nfs-monitor; bash /tmp/nfs-tailscale-recovery-run.sh $(printf '%q' "${issue_type}"); ec=\$?; rm -f /tmp/nfs-tailscale-recovery-run.sh; exit \$ec" 2>&1)
+        recovery_status=$?
+      else
+        recovery_out="scp para ${AGLSRV5_HOST} falhou (host inacessível?)"
+        recovery_status=1
+      fi
+    fi
+  fi
+  set -e
 
-  local recovery_status=$?
+  if [[ -n "${recovery_out}" ]]; then
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+      log_info "[RECOVERY] ${line}"
+    done <<< "${recovery_out}"
+  fi
+
   if [[ "${recovery_status}" -eq 0 ]]; then
     log_info "✅ Recovery completed successfully"
   else
     log_critical "❌ Recovery failed with status: ${recovery_status}"
   fi
 
-  return ${recovery_status}
+  return "${recovery_status}"
 }
 
 # ============================================================

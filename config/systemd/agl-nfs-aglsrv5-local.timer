@@ -1,0 +1,14 @@
+[Unit]
+Description=Timer — remount NFS CT138 no AGLSRV5 (reconexão periódica)
+
+[Timer]
+# Primeira corrida pouco depois do boot (Tailscale/NFS a estabilizar)
+OnBootSec=12min
+# A cada 15 minutos após a última execução (re-tenta quando o remoto voltar)
+OnUnitActiveSec=15min
+RandomizedDelaySec=240
+Unit=agl-nfs-aglsrv5-local.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target
