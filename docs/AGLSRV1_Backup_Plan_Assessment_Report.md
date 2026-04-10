@@ -799,7 +799,7 @@ ssh AGLSRV1 "du -sh /spark/base/dump"
 176 - iventoy
 178 - aglfs1
 179 - agldv03 - VERY LARGE BACKUP (41GB)
-200 - ollama-gpu
+200 - ollama
 201 - amp-server
 202 - n8n-docker
 ```

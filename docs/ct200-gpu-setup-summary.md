@@ -1,8 +1,8 @@
-# CT200 (ollama-gpu) - GPU Setup Summary
+# CT200 (ollama) - GPU Setup Summary
 
 **Date**: 2025-10-27
 **Host**: AGLSRV1 (192.168.0.245)
-**Container**: CT200 - ollama-gpu (192.168.0.200)
+**Container**: CT200 - ollama (192.168.0.200)
 **GPU**: NVIDIA GeForce GTX 1650 (4GB VRAM)
 **Status**: ✅ Fully Operational
 
@@ -73,7 +73,7 @@ nvidia-smi
 arch: amd64
 cores: 8
 features: nesting=1,keyctl=1
-hostname: ollama-gpu
+hostname: ollama
 memory: 16384
 nameserver: 192.168.0.102
 net0: name=eth0,bridge=vmbr0,gw=192.168.0.1,hwaddr=BC:24:11:BA:72:22,ip=192.168.0.200/24,type=veth

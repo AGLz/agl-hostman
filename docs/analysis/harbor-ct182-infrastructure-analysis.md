@@ -162,7 +162,7 @@ Harbor at 192.168.0.182 provides:
 
 **Total Containers on aglsrv1**: 42
 - **Running**: 37 containers
-- **Stopped**: 5 containers (az-agent1/2/3, agldv02, ollama-gpu)
+- **Stopped**: 5 containers (az-agent1/2/3, agldv02, ollama)
 
 ### 3.2 Similar Service Comparison
 

@@ -28,7 +28,7 @@
 | CT180 | dokploy | 192.168.0.180 | 9001 | ✅ Rodando | 2+ horas |
 | CT183 | archon | 192.168.0.183 | 9001 | ✅ Rodando | 2+ horas |
 | CT202 | n8n-docker | 192.168.0.202 | 9001 | ✅ Rodando | 2+ horas |
-| CT200 | ollama-gpu | 192.168.0.200 | 9001 | ✅ Rodando | 1+ hora |
+| CT200 | ollama | 192.168.0.200 | 9001 | ✅ Rodando | 1+ hora |
 
 ### 🔗 Endpoints no Portainer Server
 
@@ -43,7 +43,7 @@
 | - | **dokploy** | tcp://192.168.0.180:9001 | ⏳ **Pendente** | - |
 | - | **archon** | tcp://192.168.0.183:9001 | ⏳ **Pendente** | - |
 | - | **n8n** | tcp://192.168.0.202:9001 | ⏳ **Pendente** | - |
-| - | **ollama2** | tcp://192.168.0.200:9001 | ⏳ **Pendente** | - |
+| - | **ollama** | tcp://192.168.0.200:9001 | ⏳ **Pendente** | - |
 
 ---
 
@@ -192,9 +192,9 @@ A API **funciona**, mas a criação de endpoints com agents TLS auto-assinados r
    → Add environment
    ```
 
-   **Agent 5: ollama2**
+   **Agent 5: ollama**
    ```
-   Name: ollama2
+   Name: ollama
    Environment address: 192.168.0.200:9001
    ☑ Skip TLS Verification
    → Add environment

@@ -1,4 +1,4 @@
-# CT200 (ollama-gpu) - Implementação Completa e Validada
+# CT200 (ollama) - Implementação Completa e Validada
 
 **Data**: 2025-10-27
 **Duração Total**: ~3 horas (configuração GPU + features produção)

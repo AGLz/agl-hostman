@@ -144,7 +144,7 @@ systemctl reset-failed
 ● pve-container@999.service - FAILED (LXC Container 999)
 ```
 
-**Container 200 (ollama-gpu)**:
+**Container 200 (ollama)**:
 - Status: Should be running (per infrastructure map)
 - Tailscale: 100.116.57.111
 - Purpose: LLM GPU compute
@@ -324,7 +324,7 @@ Multiple startup failures for CT181 between 68F5BB3D - 68F7F9F7 (resolved at 68F
    pvesm remove fgsrv6-nfs
    ```
 
-6. **Restart Container 200 (ollama-gpu)**
+6. **Restart Container 200 (ollama)**
    ```bash
    pct start 200
    pct status 200

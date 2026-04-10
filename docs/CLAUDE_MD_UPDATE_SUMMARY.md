@@ -120,7 +120,7 @@ ssh root@10.6.0.5   # FGSRV6
 
 # LAN direct (zero latency)
 ssh root@192.168.0.202  # n8n
-ssh root@192.168.0.200  # ollama-gpu
+ssh root@192.168.0.200  # ollama
 
 # Native Docker
 docker ps

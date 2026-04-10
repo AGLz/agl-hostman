@@ -15,7 +15,7 @@ Após atualizar o Portainer de versão legacy (2022) para **CE 2.33.3**, investi
 - **Portainer Server**: CT103 (AGLSRV1)
 - **Versão**: CE 2.33.3 (atualizado de legacy)
 - **Acesso**: https://portainer.aglz.io (Cloudflare HTTPS → HTTP interno)
-- **Agents Pendentes**: 5 (agldv04, dokploy, archon, n8n, ollama2)
+- **Agents Pendentes**: 5 (agldv04, dokploy, archon, n8n, ollama)
 - **Agents Instalados**: 7/7 (100%)
 - **Agents Conectados**: 3/8 (via Web UI)
 

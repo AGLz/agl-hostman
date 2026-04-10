@@ -211,7 +211,7 @@ The AGL infrastructure is **fully operational** with 11 Proxmox hosts across 4 l
 | **CT181** | agldv04 | AGLSR1 | ✅ Running | Secondary dev |
 | **CT183** | archon | AGLSR1 | ✅ Running | AI Command Center |
 | **CT184** | supabase | AGLSR1 | ✅ Running | Self-hosted Supabase |
-| **CT200** | ollama-gpu | AGLSR1 | ✅ Running | GPU inference |
+| **CT200** | ollama | AGLSR1 | ✅ Running | GPU inference |
 | **CT202** | n8n | AGLSR1 | ✅ Running | Workflow automation |
 
 ### Infrastructure Services

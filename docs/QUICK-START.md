@@ -76,7 +76,7 @@ ssh root@10.6.0.20   # CT111 (aluzdivina) via WireGuard
 # Local LAN
 ssh root@192.168.0.245  # AGLSRV1 host
 ssh root@192.168.0.202  # n8n container
-ssh root@192.168.0.200  # ollama-gpu container
+ssh root@192.168.0.200  # ollama container
 
 # Tailscale (fallback)
 ssh root@100.98.108.66  # AGLSRV6 host

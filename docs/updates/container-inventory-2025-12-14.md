@@ -81,7 +81,7 @@
   2. Update Portainer agent
 - **Reference**: `docs/updates/archon-troubleshooting-notes.md`
 
-#### CT200 (ollama-gpu)
+#### CT200 (ollama)
 - **Status**: Running
 - **Docker Services**: 2 containers (Open WebUI + removed LiteLLM)
 - **Issues**:
@@ -106,7 +106,7 @@
 **Containers with Portainer Agent**:
 - CT180 (dokploy) - Version 2.16.2
 - CT183 (archon) - Version 2.16.2
-- CT200 (ollama-gpu) - Version 2.16.2
+- CT200 (ollama) - Version 2.16.2
 
 **Latest Portainer Agent**: Check portainer/agent:latest tag
 
@@ -188,7 +188,7 @@ ssh root@192.168.0.245 'pct exec 200 -- docker pull portainer/agent:latest && do
 - CT180 (dokploy)
 
 **AI/Automation** (3 containers):
-- CT183 (archon), CT200 (ollama-gpu), CT202 (n8n-docker)
+- CT183 (archon), CT200 (ollama), CT202 (n8n-docker)
 
 **Infrastructure** (8 containers):
 - CT102 (pihole), CT120 (wireguard), CT117 (cloudflared)
@@ -235,7 +235,7 @@ ssh root@192.168.0.245 'pct exec 200 -- docker pull portainer/agent:latest && do
 - CT180 (dokploy): 6 services
 - CT126 (guac): 4 services
 - CT161 (gameserver): 4 services
-- CT200 (ollama-gpu): 2 services
+- CT200 (ollama): 2 services
 - CT182 (harbor): 2 services
 - CT103 (portainer): 1 service
 

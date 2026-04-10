@@ -51,7 +51,7 @@
 27. 172 - prowlarr
 28. 176 - iventoy
 29. 178 - aglfs1
-30. 200 - ollama-gpu
+30. 200 - ollama
 
 ## 🗂️ Backups Disponíveis Não Restaurados
 Devido a problemas de configuração, os seguintes backups estão disponíveis mas não foram restaurados:

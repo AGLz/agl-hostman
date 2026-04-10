@@ -251,15 +251,15 @@ if systemctl is-failed zfs-snapshot-manager.service &>/dev/null; then
 fi
 
 # ==============================================================================
-# STEP 7: Restart container 200 (ollama-gpu)
+# STEP 7: Restart container 200 (ollama)
 # ==============================================================================
 
-log "STEP 7: Checking container 200 (ollama-gpu) status"
+log "STEP 7: Checking container 200 (ollama) status"
 
 CT200_STATUS=$(pct status 200 || echo "error")
 
 if [[ "$CT200_STATUS" == *"stopped"* ]]; then
-    warn "Container 200 (ollama-gpu) is stopped"
+    warn "Container 200 (ollama) is stopped"
 
     if [[ "$DRY_RUN" == "false" ]]; then
         read -p "Start container 200? [y/N]: " start_ct200

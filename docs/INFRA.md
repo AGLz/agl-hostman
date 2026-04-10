@@ -115,7 +115,7 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
 | 100.72.66.106 | aglsrv1-dokploy | linux | Active | Dokploy deployment manager (CT180) |
 | 100.105.133.18 | aglsrv1-haos | linux | Offline 158d | Home Assistant OS VM |
-| 100.116.57.111 | aglsrv1-ollama-gpu | linux | Active | Ollama GPU inference (CT200) |
+| 100.116.57.111 | aglsrv1-ollama | linux | Active | Ollama GPU inference (CT200) |
 | 100.114.66.80 | aglsrv1-pihole | linux | Active | Pi-hole DNS (CT102) |
 
 ### AGLSRV5 Group (7 hosts)
@@ -208,14 +208,14 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 **Resources**:
 - Total VMs/CTs: 68 (42 running, 26 stopped)
 - Primary Dev Container: CT179 (agldv03) - 48GB RAM
-- AI Infrastructure: CT183 (archon), CT200 (ollama-gpu)
+- AI Infrastructure: CT183 (archon), CT200 (ollama)
 - Storage: local-zfs (1.7TB), spark (7.1TB), overpower (9.8TB)
 
 **Key Services**:
 - DNS/DHCP: CT102 (pihole)
 - Media: CT113 (plex), CT121-124 (arr stack)
 - Development: CT179 (agldv03), CT180 (dokploy)
-- AI: CT183 (archon), CT200 (ollama-gpu), CT202 (n8n)
+- AI: CT183 (archon), CT200 (ollama), CT202 (n8n)
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 
 **Archon Stack (CT183)**:
@@ -750,7 +750,7 @@ zpool status -v local-zfs
 | VMID | Name | IP (LAN) | IP (TS) | GPU | Purpose |
 |------|------|----------|---------|-----|---------|
 | 183 | archon | 192.168.0.183 | - | - | **AI Command Center** |
-| 200 | ollama-gpu | 192.168.0.200 | 100.116.57.111 | ✅ NVIDIA | LLM compute |
+| 200 | ollama | 192.168.0.200 | 100.116.57.111 | ✅ NVIDIA | LLM compute |
 
 #### Databases & Services
 | VMID | Name | IP (LAN) | Purpose |

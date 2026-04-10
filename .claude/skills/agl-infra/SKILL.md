@@ -277,7 +277,7 @@ npx ruflo@latest memory search --query "infrastructure patterns"
 | 120 | wireguard | WG node | Active |
 | 179 | agldv03 | Primary dev | Active |
 | 183 | archon | AI Command Center | Active |
-| 200 | ollama-gpu | LLM compute (GPU) | Active |
+| 200 | ollama | LLM compute (GPU) | Active |
 
 ### Quick Actions
 

@@ -158,7 +158,7 @@ ls -lh /var/run/vzdump.lock  # 0 bytes = lock held by running process
 
 ## Container Issues
 
-### CT200 (ollama-gpu) - STOPPED ⚠️
+### CT200 (ollama) - STOPPED ⚠️
 
 **Expected State**: Running (GPU compute for LLMs)
 **Actual State**: Stopped
@@ -257,7 +257,7 @@ top -c
 bash /root/agl-hostman/scripts/aglsrv1-emergency-remediation.sh
 ```
 
-### 4. Restart CT200 (ollama-gpu) (MEDIUM) 🟡
+### 4. Restart CT200 (ollama) (MEDIUM) 🟡
 
 **Urgency**: Within 24 hours
 

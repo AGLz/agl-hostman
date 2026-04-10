@@ -1,6 +1,6 @@
 #!/bin/bash
 # GPU Configuration Migration Script for AGLSRV1 Containers
-# Based on successful CT200 (ollama-gpu) configuration
+# Based on successful CT200 (ollama) configuration
 # Version: 1.0
 # Date: 2025-10-27
 
@@ -274,7 +274,7 @@ show_menu() {
     echo ""
     echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}  GPU Configuration Migration Tool${NC}"
-    echo -e "${GREEN}  Based on CT200 (ollama-gpu) - Working Configuration${NC}"
+    echo -e "${GREEN}  Based on CT200 (ollama) - Working Configuration${NC}"
     echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
     echo ""
     echo "Containers with GPU configuration:"

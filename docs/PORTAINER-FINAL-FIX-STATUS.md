@@ -59,7 +59,7 @@
 
 Based on your comments about agents that should be connected:
 
-### **CT200 (ollama-gpu)** 🔍
+### **CT200 (ollama)** 🔍
 - **Status**: Unknown - needs verification
 - **IP**: Need to identify
 - **Action**: Check if agent exists, install if needed
@@ -179,7 +179,7 @@ From scan - 42 containers running:
                                                                         181  agldv04 ✅
                                                                         182  harbor
                                                                         183  archon ⏳
-                                                                        200  ollama-gpu
+                                                                        200  ollama
                                                                         201  amp-server
                                                                         202  n8n-docker ⏳
 ```
@@ -189,7 +189,7 @@ From scan - 42 containers running:
 ## 🔍 IDENTIFYING MISSING CTs
 
 You mentioned agents should be on:
-- **ollama** → CT200 (ollama-gpu) - needs verification
+- **CT200 (ollama)** — verificar agente Portainer e conectividade
 - **aglwk51** → Not found in list - need to identify
 - **gameserver1** → CT161 (gameserver) ✅ **Already fixed**
 
@@ -200,7 +200,7 @@ pct list | grep -i aglwk
 qm list | grep -i aglwk  # Check VMs too
 ```
 
-### **To Check CT200 (ollama-gpu)**:
+### **To Check CT200 (ollama)**:
 ```bash
 # Via Proxmox
 pct enter 200
@@ -236,7 +236,7 @@ All fixed agents showing:
 1. ✅ Fix CT180 (dokploy) via Proxmox `pct enter`
 2. ✅ Fix CT183 (archon) via Proxmox `pct enter`
 3. ✅ Fix CT202 (n8n-docker) via Proxmox `pct enter`
-4. 🔍 Check CT200 (ollama-gpu) for agent
+4. 🔍 Check CT200 (ollama) for agent
 5. 🔍 Identify and check aglwk51
 
 ### **After Fixing**:

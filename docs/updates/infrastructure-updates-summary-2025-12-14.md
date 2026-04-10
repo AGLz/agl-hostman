@@ -93,7 +93,7 @@ Exit code: 1
 **Containers Updated**:
 - CT180 (dokploy): portainer/agent:2.16.2
 - CT183 (archon): portainer/agent:2.16.2 (pulled newer image)
-- CT200 (ollama-gpu): portainer/agent:2.16.2 (pulled newer image)
+- CT200 (ollama): portainer/agent:2.16.2 (pulled newer image)
 
 **Update Process**:
 ```bash
@@ -145,7 +145,7 @@ CT200: Up 30 seconds       0.0.0.0:9001->9001/tcp
 - CT180 (dokploy): 6 services
 - CT126 (guac): 4 services
 - CT161 (gameserver): 4 services
-- CT200 (ollama-gpu): 2 services
+- CT200 (ollama): 2 services
 - CT182 (harbor): 2 services
 - CT103 (portainer): 1 service
 
@@ -398,7 +398,7 @@ n8n (CT202):
 - dokploy (CT180): 6 services (18.8%)
 - guac (CT126): 4 services (12.5%)
 - gameserver (CT161): 4 services (12.5%)
-- ollama-gpu (CT200): 2 services (6.3%)
+- ollama (CT200): 2 services (6.3%)
 - harbor (CT182): 2 services (6.3%)
 - portainer (CT103): 1 service (3.1%)
 
@@ -408,7 +408,7 @@ n8n (CT202):
 - CT179 (agldv03): 48GB RAM (development)
 - CT180 (dokploy): 6 Docker services
 - CT183 (archon): 13 Docker services
-- CT200 (ollama-gpu): GPU + AI models
+- CT200 (ollama): GPU + AI models
 
 ---
 

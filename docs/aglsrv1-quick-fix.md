@@ -139,7 +139,7 @@ systemctl disable pve-container@999.service
 systemctl reset-failed
 ```
 
-### Restart ollama-gpu (CT200)
+### Restart ollama (CT200)
 
 ```bash
 pct start 200

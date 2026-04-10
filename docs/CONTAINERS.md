@@ -39,7 +39,7 @@
 |----|------|---------|--------|--------------|
 | **CT183** | archon | AI Command Center | ✅ | Archon MCP server (28 tools), WG 10.6.0.21, API: http://192.168.0.183:8051/mcp |
 | **CT184** | supabase | Self-Hosted Database | ✅ | Supabase stack (13 containers), PostgreSQL, Kong API, http://192.168.0.184:8000 |
-| **CT200** | ollama-gpu | GPU Inference | ✅ | Ollama with GPU passthrough |
+| **CT200** | ollama | GPU Inference | ✅ | Ollama with GPU passthrough |
 | **CT202** | n8n | Workflow Automation | ✅ | n8n workflows |
 
 ### Media Services

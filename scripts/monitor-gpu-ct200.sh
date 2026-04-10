@@ -1,5 +1,5 @@
 #!/bin/bash
-# GPU Monitoring Script for CT200 (ollama-gpu)
+# GPU Monitoring Script for CT200 (ollama)
 # Monitors temperature, memory usage, and alerts on high temps
 
 set -euo pipefail

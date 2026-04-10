@@ -105,7 +105,7 @@ AGLSRV1 is the main production Proxmox host running **68 containers and VMs** (4
 | 180 | dokploy | 192.168.0.180 | - | Deployment platform |
 | 202 | n8n-docker | 192.168.0.202 | - | Workflow automation |
 | 178 | aglfs1 | 192.168.0.178 | - | File server |
-| 200 | ollama-gpu | 192.168.0.200 | 100.116.57.111 | LLM GPU compute |
+| 200 | ollama | 192.168.0.200 | 100.116.57.111 | LLM GPU compute |
 
 **Stopped Development CTs**:
 - 174: agldv02 (48GB RAM) - Large dev environment
@@ -206,7 +206,7 @@ AGLSRV1 is the main production Proxmox host running **68 containers and VMs** (4
 ### Running Containers (37 total)
 
 **Memory Allocation**:
-- High (16GB): portainer, aping, plexmediaserver, aglfs1, dokploy, ollama-gpu
+- High (16GB): portainer, aping, plexmediaserver, aglfs1, dokploy, ollama
 - Medium (8GB): qbittorrent, mysql, redis, aldsys4, meshcentral, gameserver2, amp-server, n8n-docker
 - Low (4GB): radarr, sonarr, sabnzbd, autobrr, postgresql, aria2, homarr, overseerr
 - Minimal (2GB): pihole, tautulli, bazarr, cloudflared, wireguard, guac, observium, deluge, nginxproxy, prowlarr, cacheng
@@ -241,7 +241,7 @@ Complete *arr stack for automated media management:
 - **Environments**: agldv03 (CT179), agldv02 (stopped), agldv01 (stopped VM)
 - **Deployment**: dokploy (Docker orchestration)
 - **Automation**: n8n-docker (workflow)
-- **AI/ML**: ollama-gpu (LLM inference with GPU passthrough)
+- **AI/ML**: ollama (LLM inference with GPU passthrough)
 - **CI/CD**: az-agent1/2/3 (Azure DevOps - stopped)
 
 ### Network Services
@@ -315,7 +315,7 @@ Complete *arr stack for automated media management:
 **Utilization Rate**: 64% of deployed services actively running
 
 **High-Resource Consumers**:
-- ollama-gpu (16GB + GPU passthrough) - LLM inference
+- ollama (16GB + GPU passthrough) - LLM inference
 - agldv03 (48GB) - Main development container
 - plexmediaserver (16GB) - Media streaming
 - wazuh-app (16GB VM) - Security monitoring
@@ -380,7 +380,7 @@ AGLSRV1 (192.168.0.245)
    ├─ CT102 (pihole): 100.114.66.80
    ├─ CT138 (haos): 100.105.133.18
    ├─ CT179 (agldv03): 100.94.221.87
-   └─ CT200 (ollama-gpu): 100.116.57.111
+   └─ CT200 (ollama): 100.116.57.111
 ```
 
 ---

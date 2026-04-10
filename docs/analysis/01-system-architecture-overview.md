@@ -39,7 +39,7 @@ The agl-hostman system is a sophisticated **Proxmox-based infrastructure managem
 
 **Key Services**:
 - Development: CT179 (agldv03) - 48GB RAM, triple-stack networking
-- AI Infrastructure: CT183 (archon), CT200 (ollama-gpu)
+- AI Infrastructure: CT183 (archon), CT200 (ollama)
 - Deployment: CT180 (dokploy) - https://dok.aglz.io
 - Media Stack: CT113 (plex), CT121-124 (arr stack)
 - Infrastructure: CT102 (pihole DNS/DHCP)
@@ -183,7 +183,7 @@ The agl-hostman system is a sophisticated **Proxmox-based infrastructure managem
 | VMID | Name | IP | GPU | Purpose |
 |------|------|----|-----|---------|
 | **183** | **archon** | 192.168.0.183 | - | **AI Command Center (MCP)** |
-| 200 | ollama-gpu | 192.168.0.200 | ✅ NVIDIA | LLM compute (Tailscale: 100.116.57.111) |
+| 200 | ollama | 192.168.0.200 | ✅ NVIDIA | LLM compute (Tailscale: 100.116.57.111) |
 | 202 | n8n-docker | 192.168.0.202 | - | AI workflow automation |
 
 **CT183 (Archon)** - AI Command Center:

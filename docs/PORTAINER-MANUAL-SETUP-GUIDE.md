@@ -79,9 +79,9 @@ Public IP: (deixe em branco)
 ☑ Skip TLS Verification
 ```
 
-### **5. ollama2 (CT200)**
+### **5. ollama (CT200)**
 ```
-Name: ollama2
+Name: ollama
 Environment address: 192.168.0.200:9001
 Public IP: (deixe em branco)
 ☑ Skip TLS Verification
@@ -130,7 +130,7 @@ Após adicionar todos os 5 agents, você terá:
 | **dokploy** | **CT180** | **192.168.0.180:9001** | 🆕 **Adicionar** |
 | **archon** | **CT183** | **192.168.0.183:9001** | 🆕 **Adicionar** |
 | **n8n** | **CT202** | **192.168.0.202:9001** | 🆕 **Adicionar** |
-| **ollama2** | **CT200** | **192.168.0.200:9001** | 🆕 **Adicionar** |
+| **ollama** | **CT200** | **192.168.0.200:9001** | 🆕 **Adicionar** |
 
 **Total**: 8 environments (incluindo o Portainer local)
 
@@ -178,7 +178,7 @@ Após terminar, verifique:
 - [ ] dokploy (CT180) - Status verde
 - [ ] archon (CT183) - Status verde
 - [ ] n8n (CT202) - Status verde
-- [ ] ollama2 (CT200) - Status verde
+- [ ] ollama (CT200) - Status verde
 - [ ] Todos os containers visíveis no dashboard
 - [ ] Consegue start/stop containers via UI
 

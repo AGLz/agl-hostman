@@ -6,6 +6,7 @@
 *No tasks in progress*
 
 ## ✅ Concluído
+- [x] **TASK-INFRA-DOCS-CT200**: Documentação e scripts alinhados CT200 `ollama-gpu` → `ollama` + Portainer `ollama2` → `ollama` (2026-03-31)
 - [x] **TASK-001**: Research Laravel 12 best practices - DONE
 - [x] **TASK-002**: Research N8N integration patterns - DONE
 - [x] **TASK-003**: Backup existing src folder - DONE

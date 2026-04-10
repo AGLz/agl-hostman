@@ -85,7 +85,7 @@ This comprehensive security research report analyzes the current security postur
 - CT179 (agldv03): Development - 48GB RAM
 - CT183 (archon): AI Command Center + MCP (28 tools)
 - CT180 (dokploy): Deployment Platform
-- CT200 (ollama-gpu): GPU Inference
+- CT200 (ollama): GPU Inference
 - CT182 (harbor): Container Registry
 
 ---

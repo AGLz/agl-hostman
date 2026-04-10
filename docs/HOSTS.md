@@ -42,7 +42,7 @@
 
 - **Total VMs/CTs**: 68 (42 running, 26 stopped)
 - **Primary Dev Container**: CT179 (agldv03) - 48GB RAM
-- **AI Infrastructure**: CT183 (archon), CT200 (ollama-gpu)
+- **AI Infrastructure**: CT183 (archon), CT200 (ollama)
 - **Storage**:
   - local-zfs: 1.7TB
   - spark: 7.1TB (91.54% used)
@@ -55,7 +55,7 @@
 | DNS/DHCP | CT102 (pihole) | Primary DNS server |
 | Media | CT113 (plex), CT121-124 (arr stack) | Media automation |
 | Development | CT179 (agldv03), CT180 (dokploy) | 48GB dev container |
-| AI | CT183 (archon), CT200 (ollama-gpu), CT202 (n8n) | AI Command Center |
+| AI | CT183 (archon), CT200 (ollama), CT202 (n8n) | AI Command Center |
 | Monitoring | CT132 (observium), CT162 (meshcentral) | Infrastructure monitoring |
 
 ### Connection Commands

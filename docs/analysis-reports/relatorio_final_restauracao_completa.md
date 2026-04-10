@@ -54,7 +54,7 @@
 | 172 | prowlarr | Indexer Manager |
 | 176 | iventoy | PXE Boot Server |
 | 178 | aglfs1 | File Server |
-| 200 | ollama-gpu | AI/LLM Server |
+| 200 | ollama | AI/LLM Server |
 
 ### ⚠️ Containers Parados (5) - Necessitam Intervenção Manual
 | ID | Nome | Tamanho | Problema |

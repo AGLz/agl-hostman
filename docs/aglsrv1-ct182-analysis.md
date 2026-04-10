@@ -96,7 +96,7 @@ Root Filesystem (rpool/ROOT/pve-1):
 **Status Overview**:
 - **Total Containers**: 42
 - **Running**: 37 containers
-- **Stopped**: 5 containers (az-agent1/2/3, agldv02, ollama-gpu)
+- **Stopped**: 5 containers (az-agent1/2/3, agldv02, ollama)
 
 ### Containers in .180-.189 Range
 

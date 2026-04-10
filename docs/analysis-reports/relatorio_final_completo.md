@@ -43,7 +43,7 @@
 27. 172 - prowlarr
 28. 176 - iventoy
 29. 178 - aglfs1
-30. 200 - ollama-gpu
+30. 200 - ollama
 
 #### ⚠️ Containers com Problemas de Configuração (4)
 - **107** - jellyfin (8.8GB) - erro de spawn LXC

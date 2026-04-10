@@ -27,7 +27,7 @@
 | 4 | **CT180** | dokploy | 192.168.0.180:9001 | ✅ Rodando | ⏳ Adicionar manualmente |
 | 5 | **CT183** | archon | 192.168.0.183:9001 | ✅ Rodando | ⏳ Adicionar manualmente |
 | 6 | **CT202** | n8n-docker | 192.168.0.202:9001 | ✅ Rodando | ⏳ Adicionar manualmente |
-| 7 | **CT200** | ollama-gpu | 192.168.0.200:9001 | ✅ Rodando | ⏳ Adicionar manualmente |
+| 7 | **CT200** | ollama | 192.168.0.200:9001 | ✅ Rodando | ⏳ Adicionar manualmente |
 
 **Observação**: CT166 (aglwk51 - ID: 11) já existe no Portainer, mas não foi instalado nesta sessão.
 
@@ -55,7 +55,7 @@
 - **Status**: ✅ Resolvido
 
 ### **4. Docker Não Instalado (CT200)**
-- **Problema**: CT200 (ollama-gpu) sem Docker
+- **Problema**: CT200 (ollama) sem Docker
 - **Solução**: Instalado Docker via `curl -fsSL https://get.docker.com | sh`
 - **Status**: ✅ Resolvido
 
@@ -133,7 +133,7 @@ Navegue para: **Environments** → **+ Add environment** → **Docker Standalone
    - Environment address: `192.168.0.202:9001`
    - ☑ Skip TLS Verification
 
-5. **ollama2**
+5. **ollama**
    - Environment address: `192.168.0.200:9001`
    - ☑ Skip TLS Verification
 
@@ -212,7 +212,7 @@ Navegue para: **Environments** → **+ Add environment** → **Docker Standalone
 - [ ] CT180 (dokploy) - adicionar manualmente
 - [ ] CT183 (archon) - adicionar manualmente
 - [ ] CT202 (n8n) - adicionar manualmente
-- [ ] CT200 (ollama2) - adicionar manualmente
+- [ ] CT200 (ollama) - adicionar manualmente
 
 ### **Testes (Após Conexão)**
 - [ ] Todos os endpoints com status verde
@@ -243,7 +243,7 @@ Após adicionar todos os agents manualmente, você terá:
 6. dokploy - tcp://192.168.0.180:9001 - Status: UP ✓ [NOVO]
 7. archon - tcp://192.168.0.183:9001 - Status: UP ✓ [NOVO]
 8. n8n - tcp://192.168.0.202:9001 - Status: UP ✓ [NOVO]
-9. ollama2 - tcp://192.168.0.200:9001 - Status: UP ✓ [NOVO]
+9. ollama - tcp://192.168.0.200:9001 - Status: UP ✓ [NOVO]
 ```
 
 ---

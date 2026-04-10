@@ -1,6 +1,6 @@
 # Infrastructure Physical Topology and Network Architecture
 
-> **Last Updated**: 2025-11-08 | **Version**: 1.2.0
+> **Last Updated**: 2026-03-31 | **Version**: 1.2.1
 > **Reference**: Physical locations and network topology
 
 ---
@@ -46,7 +46,7 @@ The infrastructure is distributed across **4 physical locations**, each with its
 **AGLSRV1 (Main Production Host)**:
 - 68 containers/VMs (42 running, 26 stopped)
 - Development: CT179 (agldv03 - 48GB RAM), CT180 (dokploy)
-- AI Infrastructure: CT183 (Archon AI), CT200 (ollama-gpu), CT202 (n8n)
+- AI Infrastructure: CT183 (Archon AI), CT200 (ollama), CT202 (n8n)
 - DNS/DHCP: CT102 (pihole)
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 - Media: CT113 (plex), CT121-124 (arr stack)

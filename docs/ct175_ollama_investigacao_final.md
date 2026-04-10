@@ -74,7 +74,7 @@ Mount Points:
 ### CT 200 - Possível Substituto
 ```
 ID: 200
-Nome: ollama-gpu
+Nome: ollama
 Descrição: Ollama AI container with GPU passthrough
 Status: RUNNING
 Configuração:
@@ -85,7 +85,7 @@ Configuração:
 - Rootfs: 32GB (menor que o original)
 ```
 
-**HIPÓTESE**: O CT 200 (ollama-gpu) pode ser uma recriação/migração do CT 175 com melhorias (GPU passthrough).
+**HIPÓTESE**: O CT 200 (ollama) pode ser uma recriação/migração do CT 175 com melhorias (GPU passthrough).
 
 ## 🚨 CONCLUSÃO
 
@@ -95,7 +95,7 @@ Configuração:
 3. **Container Não Existe Mais**: Configuração e subvolumes deletados
 
 ### Possível Solução Já Implementada
-O **CT 200 (ollama-gpu)** parece ser a evolução/substituto do CT 175:
+O **CT 200 (ollama)** parece ser a evolução/substituto do CT 175:
 - Mesmo serviço (Ollama)
 - Melhorias implementadas (GPU)
 - Está operacional
@@ -151,5 +151,5 @@ pct restore 175 /var/lib/vz/dump/vzdump-lxc-200-*.tar.zst
 ---
 **Status Final**:
 - ❌ CT 175 irrecuperável
-- ✅ CT 200 (ollama-gpu) operacional como possível substituto
+- ✅ CT 200 (ollama) operacional como possível substituto
 - 📝 Recomendado verificar se CT 200 atende as necessidades

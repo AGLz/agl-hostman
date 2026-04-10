@@ -1,4 +1,4 @@
-# CT200 (ollama-gpu) - Next Steps Implementation Summary
+# CT200 (ollama) - Next Steps Implementation Summary
 
 **Date**: 2025-10-27
 **Duration**: ~45 minutes

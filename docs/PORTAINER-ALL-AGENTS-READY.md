@@ -16,7 +16,7 @@
 | **CT180** | dokploy | 192.168.0.180 | 10.6.0.20 | 9001 | ✅ Rodando |
 | **CT183** | archon | 192.168.0.183 | 10.6.0.21 | 9001 | ✅ Rodando |
 | **CT202** | n8n-docker | 192.168.0.202 | - | 9001 | ✅ Rodando |
-| **CT200** | ollama-gpu | 192.168.0.200 | 10.6.0.48 | 9001 | ✅ Rodando |
+| **CT200** | ollama | 192.168.0.200 | 10.6.0.48 | 9001 | ✅ Rodando |
 
 ---
 
@@ -92,9 +92,9 @@ Environment URL: 192.168.0.202:9001
 Public URL: (deixe em branco)
 ```
 
-#### **Agent 7: CT200 (ollama-gpu)**
+#### **Agent 7: CT200 (ollama)**
 ```
-Name: ollama-gpu
+Name: ollama
 Environment URL: 192.168.0.200:9001
 Public URL: (deixe em branco)
 ```
@@ -236,7 +236,7 @@ pct exec 179 -- iptables -A INPUT -p tcp --dport 9001 -j DROP
 - [x] CT180 (dokploy) - Agent instalado e rodando
 - [x] CT183 (archon) - Agent instalado e rodando
 - [x] CT202 (n8n-docker) - Agent instalado e rodando
-- [x] CT200 (ollama-gpu) - Agent instalado e rodando
+- [x] CT200 (ollama) - Agent instalado e rodando
 - [ ] Todos os agents conectados ao Portainer Server UI
 - [ ] Testado gerenciamento de containers via UI
 

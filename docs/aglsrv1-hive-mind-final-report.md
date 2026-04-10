@@ -102,7 +102,7 @@ Load Average: 8.21, 8.70, 8.86 (4.5x baseline for 8-core system)
 - ❌ `pve-container@999.service` - Config file missing (orphaned entry)
 
 **Stopped Containers**:
-- ❌ `pve-container@200.service` - CT200 (ollama-gpu) is intentionally stopped
+- ❌ `pve-container@200.service` - CT200 (ollama) is intentionally stopped
 - ❌ `zfs-snapshot-manager.service` - Needs investigation
 
 ---

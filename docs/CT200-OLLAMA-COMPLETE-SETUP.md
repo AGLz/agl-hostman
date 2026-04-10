@@ -756,7 +756,7 @@ response = ollama.generate(model="qwen2.5:32b", prompt=safe_prompt)
 #!/bin/bash
 # GPU monitoring for Ollama workloads
 
-LOG_FILE="/var/log/ollama-gpu-monitor.log"
+LOG_FILE="/var/log/ollama-monitor.log"
 INTERVAL=10  # seconds
 
 while true; do
