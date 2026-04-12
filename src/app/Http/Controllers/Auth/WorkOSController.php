@@ -6,28 +6,37 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use WorkOS\UserManagement;
 use WorkOS\WorkOS;
 
 class WorkOSController extends Controller
 {
-    protected WorkOS $workos;
-
-    public function __construct()
-    {
-        $this->workos = new WorkOS(config('services.workos.api_key'));
+    public function __construct(
+        protected UserManagement $userManagement
+    ) {
+        $apiKey = config('services.workos.api_key');
+        $clientId = config('services.workos.client_id');
+        if (is_string($apiKey) && $apiKey !== '') {
+            WorkOS::setApiKey($apiKey);
+        }
+        if (is_string($clientId) && $clientId !== '') {
+            WorkOS::setClientId($clientId);
+        }
     }
 
     /**
-     * Redirect to WorkOS OAuth provider
+     * Redirect to WorkOS OAuth provider (User Management / AuthKit).
      */
     public function redirect()
     {
-        $authorizationUrl = $this->workos->sso->getAuthorizationUrl([
-            'clientId' => config('services.workos.client_id'),
-            'redirectUri' => config('services.workos.redirect_uri'),
-            'provider' => 'authkit', // or specific provider like 'GoogleOAuth', 'MicrosoftOAuth'
-        ]);
+        $authorizationUrl = $this->userManagement->getAuthorizationUrl(
+            (string) config('services.workos.redirect_uri'),
+            null,
+            UserManagement::AUTHORIZATION_PROVIDER_AUTHKIT
+        );
 
         return redirect($authorizationUrl);
     }
@@ -38,47 +47,41 @@ class WorkOSController extends Controller
     public function callback(Request $request)
     {
         try {
-            // Get the code from the callback
             $code = $request->query('code');
 
             if (! $code) {
                 return redirect()->route('home')->withErrors(['error' => 'Authentication failed: No code provided']);
             }
 
-            // Exchange the code for a profile
-            $profile = $this->workos->sso->getProfileAndToken([
-                'code' => $code,
-                'clientId' => config('services.workos.client_id'),
-            ]);
+            $auth = $this->userManagement->authenticateWithCode(
+                (string) config('services.workos.client_id'),
+                (string) $code
+            );
 
-            // Extract user info from profile
-            $workosId = $profile->profile->id;
-            $email = $profile->profile->email;
-            $firstName = $profile->profile->firstName ?? '';
-            $lastName = $profile->profile->lastName ?? '';
-            $name = trim("$firstName $lastName") ?: $email;
+            $workosUser = $auth->user;
+            $workosId = $workosUser->id;
+            $email = $workosUser->email;
+            $firstName = $workosUser->firstName ?? '';
+            $lastName = $workosUser->lastName ?? '';
+            $name = trim("{$firstName} {$lastName}") ?: $email;
 
-            // Find or create user
             $user = User::firstOrCreate(
                 ['workos_id' => $workosId],
                 [
                     'name' => $name,
                     'email' => $email,
                     'email_verified_at' => now(),
-                    'workos_access_token' => $profile->accessToken ?? null,
-                    'workos_refresh_token' => $profile->refreshToken ?? null,
+                    'password' => Hash::make(Str::password(32)),
                 ]
             );
 
-            // Update tokens if user exists
             if (! $user->wasRecentlyCreated) {
                 $user->update([
-                    'workos_access_token' => $profile->accessToken ?? null,
-                    'workos_refresh_token' => $profile->refreshToken ?? null,
+                    'name' => $name,
+                    'email' => $email,
                 ]);
             }
 
-            // Log the user in
             Auth::login($user);
 
             Log::info('User authenticated via WorkOS', [
