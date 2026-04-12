@@ -38,11 +38,17 @@ return new class extends Migration
             }
         });
 
-        // Dokploy Applications indexes
+        // Dokploy Applications indexes (user_id/type podem não existir na migração base)
         Schema::table('dokploy_applications', function (Blueprint $table) {
-            $table->index(['user_id', 'created_at'], 'dokploy_apps_user_created_index');
-            $table->index(['type', 'status'], 'dokploy_apps_type_status_index');
-            $table->index(['project_id', 'created_at'], 'dokploy_apps_project_created_index');
+            if (Schema::hasColumn('dokploy_applications', 'user_id') && Schema::hasColumn('dokploy_applications', 'created_at')) {
+                $table->index(['user_id', 'created_at'], 'dokploy_apps_user_created_index');
+            }
+            if (Schema::hasColumn('dokploy_applications', 'type') && Schema::hasColumn('dokploy_applications', 'status')) {
+                $table->index(['type', 'status'], 'dokploy_apps_type_status_index');
+            }
+            if (Schema::hasColumn('dokploy_applications', 'project_id') && Schema::hasColumn('dokploy_applications', 'created_at')) {
+                $table->index(['project_id', 'created_at'], 'dokploy_apps_project_created_index');
+            }
         });
 
         // Dokploy Deployments indexes
@@ -124,8 +130,12 @@ return new class extends Migration
 
         // Dokploy Applications
         Schema::table('dokploy_applications', function (Blueprint $table) {
-            $table->dropIndex('dokploy_apps_user_created_index');
-            $table->dropIndex('dokploy_apps_type_status_index');
+            if (Schema::hasColumn('dokploy_applications', 'user_id')) {
+                $table->dropIndex('dokploy_apps_user_created_index');
+            }
+            if (Schema::hasColumn('dokploy_applications', 'type')) {
+                $table->dropIndex('dokploy_apps_type_status_index');
+            }
             $table->dropIndex('dokploy_apps_project_created_index');
         });
 
