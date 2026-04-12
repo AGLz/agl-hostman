@@ -13,10 +13,12 @@ return new class extends Migration
     {
         // Users table indexes
         Schema::table('users', function (Blueprint $table) {
-            // Email is already indexed by Laravel
-            // workos_id já tem índice em add_workos_fields_to_users_table
-            $table->index(['is_active', 'created_at'], 'users_active_created_index');
-            $table->index(['last_login_at'], 'users_last_login_index');
+            if (Schema::hasColumn('users', 'is_active')) {
+                $table->index(['is_active', 'created_at'], 'users_active_created_index');
+            }
+            if (Schema::hasColumn('users', 'last_login_at')) {
+                $table->index(['last_login_at'], 'users_last_login_index');
+            }
         });
 
         // LXC Containers indexes
@@ -28,10 +30,12 @@ return new class extends Migration
             $table->index(['is_template', 'auto_start'], 'containers_template_autostart_index');
         });
 
-        // Proxmox Servers indexes
+        // Proxmox Servers indexes (coluna: physical_location_id em create_proxmox_servers_table)
         Schema::table('proxmox_servers', function (Blueprint $table) {
             $table->index(['status', 'created_at'], 'proxmox_status_created_index');
-            $table->index(['location_id', 'status'], 'proxmox_location_status_index');
+            if (Schema::hasColumn('proxmox_servers', 'physical_location_id')) {
+                $table->index(['physical_location_id', 'status'], 'proxmox_location_status_index');
+            }
         });
 
         // Dokploy Applications indexes
@@ -93,8 +97,12 @@ return new class extends Migration
     {
         // Users table
         Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex('users_active_created_index');
-            $table->dropIndex('users_last_login_index');
+            if (Schema::hasColumn('users', 'is_active')) {
+                $table->dropIndex('users_active_created_index');
+            }
+            if (Schema::hasColumn('users', 'last_login_at')) {
+                $table->dropIndex('users_last_login_index');
+            }
         });
 
         // LXC Containers
@@ -109,7 +117,9 @@ return new class extends Migration
         // Proxmox Servers
         Schema::table('proxmox_servers', function (Blueprint $table) {
             $table->dropIndex('proxmox_status_created_index');
-            $table->dropIndex('proxmox_location_status_index');
+            if (Schema::hasColumn('proxmox_servers', 'physical_location_id')) {
+                $table->dropIndex('proxmox_location_status_index');
+            }
         });
 
         // Dokploy Applications
