@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -85,11 +85,21 @@ class RolesAndPermissionsSeeder extends Seeder
         // ========================================
 
         // Super Admin - Full System Access
-        $superAdmin = Role::create(['name' => 'super-admin']);
+        $superAdmin = Role::create([
+            'name' => 'super-admin',
+            'guard_name' => 'web',
+            'is_system' => true,
+            'description' => 'Full system access',
+        ]);
         $superAdmin->givePermissionTo(Permission::all());
 
         // Admin - Administrative Access
-        $admin = Role::create(['name' => 'admin']);
+        $admin = Role::create([
+            'name' => 'admin',
+            'guard_name' => 'web',
+            'is_system' => true,
+            'description' => 'Administrative access',
+        ]);
         $admin->givePermissionTo([
             // Dashboard
             'view-dashboard',
@@ -130,7 +140,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Operator - Infrastructure Operations
-        $operator = Role::create(['name' => 'operator']);
+        $operator = Role::create([
+            'name' => 'operator',
+            'guard_name' => 'web',
+            'is_system' => true,
+            'description' => 'Infrastructure operations',
+        ]);
         $operator->givePermissionTo([
             // Dashboard
             'view-dashboard',
@@ -153,7 +168,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Analyst - Read-Only with Predictions
-        $analyst = Role::create(['name' => 'analyst']);
+        $analyst = Role::create([
+            'name' => 'analyst',
+            'guard_name' => 'web',
+            'is_system' => true,
+            'description' => 'Analyst',
+        ]);
         $analyst->givePermissionTo([
             // Dashboard
             'view-dashboard',
@@ -175,7 +195,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Viewer - Basic Read-Only Access
-        $viewer = Role::create(['name' => 'viewer']);
+        $viewer = Role::create([
+            'name' => 'viewer',
+            'guard_name' => 'web',
+            'is_system' => true,
+            'description' => 'Read-only viewer',
+        ]);
         $viewer->givePermissionTo([
             // Dashboard (basic view)
             'view-dashboard',
@@ -184,6 +209,15 @@ class RolesAndPermissionsSeeder extends Seeder
             // Infrastructure (view only)
             'view-infrastructure',
         ]);
+
+        // Common — papel usado nos testes e legado (alinhado ao viewer)
+        $common = Role::create([
+            'name' => 'common',
+            'guard_name' => 'web',
+            'is_system' => true,
+            'description' => 'Common / basic access',
+        ]);
+        $common->syncPermissions($viewer->permissions);
 
         $this->command->info('Roles and permissions created successfully!');
         $this->command->info('Created roles: super-admin, admin, operator, analyst, viewer');

@@ -12,6 +12,8 @@
     "test:litellm:battery": "node scripts/litellm/litellm-full-battery.js",
     "test:litellm:battery:quick": "node scripts/litellm/litellm-full-battery.js --tier quick",
     "test:litellm:battery:dry": "node scripts/litellm/litellm-full-battery.js --dry-probe",
+    "sync:litellm:opt": "bash scripts/litellm/sync-litellm-repo-to-opt.sh",
+    "sync:litellm:opt:copy-only": "bash scripts/litellm/sync-litellm-repo-to-opt.sh --no-restart",
     "test:all": "node --test tests/api/ && node --test tests/integration/litellm-claude-flow.test.js && node tests/hive-mind/test-hive-mind-integration.js",
     "test:e2e": "playwright test",
     "seed:user": "node scripts/seed-test-user.js",

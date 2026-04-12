@@ -15,6 +15,7 @@ Contexto **TurboFlow / Ruflo** pode coexistir com **Cursor** (regras em `.cursor
 | Cursor + LiteLLM | `docs/CURSOR-LITELLM-INTEGRATION.md`; `cursor-composer*` → **gpt-5.4-mini**; aliases `openai/gpt-5.3-chat-latest` / `gpt-5.3-instant` → mesmo backend |
 | OpenClaw + Claude Code → LiteLLM local | `scripts/deploy-openclaw-config.sh` copia `config/openclaw/litellm-gateway-local.env` → `~/.openclaw/litellm-gateway.env` e aplica `openclaw-litellm-local.jq`; `.claude/settings.json` define `ANTHROPIC_BASE_URL` / `LITELLM_GATEWAY_URL` = `http://localhost:4000` |
 | OpenClaw (Windows, clone + pnpm) | `docs/OPENCLAW.md` — checkout em disco local (ex. `C:\Users\Administrator\src\openclaw`), `pnpm link --global`; não clonar em shares SMB (symlinks do pnpm). |
+| OpenClaw: JSON desde agldv03 + schedulers locais | `propagate-openclaw-from-agldv03.sh` (+ `AGLWK45_VIA_AGLSRV1=1`) ou `propagate-openclaw-to-aglwk45-qemu.sh`: **SSH AGLSRV1** + **qemu guest agent** VM104; sem `~/.openclaw/cron/`. Monitorização canónica no **agldv03** (`ops/runbooks/jarvis-operations.md`). |
 | Testes Node (raiz) | `tests/api/`, `tests/unit/`, `tests/integration/` — `npm test` |
 | Infra docs | `docs/INFRA.md`, `docs/README.md` |
 | Beads / bd | `.beads/`; fluxo em `AGENTS.md` |

@@ -83,4 +83,9 @@ describe('Authentication', function () {
         $response->assertRedirect('/');
         $this->assertGuest();
     });
+
+    it('expõe password.request e redireciona para o login', function () {
+        $this->get('/auth/forgot-password')
+            ->assertRedirect(route('login'));
+    });
 });

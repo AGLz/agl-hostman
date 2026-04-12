@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "updated": "2026-04-12",
+  "description": "Referência canónica para HTTP checks OpenClaw no agldv03 (CT179). Jobs agendados e Telegram de monitorização devem correr aí, não na AGLWK45. Validar portas no Proxmox (CT202).",
+  "antiFlapping": {
+    "consecutiveFailuresBeforeAlert": 3,
+    "minMinutesBetweenRepeatTelegram": 60,
+    "notes": "Evita flood no Telegram por falhas intermitentes do Tailscale; um único endpoint por serviço por job."
+  },
+  "endpoints": [
+    {
+      "id": "n8n-ct202-aglsrv1",
+      "name": "n8n",
+      "hostRole": "CT202 n8n-docker @ AGLSRV1",
+      "primary": "http://192.168.0.202:5678/healthz",
+      "fallbacks": [],
+      "notes": "LAN 192.168.0.202 desde AGLWK45 (mesma vmbr0). Se o CT publicar outra porta no host, ajustar. NUNCA usar 100.72.240.65 (cloudflared7). Doc INFRA não lista Tailscale do CT202; se existir, pode acrescentar aqui como fallback."
+    },
+    {
+      "id": "wg-easy-fgsrv6",
+      "name": "wg-easy",
+      "hostRole": "Docker wg-easy @ FGSRV6 (hub WireGuard)",
+      "primary": "http://10.6.0.5:51821/",
+      "fallbacks": ["http://100.83.51.9:51821/"],
+      "notes": "UI TCP 51821. Mesh 10.6.0.5 se houver rota WG desde o posto; senão Tailscale do FGSRV6 (100.83.51.9). Ver docs/INFRA.md e docs/research/fgsrv6-wireguard-webui-status-20251022.md."
+    },
+    {
+      "id": "litellm-agldv03",
+      "name": "LiteLLM readiness",
+      "hostRole": "CT179 agldv03",
+      "primary": "http://100.94.221.87:4000/health/readiness",
+      "fallbacks": ["http://192.168.0.179:4000/health/readiness"],
+      "notes": "Tailscale costuma ser o caminho preferido a partir da wk45; LAN como fallback."
+    }
+  ],
+  "doNotUseForTheseServices": [
+    {
+      "ip": "100.72.240.65",
+      "hostname": "fgsrv07-cloudflared7",
+      "role": "CT170 Cloudflare Tunnel em FGSRV7 (vmbr70 192.168.70.170)",
+      "reason": "Não aloja n8n nem wg-easy; checks nessas portas geram TIMEOUT e flood falso no Telegram."
+    }
+  ]
+}

@@ -1,10 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Http\Controllers\Admin\UserRoleController;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+covers(UserRoleController::class);
 
 beforeEach(function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+
     $admin = User::factory()->create([
         'email' => 'admin@test.com',
         'is_active' => true,
@@ -71,7 +84,7 @@ test('user can have multiple roles', function () {
 });
 
 test('admin can grant direct permission to user', function () {
-    $permission = Permission::where('name', 'containers.create')->first();
+    $permission = Permission::where('name', 'start-containers')->first();
 
     $response = $this->actingAs($this->admin)
         ->put(route('admin.users.permissions.update', $this->user), [
@@ -79,38 +92,37 @@ test('admin can grant direct permission to user', function () {
         ]);
 
     $response->assertRedirect();
-    $this->assertTrue($this->user->fresh()->hasPermissionTo('containers.create'));
+    $this->assertTrue($this->user->fresh()->hasPermissionTo('start-containers'));
 });
 
 test('direct permission is independent of role permissions', function () {
     // Give user 'common' role (read-only)
     $this->user->assignRole('common');
 
-    // Grant direct permission to create containers
-    $permission = Permission::where('name', 'containers.create')->first();
+    // Grant direct permission (common não inclui start-containers)
+    $permission = Permission::where('name', 'start-containers')->first();
 
     $this->actingAs($this->admin)
         ->put(route('admin.users.permissions.update', $this->user), [
             'permissions' => [$permission->id],
         ]);
 
-    // User should have the direct permission even though common role doesn't
-    $this->assertTrue($this->user->fresh()->hasPermissionTo('containers.create'));
+    $this->assertTrue($this->user->fresh()->hasPermissionTo('start-containers'));
 });
 
 test('admin can remove direct permission from user', function () {
-    $permission = Permission::where('name', 'containers.delete')->first();
+    $permission = Permission::where('name', 'delete-containers')->first();
     $this->user->givePermissionTo($permission);
 
     $response = $this->actingAs($this->admin)
         ->delete(route('admin.users.permissions.remove', [$this->user, $permission]));
 
     $response->assertRedirect();
-    $this->assertFalse($this->user->fresh()->hasPermissionTo('containers.delete'));
+    $this->assertFalse($this->user->fresh()->hasPermissionTo('delete-containers'));
 });
 
 test('user access summary shows all permissions from roles', function () {
-    $this->user->assignRole('advanced');
+    $this->user->assignRole('operator');
 
     $response = $this->actingAs($this->admin)
         ->get(route('admin.users.access', $this->user));
@@ -120,7 +132,7 @@ test('user access summary shows all permissions from roles', function () {
 });
 
 test('user access summary includes direct permissions', function () {
-    $permission = Permission::where('name', 'servers.manage')->first();
+    $permission = Permission::where('name', 'view-infrastructure')->first();
     $this->user->givePermissionTo($permission);
 
     $response = $this->actingAs($this->admin)
@@ -128,21 +140,21 @@ test('user access summary includes direct permissions', function () {
 
     $response->assertStatus(200);
     $allPermissions = $response->viewData('allPermissions');
-    $this->assertTrue($allPermissions->contains('name', 'servers.manage'));
+    $this->assertTrue($allPermissions->contains('name', 'view-infrastructure'));
 });
 
 test('inactive user permissions return false', function () {
     $this->user->assignRole('admin');
     $this->user->update(['is_active' => false]);
 
-    $this->assertFalse($this->user->hasPermissionTo('containers.create'));
+    $this->assertFalse($this->user->hasPermissionTo('start-containers'));
 });
 
 test('user with admin role has all permissions', function () {
     $this->user->assignRole('admin');
     $this->user->refresh();
 
-    $this->assertTrue($this->user->hasPermissionTo('containers.create'));
-    $this->assertTrue($this->user->hasPermissionTo('users.delete'));
-    $this->assertTrue($this->user->hasPermissionTo('infrastructure.network'));
+    $this->assertTrue($this->user->hasPermissionTo('start-containers'));
+    $this->assertTrue($this->user->hasPermissionTo('manage-users'));
+    $this->assertTrue($this->user->hasPermissionTo('view-infrastructure'));
 });

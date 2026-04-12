@@ -13,8 +13,10 @@ CHUNK = 1200
 # Barras à frente: evitam escapes \U no Python e são válidas no PowerShell
 GUEST_CJS = "C:/Users/Administrator/AppData/Local/Temp/wk45-sync-openclaw-litellm.cjs"
 GUEST_ENV = "C:/Users/Administrator/.openclaw/litellm-gateway.env"
+GUEST_SECRET = "C:/Users/Administrator/.openclaw/litellm-master.secret.env"
 GUEST_B64_CJS = "C:/Users/Administrator/AppData/Local/Temp/wk45-cjs.b64.txt"
 GUEST_B64_ENV = "C:/Users/Administrator/AppData/Local/Temp/wk45-env.b64.txt"
+GUEST_B64_SECRET = "C:/Users/Administrator/AppData/Local/Temp/wk45-secret.b64.txt"
 NODE_EXE = "C:/Program Files/nodejs/node.exe"
 
 
@@ -119,14 +121,26 @@ def main() -> int:
         f'LITELLM_GATEWAY_URL="{proxy}"\n'
         f'ANTHROPIC_BASE_URL="{proxy}"\n'
         f'LITELLM_MASTER_KEY="{key}"\n'
+        f'LITELLM_API_KEY="{key}"\n'
+        f'OPENAI_API_KEY="{key}"\n'
     )
     upload_b64_file(vmid, env_text.encode("utf-8"), GUEST_B64_ENV, GUEST_ENV)
+
+    # Alinha com Linux (~/.openclaw/litellm-master.secret.env): clientes OpenClaw / ferramentas que leem só API_KEY
+    secret_text = (
+        f'LITELLM_MASTER_KEY="{key}"\n'
+        f'LITELLM_API_KEY="{key}"\n'
+        f'OPENAI_API_KEY="{key}"\n'
+    )
+    upload_b64_file(vmid, secret_text.encode("utf-8"), GUEST_B64_SECRET, GUEST_SECRET)
 
     # Só o exit code do Node importa; openclaw restart é best-effort (PATH / serviço)
     run_js = (
         f"$kb = '{key_b64}'; "
         f"$k = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($kb)); "
         f"$env:LITELLM_MASTER_KEY = $k; "
+        f"$env:LITELLM_API_KEY = $k; "
+        f"$env:OPENAI_API_KEY = $k; "
         f"$env:LITELLM_PROXY_BASE_URL = '{proxy}'; "
         f"$cfg = 'C:\\Users\\Administrator\\.openclaw\\openclaw.json'; "
         f"if (-not (Test-Path $cfg)) {{ Write-Error 'Missing openclaw.json'; exit 2 }}; "

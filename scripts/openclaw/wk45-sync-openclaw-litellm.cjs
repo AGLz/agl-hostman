@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * Mesma lógica que config/openclaw/wk45-sync-openclaw-litellm.jq (sem jq no Windows).
+ * Equivalente a config/openclaw/openclaw-litellm-local.jq (sem jq no Windows).
+ * Substitui sk-litellm-default + localhost:4000, força models.providers.* → LiteLLM
+ * (remove dependência de ${ZAI_API_KEY}, ${OPENROUTER_API_KEY}, etc.).
+ *
  * Uso: LITELLM_MASTER_KEY=... LITELLM_PROXY_BASE_URL=http://100.94.221.87:4000 node wk45-sync-openclaw-litellm.cjs [openclaw.json]
  */
 'use strict';
@@ -57,6 +60,63 @@ function walk(node) {
 }
 
 walk(j);
+
+/**
+ * Alinha com config/openclaw/openclaw-litellm-local.jq: providers deixam de usar ${ZAI_API_KEY}
+ * e URLs directos — tudo via LiteLLM (master key + proxy).
+ */
+const LITELLM_PROVIDER_NAMES = [
+  'zai',
+  'anthropic',
+  'deepseek',
+  'google',
+  'openai',
+  'kimi',
+  'moonshot',
+  'qwen',
+  'openrouter',
+  'dashscope',
+];
+
+function patchProvidersForLitellm(providers) {
+  if (!providers || typeof providers !== 'object') {
+    return;
+  }
+  for (const name of LITELLM_PROVIDER_NAMES) {
+    const p = providers[name];
+    if (!p || typeof p !== 'object') {
+      continue;
+    }
+    p.baseUrl = proxyUrl;
+    p.apiKey = key;
+    if (name === 'zai') {
+      p.api = 'openai-completions';
+    }
+  }
+}
+
+if (j.models && j.models.providers) {
+  patchProvidersForLitellm(j.models.providers);
+}
+
+/** Evita aviso "plugin disabled but config is present" (ex.: Brave). */
+function pruneDisabledBravePlugin(plugins) {
+  if (!plugins || typeof plugins !== 'object' || !plugins.entries || typeof plugins.entries !== 'object') {
+    return;
+  }
+  const b = plugins.entries.brave;
+  if (!b || typeof b !== 'object') {
+    return;
+  }
+  const disabledTop = Array.isArray(plugins.disabled)
+    ? plugins.disabled.some((x) => /brave/i.test(String(x)))
+    : false;
+  if (disabledTop || b.disabled === true || b.enabled === false) {
+    delete plugins.entries.brave;
+  }
+}
+
+pruneDisabledBravePlugin(j.plugins);
 
 // OpenClaw ≥2026.3 exige models:[] em vários providers; jq/deploy pode criar só baseUrl/apiKey.
 const KIMI_MOONSHOT_MODELS = [

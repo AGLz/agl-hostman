@@ -29,6 +29,12 @@ write_kv() {
 
 : > "$CONF"
 
+# Reason: agldv03 com ~/.openclaw/litellm-gateway.env (localhost:4000) não tinha OPENCLAW_ENV_MODE no .zshrc —
+# o sync não injetava LITELLM_API_KEY → 401 no proxy (Virtual Key / token inválido).
+if [[ -f ~/.openclaw/litellm-gateway.env ]] && grep -qE 'localhost:4000|127\.0\.0\.1:4000' ~/.openclaw/litellm-gateway.env 2>/dev/null; then
+  export OPENCLAW_ENV_MODE=litellm
+fi
+
 set -a
 # Reason: litellm-gateway.env polui ANTHROPIC_BASE_URL / LITELLM_* — só em modo LiteLLM.
 if [[ "${OPENCLAW_ENV_MODE:-}" == "litellm" ]]; then
@@ -50,6 +56,15 @@ if [[ -f ~/.zshrc ]]; then
   rm -f "$_zex"
 fi
 set +a
+
+# Virtual Key LiteLLM: em agldv03 costuma estar só em /opt/litellm/.env (não no .zshrc).
+if [[ "${OPENCLAW_ENV_MODE:-}" == "litellm" && -z "${LITELLM_MASTER_KEY:-}" && -r /opt/litellm/.env ]]; then
+  LITELLM_MASTER_KEY="$(grep -m1 '^LITELLM_MASTER_KEY=' /opt/litellm/.env | cut -d= -f2- | tr -d '\r')"
+  LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY#\"}"
+  LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY%\"}"
+  LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY#\'}"
+  LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY%\'}"
+fi
 
 # Modo direct (OpenClaw → providers): não injectar proxy Anthropic nem URL DeepSeek errada.
 if [[ "${ANTHROPIC_BASE_URL:-}" == *":4000"* || "${ANTHROPIC_BASE_URL:-}" == *"litellm"* ]]; then

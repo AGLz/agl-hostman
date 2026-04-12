@@ -7,6 +7,10 @@
 #   AGLSRV1_HOST=root@192.168.0.245 LITELLM_MASTER_KEY='sk-...' bash scripts/openclaw/deploy-aglwk45-wk45-litellm-qemu.sh
 set -euo pipefail
 
+# Reason: a partir de agldv03 ou outro nó Tailscale, SSH direto a 100.x pode falhar no banner.
+OPENCLAW_SSH=(ssh -o ProxyCommand="tailscale nc %h %p" -o BatchMode=yes -o ConnectTimeout=25 -o StrictHostKeyChecking=accept-new)
+OPENCLAW_SCP=(scp -o ProxyCommand="tailscale nc %h %p" -o BatchMode=yes -o ConnectTimeout=25 -o StrictHostKeyChecking=accept-new)
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CJS="$REPO_ROOT/scripts/openclaw/wk45-sync-openclaw-litellm.cjs"
 PY="$REPO_ROOT/scripts/openclaw/vm104_guest_wk45_litellm_sync.py"
@@ -20,7 +24,7 @@ VMID="${AGLWK45_VMID:-104}"
 LITELLM_GATEWAY_SSH="${LITELLM_GATEWAY_SSH:-root@100.94.221.87}"
 if [[ -z "${LITELLM_MASTER_KEY:-}" ]]; then
   echo "=== A obter LITELLM_MASTER_KEY de $LITELLM_GATEWAY_SSH ==="
-  LITELLM_MASTER_KEY="$(ssh -o BatchMode=yes -o ConnectTimeout=20 "$LITELLM_GATEWAY_SSH" \
+  LITELLM_MASTER_KEY="$("${OPENCLAW_SSH[@]}" "$LITELLM_GATEWAY_SSH" \
     "grep ^LITELLM_MASTER_KEY= /opt/litellm/.env 2>/dev/null | cut -d= -f2-" || true)"
   export LITELLM_MASTER_KEY
   if [[ -z "$LITELLM_MASTER_KEY" ]]; then
@@ -31,7 +35,7 @@ if [[ -z "${LITELLM_MASTER_KEY:-}" ]]; then
 fi
 
 echo "=== Copiar scripts para $AGLSRV ==="
-scp -q "$CJS" "$PY" "$AGLSRV:/tmp/"
+"${OPENCLAW_SCP[@]}" -q "$CJS" "$PY" "$AGLSRV:/tmp/"
 
 echo "=== vm104_guest_wk45_litellm_sync (VMID=$VMID) ==="
 REMOTE=""
@@ -44,7 +48,7 @@ fi
 if [[ -n "${LITELLM_SSH_HOST:-}" ]]; then
   REMOTE+="export LITELLM_SSH_HOST=$(printf '%q' "$LITELLM_SSH_HOST"); "
 fi
-ssh "$AGLSRV" "${REMOTE}chmod +x /tmp/vm104_guest_wk45_litellm_sync.py && python3 /tmp/vm104_guest_wk45_litellm_sync.py $VMID /tmp/wk45-sync-openclaw-litellm.cjs"
+"${OPENCLAW_SSH[@]}" "$AGLSRV" "${REMOTE}chmod +x /tmp/vm104_guest_wk45_litellm_sync.py && python3 /tmp/vm104_guest_wk45_litellm_sync.py $VMID /tmp/wk45-sync-openclaw-litellm.cjs"
 
 echo "=== Concluído (aglwk45 VM$VMID) ==="
 echo "Na VM (sessão do utilizador que corre o gateway): openclaw gateway restart — o guest exec costuma não ter PATH para npm global."

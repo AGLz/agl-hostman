@@ -14,17 +14,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Active status and last login (dashboard queries)
-            $table->index(['is_active', 'last_login_at'], 'idx_users_active_login');
-
-            // WorkOS integration index
-            $table->index('workos_id', 'idx_users_workos_id');
-
-            // Email lookup (authentication)
+            // Colunas vêm de 2025_11_11_035503_add_workos_fields_to_users_table (ordem alfabética anterior a esta migração)
+            if (Schema::hasColumn('users', 'is_active') && Schema::hasColumn('users', 'last_login_at')) {
+                $table->index(['is_active', 'last_login_at'], 'idx_users_active_login');
+            }
+            if (Schema::hasColumn('users', 'workos_id')) {
+                $table->index('workos_id', 'idx_users_workos_id');
+            }
             $table->index('email', 'idx_users_email');
-
-            // Active status index
-            $table->index('is_active', 'idx_users_is_active');
+            if (Schema::hasColumn('users', 'is_active')) {
+                $table->index('is_active', 'idx_users_is_active');
+            }
         });
     }
 
@@ -34,10 +34,16 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex('idx_users_active_login');
-            $table->dropIndex('idx_users_workos_id');
+            if (Schema::hasColumn('users', 'is_active') && Schema::hasColumn('users', 'last_login_at')) {
+                $table->dropIndex('idx_users_active_login');
+            }
+            if (Schema::hasColumn('users', 'workos_id')) {
+                $table->dropIndex('idx_users_workos_id');
+            }
             $table->dropIndex('idx_users_email');
-            $table->dropIndex('idx_users_is_active');
+            if (Schema::hasColumn('users', 'is_active')) {
+                $table->dropIndex('idx_users_is_active');
+            }
         });
     }
 };

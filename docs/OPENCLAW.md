@@ -1,6 +1,6 @@
 # OpenClaw - Documentação AGL
 
-> **Last Updated**: 2026-03-24 | **Version doc**: 1.8.1
+> **Last Updated**: 2026-04-12 | **Version doc**: 1.8.2
 
 **OpenClaw** é uma plataforma de agente AI autônomo self-hosted. Funciona como assistente pessoal com suporte a múltiplos canais (Telegram, Slack, Discord, WhatsApp etc.), multi-agentes, roteamento de modelos e automação via LLMs.
 
@@ -230,6 +230,8 @@ Substituir em `bindings[].match.peer.id` o placeholder `-100REPLACE_WITH_TELEGRA
 **aglwk45 (Windows, VM104 no AGLSRV1)**: SSH ao Proxmox não expõe `openclaw` ao Windows; usar guest agent. Script `scripts/openclaw/deploy-aglwk45-openclaw-guest.sh` copia o fragmento para o host e executa `scripts/openclaw/vm104_guest_merge.py` (base64 em **chunks** para respeitar o limite de linha de comando do Windows). Requer `python3` no AGLSRV1 e `node` na VM104.
 
 **Sincronizar bundle wk45 → agldv03 (Telegram só no destino)**: `scripts/openclaw/sync-agldv03-openclaw-from-wk45-qemu.sh` — copia `vm104_guest_pack_openclaw.py` para o AGLSRV1, empacota `C:/Users/Administrator/.openclaw` na VM104 via `qm guest exec`, transfere o `.tgz` para o agldv03 e corre `apply-wk45-bundle-on-agldv03.sh`. Variáveis: `AGLSRV1_HOST`, `AGLDV03`, `AGLWK45_VMID`.
+
+**Monitorização HTTP / Telegram**: canónico no **agldv03** — `config/monitoring/jarvis-openclaw-http-endpoints.example.json` e `ops/runbooks/jarvis-operations.md`. AGLWK45: OpenClaw para outras funções; não duplicar schedulers de monitorização.
 
 ### Mudar modelo no chat (sem restart)
 
@@ -485,6 +487,21 @@ openclaw gateway restart
 
 ## 🔄 Sincronizar config para outros hosts
 
+**Fonte de verdade do `openclaw.json` em runtime:** **agldv03** (CT179). Para replicar **só o JSON** (modelos, canais, políticas) nos satélites **sem** sobrescrever schedulers: `~/.openclaw/cron/` **nunca** entra no sync.
+
+```bash
+# Propagar openclaw.json agldv03 → agldv04, agldv05, agldv07 (archon), agldv12, fgsrv06
+# Clientes LiteLLM: jq openclaw-litellm-client.jq; fgsrv06: fgsrv06-litellm.jq + env local
+DRY_RUN=1 bash scripts/openclaw/propagate-openclaw-from-agldv03.sh
+bash scripts/openclaw/propagate-openclaw-from-agldv03.sh
+
+# aglwk45 (Windows): SSH ao AGLSRV1 + QEMU guest agent na VM104
+AGLWK45_VIA_AGLSRV1=1 bash scripts/openclaw/propagate-openclaw-from-agldv03.sh
+# ou só VM104: bash scripts/openclaw/propagate-openclaw-to-aglwk45-qemu.sh
+```
+
+**Deploy patch do repositório** (merge `openclaw-patch.json`, não substitui o JSON inteiro do agldv03):
+
 ```bash
 # Deploy completo (config + zshrc) para agldv03 e fgsrv6
 ./scripts/deploy-openclaw-config.sh
@@ -539,7 +556,11 @@ Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; po
 | `config/openclaw/openclaw-litellm-local.jq` | Patch jq para providers → localhost:4000 |
 | `config/openclaw/fgsrv06-litellm.jq` | **fgsrv06**: mesmo que o local (LiteLLM no próprio host); **não** usar `100.94.221.87:4000` aqui |
 | `config/openclaw/litellm-gateway-local.env` | LITELLM_GATEWAY_URL + ANTHROPIC_BASE_URL → localhost:4000 (deploy copia para `~/.openclaw/litellm-gateway.env` em hosts com LiteLLM local) |
-| `config/openclaw/litellm-gateway-client.env` | Apenas agldv04/05/06 (sem proxy local): aponta ao agldv03 |
+| `config/openclaw/litellm-gateway-client.env` | Hosts sem LiteLLM local: aponta ao agldv03 |
+| `config/openclaw/openclaw-litellm-client.jq` | Satélites: `localhost:4000` → `100.94.221.87:4000` após copiar JSON do agldv03 |
+| `scripts/openclaw/propagate-openclaw-from-agldv03.sh` | **agldv03 →** agldv04, 05, 07, 12, fgsrv06; opcional **AGLWK45_VIA_AGLSRV1=1** → VM104 via AGLSRV1; **não** toca em `cron/` |
+| `scripts/openclaw/propagate-openclaw-to-aglwk45-qemu.sh` | Só **aglwk45**: `scp` + `vm104_guest_push_openclaw_json.py` no Proxmox (`AGLSRV1_HOST`, `AGLWK45_VMID`) |
+| `scripts/openclaw/vm104_guest_push_openclaw_json.py` | No **AGLSRV1**: `qm guest exec` — escreve `openclaw.json` completo no guest (backup `.bak.propagate-*`) |
 | `config/openclaw/zshrc-openclaw.env` | Vars para OpenClaw + LiteLLM (source no .zshrc) |
 | `scripts/openclaw/use-litellm-local.mjs` | Configura OpenClaw para LiteLLM local (Node, sem jq) |
 | `scripts/deploy-openclaw-config.sh` | Deploy para agldv03 + fgsrv6 |
@@ -564,6 +585,7 @@ Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; po
 | `scripts/openclaw/deploy-agldv03-openclaw-direct.sh` | **agldv03**: `git pull` no repo + `sync-openclaw-direct-host.sh` + restart `openclaw-gateway` (requer SSH de uma máquina com rota ao CT) |
 | `scripts/openclaw/apply-openclaw-direct-providers.py` | Substitui `models.providers` pelo template `openclaw-models-direct.providers.json` (merge com `ollama` local); opcional `--no-agl-primary-flash` |
 | `config/openclaw/openclaw-models-direct.providers.json` | Template providers direct (Z.AI Anthropic API, DeepSeek, Moonshot, DashScope, OpenRouter, Anthropic, Google, OpenAI) |
+| `scripts/openclaw/fix-openclaw-telegram-streaming.sh` | Corrige `channels.telegram.streaming` + remove `streamMode` legado (OpenClaw ≥ 2026.3.x) |
 | `scripts/openclaw/fix-openclaw-agldv03-fgsrv06.sh` | **agldv03 + fgsrv06**: regen `openclaw.conf` (`sync-systemd-openclaw-env.sh`), `chmod 600` em `openclaw.json`, restart `openclaw-gateway`. Opcional: `DOCTOR=1` (com timeout) para `openclaw doctor --yes` |
 | `scripts/openclaw/invoke-remote-openclaw-upgrade.sh` | **agldv03 + fgsrv06**: `npm install -g openclaw@latest` + `openclaw gateway install --force` + restart (usa `remote-openclaw-upgrade-gateway.sh` via scp) |
 | `scripts/openclaw/remote-openclaw-upgrade-gateway.sh` | Script copiado para `/tmp/` no host; não correr localmente (é para o tarball remoto) |
@@ -587,6 +609,7 @@ Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; po
 | `agents.list[N].id` required | Agentes precisam de `id`, não `name` | Usar `"id": "nome-agente"` |
 | `agents.list[N].description` inválido | Campo não existe no schema | Remover o campo `description` dos agentes |
 | `streamMode` inválido | Renomeado na v2026.2.x | Usar `streaming: "partial"` |
+| `channels.telegram.streaming: Invalid input` (TUI/doctor 2026.3.x) | Valor antigo ou `streamMode` legado | `openclaw doctor --fix` **ou** `bash scripts/openclaw/fix-openclaw-telegram-streaming.sh ~/.openclaw/openclaw.json` no host; valores válidos: `true`, `false`, `"off"`, `"partial"`, `"block"`, `"progress"` |
 | Modelo não aparece em `/model list` | Não está no `agents.defaults.models` | Adicionar ao bloco `models` no config e `gateway restart` |
 | `device signature invalid` no status | Token do config ≠ token do serviço em execução | `MOONSHOT_API_KEY=$KIMI_AUTH openclaw gateway install --force && restart` |
 | CLI **OpenClaw 2026.2.x** mas config/serviço **2026.3.x** (**fgsrv06** e hosts com NVM) | Dois installs globais: o **systemd --user** usa `node` do **NVM** (`~/.nvm/.../lib/node_modules/openclaw`); o `openclaw` no PATH pode ser o de **`/usr/lib`** (outro `npm -g`). | Atualizar **ambos**: `source ~/.nvm/nvm.sh && nvm use 24 && npm i -g openclaw@latest` e `/usr/bin/npm i -g openclaw@latest`; `export XDG_RUNTIME_DIR=/run/user/0` e `openclaw gateway install --force`; `systemctl --user restart openclaw-gateway`. Verificar: `systemctl --user status openclaw-gateway` e `openclaw --version`. |

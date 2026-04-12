@@ -1,10 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Http\Controllers\Admin\RolesController;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+covers(RolesController::class);
 
 beforeEach(function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+
     // Create admin user
     $admin = User::factory()->create([
         'email' => 'admin@test.com',
@@ -125,7 +138,7 @@ test('admin can assign permissions to role', function () {
         'is_system' => false,
     ]);
 
-    $permission = Permission::where('name', 'containers.view')->first();
+    $permission = Permission::where('name', 'view-infrastructure')->first();
 
     $response = $this->actingAs($this->admin)
         ->put(route('admin.roles.update', $role), [

@@ -1095,7 +1095,7 @@ litellm_settings:
   # Latência referência: qwen3.5-plus ~0.8s, deepseek ~1.4s, glm-flash ~1.6s, glm-5 ~2.4s
   fallbacks:
     # ============================================================
-    # Primário AGL: Ollama nemotron-3-nano:4b (CT200) → fallback glm-4.7-flash / Ollama qwen / cloud
+    # Primário AGL: alias agl-primary / ollama-nemotron (CT200) → glm-4.7-flash (Z.AI FREE, alinhado OpenClaw) → Ollama qwen / cloud
     # ============================================================
     - agl-primary: [glm-4.7-flash, ollama-qwen3-1.7b, ollama-qwen3-0.6b, qwen-coder, or-nemotron-free]
     - openai/ollama-nemotron-3-nano-4b: [glm-4.7-flash, ollama-qwen3-1.7b, ollama-qwen3-0.6b, qwen-coder, or-nemotron-free]

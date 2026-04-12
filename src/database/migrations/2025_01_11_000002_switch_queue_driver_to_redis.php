@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\Artisan;
 
 return new class extends Migration
 {
@@ -18,11 +17,13 @@ return new class extends Migration
         // Artisan::call('queue:clear');
         // Artisan::call('horizon:terminate');
 
-        echo "⚠️  MANUAL STEP REQUIRED:\n";
-        echo "1. Update .env: QUEUE_CONNECTION=redis\n";
-        echo "2. Run: php artisan config:clear\n";
-        echo "3. Run: php artisan horizon:terminate\n";
-        echo "4. Supervisor will auto-restart Horizon workers\n";
+        if (! app()->runningUnitTests()) {
+            echo "⚠️  MANUAL STEP REQUIRED:\n";
+            echo "1. Update .env: QUEUE_CONNECTION=redis\n";
+            echo "2. Run: php artisan config:clear\n";
+            echo "3. Run: php artisan horizon:terminate\n";
+            echo "4. Supervisor will auto-restart Horizon workers\n";
+        }
     }
 
     /**
@@ -30,9 +31,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        echo "⚠️  MANUAL STEP REQUIRED:\n";
-        echo "1. Update .env: QUEUE_CONNECTION=database\n";
-        echo "2. Run: php artisan config:clear\n";
-        echo "3. Run: php artisan horizon:terminate\n";
+        if (! app()->runningUnitTests()) {
+            echo "⚠️  MANUAL STEP REQUIRED:\n";
+            echo "1. Update .env: QUEUE_CONNECTION=database\n";
+            echo "2. Run: php artisan config:clear\n";
+            echo "3. Run: php artisan horizon:terminate\n";
+        }
     }
 };

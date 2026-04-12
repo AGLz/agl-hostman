@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const PATCH = path.join(__dirname, '../../config/openclaw/openclaw-patch.json');
 
-test('openclaw-patch.json é JSON válido e inclui defaults AGL (Z.AI flash)', () => {
+test('openclaw-patch.json é JSON válido e inclui defaults AGL (Ollama Nemotron + fallbacks)', () => {
   const patch = JSON.parse(fs.readFileSync(PATCH, 'utf8'));
 
   assert.strictEqual(patch.gateway?.mode, 'local');
@@ -16,9 +16,9 @@ test('openclaw-patch.json é JSON válido e inclui defaults AGL (Z.AI flash)', (
   assert.strictEqual(patch.channels?.defaults?.heartbeat?.showAlerts, true);
 
   const d = patch.agents?.defaults;
-  assert.strictEqual(d?.model?.primary, 'zai/glm-4.7-flash');
-  assert.strictEqual(d?.model?.fallbacks?.[0], 'openrouter/deepseek/deepseek-chat');
-  assert.ok(d?.model?.fallbacks?.includes('openrouter/z-ai/glm-4.5-air:free'));
+  assert.strictEqual(d?.model?.primary, 'openai/ollama-nemotron-3-nano-4b');
+  assert.strictEqual(d?.model?.fallbacks?.[0], 'zai/glm-4.7-flash');
+  assert.ok(d?.model?.fallbacks?.includes('openrouter/deepseek/deepseek-chat'));
   assert.ok(d?.model?.fallbacks?.includes('openrouter/meta-llama/llama-3.3-70b-instruct:free'));
   assert.ok(Array.isArray(d?.model?.fallbacks) && d.model.fallbacks.length >= 4);
 

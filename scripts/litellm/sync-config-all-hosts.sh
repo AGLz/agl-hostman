@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Sync LiteLLM config: agldv03 (base) → agldv04, agldv12, fgsrv06
 # Uso: ./scripts/litellm/sync-config-all-hosts.sh
+# No agldv03, antes de propagar: repo → /opt local com ./scripts/litellm/sync-litellm-repo-to-opt.sh
 # Ref: docs/LITELLM-MULTI-HOST-DEPLOYMENT.md
 
 set -e

@@ -6,7 +6,19 @@
 
 **Maintainer**: Sr.Big + Jarvis (self-documenting)
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-04-12
+
+---
+
+## Arquitetura (2026-04): monitorização vs AGLWK45
+
+| Papel | Host | Notas |
+|-------|------|--------|
+| **Monitorização HTTP / AI stack / alertas** | **agldv03** (CT179, `100.94.221.87`) | Schedulers OpenClaw (`openclaw cron`) e/ou systemd/cron Linux; scripts em `scripts/monitoring/` no repo |
+| **openclaw.json alinhado** | Satélites: agldv04, agldv05, agldv07, agldv12, fgsrv06, aglwk45 | `propagate-openclaw-from-agldv03.sh` (+ **`AGLWK45_VIA_AGLSRV1=1`** para VM104 via **SSH AGLSRV1** + **qemu guest agent**); **não** copia `~/.openclaw/cron/` |
+| **AGLWK45** | VM104 Windows | OpenClaw para **outras finalidades** (sem replicar os jobs de monitorização do agldv03); manter schedulers locais próprios |
+
+Sincronizar só a **config** (modelos, canais, políticas) desde agldv03: `bash scripts/openclaw/propagate-openclaw-from-agldv03.sh` (`DRY_RUN=1` para listar destinos). **aglwk45** requer passo manual (ver final desse script).
 
 ---
 
@@ -27,7 +39,7 @@
 | File | Purpose |
 |------|---------|
 | `C:\Users\Administrator\.openclaw\openclaw.json` | Main configuration |
-| `C:\Users\Administrator\.openclaw\cron\jobs.json` | Scheduled jobs |
+| `C:\Users\Administrator\.openclaw\cron\jobs.json` | Schedulers **locais** da VM104 (não substituir pelos do agldv03) |
 | `C:\Users\Administrator\.openclaw\workspace\` | Agent workspace |
 
 ### Model Configuration
@@ -37,18 +49,38 @@
 
 ---
 
-## Monitoring Jobs
+## Monitoring (agldv03 — canónico)
 
-### Active Cron Jobs
-| Job | Interval | Purpose | Script |
-|-----|----------|---------|--------|
-| **websites-monitor** | 15 min | 12 endpoints HTTP/HTTPS | `websites-monitor-final.ps1` |
-| **host-health-check** | 30 min | 4 hosts ping | Agent Turn |
-| **storage-health-check** | 1h | LiteLLM + storage | Agent Turn |
-| **ai-stack-health** | 1h | LiteLLM, n8n, wg-easy | Agent Turn |
-| **morning-briefing** | 8h | Infrastructure summary | Agent Turn |
+Os monitores **não** correm na AGLWK45; correm no **agldv03** (CT179). OpenClaw nesse host: `openclaw cron` e `~/.openclaw/cron/jobs.json` **só aqui** para jobs de infra.
 
-### Job Management
+### Referência de endpoints HTTP
+
+- **`config/monitoring/jarvis-openclaw-http-endpoints.example.json`** — URLs, anti-flood, erros comuns (**100.72.240.65** = cloudflared7).
+
+### HTTP checks canónicos (evitar falsos positivos)
+
+| Serviço | ❌ Erro comum | ✅ URL preferido (desde agldv03 / LAN AGL) | Fallback |
+|---------|----------------|--------------------------------------------|----------|
+| **n8n** (CT202) | `http://100.72.240.65:5679/...` | `http://192.168.0.202:5678/healthz` | Confirmar porta no CT202 |
+| **wg-easy** (FGSRV6) | Check em **100.72.240.65:51821** | `http://10.6.0.5:51821/` | `http://100.83.51.9:51821/` |
+| **LiteLLM** | — | `http://127.0.0.1:4000/health/readiness` (no CT179) ou `http://100.94.221.87:4000/...` | `http://192.168.0.179:4000/...` |
+
+**100.72.240.65** = **`fgsrv07-cloudflared7`** — não usar para n8n/wg-easy.
+
+**Boas práticas:** uma URL primária por serviço; anti-flapping — ver `antiFlapping` no JSON exemplo.
+
+### Job Management (Linux, agldv03)
+```bash
+ssh root@100.94.221.87
+openclaw cron list
+openclaw cron run --name "<nome>"
+```
+
+### Legado Windows (AGLWK45)
+
+`websites-monitor-final.ps1` no workspace Windows é **legado** se os mesmos checks já existirem no agldv03 — evitar **dois** emissores Telegram.
+
+### Job Management (Windows — schedulers locais VM104)
 ```bash
 # List all cron jobs
 openclaw cron list
@@ -126,7 +158,15 @@ openclaw cron run --name "websites-monitor"
 Get-Content "C:\Users\Administrator\.openclaw\cron\logs\*.log" -Tail 100
 ```
 
-### Issue 3: Model Connection Issues
+### Issue 3: Flood de alertas Telegram (monitor HTTP)
+
+**Sintomas**: mensagens repetidas com `TIMEOUT/UNREACHABLE` para n8n ou wg-easy em **100.72.240.65**.
+
+**Causa**: IP é o Tailscale do **cloudflared7** (FGSRV7), não o host dos serviços.
+
+**Resolução**: no **agldv03**, atualizar o job/script de monitorização com os URLs em `config/monitoring/jarvis-openclaw-http-endpoints.example.json`; aplicar limiar de falhas consecutivas antes de enviar Telegram. Na AGLWK45, remover ou desativar checks duplicados.
+
+### Issue 4: Model Connection Issues
 
 **Symptoms**:
 - "Model not available" errors
@@ -158,7 +198,7 @@ ping -n 1 192.168.0.200
 ssh root@192.168.0.245 "pct exec 179 -- systemctl restart litellm"
 ```
 
-### Issue 4: Memory/Performance Issues
+### Issue 5: Memory/Performance Issues
 
 **Symptoms**:
 - Slow responses
@@ -194,7 +234,7 @@ openclaw session_status
 ## Daily Operations
 
 ### Morning Briefing
-**Time**: 08:00 local (GMT-3)
+**Time**: 08:00 local (GMT-3) — job no **agldv03** (não na VM104)
 
 **Checks**:
 1. Host connectivity (AGLSRV1, AGLDV03, FGSRV6, AGLSRV6)
@@ -203,7 +243,7 @@ openclaw session_status
 4. Storage alerts
 5. AI stack status
 
-**Command**: `morning-briefing` cron job
+**Command**: `openclaw cron run --name "morning-briefing"` (no agldv03) ou equivalente agendado nesse host
 
 ### Daily Memory Logging
 **Purpose**: Track all work sessions
@@ -225,13 +265,12 @@ Body: {
 **Manual access**: `http://localhost:8000/daily-memory`
 
 ### Health Monitoring
-**Continuous checks**:
-- Websites: 12 endpoints every 15 min
-- Hosts: 4 hosts every 30 min
-- Storage: LiteLLM every 1h
-- AI stack: LiteLLM, n8n, wg-easy every 1h
+**Local canónico (agldv03)** — intervalos orientativos; ver `~/.openclaw/cron/jobs.json` nesse CT:
+- Websites / HTTP: vários endpoints (ex. 15 min)
+- Hosts: ping periódico
+- Storage / AI stack: LiteLLM, n8n, wg-easy (ex. 1 h)
 
-**Alerts**: Telegram notifications for failures
+**Alerts**: Telegram a partir dos jobs no **agldv03**; evitar o mesmo fluxo na AGLWK45.
 
 ---
 

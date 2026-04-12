@@ -1,6 +1,8 @@
 # Docker Compose for Local Development
 # AGL Hostman - Infrastructure Management Platform
 #
+# Host ports (evitar colisão com serviços locais): DB_PUBLISH_PORT, REDIS_PUBLISH_PORT
+#
 # Usage:
 #   docker compose up -d           # Start all services
 #   docker compose up app db       # Start specific services
@@ -33,7 +35,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./src:/var/www/html:cached
-      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
+      - ./src/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
     environment:
       - APP_NAME=${APP_NAME:-AGL-Hostman}
       - APP_ENV=${APP_ENV:-local}
@@ -64,19 +66,27 @@ services:
     networks:
       - agl-network
     healthcheck:
-      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      test:
+        [
+          "CMD",
+          "php",
+          "-r",
+          "exit(fsockopen('127.0.0.1',9000)!==false?0:1);",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
 
   # Nginx web server (sidecar for app)
+  # Portas: NGINX_PORT (dev local), NGINX_TUNNEL_PORT (ex.: Cloudflare → ah.aglz.io), NGINX_SSL_PORT (HTTPS local)
   nginx:
     image: nginx:1.25-alpine
     container_name: agl-hostman-nginx
     restart: unless-stopped
     ports:
       - "${NGINX_PORT:-8080}:80"
+      - "${NGINX_TUNNEL_PORT:-8055}:80"
       - "${NGINX_SSL_PORT:-8443}:443"
     volumes:
       - ./src:/var/www/html:cached
@@ -88,7 +98,7 @@ services:
     networks:
       - agl-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/up"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -101,8 +111,9 @@ services:
     image: postgres:16-alpine
     container_name: agl-hostman-db
     restart: unless-stopped
+    # Porta no host (app no Docker usa db:5432; DB_PUBLISH_PORT evita colisão com Postgres local)
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PUBLISH_PORT:-5432}:5432"
     environment:
       - POSTGRES_DB=${DB_DATABASE:-agl_hostman}
       - POSTGRES_USER=${DB_USERNAME:-agl_user}
@@ -127,9 +138,16 @@ services:
     image: redis:7-alpine
     container_name: agl-hostman-redis
     restart: unless-stopped
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    # Porta no host (app no Docker usa redis:6379; REDIS_PUBLISH_PORT evita colisão com Redis local)
     ports:
-      - "${REDIS_PORT:-6379}:6379"
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+      - "${REDIS_PUBLISH_PORT:-6379}:6379"
+    # Sem REDIS_PASSWORD: não passar --requirepass (Redis 7 rejeita requirepass vazio)
+    command:
+      - sh
+      - -c
+      - 'if [ -n "$$REDIS_PASSWORD" ]; then exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"; else exec redis-server --appendonly yes; fi'
     volumes:
       - redis-data:/data
     networks:

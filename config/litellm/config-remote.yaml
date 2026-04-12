@@ -1,6 +1,8 @@
 # LiteLLM Proxy - Claude-Flow Multi-Model & Fallback
 # Integração com agl-hostman (OpenClaw model list)
 # Ref: https://github.com/ruvnet/claude-flow/wiki/litellm-integration
+# Variante fgsrv06: deploy via scripts/litellm/deploy-litellm-host.sh (sed: Ollama → Tailscale CT200, Redis → host litellm-redis).
+# Base operacional agldv03: config/litellm/config.yaml — fundir alterações de modelo aqui quando possível.
 # Última atualização modelos: 2026-03-13
 # Env vars: ANTHROPIC_API_KEY, ZAI_API_KEY, MOONSHOT_API_KEY, DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, DASHSCOPE_API_KEY, GROQ_API_KEY, GROQ_API_KEY2 (opcional), CEREBRAS_API_KEY, OLLAMA_HOST (opcional; override api_base Ollama); primário FREE: GLM-4.7-Flash Z.AI
 #
@@ -1004,3 +1006,9 @@ cache_params:
   type: redis
   host: "litellm-redis"
   port: 6379
+
+# 🔧 Alias: openai/ollama-nemotron-3-nano-4b → Qwen-Plus (DashScope)
+- model_name: openai/ollama-nemotron-3-nano-4b
+  litellm_params:
+    model: dashscope/qwen-plus
+    api_key: $DASHSCOPE_API_KEY

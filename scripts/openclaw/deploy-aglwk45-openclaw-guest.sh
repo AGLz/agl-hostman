@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Merge agents.list na VM104 (aglwk45) via Python em AGLSRV1 + qm guest exec.
+# Para substituir o openclaw.json completo (sem cron/): propagate-openclaw-to-aglwk45-qemu.sh
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FRAG="$REPO_ROOT/config/openclaw/openclaw-agents-list.fragment.json"

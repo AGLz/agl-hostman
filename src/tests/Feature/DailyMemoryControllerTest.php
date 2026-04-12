@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\DailyMemoryController;
 use App\Models\DailySessionLog;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -13,6 +14,7 @@ covers(DailyMemoryController::class);
 
 beforeEach(function () {
     $this->withoutVite();
+    $this->withoutMiddleware(ValidateCsrfToken::class);
     $this->user = User::factory()->create();
 });
 

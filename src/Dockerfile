@@ -248,11 +248,11 @@ RUN apk add --no-cache \
     git \
     make
 
-# Install Xdebug for debugging and code coverage
-RUN apk add --no-cache $PHPIZE_DEPS \
-    && pecl install xdebug-3.3.0 \
+# Install Xdebug for debugging and code coverage (linux-headers: rtnetlink.h no Alpine para compilar)
+RUN apk add --no-cache $PHPIZE_DEPS linux-headers \
+    && pecl install xdebug-3.4.2 \
     && docker-php-ext-enable xdebug \
-    && apk del $PHPIZE_DEPS
+    && apk del $PHPIZE_DEPS linux-headers
 
 # Configure Xdebug for development and coverage
 RUN echo "xdebug.mode=debug,coverage,develop" >> /usr/local/etc/php/conf.d/xdebug.ini \

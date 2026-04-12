@@ -14,6 +14,10 @@ Route::prefix('auth')->group(function () {
         return view('auth.login');
     })->name('login');
 
+    Route::get('/forgot-password', function () {
+        return redirect()->route('login');
+    })->name('password.request');
+
     Route::get('/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
     Route::get('/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
     Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
