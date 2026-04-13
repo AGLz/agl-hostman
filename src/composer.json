@@ -71,6 +71,9 @@
         "test:feature": [
             "@php artisan test --testsuite=Feature --parallel --processes=4"
         ],
+        "test:feature-core": [
+            "@php artisan test tests/Feature/AuthenticationTest.php tests/Feature/DailyMemoryControllerTest.php tests/Feature/ExampleTest.php tests/Feature/LocationAccessTest.php tests/Feature/Rbac"
+        ],
         "test:integration": [
             "@php artisan test --testsuite=Integration --parallel --processes=2"
         ],

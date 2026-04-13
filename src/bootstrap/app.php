@@ -12,8 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
         then: function () {
-            Route::middleware('web')
-                ->group(base_path('routes/rbac-test.php'));
+            // Reason: rotas rbac-test expõem helpers sem auth adequada — só em ambiente local.
+            if (app()->environment('local')) {
+                Route::middleware('web')
+                    ->group(base_path('routes/rbac-test.php'));
+            }
 
             Route::middleware('web')
                 ->group(base_path('routes/location-test.php'));

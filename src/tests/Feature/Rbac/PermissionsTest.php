@@ -1,9 +1,18 @@
 <?php
 
+use App\Http\Controllers\Admin\PermissionsController;
 use App\Models\Permission;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+covers(PermissionsController::class);
 
 beforeEach(function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+
     $admin = User::factory()->create([
         'email' => 'admin@test.com',
         'is_active' => true,
@@ -76,7 +85,7 @@ test('duplicate permission cannot be created', function () {
             'description' => 'Duplicate permission',
         ]);
 
-    $response->assertSessionHasErrors();
+    $response->assertSessionHas('error');
 });
 
 test('permission can be filtered by module', function () {
@@ -94,7 +103,8 @@ test('permission can be searched', function () {
 });
 
 test('permission assigned to role cannot be deleted', function () {
-    $permission = Permission::where('name', 'containers.view')->first();
+    $permission = Permission::where('name', 'view-dashboard')->first();
+    expect($permission)->not->toBeNull();
 
     $response = $this->actingAs($this->admin)
         ->delete(route('admin.permissions.destroy', $permission));
@@ -102,7 +112,7 @@ test('permission assigned to role cannot be deleted', function () {
     $response->assertRedirect();
     $response->assertSessionHas('error');
     $this->assertDatabaseHas('permissions', [
-        'name' => 'containers.view',
+        'name' => 'view-dashboard',
     ]);
 });
 
