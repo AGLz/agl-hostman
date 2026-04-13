@@ -21,7 +21,7 @@ import {
     Activity,
     Cpu,
     HardDrive,
-    Memory,
+    MemoryStick,
     Network,
     Server,
     Zap,
@@ -352,7 +352,7 @@ function MetricsDashboard() {
             <div className="grid grid-cols-4 gap-4 mb-8">
                 {[
                     { key: 'cpu', icon: Cpu, label: 'CPU Usage' },
-                    { key: 'memory', icon: Memory, label: 'Memory' },
+                    { key: 'memory', icon: MemoryStick, label: 'Memory' },
                     { key: 'disk', icon: HardDrive, label: 'Disk I/O' },
                     { key: 'network', icon: Network, label: 'Network' }
                 ].map((metric) => (
