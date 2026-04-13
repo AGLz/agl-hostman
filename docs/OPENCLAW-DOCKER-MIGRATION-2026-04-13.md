@@ -267,3 +267,61 @@ networks:
 ---
 
 *Migration completa: 2026-04-13 12:13 UTC-03*
+
+---
+
+## Infra Access Configuration (2026-04-13 12:30-12:46 UTC-03)
+
+### Access Matrix
+
+| Access Type | Status | Details |
+|-------------|--------|---------|
+| **Internet** | ✅ | Exit via host NAT (IP: 191.183.137.104) |
+| **LiteLLM** | ✅ | 192.168.32.3:4000 (shared `litellm_litellm-net`) |
+| **LAN** | ✅ | Full LAN access via Docker bridge + host routing |
+| **Tailscale** | ✅ | Tailscale IPs reachable (fgsrv06, aglwk45, etc.) |
+| **SSH Remote** | ✅ | fgsrv06 verified working via Tailscale |
+| **Docker CLI** | ✅ | Socket mounted (ro), CLI installed in `openclaw:infra` image |
+| **WebUI** | ✅ | Port 28789, token auth |
+| **Telegram** | ✅ | @Jarvis3b3Bot connected and polling |
+| **Cron** | ✅ | 6/6 jobs running OK |
+| **Diagnostics** | ✅ | ping, nc, curl, wget installed |
+
+### Custom Image: `openclaw:infra`
+
+Built from `Dockerfile.openclaw`:
+- Base: `openclaw:local`
+- Added: `docker-ce-cli`, `iputils-ping`, `netcat-openbsd`, `openssh-client`
+- Docker socket group: `docker-host` (GID 997) added to `node` user
+
+### SSH Config in Container
+
+SSH config maps hostnames to Tailscale IPs:
+- `agldv03` → 100.94.221.87 (via Tailscale)
+- `fgsrv06` → 100.83.51.9
+- `aglwk45` → 100.117.146.21 (Administrator user)
+- `agldv12` → 100.71.217.115
+- `agldv04` → 100.113.9.98
+- `archon` → 100.80.30.59
+- etc.
+
+### Docker Compose Mounts
+
+| Host Path | Container Path | Purpose |
+|-----------|----------------|---------|
+| `${OPENCLAW_CONFIG_DIR}` | `/home/node/.openclaw` | OpenClaw config |
+| `${OPENCLAW_WORKSPACE_DIR}` | `/home/node/.openclaw/workspace` | Main workspace |
+| `./workspace-*` | `/home/node/.openclaw/workspace-*` | 33 agent workspaces |
+| `/var/run/docker.sock` | `/var/run/docker.sock:ro` | Docker management |
+| `/root/.ssh` | `/home/node/.ssh-host:ro` | SSH keys (read-only) |
+
+### Networks
+
+| Network | Container IP | Purpose |
+|---------|-------------|---------|
+| `openclaw-repo_default` | 192.168.x.x | Default Docker bridge |
+| `litellm_litellm-net` | 192.168.32.4 | LiteLLM proxy access |
+
+---
+
+*Infra access configured: 2026-04-13 12:46 UTC-03*
