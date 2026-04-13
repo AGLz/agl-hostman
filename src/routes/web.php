@@ -29,6 +29,14 @@ Route::middleware(['auth'])->group(function () {
         return view('app');
     })->name('dashboard');
 
+    // SPA catch-all routes — servem view('app') para que o BrowserRouter
+    // trate o routing do lado do cliente (evita 404/Inertia no refresh direto)
+    Route::get('/infrastructure', fn() => view('app'))->name('infrastructure');
+    Route::get('/metrics', fn() => view('app'))->name('metrics');
+    Route::get('/scrum', fn() => view('app'))->name('scrum');
+    Route::get('/memory', fn() => view('app'))->name('memory');
+    Route::get('/notifications', fn() => view('app'))->name('notifications');
+
     // Dokploy Dashboard (client-side route)
     Route::get('/dokploy', function () {
         return view('app');
@@ -116,23 +124,23 @@ Route::middleware(['auth'])->prefix('network')->name('network.')->group(function
 // Admin RBAC Routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     // Roles management - Read operations
-    Route::middleware(['permission:roles.view'])->prefix('roles')->name('roles.')->group(function () {
+    Route::middleware(['permission:view-roles'])->prefix('roles')->name('roles.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\RolesController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\Admin\RolesController::class, 'create'])->name('create');
         Route::get('/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'show'])->name('show');
     });
 
     // Roles management - Write operations
-    Route::middleware(['permission:roles.create'])->prefix('roles')->name('roles.')->group(function () {
+    Route::middleware(['permission:create-roles'])->prefix('roles')->name('roles.')->group(function () {
         Route::post('/', [\App\Http\Controllers\Admin\RolesController::class, 'store'])->name('store');
     });
 
-    Route::middleware(['permission:roles.edit'])->prefix('roles')->name('roles.')->group(function () {
+    Route::middleware(['permission:edit-roles'])->prefix('roles')->name('roles.')->group(function () {
         Route::get('/{role}/edit', [\App\Http\Controllers\Admin\RolesController::class, 'edit'])->name('edit');
         Route::put('/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])->name('update');
     });
 
-    Route::middleware(['permission:roles.delete'])->prefix('roles')->name('roles.')->group(function () {
+    Route::middleware(['permission:delete-roles'])->prefix('roles')->name('roles.')->group(function () {
         Route::delete('/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])->name('destroy');
     });
 
@@ -151,19 +159,22 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // User role & permission management
-    Route::middleware(['permission:users.assign_roles'])->prefix('users')->name('users.')->group(function () {
+    Route::middleware(['permission:assign-roles'])->prefix('users')->name('users.')->group(function () {
         Route::get('/{user}/roles', [\App\Http\Controllers\Admin\UserRoleController::class, 'editRoles'])->name('roles.edit');
         Route::put('/{user}/roles', [\App\Http\Controllers\Admin\UserRoleController::class, 'updateRoles'])->name('roles.update');
         Route::delete('/{user}/roles/{role}', [\App\Http\Controllers\Admin\UserRoleController::class, 'removeRole'])->name('roles.remove');
     });
 
-    Route::middleware(['permission:users.manage_permissions'])->prefix('users')->name('users.')->group(function () {
+    Route::middleware(['permission:assign-permissions'])->prefix('users')->name('users.')->group(function () {
         Route::get('/{user}/permissions', [\App\Http\Controllers\Admin\UserRoleController::class, 'editPermissions'])->name('permissions.edit');
         Route::put('/{user}/permissions', [\App\Http\Controllers\Admin\UserRoleController::class, 'updatePermissions'])->name('permissions.update');
         Route::delete('/{user}/permissions/{permission}', [\App\Http\Controllers\Admin\UserRoleController::class, 'removePermission'])->name('permissions.remove');
     });
 
-    Route::middleware(['permission:users.view'])->prefix('users')->name('users.')->group(function () {
+    Route::middleware(['permission:view-users'])->prefix('users')->name('users.')->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('dashboard');
+        })->name('roles');
         Route::get('/{user}/access', [\App\Http\Controllers\Admin\UserRoleController::class, 'showAccess'])->name('access');
     });
 });

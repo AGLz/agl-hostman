@@ -36,6 +36,7 @@ services:
     volumes:
       - ./src:/var/www/html:cached
       - ./src/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
+      - ./src/docker/php/zz-xdebug-override.ini:/usr/local/etc/php/conf.d/zz-xdebug-override.ini:ro
     environment:
       - APP_NAME=${APP_NAME:-AGL-Hostman}
       - APP_ENV=${APP_ENV:-local}
@@ -174,6 +175,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./src:/var/www/html:cached
+      - ./src/docker/php/zz-xdebug-override.ini:/usr/local/etc/php/conf.d/zz-xdebug-override.ini:ro
     environment:
       - APP_ENV=${APP_ENV:-local}
       - DB_CONNECTION=pgsql
@@ -187,8 +189,12 @@ services:
       - CACHE_DRIVER=redis
       - QUEUE_CONNECTION=redis
     depends_on:
-      - db
-      - redis
+      app:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - agl-network
     healthcheck:
@@ -212,10 +218,11 @@ services:
     command: php artisan reverb:start
     working_dir: /var/www/html
     ports:
-      - "${REVERB_PORT:-8080}:8080"
-      - "${REVERB_SSL_PORT:-8443}:8443"
+      - "${REVERB_PORT:-8081}:8080"
+      - "${REVERB_SSL_PORT:-8444}:8443"
     volumes:
       - ./src:/var/www/html:cached
+      - ./src/docker/php/zz-xdebug-override.ini:/usr/local/etc/php/conf.d/zz-xdebug-override.ini:ro
     environment:
       - APP_ENV=${APP_ENV:-local}
       - REVERB_APP_ID=${REVERB_APP_ID:-agl-hostman}
@@ -231,7 +238,8 @@ services:
     networks:
       - agl-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080 || exit 1"]
+      # Reverb é WebSocket — verifica apenas que o processo está ativo
+      test: ["CMD-SHELL", "pgrep -f 'reverb:start' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
