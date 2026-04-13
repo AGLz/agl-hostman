@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Confiar no proxy reverso (Cloudflare Tunnel, Nginx) para detectar HTTPS
+        // e o IP real do cliente via X-Forwarded-* headers
+        $middleware->trustProxies(at: '*');
+
         // Phase 5: RBAC & Performance Middleware Aliases
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
