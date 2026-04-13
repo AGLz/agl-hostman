@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
 # Build and Deploy OpenClaw with Docker
-# Uses FREE models from OpenRouter
-# Uso: ./scripts/deploy-openclaw-docker.sh [build|deploy|start|stop|logs]
+# Last Updated: 2026-04-13 (Docker migration)
+# Usage: ./scripts/deploy-openclaw-docker.sh [build|deploy|start|stop|logs|validate]
 
 set -e
 REPO_ROOT="/mnt/overpower/apps/dev/agl/openclaw-repo"
 HOSTMAN_ROOT="/mnt/overpower/apps/dev/agl/agl-hostman"
 
-# Hosts remotos com Docker
-HOSTS=(
-  "root@100.94.221.87"   # agldv03 (CT179)
-  "root@100.83.51.9"     # fgsrv06
-)
-
-COMMAND="${1:-build}"
+COMMAND="${1:-help}"
 
 # --- BUILD ---
 build_image() {
@@ -207,18 +201,26 @@ case "$COMMAND" in
     start_local
     test_local
     ;;
+  validate)
+    echo "=== Running OpenClaw Validation ==="
+    bash "$HOSTMAN_ROOT/scripts/openclaw/validate-openclaw-docker.sh" --verbose
+    echo ""
+    echo "=== Running Health vs Schedules ==="
+    bash "$HOSTMAN_ROOT/scripts/openclaw/health-vs-schedules.sh" --verbose
+    ;;
   *)
-    echo "Uso: $0 {build|deploy|start|stop|logs|remote|test|all}"
+    echo "Uso: $0 {build|deploy|start|stop|logs|remote|test|validate|all}"
     echo ""
     echo "Comandos:"
-    echo "  build  - Build Docker image"
-    echo "  deploy  - Deploy configuration files"
-    echo "  start   - Start containers locally"
-    echo "  stop    - Stop containers"
-    echo "  logs    - Show container logs"
-    echo "  remote  - Deploy to remote hosts"
-    echo "  test    - Test OpenClaw"
-    echo "  all     - Build, deploy, start, and test"
+    echo "  build     - Build Docker image"
+    echo "  deploy    - Deploy configuration files"
+    echo "  start     - Start containers locally"
+    echo "  stop      - Stop containers"
+    echo "  logs      - Show container logs"
+    echo "  remote    - Deploy to remote hosts"
+    echo "  test      - Test OpenClaw"
+    echo "  validate  - Run full validation suite"
+    echo "  all       - Build, deploy, start, and test"
     exit 1
     ;;
 esac

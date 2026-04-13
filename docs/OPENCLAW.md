@@ -1,13 +1,128 @@
 # OpenClaw - Documentação AGL
 
-> **Last Updated**: 2026-04-12 | **Version doc**: 1.8.2
+> **Last Updated**: 2026-04-13 | **Version doc**: 2.0.0 | **Status**: 🐳 Docker
+
+> ⚠️ **MIGRADO PARA DOCKER (2026-04-13)**: OpenClaw roda agora em container Docker (`openclaw-repo-openclaw-gateway-1`). O serviço systemd no host está **desativado**. Ver [Docker Migration](#-docker-migration-2026-04-13) para detalhes.
 
 **OpenClaw** é uma plataforma de agente AI autônomo self-hosted. Funciona como assistente pessoal com suporte a múltiplos canais (Telegram, Slack, Discord, WhatsApp etc.), multi-agentes, roteamento de modelos e automação via LLMs.
 
 - **Site**: https://openclaw.ai
 - **Docs**: https://docs.openclaw.ai
 - **GitHub**: https://github.com/openclaw/openclaw
-- **Config**: `~/.openclaw/openclaw.json`
+- **Container**: `openclaw-repo-openclaw-gateway-1` (porta 28789)
+- **Config**: `/mnt/overpower/apps/dev/agl/openclaw-repo/config/openclaw.json` (volume mapeado para `/home/node/.openclaw` no container)
+
+---
+
+## 🐳 Docker Migration (2026-04-13)
+
+OpenClaw migrado do host (systemd) para container Docker.
+
+### Arquitetura
+
+```
+┌─────────────────────────────────┐     ┌──────────────────────────────┐
+│ openclaw-repo-openclaw-gateway-1 │────▶│ litellm-proxy                │
+│ 172.30.0.2 + 192.168.32.4       │     │ 192.168.32.3                 │
+│ Portas: 28789, 28790            │     │ Port: 4000                   │
+│ Telegram: @JarvisWK45_bot       │     │ Provider: DashScope etc.     │
+│ Provider: openai@192.168.32.3   │     │ Network: litellm_litellm-net │
+│ Network: openclaw-repo_default  │     │                              │
+│         + litellm_litellm-net   │     │                              │
+└─────────────────────────────────┘     └──────────────────────────────┘
+```
+
+### Comandos Úteis
+
+```bash
+# Status do container
+docker ps --format '{{.Names}} {{.Status}}' | grep openclaw
+
+# Logs
+docker logs openclaw-repo-openclaw-gateway-1 --tail=30
+
+# Health check
+curl -s http://127.0.0.1:28789/healthz
+
+# Listar cron jobs
+docker exec openclaw-repo-openclaw-gateway-1 openclaw cron list
+
+# Testar LiteLLM do container
+docker exec openclaw-repo-openclaw-gateway-1 node -e '
+  fetch("http://192.168.32.3:4000/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "qwen3.5-flash",
+      messages: [{role: "user", content: "Say OK"}],
+      max_tokens: 10
+    })
+  }).then(r => r.json()).then(d => console.log(d.error ? "ERR" : "OK: " + d.choices[0].message.content))
+'
+
+# Restart
+cd /mnt/overpower/apps/dev/agl/openclaw-repo && docker compose restart
+
+# Full validation
+bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/openclaw/validate-openclaw-docker.sh
+```
+
+### Provider Configuration
+
+```json
+{
+  "models": {
+    "providers": {
+      "openai": {
+        "baseUrl": "http://192.168.32.3:4000",
+        "apiKey": "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0",
+        "api": "openai-completions",
+        "models": []
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openai/qwen3.5-flash",
+        "fallbacks": ["openai/qwen-flash"]
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "streaming": true
+    }
+  }
+}
+```
+
+### Cron Jobs
+
+| Job | Schedule | Status |
+|-----|----------|--------|
+| critical-services-monitor | every 5m | ✅ |
+| websites-monitor | every 15m | ✅ |
+| morning-briefing | every 8h | ✅ |
+| daily-maintenance | every 1d | ✅ |
+| daily-backup | every 1d | ✅ |
+| nightly-proactive-task | every 1d | ✅ |
+
+### Host Status
+
+- **systemd openclaw-gateway:** `disabled` ✅
+- **Host processes:** 0 ✅
+- **Docker container:** healthy ✅
+- **LiteLLM proxy:** healthy ✅
+- **Telegram bot:** @JarvisWK45_bot connected ✅
+
+---
 
 ### Modo direct (providers sem LiteLLM)
 
@@ -56,26 +171,35 @@ Sincronizado com docs oficiais: [Anthropic models](https://docs.anthropic.com/en
 
 ## 📦 Versões Instaladas
 
-| Host | Tailscale IP | Versão | Última Atualização |
-|------|-------------|--------|--------------------|
-| agldv03 (CT179) | 100.94.221.87 | **v2026.3.13** | 2026-03-21 |
-| fgsrv6 | 100.83.51.9 | **v2026.3.13** | 2026-03-21 |
+### Docker (agldv03 — Primary)
+
+| Componente | Versão | Status |
+|------------|--------|--------|
+| openclaw-repo-openclaw-gateway-1 | **v2026.3.27** | ✅ healthy |
+| litellm-proxy | latest | ✅ healthy |
+| litellm-db | postgres:16 | ✅ healthy |
+
+### Host (legado — DESATIVADO)
+
+| Host | Tailscale IP | Versão | Status |
+|------|-------------|--------|--------|
+| agldv03 (CT179) | 100.94.221.87 | v2026.4.9 | ❌ disabled |
+| fgsrv6 | 100.83.51.9 | v2026.3.13 | ❌ not migrated |
+
+> ⚠️ **O serviço systemd no host está desativado.** Toda operação deve ser feita via Docker.
 
 **Repo agl-hostman no agldv03**: `/mnt/overpower/apps/dev/agl/agl-hostman` (mesma árvore que `U:\apps\dev\agl\agl-hostman` na wk45 quando o drive está mapeado para overpower).
 
 **Versão instalada antes do update (histórico)**: v2026.1.29 (agldv03) / v2026.2.24 (fgsrv6)
 
-### Atualizar openclaw
+### Atualizar openclaw (Docker)
 
 ```bash
-source ~/.nvm/nvm.sh && nvm use 24.14.0   # ou a versão Node usada no gateway
-# Se `npm view openclaw version` mostrar versão antiga: cache npm desatualizado (ex. prefer-offline)
-npm cache clean --force
-npm install -g openclaw@latest
-openclaw --version
-# Alinhar o systemd ao binário global (evita /usr/lib/... ou Node antigo)
-openclaw gateway install --force
-systemctl --user daemon-reload && systemctl --user restart openclaw-gateway
+cd /mnt/overpower/apps/dev/agl/openclaw-repo
+git pull
+docker compose build 2>/dev/null  # se imagem precisa rebuild
+docker compose up -d
+docker ps --format '{{.Names}} {{.Status}}' | grep openclaw
 ```
 
 > **Nota**: `gateway install --force` pode regenerar `gateway.auth.token` e gravar backup em `~/.openclaw/openclaw.json.bak`. Clientes que usam o token antigo precisam do valor novo em `~/.openclaw/openclaw.json` ou novo *pairing*.
@@ -357,28 +481,31 @@ Providers que usam `models.providers` com `apiKey: "${VAR}"` e auth `yes` confir
 
 ---
 
-## 🔧 Gerenciamento do Daemon
+## 🔧 Gerenciamento (Docker)
 
 ```bash
 # Status
-openclaw status
-openclaw doctor
+docker ps --format '{{.Names}} {{.Status}}' | grep openclaw
+docker exec openclaw-repo-openclaw-gateway-1 openclaw status
+docker exec openclaw-repo-openclaw-gateway-1 openclaw doctor
 
-# Restart gateway (sem perder sessões)
-openclaw gateway restart
+# Restart
+docker compose -f /mnt/overpower/apps/dev/agl/openclaw-repo/docker-compose.yml restart
 
-# Ver logs
-openclaw logs gateway
+# Logs
+docker logs openclaw-repo-openclaw-gateway-1 --tail=50
 
-# Listar modelos disponíveis com status de auth
-openclaw models list
+# Health check
+curl -s http://127.0.0.1:28789/healthz
 
-# Testar model específico
-openclaw models test deepseek/deepseek-chat
+# Cron jobs
+docker exec openclaw-repo-openclaw-gateway-1 openclaw cron list
 
-# Dashboard web
-openclaw dashboard   # http://localhost:8080
+# Interactive shell
+docker exec -it openclaw-repo-openclaw-gateway-1 bash
 ```
+
+> ⚠️ **Comandos systemd (legado):** `systemctl --user` NÃO funciona mais. O serviço está disabled.
 
 ---
 
@@ -656,7 +783,9 @@ Alinhado à [Configuration Reference](https://docs.openclaw.ai/gateway/configura
 
 ---
 
-**Maintainer**: Claude Code (agl-hostman)
-**Config file**: `/root/.openclaw/openclaw.json`
-**Hosts**: agldv03 (primary), fgsrv6
-**Última atualização de modelos**: 2026-03-07 (GLM-5, GPT-5.3 Instant, Gemini 3.1 Pro, DeepSeek V3.2 unificado, Kimi K2.5/Thinking)
+**Maintainer**: OpenClaw Docker (agl-hostman)
+**Container**: `openclaw-repo-openclaw-gateway-1`
+**Compose**: `/mnt/overpower/apps/dev/agl/openclaw-repo/docker-compose.yml`
+**Config**: `/mnt/overpower/apps/dev/agl/openclaw-repo/config/openclaw.json`
+**Hosts**: agldv03 (Docker), fgsrv6 (pending migration)
+**Última atualização**: 2026-04-13 — Migrado para Docker + LiteLLM integration
