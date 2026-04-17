@@ -1,0 +1,20 @@
+---
+description: Diretrizes Karpathy (Think Before Coding, Simplicity, Surgical, Goal-Driven) — referência a CLAUDE.md
+globs:
+alwaysApply: true
+---
+
+## Karpathy Skills (Cursor)
+
+Texto completo e exemplos: **`CLAUDE.md`** → secção **«Karpathy Skills (diretrizes de comportamento em código)»** (fonte: [andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills)).
+
+### Checklist antes de implementar
+
+1. **Think Before Coding** — Assumptions explícitas; se houver várias leituras possíveis, apresentar; parar e perguntar se algo for ambíguo.
+2. **Simplicity First** — Só o pedido; sem abstrações ou “flexibilidade” extra não solicitada; reduzir se estiver demasiado longo.
+3. **Surgical Changes** — Não refatorar nem reformatar código adjacente só por hábito; alinhar ao estilo existente; limpar apenas órfãos introduzidos por ti.
+4. **Goal-Driven Execution** — Definir critério de sucesso verificável (teste, comando, checklist); plano curto com passo → verificação.
+
+### Hierarquia em caso de conflito
+
+Regras de stack e equipa deste repo (por exemplo **laravel-boost**, **primary-guide**, convenções em ficheiros irmãos) **prevalecem** sobre estes hábitos gerais quando estiverem em tensão (ex.: executar Pint/formatters onde o projeto o exige).

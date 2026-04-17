@@ -70,6 +70,7 @@ Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de s
 
 ## Normas de código
 
+- Comportamento de implementação para agentes: secção **Karpathy Skills** em `CLAUDE.md` e regra Cursor `.cursor/rules/karpathy-skills.mdc` (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution); em conflito com convenções do projeto, prevalecem as regras da stack (ex. Laravel Boost, `primary-guide.mdc`).
 - Ficheiros **&lt; 500 linhas** quando possível; dividir por responsabilidade.
 - Sem segredos no Git; usar env / gestão de secrets.
 - Validação nas fronteiras (HTTP, forms, paths — anti-traversal).

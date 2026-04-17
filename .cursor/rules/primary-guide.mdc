@@ -36,6 +36,7 @@ alwaysApply: true
 - **Confirm paths exist**
 - **Never delete code** unless instructed
 - **Update memories** in tool AND config
+- **Karpathy Skills** (comportamento de implementação): secção homónima em `CLAUDE.md` + `.cursor/rules/karpathy-skills.mdc`; se conflitar com regras de stack deste repo (ex. Laravel Boost), prevalecem as da stack
 
 ## 📋 Acceptance Criteria
 - **ALWAYS consult `ai-docs/planning/ACCEPTANCE_CRITERIA.md`**
