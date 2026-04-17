@@ -1,5 +1,6 @@
 import React from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { cn } from '@/lib/utils';
 
 /**
  * ConnectionStatus Component
@@ -148,9 +149,14 @@ export function ConnectionStatus({ position = 'top-right' }) {
  * Minimal ConnectionStatus Component
  *
  * Smaller version for tight spaces
+ * Shows status dot only - no text to avoid "Connecting..." stuck state
  */
 export function ConnectionStatusMini() {
-    const { isConnected, connectionState } = useWebSocket();
+    const { isConnected, connectionState } = useWebSocket({
+        enableReconnect: false,
+        reconnectInterval: 30000,
+        maxReconnectAttempts: 3,
+    });
 
     const getStatusColor = () => {
         switch (connectionState) {
@@ -158,19 +164,31 @@ export function ConnectionStatusMini() {
                 return 'bg-green-500';
             case 'connecting':
             case 'reconnecting':
-                return 'bg-yellow-500 animate-pulse';
+                return 'bg-yellow-500';
             case 'disconnected':
             case 'error':
-                return 'bg-red-500';
             default:
                 return 'bg-gray-500';
         }
     };
 
+    const getStatusText = () => {
+        switch (connectionState) {
+            case 'connected':
+                return 'Real-time: ON';
+            case 'connecting':
+            case 'reconnecting':
+                return 'Connecting...';
+            case 'disconnected':
+            case 'error':
+            default:
+                return 'Real-time: OFF';
+        }
+    };
+
     return (
-        <div className="flex items-center space-x-1" title={`Connection: ${connectionState}`}>
-            <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
-            <span className="text-xs text-gray-500">{connectionState}</span>
+        <div className="flex items-center space-x-1.5" title={getStatusText()}>
+            <div className={cn("w-2 h-2 rounded-full transition-colors duration-300", getStatusColor())} />
         </div>
     );
 }

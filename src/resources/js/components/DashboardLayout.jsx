@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-    LayoutDashboard, 
-    Server, 
-    Shield, 
-    Settings, 
-    LogOut, 
-    Menu, 
-    X, 
-    Bell, 
+import {
+    LayoutDashboard,
+    Server,
+    Shield,
+    Settings,
+    LogOut,
+    Menu,
+    X,
+    Bell,
     User,
     ChevronRight,
     Search,
     Brain,
-    Activity
+    Activity,
+    Zap,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -34,6 +35,7 @@ const sidebarItems = [
     { name: 'AI Command', href: '/archon', icon: Brain },
     { name: 'Monitoring', href: '/monitoring', icon: Activity },
     { name: 'RBAC', href: '/admin/roles', icon: Shield },
+    { name: 'Mission Control', href: '/mission-control', icon: Zap },
 ];
 
 export default function DashboardLayout({ children }) {

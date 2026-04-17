@@ -182,8 +182,9 @@ CRON_LIST=$(docker exec "$CONTAINER" openclaw cron list 2>&1 | grep -v "Config w
 if [ -z "$CRON_LIST" ]; then
     fail "No cron jobs returned from container"
 else
-    # Check each job
-    while IFS= read -r line; do
+    # Check each job (read com || evita exit 1 do último read com set -e)
+    while IFS= read -r line || [ -n "$line" ]; do
+        [ -z "$line" ] && continue
         JOB_NAME=$(echo "$line" | awk '{print $2}' | cut -d'.' -f1)
         JOB_STATUS=$(echo "$line" | grep -oE '(ok|error|running)' | head -1)
 
@@ -205,7 +206,8 @@ echo "📱 Telegram Bot"
 TELEGRAM_LOGS=$(docker logs "$CONTAINER" --tail=100 2>/dev/null | grep -i "telegram" | tail -5)
 
 if echo "$TELEGRAM_LOGS" | grep -qi "starting provider"; then
-    BOT_NAME=$(echo "$TELEGRAM_LOGS" | grep -o "@[a-zA-Z0-9_]*_bot" | tail -1)
+    # Reason: grep sem match retorna 1 e com set -e aborta o script
+    BOT_NAME=$(echo "$TELEGRAM_LOGS" | grep -oE '@[a-zA-Z0-9_]+' | tail -1 || true)
     if [ -n "$BOT_NAME" ]; then
         pass "Telegram bot connected: $BOT_NAME"
     else
@@ -261,9 +263,9 @@ echo "📅 Schedule Alignment"
 
 # Check if cron intervals match expected
 EXPECTED_INTERVALS=(
-    "critical-services-monitor:300000"
+    "critical-services-monitor:600000"
     "websites-monitor:900000"
-    "morning-briefing:28800000"
+    "morning-briefing:43200000"
     "daily-maintenance:86400000"
     "daily-backup:86400000"
     "nightly-proactive-task:86400000"

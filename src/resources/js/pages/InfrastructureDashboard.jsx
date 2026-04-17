@@ -15,8 +15,8 @@ import {
     Filler
 } from 'chart.js';
 import { format } from 'date-fns';
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
+// import Echo from 'laravel-echo'; // Disabled - no Reverb configured
+// import Pusher from 'pusher-js'; // Disabled - no Reverb configured
 import { 
     AlertCircle, 
     CheckCircle, 
@@ -50,7 +50,7 @@ ChartJS.register(
     Filler
 );
 
-window.Pusher = Pusher;
+// window.Pusher = Pusher; // Disabled
 
 function InfrastructureDashboard() {
     const [metrics, setMetrics] = useState({});
@@ -61,21 +61,7 @@ function InfrastructureDashboard() {
     const [autoRefresh, setAutoRefresh] = useState(true);
 
     useEffect(() => {
-        // Initialize Echo for real-time updates
-        const echo = new Echo({
-            broadcaster: 'pusher',
-            key: process.env.MIX_PUSHER_APP_KEY,
-            cluster: process.env.MIX_PUSHER_APP_CLUSTER,
-            forceTLS: true,
-            authEndpoint: '/broadcasting/auth'
-        });
-
-        // Subscribe to infrastructure channel
-        echo.private('infrastructure')
-            .listen('.status.updated', (e) => {
-                handleRealTimeUpdate(e);
-            });
-
+        // Echo/WebSocket disabled - no Reverb configured
         // Initial data fetch
         fetchInfrastructureData();
         fetchAnalytics();
@@ -88,7 +74,6 @@ function InfrastructureDashboard() {
 
         return () => {
             if (interval) clearInterval(interval);
-            echo.disconnect();
         };
     }, [autoRefresh]);
 

@@ -21,12 +21,13 @@ return new class extends Migration
             }
         });
 
-        // LXC Containers indexes
+        // LXC Containers indexes (evitar duplicar lxc_containers_server_status_index da migração base)
         Schema::table('lxc_containers', function (Blueprint $table) {
-            $table->index(['proxmox_server_id', 'status'], 'containers_server_status_index');
             $table->index(['status', 'created_at'], 'containers_status_created_index');
             $table->index('vmid', 'containers_vmid_index');
-            $table->index('hostname', 'containers_hostname_index');
+            if (Schema::hasColumn('lxc_containers', 'hostname')) {
+                $table->index('hostname', 'containers_hostname_index');
+            }
             $table->index(['is_template', 'auto_start'], 'containers_template_autostart_index');
         });
 
@@ -60,25 +61,24 @@ return new class extends Migration
             $table->index(['branch', 'created_at'], 'deployments_branch_created_index');
         });
 
-        // Container Health Logs indexes
-        Schema::table('container_health_logs', function (Blueprint $table) {
-            $table->index(['lxc_container_id', 'created_at'], 'health_logs_container_created_index');
-            $table->index(['lxc_container_id', 'is_healthy', 'created_at'], 'health_logs_container_health_created_index');
-            $table->index(['created_at'], 'health_logs_created_index');
-        });
+        // Container Health Logs indexes (schema base usa node_code/vmid/health_status)
+        if (Schema::hasColumn('container_health_logs', 'lxc_container_id')) {
+            Schema::table('container_health_logs', function (Blueprint $table) {
+                $table->index(['lxc_container_id', 'created_at'], 'health_logs_container_created_index');
+                if (Schema::hasColumn('container_health_logs', 'is_healthy')) {
+                    $table->index(['lxc_container_id', 'is_healthy', 'created_at'], 'health_logs_container_health_created_index');
+                }
+                $table->index(['created_at'], 'health_logs_created_index');
+            });
+        }
 
-        // Performance Trends indexes
-        Schema::table('performance_trends', function (Blueprint $table) {
-            $table->index(['resource_type', 'resource_id', 'recorded_at'], 'perf_trends_resource_recorded_index');
-            $table->index(['recorded_at'], 'perf_trends_recorded_index');
-            $table->index(['metric_type', 'recorded_at'], 'perf_trends_metric_recorded_index');
-        });
+        // Performance Trends: schema base usa metric_type/node_code/vmid/recorded_at (sem resource_*);
+        // índices compostos já existem em create_performance_trends_table — não duplicar aqui.
 
-        // Audit Logs indexes
+        // Audit Logs indexes (schema: model_type/model_id, não resource_*)
         Schema::table('audit_logs', function (Blueprint $table) {
             $table->index(['user_id', 'created_at'], 'audit_logs_user_created_index');
             $table->index(['action', 'created_at'], 'audit_logs_action_created_index');
-            $table->index(['resource_type', 'resource_id'], 'audit_logs_resource_index');
             $table->index(['ip_address', 'created_at'], 'audit_logs_ip_created_index');
         });
 
@@ -136,7 +136,9 @@ return new class extends Migration
             if (Schema::hasColumn('dokploy_applications', 'type')) {
                 $table->dropIndex('dokploy_apps_type_status_index');
             }
-            $table->dropIndex('dokploy_apps_project_created_index');
+            if (Schema::hasColumn('dokploy_applications', 'project_id') && Schema::hasColumn('dokploy_applications', 'created_at')) {
+                $table->dropIndex('dokploy_apps_project_created_index');
+            }
         });
 
         // Dokploy Deployments
@@ -149,24 +151,20 @@ return new class extends Migration
         });
 
         // Container Health Logs
-        Schema::table('container_health_logs', function (Blueprint $table) {
-            $table->dropIndex('health_logs_container_created_index');
-            $table->dropIndex('health_logs_container_health_created_index');
-            $table->dropIndex('health_logs_created_index');
-        });
-
-        // Performance Trends
-        Schema::table('performance_trends', function (Blueprint $table) {
-            $table->dropIndex('perf_trends_resource_recorded_index');
-            $table->dropIndex('perf_trends_recorded_index');
-            $table->dropIndex('perf_trends_metric_recorded_index');
-        });
+        if (Schema::hasColumn('container_health_logs', 'lxc_container_id')) {
+            Schema::table('container_health_logs', function (Blueprint $table) {
+                $table->dropIndex('health_logs_container_created_index');
+                if (Schema::hasColumn('container_health_logs', 'is_healthy')) {
+                    $table->dropIndex('health_logs_container_health_created_index');
+                }
+                $table->dropIndex('health_logs_created_index');
+            });
+        }
 
         // Audit Logs
         Schema::table('audit_logs', function (Blueprint $table) {
             $table->dropIndex('audit_logs_user_created_index');
             $table->dropIndex('audit_logs_action_created_index');
-            $table->dropIndex('audit_logs_resource_index');
             $table->dropIndex('audit_logs_ip_created_index');
         });
 

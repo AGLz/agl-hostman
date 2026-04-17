@@ -15,8 +15,8 @@ import {
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { format } from 'date-fns';
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
+// import Echo from 'laravel-echo'; // Disabled - no Reverb configured
+// import Pusher from 'pusher-js'; // Disabled - no Reverb configured
 import { 
     Activity,
     Cpu,
@@ -49,7 +49,7 @@ ChartJS.register(
     TimeScale
 );
 
-window.Pusher = Pusher;
+// window.Pusher = Pusher; // Disabled
 
 function MetricsDashboard() {
     const [metrics, setMetrics] = useState({
@@ -72,20 +72,7 @@ function MetricsDashboard() {
     const MAX_DATA_POINTS = 100;
 
     useEffect(() => {
-        // Initialize Echo for real-time updates
-        echoRef.current = new Echo({
-            broadcaster: 'pusher',
-            key: process.env.MIX_PUSHER_APP_KEY,
-            cluster: process.env.MIX_PUSHER_APP_CLUSTER,
-            forceTLS: true,
-            authEndpoint: '/broadcasting/auth'
-        });
-
-        // Subscribe to metrics channel
-        echoRef.current.private('metrics')
-            .listen('.metric.update', handleMetricUpdate)
-            .listen('.alert.triggered', handleAlert);
-
+        // Echo/WebSocket disabled - no Reverb configured
         // Initial data fetch
         fetchMetricsData();
 
@@ -96,9 +83,6 @@ function MetricsDashboard() {
 
         return () => {
             if (interval) clearInterval(interval);
-            if (echoRef.current) {
-                echoRef.current.disconnect();
-            }
         };
     }, [timeRange, autoUpdate]);
 

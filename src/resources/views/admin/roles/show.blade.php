@@ -14,7 +14,7 @@
             @endif
         </div>
         <div class="flex space-x-3">
-            @can('roles.edit')
+            @can('edit-roles')
                 <a href="{{ route('admin.roles.edit', $role) }}"
                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded">
                     Edit Role

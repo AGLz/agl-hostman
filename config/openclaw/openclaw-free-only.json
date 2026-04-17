@@ -39,20 +39,18 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "zai/glm-4.7-flash",
+        "primary": "qwen/qwen3.5-flash",
         "fallbacks": [
+          "qwen/qwen-flash",
           "qwen/qwen-coder",
-          "qwen/qwen3.5-plus",
           "qwen/qwen-turbo",
-          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
-          "openrouter/minimax/minimax-m2.5:free",
+          "openrouter/z-ai/glm-4.5-air:free",
           "openrouter/meta-llama/llama-3.3-70b-instruct:free",
-          "openrouter/stepfun/step-3.5-flash:free",
           "openrouter/google/gemma-3-4b-it:free"
         ]
       },
       "imageModel": {
-        "primary": "zai/glm-4.7-flash",
+        "primary": "qwen/qwen3.5-flash",
         "fallbacks": [
           "openrouter/google/gemma-3-4b-it:free"
         ]
@@ -60,15 +58,14 @@
       "timeoutSeconds": 600,
       "maxConcurrent": 3,
       "models": {
-        "zai/glm-4.7-flash": { "alias": "glm-flash", "free": true },
-        "zai/glm-4.5-flash": { "alias": "glm-flash-45", "free": true },
+        "qwen/qwen3.5-flash": { "alias": "qwen3.5-flash", "free": true },
+        "qwen/qwen-flash": { "alias": "qwen-flash", "free": true },
         "qwen/qwen-coder": { "alias": "qwen-coder", "free": true },
-        "qwen/qwen3.5-plus": { "alias": "qwen-plus", "free": true },
+        "qwen/qwen3-coder-flash": { "alias": "qwen3-coder-flash", "free": true },
         "qwen/qwen-turbo": { "alias": "qwen-turbo", "free": true },
-        "openrouter/nvidia/nemotron-3-super-120b-a12b:free": { "alias": "nemotron-free", "free": true },
-        "openrouter/minimax/minimax-m2.5:free": { "alias": "minimax-free", "free": true },
-        "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "llama-free", "free": true },
-        "openrouter/stepfun/step-3.5-flash:free": { "alias": "step-free", "free": true },
+        "qwen/qwq-plus": { "alias": "qwq-plus", "free": true },
+        "openrouter/z-ai/glm-4.5-air:free": { "alias": "or-glm-air-free", "free": true },
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "or-llama-free", "free": true },
         "openrouter/google/gemma-3-4b-it:free": { "alias": "gemma-free", "free": true },
         "openrouter/google/gemma-3-12b-it:free": { "alias": "gemma-12b-free", "free": true },
         "openrouter/google/gemma-3-27b-it:free": { "alias": "gemma-27b-free", "free": true },

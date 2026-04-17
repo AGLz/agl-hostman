@@ -49,6 +49,11 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
+     * Nível de output buffering após parent::setUp() (para fechar buffers extra ao fim do teste).
+     */
+    protected int $outputBufferLevelAfterSetUp = 0;
+
+    /**
      * Setup the test environment before each test.
      *
      * This method is called before each test method and sets up:
@@ -59,6 +64,8 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->outputBufferLevelAfterSetUp = ob_get_level();
 
         // Setup parallel test database if enabled
         if ($this->shouldUseParallelDatabase()) {
@@ -91,6 +98,10 @@ abstract class TestCase extends BaseTestCase
         }
 
         parent::tearDown();
+
+        while (ob_get_level() > $this->outputBufferLevelAfterSetUp) {
+            ob_end_clean();
+        }
     }
 
     /**

@@ -13,13 +13,12 @@
         "id": "infra",
         "workspace": "~/.openclaw/workspace-infra",
         "model": {
-          "primary": "zai/glm-4.7-flash",
+          "primary": "dashscope/qwen-coder",
           "fallbacks": [
-            "deepseek",
-            "or-llama-free",
-            "or-glm-air-free",
-            "glm",
-            "qwen-plus"
+            "dashscope/qwen3.5-flash",
+            "dashscope/qwen-plus",
+            "openrouter/z-ai/glm-4.5-air:free",
+            "deepseek"
           ]
         },
         "groupChat": {
@@ -30,12 +29,12 @@
         "id": "storage",
         "workspace": "~/.openclaw/workspace-storage",
         "model": {
-          "primary": "zai/glm-4.7-flash",
+          "primary": "dashscope/qwen-coder",
           "fallbacks": [
+            "dashscope/qwen3.5-flash",
+            "dashscope/qwen-plus",
             "deepseek",
-            "or-llama-free",
-            "gemini-lite",
-            "glm"
+            "gemini-lite"
           ]
         },
         "groupChat": {
@@ -46,8 +45,8 @@
         "id": "harbor",
         "workspace": "~/.openclaw/workspace-harbor",
         "model": {
-          "primary": "zai/glm-4.7-flash",
-          "fallbacks": ["deepseek", "or-llama-free", "glm"]
+          "primary": "dashscope/qwen-coder",
+          "fallbacks": ["dashscope/qwen3.5-flash", "dashscope/qwen-plus", "deepseek"]
         },
         "groupChat": {
           "mentionPatterns": ["@harbor", "\\bregistry\\b", "\\bharbor\\b"]
@@ -57,8 +56,8 @@
         "id": "net",
         "workspace": "~/.openclaw/workspace-net",
         "model": {
-          "primary": "zai/glm-4.7-flash",
-          "fallbacks": ["deepseek", "or-llama-free", "gemini-lite"]
+          "primary": "dashscope/qwen-coder",
+          "fallbacks": ["dashscope/qwen3.5-flash", "dashscope/qwen-plus", "deepseek", "gemini-lite"]
         },
         "groupChat": {
           "mentionPatterns": ["@net", "\\bwg\\b", "\\btailscale\\b"]

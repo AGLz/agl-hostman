@@ -1,48 +1,83 @@
 <?php
 
+use App\Http\Controllers\Auth\LocalAuthController;
 use App\Http\Controllers\Auth\WorkOSController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
-    return view('app');
+    return redirect('/auth/login');
 })->name('home');
 
-// WorkOS Authentication
+// Authentication
 Route::prefix('auth')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.login');
-    })->name('login');
+    // Local login (fallback when WorkOS is not configured)
+    Route::get('/login', [LocalAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LocalAuthController::class, 'login'])->name('login.submit');
 
     Route::get('/forgot-password', function () {
         return redirect()->route('login');
     })->name('password.request');
 
+    // WorkOS OAuth (only when configured)
     Route::get('/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
     Route::get('/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
-    Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
+    Route::post('/logout', [LocalAuthController::class, 'logout'])->name('logout');
 });
 
 // Protected routes
+Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
+    // Default landing → Mission Control
+    Route::get('/', function () {
         return view('app');
+    })->name('home');
+
+    // Dashboard redirect → Mission Control
+    Route::get('/dashboard', function () {
+        return redirect('/mission-control');
     })->name('dashboard');
 
-    // SPA catch-all routes — servem view('app') para que o BrowserRouter
-    // trate o routing do lado do cliente (evita 404/Inertia no refresh direto)
+    // Infrastructure dashboard (accessible via sidebar)
     Route::get('/infrastructure', fn() => view('app'))->name('infrastructure');
+    Route::get('/monitoring', fn() => view('app'))->name('monitoring');
     Route::get('/metrics', fn() => view('app'))->name('metrics');
-    Route::get('/scrum', fn() => view('app'))->name('scrum');
-    Route::get('/memory', fn() => view('app'))->name('memory');
-    Route::get('/notifications', fn() => view('app'))->name('notifications');
 
     // Dokploy Dashboard (client-side route)
     Route::get('/dokploy', function () {
         return view('app');
     })->name('dokploy');
+    Route::get('/dokploy/{any}', function () {
+        return view('app');
+    })->where('any', '.*')->name('dokploy.any');
 
-    Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
+    // Mission Control - SPA catch-all routes
+    Route::get("/mc-test", function () { return response()->json(["ok" => true]); });
+    Route::get('/mission-control', function () {
+        return view('app');
+    })->name('mission-control');
+    Route::get("/mc-test", function () { return response()->json(["ok" => true]); });
+    Route::get('/mission-control/{any}', function () {
+        return view('app');
+    })->where('any', '.*')->name('mission-control.any');
+
+
+    // API: Current user info (used by React SPA)
+    Route::get('/api/user', function () {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar_url' => $user->avatar_url,
+            'roles' => $user->roles->pluck('name'),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'is_active' => $user->is_active,
+        ]);
+    })->name('api.user');
 
     Route::resource('daily-memory', \App\Http\Controllers\DailyMemoryController::class);
 
@@ -88,6 +123,7 @@ Route::get('/horizon', function () {
 })->middleware(['auth']);
 
 // Archon AI Command Center Routes
+Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('archon')->name('archon.')->group(function () {
     // Dashboard
     Route::get('/', [\App\Http\Controllers\ArchonController::class, 'index'])->name('index');
@@ -112,16 +148,19 @@ Route::middleware(['auth'])->prefix('archon')->name('archon.')->group(function (
 });
 
 // Alert Center (Phase 3)
+Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('alerts')->name('alerts.')->group(function () {
     Route::get('/', [\App\Http\Controllers\AlertController::class, 'index'])->name('index');
 });
 
 // Network Topology Visualizer (Phase 3)
+Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('network')->name('network.')->group(function () {
     Route::get('/topology', [\App\Http\Controllers\NetworkTopologyController::class, 'index'])->name('topology');
 });
 
 // Admin RBAC Routes
+Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     // Roles management - Read operations
     Route::middleware(['permission:view-roles'])->prefix('roles')->name('roles.')->group(function () {
@@ -173,6 +212,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::middleware(['permission:view-users'])->prefix('users')->name('users.')->group(function () {
         Route::get('/', function () {
+    return redirect('/auth/login');
             return redirect()->route('dashboard');
         })->name('roles');
         Route::get('/{user}/access', [\App\Http\Controllers\Admin\UserRoleController::class, 'showAccess'])->name('access');

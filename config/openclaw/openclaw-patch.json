@@ -39,33 +39,30 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openai/ollama-nemotron-3-nano-4b",
+        "primary": "dashscope/qwen3.5-flash",
         "fallbacks": [
-          "zai/glm-4.7-flash",
+          "dashscope/qwen-coder",
+          "openrouter/z-ai/glm-4.5-air:free",
           "openrouter/deepseek/deepseek-chat",
-          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
-          "zai/glm-5",
-          "dashscope/qwen-plus"
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free"
         ]
       },
       "imageModel": {
-        "primary": "openai/ollama-nemotron-3-nano-4b",
+        "primary": "dashscope/qwen3.5-flash",
         "fallbacks": [
-          "zai/glm-4.7-flash",
           "openrouter/deepseek/deepseek-chat",
-          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
-          "zai/glm-5"
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free"
         ]
       },
       "timeoutSeconds": 600,
       "maxConcurrent": 3,
       "models": {
-        "zai/glm-5": { "alias": "glm" },
-        "zai/glm-4.7": { "alias": "glm-4.7" },
-        "zai/glm-4.7-flash": { "alias": "glm-flash" },
-        "zai/glm-4.5-flash": { "alias": "glm-flash-45" },
-        "moonshot/kimi-k2.5": { "alias": "kimi-k2" },
-        "moonshot/kimi-k2-thinking": { "alias": "kimi-think" },
+        "dashscope/qwen3.5-flash": { "alias": "qwen3.5-flash" },
+        "dashscope/qwen-plus": { "alias": "qwen-plus" },
+        "dashscope/qwen-coder": { "alias": "qwen-coder" },
+        "dashscope/qwen-flash": { "alias": "qwen-flash" },
+        "dashscope/qwen3-coder-flash": { "alias": "qwen3-coder-flash" },
+        "dashscope/qwq-plus": { "alias": "qwq-plus" },
         "openrouter/deepseek/deepseek-chat": { "alias": "deepseek" },
         "openrouter/deepseek/deepseek-r1": { "alias": "r1" },
         "openai/gpt-4o": { "alias": "gpt-4o" },
@@ -75,7 +72,6 @@
         "google/gemini-2.5-pro": { "alias": "gemini-pro" },
         "google/gemini-2.5-flash-lite": { "alias": "gemini-lite" },
         "google/gemini-3.1-pro-preview": { "alias": "gemini" },
-        "dashscope/qwen-plus": { "alias": "qwen-plus" },
         "openrouter/z-ai/glm-4.5-air:free": { "alias": "or-glm-air-free" },
         "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "or-llama-free" },
         "openai/ollama-nemotron-3-nano-4b": { "alias": "nemotron-local" }

@@ -9,10 +9,10 @@ const CONFIG = path.join(__dirname, '../../config/litellm/config.yaml');
 const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.yaml');
 
 function assertGeminiAliases(yaml, label) {
-  assert.match(yaml, /model_name:\s*"google\/gemini-2\.5-flash-lite"/, label);
-  assert.match(yaml, /model_name:\s*"google\/gemini-2\.5-flash-lite:free"/, label);
-  assert.match(yaml, /model_name:\s*"openrouter\/google\/gemini-2\.5-flash-lite:free"/, label);
-  assert.match(yaml, /model:\s*"gemini\/gemini-2\.5-flash-lite"/, label);
+  assert.match(yaml, /model_name:\s*"?google\/gemini-2\.5-flash-lite"?/, label);
+  assert.match(yaml, /model_name:\s*"?google\/gemini-2\.5-flash-lite:free"?/, label);
+  assert.match(yaml, /model_name:\s*"?openrouter\/google\/gemini-2\.5-flash-lite:free"?/, label);
+  assert.match(yaml, /model:\s*"?gemini\/gemini-2\.5-flash-lite"?/, label);
 }
 
 test('LiteLLM: aliases google/gemini-2.5-flash-lite (+ :free) em config.yaml', () => {

@@ -9,22 +9,24 @@
 # GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
 
 model_list:
-  # Composer Fast → openai/gpt-5.4-mini (mesmo backend que config.yaml)
+  # Composer Fast → qwen3.5-flash (DashScope) — default AGL
   - model_name: cursor-composer
     litellm_params:
-      model: openai/gpt-5.4-mini
-      api_key: os.environ/OPENAI_API_KEY
+      model: openai/qwen3.5-flash-2026-02-23
+      api_key: os.environ/DASHSCOPE_API_KEY
+      api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
     model_info:
-      description: "Proxy Composer 2 Fast (gpt-5.4-mini)"
-      max_tokens: 16384
+      description: "Proxy Composer Fast (qwen3.5-flash — default AGL)"
+      max_tokens: 65536
 
   - model_name: cursor-composer-2-fast
     litellm_params:
-      model: openai/gpt-5.4-mini
-      api_key: os.environ/OPENAI_API_KEY
+      model: openai/qwen3.5-flash-2026-02-23
+      api_key: os.environ/DASHSCOPE_API_KEY
+      api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
     model_info:
-      description: "Alias cursor-composer-2-fast (gpt-5.4-mini)"
-      max_tokens: 16384
+      description: "Alias cursor-composer-2-fast (qwen3.5-flash — default AGL)"
+      max_tokens: 65536
 
   - model_name: cursor-claude-sonnet
     litellm_params:
@@ -63,14 +65,16 @@ model_list:
       description: "DeepSeek V3.2 - Excellent for code"
       max_tokens: 8192
 
-# Fallbacks for Cursor Agent
+# Fallbacks for Cursor Agent (qwen-plus/qwen-coder first)
 fallbacks:
   - model_name: cursor-claude-sonnet
-    fallbacks: [cursor-claude-opus, cursor-glm-5, cursor-deepseek]
+    fallbacks: [cursor-composer, cursor-deepseek, cursor-glm-5]
   - model_name: cursor-claude-opus
-    fallbacks: [cursor-claude-sonnet, cursor-glm-5, cursor-deepseek]
+    fallbacks: [cursor-composer, cursor-deepseek, cursor-glm-5]
   - model_name: cursor-glm-5
-    fallbacks: [cursor-deepseek, cursor-claude-sonnet]
+    fallbacks: [cursor-composer, cursor-deepseek, cursor-claude-sonnet]
+  - model_name: cursor-composer
+    fallbacks: [cursor-deepseek, cursor-glm-5, cursor-claude-sonnet]
 
 # Router settings for Cursor
 router_settings:

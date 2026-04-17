@@ -97,7 +97,6 @@ return new class extends Migration
             $table->text('suggested_sql')->comment('Suggested CREATE INDEX statement');
             $table->integer('estimated_benefit')->default(0)->comment('Estimated performance gain %');
             $table->boolean('is_created')->default(false)->comment('Has index been created');
-            $table->timestamp('created_at')->comment('When recommendation was made');
             $table->timestamp('applied_at')->nullable()->comment('When index was applied');
             $table->timestamps();
 

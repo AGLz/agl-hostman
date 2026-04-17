@@ -68,6 +68,8 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'manage-roles']);
         Permission::create(['name' => 'assign-roles']);
         Permission::create(['name' => 'assign-permissions']);
+        Permission::create(['name' => 'permissions.view']);
+        Permission::create(['name' => 'permissions.manage']);
 
         // Audit Logs
         Permission::create(['name' => 'view-audit-logs']);
@@ -129,7 +131,13 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Role Management
             'view-roles',
+            'create-roles',
+            'edit-roles',
+            'delete-roles',
             'assign-roles',
+            'assign-permissions',
+            'permissions.view',
+            'permissions.manage',
 
             // Audit Logs
             'view-audit-logs',

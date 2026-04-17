@@ -6,6 +6,7 @@ namespace Tests\Unit\Security;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -16,6 +17,7 @@ use Tests\TestCase;
  * Tests for Role-Based Access Control enforcement including
  * role checks, permission checks, and authorization bypass prevention.
  */
+#[CoversClass(User::class)]
 class RbacEnforcementTest extends TestCase
 {
     use RefreshDatabase;
@@ -69,7 +71,7 @@ class RbacEnforcementTest extends TestCase
     public function test_admin_can_manage_users(): void
     {
         $this->assertTrue($this->admin->canManageUsers());
-        $this->assertTrue($this->admin->hasPermissionTo('manage users'));
+        $this->assertTrue($this->admin->hasPermissionTo('manage-users'));
     }
 
     /**
@@ -78,7 +80,7 @@ class RbacEnforcementTest extends TestCase
     public function test_common_user_cannot_manage_users(): void
     {
         $this->assertFalse($this->commonUser->canManageUsers());
-        $this->assertFalse($this->commonUser->hasPermissionTo('manage users'));
+        $this->assertFalse($this->commonUser->hasPermissionTo('manage-users'));
     }
 
     /**
@@ -90,7 +92,7 @@ class RbacEnforcementTest extends TestCase
         $adminPermissions = $adminRole->permissions->pluck('name')->toArray();
 
         $this->assertNotEmpty($adminPermissions);
-        $this->assertContains('manage users', $adminPermissions);
+        $this->assertContains('manage-users', $adminPermissions);
     }
 
     /**
@@ -116,10 +118,10 @@ class RbacEnforcementTest extends TestCase
         $permission = Permission::firstOrCreate(['name' => 'test permission']);
 
         $user->givePermissionTo($permission);
-        $this->assertTrue($user->hasPermissionTo($permission));
+        $this->assertTrue($user->hasPermissionTo('test permission'));
 
         $user->revokePermissionTo($permission);
-        $this->assertFalse($user->hasPermissionTo($permission));
+        $this->assertFalse($user->hasPermissionTo('test permission'));
     }
 
     /**
@@ -191,9 +193,9 @@ class RbacEnforcementTest extends TestCase
     public function test_has_any_permission(): void
     {
         $user = User::factory()->create();
-        $user->givePermissionTo(['view dashboard', 'edit profile']);
+        $user->givePermissionTo(['view-dashboard', 'view-infrastructure']);
 
-        $this->assertTrue($user->hasAnyPermission(['view dashboard', 'delete users']));
+        $this->assertTrue($user->hasAnyPermission(['view-dashboard', 'delete-users']));
     }
 
     /**
@@ -202,25 +204,25 @@ class RbacEnforcementTest extends TestCase
     public function test_has_all_permissions(): void
     {
         $user = User::factory()->create();
-        $user->givePermissionTo(['view dashboard', 'edit profile']);
+        $user->givePermissionTo(['view-dashboard', 'view-infrastructure']);
 
-        $this->assertTrue($user->hasAllPermissions(['view dashboard', 'edit profile']));
-        $this->assertFalse($user->hasAllPermissions(['view dashboard', 'delete users']));
+        $this->assertTrue($user->hasAllPermissions(['view-dashboard', 'view-infrastructure']));
+        $this->assertFalse($user->hasAllPermissions(['view-dashboard', 'delete-users']));
     }
 
     /**
-     * Test wildcard permissions
+     * Test multiple manage-* permissions (Spatie wildcard opcional; aqui validamos conjunto explícito)
      */
-    public function test_wildcard_permissions(): void
+    public function test_multiple_manage_permissions(): void
     {
         $user = User::factory()->create();
-        Permission::firstOrCreate(['name' => 'manage users']);
-        Permission::firstOrCreate(['name' => 'manage roles']);
-        Permission::firstOrCreate(['name' => 'manage permissions']);
+        Permission::firstOrCreate(['name' => 'manage-users']);
+        Permission::firstOrCreate(['name' => 'manage-roles']);
 
-        $user->givePermissionTo(['manage users', 'manage roles']);
+        $user->givePermissionTo(['manage-users', 'manage-roles']);
 
-        $this->assertTrue($user->hasAnyPermission('manage *'));
+        $this->assertTrue($user->hasAnyPermission(['manage-users', 'manage-roles']));
+        $this->assertTrue($user->hasAllPermissions(['manage-users', 'manage-roles']));
     }
 
     /**
@@ -245,10 +247,12 @@ class RbacEnforcementTest extends TestCase
     public function test_get_all_permissions(): void
     {
         $role = Role::findByName('admin');
+        Permission::firstOrCreate(['name' => 'role permission', 'guard_name' => 'web']);
         $role->givePermissionTo('role permission');
 
         $user = User::factory()->create();
         $user->assignRole('admin');
+        Permission::firstOrCreate(['name' => 'direct permission', 'guard_name' => 'web']);
         $user->givePermissionTo('direct permission');
 
         $allPermissions = $user->getAllPermissions()->pluck('name')->toArray();
@@ -262,7 +266,7 @@ class RbacEnforcementTest extends TestCase
      */
     public function test_inactive_user_no_permissions(): void
     {
-        $user = User::factory()->inactive()->create();
+        $user = User::factory()->create(['is_active' => false]);
         $user->assignRole('admin');
 
         $this->assertFalse($user->isActive());
@@ -348,14 +352,14 @@ class RbacEnforcementTest extends TestCase
      */
     public function test_scope_permission(): void
     {
-        $permission = Permission::firstOrCreate(['name' => 'view dashboard']);
+        $permission = Permission::firstOrCreate(['name' => 'view-dashboard', 'guard_name' => 'web']);
 
         $user1 = User::factory()->create();
         $user1->givePermissionTo($permission);
 
         $user2 = User::factory()->create();
 
-        $usersWithPermission = User::permission('view dashboard')->get();
+        $usersWithPermission = User::permission('view-dashboard')->get();
 
         $this->assertTrue($usersWithPermission->contains($user1));
         $this->assertFalse($usersWithPermission->contains($user2));

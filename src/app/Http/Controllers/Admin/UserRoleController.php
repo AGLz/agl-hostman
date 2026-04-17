@@ -12,13 +12,6 @@ use Illuminate\View\View;
 
 class UserRoleController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['permission:users.view']);
-        $this->middleware(['permission:users.assign_roles'])->only(['editRoles', 'updateRoles']);
-        $this->middleware(['permission:users.manage_permissions'])->only(['editPermissions', 'updatePermissions']);
-    }
-
     /**
      * Show form to manage user roles
      */

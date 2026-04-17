@@ -11,6 +11,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+use App\Http\Controllers\Api\OpenClawController;
+
 // Daily Memory API (for OpenClaw integration)
 Route::prefix('daily-memory')->group(function () {
     // Public endpoints with API key auth
@@ -25,12 +27,15 @@ Route::prefix('daily-memory')->group(function () {
     });
 });
 
-// WorkOS Authentication routes
-Route::prefix('auth')->group(function () {
-    Route::get('/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
-    Route::get('/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
-    Route::post('/workos/logout', [WorkOSController::class, 'logout'])->name('workos.logout');
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
+
 
 // N8N Integration routes
 Route::prefix('n8n')->group(function () {
@@ -71,6 +76,15 @@ Route::prefix('n8n')->group(function () {
     });
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // Infrastructure Management routes
 Route::middleware(['auth:sanctum'])->prefix('infrastructure')->group(function () {
     Route::get('/locations', function () {
@@ -80,6 +94,15 @@ Route::middleware(['auth:sanctum'])->prefix('infrastructure')->group(function ()
     Route::get('/servers/{code}', function ($code) {
         return \App\Models\PhysicalLocation::where('code', $code)->firstOrFail();
     });
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // AI Model routes
@@ -92,6 +115,15 @@ Route::middleware(['auth:sanctum'])->prefix('ai')->group(function () {
     Route::post('/review-code', [App\Http\Controllers\AIController::class, 'reviewCode'])->name('ai.review-code');
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // AI Service Integration routes (New AIService - OpenAI, Claude, Ollama)
 Route::middleware(['auth:sanctum'])->prefix('ai-service')->group(function () {
     Route::post('/predict', [App\Http\Controllers\Api\AIController::class, 'predict'])->name('ai-service.predict');
@@ -99,6 +131,15 @@ Route::middleware(['auth:sanctum'])->prefix('ai-service')->group(function () {
     Route::post('/chat', [App\Http\Controllers\Api\AIController::class, 'chat'])->name('ai-service.chat');
     Route::get('/models', [App\Http\Controllers\Api\AIController::class, 'models'])->name('ai-service.models');
     Route::get('/usage', [App\Http\Controllers\Api\AIController::class, 'usage'])->name('ai-service.usage');
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Scrum Board routes
@@ -142,6 +183,15 @@ Route::middleware(['auth:sanctum'])->prefix('scrum')->group(function () {
     Route::get('/kanban', [App\Http\Controllers\Api\ScrumController::class, 'getKanban'])->name('scrum.kanban');
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // Infrastructure Analytics Routes
 Route::prefix('infrastructure')->middleware('auth:sanctum')->group(function () {
     Route::get('/status', [App\Http\Controllers\Api\InfrastructureAnalyticsController::class, 'status']);
@@ -151,6 +201,15 @@ Route::prefix('infrastructure')->middleware('auth:sanctum')->group(function () {
     Route::get('/history', [App\Http\Controllers\Api\InfrastructureAnalyticsController::class, 'history']);
     Route::get('/predictions', [App\Http\Controllers\Api\InfrastructureAnalyticsController::class, 'predictions']);
     Route::get('/optimizations', [App\Http\Controllers\Api\InfrastructureAnalyticsController::class, 'optimizations']);
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Container Lifecycle Management Routes
@@ -171,6 +230,15 @@ Route::prefix('containers')->middleware('auth:sanctum')->group(function () {
     Route::get('/backups', [App\Http\Controllers\Api\Container\ContainerLifecycleController::class, 'listBackups']);
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // Backup Routes
 Route::prefix('backup')->middleware('auth:sanctum')->group(function () {
     Route::get('/list', [App\Http\Controllers\Api\BackupController::class, 'list']);
@@ -178,6 +246,15 @@ Route::prefix('backup')->middleware('auth:sanctum')->group(function () {
     Route::post('/restore/{id}', [App\Http\Controllers\Api\BackupController::class, 'restore']);
     Route::delete('/{id}', [App\Http\Controllers\Api\BackupController::class, 'delete']);
     Route::get('/download/{id}', [App\Http\Controllers\Api\BackupController::class, 'download']);
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Harbor Integration Routes
@@ -218,6 +295,15 @@ Route::prefix('harbor')->middleware('auth:sanctum')->group(function () {
     Route::get('/system/health', [App\Http\Controllers\Api\HarborController::class, 'health']);
     Route::get('/credentials', [App\Http\Controllers\Api\HarborController::class, 'credentials']);
     Route::get('/test', [App\Http\Controllers\Api\HarborController::class, 'testConnection']);
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Dokploy Integration Routes
@@ -272,6 +358,15 @@ Route::prefix('dokploy')->group(function () {
     });
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // Alert Center Routes (Phase 3)
 Route::prefix('alerts')->middleware('auth:sanctum')->group(function () {
     // Alert management
@@ -285,6 +380,15 @@ Route::prefix('alerts')->middleware('auth:sanctum')->group(function () {
     Route::post('/bulk/resolve', [App\Http\Controllers\AlertController::class, 'bulkResolve']);
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // Alert Rules Routes (Phase 3)
 Route::prefix('alert-rules')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [App\Http\Controllers\AlertRuleController::class, 'index']);
@@ -296,6 +400,15 @@ Route::prefix('alert-rules')->middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/test', [App\Http\Controllers\AlertRuleController::class, 'test']);
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // Network Topology Routes (Phase 3)
 Route::prefix('network')->middleware('auth:sanctum')->group(function () {
     Route::get('/graph', [App\Http\Controllers\NetworkTopologyController::class, 'getGraph']);
@@ -305,6 +418,15 @@ Route::prefix('network')->middleware('auth:sanctum')->group(function () {
     Route::get('/issues', [App\Http\Controllers\NetworkTopologyController::class, 'detectIssues']);
     Route::post('/path', [App\Http\Controllers\NetworkTopologyController::class, 'calculatePath']);
     Route::get('/wireguard/peers', [App\Http\Controllers\NetworkTopologyController::class, 'getWireGuardPeers']);
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // ========== Webhook Routes (Phase 3.1) ==========
@@ -323,6 +445,15 @@ Route::prefix('webhooks')->group(function () {
     Route::post('/dokploy', [WebhookController::class, 'handleDokployStatus'])
         ->name('webhooks.dokploy')
         ->middleware('throttle:10,1');
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // ========== Deployment API Routes (Phase 3.1 & 3.2) ==========
@@ -440,6 +571,15 @@ Route::prefix('deployment')->middleware(['auth:sanctum'])->group(function () {
     });
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // ========== Promotion API Routes (Phase 3.2) ==========
 Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
     // Promotion workflow
@@ -479,6 +619,15 @@ Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
         ]);
     })->name('promotion.history');
 });
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
 // Promotion workflow routes
 Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
     // Pipeline overview
@@ -503,10 +652,28 @@ Route::prefix('promotion')->middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/rollback', [App\Http\Controllers\PromotionController::class, 'rollbackPromotion']);
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // GitHub webhook routes
 Route::prefix('webhooks/github')->group(function () {
     Route::post('/push', [App\Http\Controllers\GitHubWebhookController::class, 'handlePush']);
     Route::post('/workflow-run', [App\Http\Controllers\GitHubWebhookController::class, 'handleWorkflowRun']);
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // ========== Build Metrics API Routes (Phase 4.1) ==========
@@ -535,6 +702,15 @@ Route::prefix('build')->group(function () {
     });
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // ========== Smart Notifications API Routes (Phase 4.3) ==========
 Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
     // Notification channels
@@ -559,6 +735,15 @@ Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
     Route::get('on-call/history', [App\Http\Controllers\OnCallScheduleController::class, 'history'])
         ->name('notifications.on-call.history');
     Route::apiResource('on-call', App\Http\Controllers\OnCallScheduleController::class);
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Public webhook endpoints (no auth required)
@@ -607,6 +792,15 @@ Route::prefix('monitoring')->middleware('auth:sanctum')->group(function () {
         ->name('monitoring.refresh');
 });
 
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
+});
+
 // ========== Agent OS v3 API Routes ==========
 require __DIR__.'/agent-os.php';
 
@@ -614,7 +808,7 @@ require __DIR__.'/agent-os.php';
 Route::prefix('rbac')->middleware('auth:sanctum')->group(function () {
     // RBAC overview
     Route::get('/overview', [App\Http\Controllers\Api\Rbac\RbacController::class, 'overview'])
-        ->middleware('permission:roles.view')
+        ->middleware('permission:view-roles')
         ->name('rbac.overview');
 
     // Current user RBAC
@@ -623,75 +817,93 @@ Route::prefix('rbac')->middleware('auth:sanctum')->group(function () {
 
     // User RBAC summary (admin only)
     Route::get('/users/{user}', [App\Http\Controllers\Api\Rbac\RbacController::class, 'userSummary'])
-        ->middleware('permission:users.view')
+        ->middleware('permission:view-users')
         ->name('rbac.user.summary');
 
     // Grant/revoke roles and permissions
     Route::post('/grant-role', [App\Http\Controllers\Api\Rbac\RbacController::class, 'grantRole'])
-        ->middleware('permission:users.assign_roles')
+        ->middleware('permission:assign-roles')
         ->name('rbac.grant-role');
 
     Route::post('/revoke-role', [App\Http\Controllers\Api\Rbac\RbacController::class, 'revokeRole'])
-        ->middleware('permission:users.assign_roles')
+        ->middleware('permission:assign-roles')
         ->name('rbac.revoke-role');
 
     Route::post('/grant-permission', [App\Http\Controllers\Api\Rbac\RbacController::class, 'grantPermission'])
-        ->middleware('permission:users.manage_permissions')
+        ->middleware('permission:assign-permissions')
         ->name('rbac.grant-permission');
 
     Route::post('/revoke-permission', [App\Http\Controllers\Api\Rbac\RbacController::class, 'revokePermission'])
-        ->middleware('permission:users.manage_permissions')
+        ->middleware('permission:assign-permissions')
         ->name('rbac.revoke-permission');
 
     // Get users by role/permission
     Route::get('/users/role/{role}', [App\Http\Controllers\Api\Rbac\RbacController::class, 'usersWithRole'])
-        ->middleware('permission:users.view')
+        ->middleware('permission:view-users')
         ->name('rbac.users.role');
 
     Route::get('/users/permission/{permission}', [App\Http\Controllers\Api\Rbac\RbacController::class, 'usersWithPermission'])
-        ->middleware('permission:users.view')
+        ->middleware('permission:view-users')
         ->name('rbac.users.permission');
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Roles API
 Route::prefix('roles')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'index'])
-        ->middleware('permission:roles.view')
+        ->middleware('permission:view-roles')
         ->name('roles.index');
 
     Route::post('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'store'])
-        ->middleware('permission:roles.create')
+        ->middleware('permission:create-roles')
         ->name('roles.store');
 
     Route::get('/statistics', [App\Http\Controllers\Api\Rbac\RoleController::class, 'statistics'])
-        ->middleware('permission:roles.view')
+        ->middleware('permission:view-roles')
         ->name('roles.statistics');
 
     Route::prefix('{role}')->group(function () {
         Route::get('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'show'])
-            ->middleware('permission:roles.view')
+            ->middleware('permission:view-roles')
             ->name('roles.show');
 
         Route::put('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'update'])
-            ->middleware('permission:roles.edit')
+            ->middleware('permission:edit-roles')
             ->name('roles.update');
 
         Route::delete('/', [App\Http\Controllers\Api\Rbac\RoleController::class, 'destroy'])
-            ->middleware('permission:roles.delete')
+            ->middleware('permission:delete-roles')
             ->name('roles.destroy');
 
         Route::post('/assign', [App\Http\Controllers\Api\Rbac\RoleController::class, 'assignToUser'])
-            ->middleware('permission:users.assign_roles')
+            ->middleware('permission:assign-roles')
             ->name('roles.assign');
 
         Route::delete('/revoke', [App\Http\Controllers\Api\Rbac\RoleController::class, 'revokeFromUser'])
-            ->middleware('permission:users.assign_roles')
+            ->middleware('permission:assign-roles')
             ->name('roles.revoke');
 
         Route::post('/clone', [App\Http\Controllers\Api\Rbac\RoleController::class, 'clone'])
-            ->middleware('permission:roles.create')
+            ->middleware('permission:create-roles')
             ->name('roles.clone');
     });
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
 
 // Permissions API
@@ -730,15 +942,24 @@ Route::prefix('permissions')->middleware('auth:sanctum')->group(function () {
             ->name('permissions.destroy');
 
         Route::post('/assign-role', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'assignToRole'])
-            ->middleware('permission:roles.edit')
+            ->middleware('permission:edit-roles')
             ->name('permissions.assign-role');
 
         Route::delete('/revoke-role', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'revokeFromRole'])
-            ->middleware('permission:roles.edit')
+            ->middleware('permission:edit-roles')
             ->name('permissions.revoke-role');
 
         Route::post('/assign-user', [App\Http\Controllers\Api\Rbac\PermissionController::class, 'assignToUser'])
-            ->middleware('permission:users.manage_permissions')
+            ->middleware('permission:assign-permissions')
             ->name('permissions.assign-user');
     });
+});
+
+// OpenClaw API (for Mission Control integration)
+Route::prefix('openclaw')->group(function () {
+    Route::get('/', [OpenClawController::class, 'index'])->name('api.openclaw.index');
+    Route::get('/agents', [OpenClawController::class, 'agents'])->name('api.openclaw.agents');
+    Route::get('/sessions', [OpenClawController::class, 'sessions'])->name('api.openclaw.sessions');
+    Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
+    Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });

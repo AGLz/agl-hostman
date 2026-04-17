@@ -5,7 +5,7 @@
 @section('content')
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-900">Roles Management</h1>
-    @can('roles.create')
+    @can('create-roles')
         <a href="{{ route('admin.roles.create') }}"
            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
             Create Role
@@ -64,7 +64,7 @@
                                class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                         @endcan
                         @if(!$role->is_system)
-                            @can('roles.delete')
+                            @can('delete-roles')
                                 <form action="{{ route('admin.roles.destroy', $role) }}"
                                       method="POST" class="inline"
                                       onsubmit="return confirm('Are you sure you want to delete this role?')">

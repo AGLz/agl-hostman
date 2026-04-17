@@ -35,6 +35,8 @@ services:
     environment:
       - CONFIG_FILE_PATH=/app/config.yaml
       - DATABASE_URL=postgresql://litellm:litellm_db_pass@litellm-db:5432/litellm
+      # Allow health and models endpoints without auth (monitoring interno)
+      - LITELLM_ALLOWED_ROUTES=/health,/health/readiness,/v1/models
     volumes:
       - ../../config/litellm/config.yaml:/app/config.yaml:ro
     # Healthcheck: imagem LiteLLM não tem curl/wget — usa Python

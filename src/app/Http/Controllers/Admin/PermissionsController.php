@@ -10,12 +10,6 @@ use Illuminate\View\View;
 
 class PermissionsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['permission:permissions.view']);
-        $this->middleware(['permission:permissions.manage'])->only(['create', 'store', 'edit', 'update', 'destroy']);
-    }
-
     /**
      * Display all permissions grouped by module
      */
