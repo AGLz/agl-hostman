@@ -12,15 +12,16 @@ const LAN_OLLAMA = '192.168.0.200:11434';
 const TS_OLLAMA = '100.116.57.111:11434';
 
 function assertOllamaModels(yaml, label) {
-  // Reasoning (Qwen/DeepSeek) + primário AGL Nemotron-3-Nano 4B (OpenClaw / LiteLLM)
+  // Qwen3 + DeepSeek + Nemotron 4B (fallback/alias) + primário AGL qwen3:4b em config.yaml
   assert.match(yaml, /ollama-qwen3-0\.6b/, label);
   assert.match(yaml, /ollama-qwen3-1\.7b/, label);
+  assert.match(yaml, /ollama-qwen3-4b/, label);
+  assert.match(yaml, /ollama\/qwen3:4b/, label);
   assert.match(yaml, /ollama-deepseek-r1-1\.5b/, label);
   assert.match(yaml, /ollama-nemotron-3-nano-4b/, label);
   assert.match(yaml, /ollama\/nemotron-3-nano:4b/, label);
   assert.doesNotMatch(yaml, /ollama-gemma4/, label);
   assert.doesNotMatch(yaml, /ollama-qwen3-8b/, label);
-  assert.doesNotMatch(yaml, /ollama-qwen3-4b/, label);
   assert.doesNotMatch(yaml, /ollama-gemma2/, label);
 }
 
@@ -31,6 +32,11 @@ function escapeForRegex(ipHost) {
 test('LiteLLM local: Ollama CT200 via LAN em config.yaml', () => {
   const yaml = fs.readFileSync(CONFIG, 'utf8');
   assertOllamaModels(yaml, 'config.yaml');
+  assert.match(
+    yaml,
+    /model:\s*ollama\/qwen3:4b[\s\S]*?model_name:\s*agl-primary/,
+    'config.yaml: agl-primary usa ollama/qwen3:4b',
+  );
   assert.match(
     yaml,
     new RegExp(escapeForRegex(LAN_OLLAMA), 'g'),

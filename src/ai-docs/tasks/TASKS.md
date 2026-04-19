@@ -6,6 +6,9 @@
 *No tasks in progress*
 
 ## ✅ Concluído
+- [x] **TASK-INFRA-LITELLM-SCRIPTS-MASTER-KEY**: Scripts `scripts/litellm/*` passam a usar `_litellm-master-key.sh` (env → `.env` → `docker exec`); `curl` sem `Authorization` se chave vazia; `config/litellm/.env.example` com `LITELLM_MASTER_KEY`. Docs em `LITELLM-MULTI-HOST-DEPLOYMENT.md` (2026-04-19)
+- [x] **TASK-INFRA-LITELLM-AGL-PRIMARY-QWEN3**: LiteLLM — `agl-primary` em `config/litellm/config.yaml` passa a `ollama/qwen3:4b` (CT200); novo alias `ollama-qwen3-4b`; fallbacks de `agl-primary` incluem `ollama-nemotron-3-nano-4b`. Em `config-remote.yaml`: entrada `ollama-qwen3-4b` (Tailscale) e cadeias de fallback com Qwen3 4B + Nemotron (2026-04-19)
+- [x] **TASK-INFRA-CT200-GPU-509**: CT200 Ollama GPU — adicionado `lxc.cgroup2.devices.allow: c 509:* rwm` (nvidia-uvm), override `OLLAMA_LLM_LIBRARY=cuda_v12`; CUDA detetada, `ollama ps` 100% GPU (2026-04-19)
 - [x] **TASK-INFRA-DOCS-CT200**: Documentação e scripts alinhados CT200 `ollama-gpu` → `ollama` + Portainer `ollama2` → `ollama` (2026-03-31)
 - [x] **TASK-001**: Research Laravel 12 best practices - DONE
 - [x] **TASK-002**: Research N8N integration patterns - DONE

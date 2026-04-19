@@ -62,6 +62,7 @@ litellm_settings:
   fallbacks:
   - agl-primary:
     - glm-4.7-flash
+    - ollama-nemotron-3-nano-4b
     - ollama-qwen3-1.7b
     - ollama-qwen3-0.6b
     - qwen-coder
@@ -341,16 +342,16 @@ model_list:
   model_name: infra-agent
 - litellm_params:
     api_base: http://192.168.0.200:11434
-    model: ollama/nemotron-3-nano:4b
+    model: ollama/qwen3:4b
     stream: true
     timeout: 120
   model_info:
     access: ollama
-    context_window: 131072
+    context_window: 32768
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Primário AGL agldv03 — fallback Z.AI em fallbacks do router
+    note: Primário AGL agldv03 — Qwen3 4B local (PT/multilingue); Nemotron nos fallbacks do router
     output_cost_per_token: 0
   model_name: agl-primary
 - litellm_params:
@@ -969,6 +970,17 @@ model_list:
     max_tokens: 8192
     note: Reasoning — 1.7B, ~1.4GB, melhor equilíbrio
   model_name: ollama-qwen3-1.7b
+- litellm_params:
+    api_base: http://192.168.0.200:11434
+    model: ollama/qwen3:4b
+    stream: true
+    timeout: 120
+  model_info:
+    access: ollama
+    free_tier: true
+    max_tokens: 8192
+    note: Qwen3 4B — ~2.5GB, thinking opcional via API; alias explícito para fallbacks
+  model_name: ollama-qwen3-4b
 - litellm_params:
     api_base: http://192.168.0.200:11434
     model: ollama/deepseek-r1:1.5b
