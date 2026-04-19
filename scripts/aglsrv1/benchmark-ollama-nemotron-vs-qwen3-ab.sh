@@ -4,7 +4,8 @@
 # Uso: OLLAMA_HOST=http://127.0.0.1:11434 bash benchmark-ollama-nemotron-vs-qwen3-ab.sh
 # Reason: prompts fixos para comparar PT/EN/JSON antes de mudar LiteLLM.
 
-set -uo pipefail
+# Reason: -e (errexit) termina o script se qualquer comando falhar; -u e pipefail mantêm o resto
+set -euo pipefail
 
 API="${OLLAMA_HOST:-http://127.0.0.1:11434}"
 OUT_JSON="${OUT_JSON:-/tmp/ollama-ab-results.json}"
