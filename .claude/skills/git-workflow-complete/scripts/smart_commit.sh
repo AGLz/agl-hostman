@@ -17,7 +17,8 @@ echo -e "${BLUE}🔄 Smart Commit Script${NC}"
 echo ""
 
 # Verificar se há alterações para commit
-if [[ -z $(git status --porcelain) ]]; then
+STATUS_OUTPUT=$(git status --porcelain)
+if [[ -z "$STATUS_OUTPUT" ]]; then
     echo -e "${YELLOW}⚠️  Nenhuma alteração para commit${NC}"
     exit 0
 fi
