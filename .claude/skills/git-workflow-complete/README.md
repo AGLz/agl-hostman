@@ -15,9 +15,12 @@ bash .claude/skills/git-workflow-complete/scripts/smart_commit.sh "feat(api): ad
 
 ### Pre-Commit Checks
 ```bash
-# Validar alterações antes de commitar
+# Validar alterações já no índice (git add) antes do commit real
+git add -p   # ou git add <ficheiros>
 bash .claude/skills/git-workflow-complete/scripts/pre-commit.sh
 ```
+
+O `pre-commit.sh` só analisa ficheiros **staged**. A heurística de segredos (palavras-chave em ficheiros staged) **bloqueia** com exit 1 se encontrar correspondências (como `.env` no índice). Pode gerar **falsos positivos** (ex.: `token` em tipos ou comentários); nesse caso remova o match ou ajuste o ficheiro antes de voltar a fazer `git add`.
 
 ### Status do Repositório
 ```bash
@@ -73,12 +76,13 @@ git-workflow-complete/
 ### Smart Commit
 - ✅ Auto-detecção de escopo (api, laravel, litellm, docker, docs, scripts, tests)
 - ✅ Auto-detecção de tipo (feat, fix, docs, test, refactor)
+- ✅ Mensagem automática: se o índice estiver vazio, usa o working tree (`git status --porcelain`) para contar ficheiros e inferir tipo/escopo **antes** do `git add -A` (evita “0 arquivo(s)”)
 - ✅ Conventional Commits format
 - ✅ Footer com autor e data
 - ✅ Push automático com upstream
 
 ### Pre-Commit
-- ✅ Verificação de segredos/credenciais
+- ✅ Verificação de segredos/credenciais nos ficheiros staged — **falha o script** (não só aviso) até corrigir ou retirar do índice
 - ✅ Detecção de arquivos .env
 - ✅ Encontrar console.log/debug statements
 - ✅ Execução de linter (npm run lint / pint)
@@ -166,5 +170,5 @@ bash .claude/skills/git-workflow-complete/scripts/merge_pr.sh 123 --squash
 ---
 
 **Part of:** agl-hostman project
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Last Updated:** 2026-04-19

@@ -24,9 +24,10 @@ if [[ -n "$STAGED_FILES" ]]; then
     
     FOUND_SECRETS=$(echo "$STAGED_FILES" | xargs grep -l -i "$SECRET_PATTERNS" 2>/dev/null || true)
     if [[ -n "$FOUND_SECRETS" ]]; then
-        echo -e "${YELLOW}⚠️  Arquivos com possíveis segredos encontrados:${NC}"
+        echo -e "${RED}❌ Arquivos com possíveis segredos encontrados (commit bloqueado):${NC}"
         echo "$FOUND_SECRETS"
-        echo -e "${YELLOW}   Verifique manualmente se não há credenciais expostas${NC}"
+        echo -e "${RED}   Remova credenciais ou use variáveis de ambiente / gestor de secrets; depois faça unstage se necessário.${NC}"
+        ERRORS=$((ERRORS + 1))
     else
         echo -e "${GREEN}   ✅ Nenhum segredo óbvio encontrado${NC}"
     fi

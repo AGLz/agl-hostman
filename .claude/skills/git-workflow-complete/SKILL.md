@@ -1,13 +1,14 @@
 ---
 name: git-workflow-complete
-version: 1.1.0
-description: Complete Git workflow automation including commit, push, merge and code review. Use when user wants to commit changes, push to remote, create PRs, merge branches, or perform code reviews. Automates conventional commits, smart pushing, PR creation with proper descriptions, and comprehensive code review coordination.
+version: 1.1.1
+description: Complete Git workflow automation including commit, push, merge and code review. Use when user wants to commit changes, push to remote, create PRs, merge branches, or perform code reviews. Smart commit infers scope/type from working tree when nothing is staged; pre-commit blocks on staged secret heuristics and .env. Automates conventional commits, smart pushing, PR creation with proper descriptions, and comprehensive code review coordination.
 category: git
 tags: [git, commit, push, merge, pr, code-review, workflow, automation]
 author: AGL Hostman
 capabilities:
-  - Conventional commit message generation
+  - Conventional commit message generation (working-tree fallback when index empty)
   - Smart staging and pushing
+  - Pre-commit secret heuristic blocks until resolved (staged files only)
   - PR creation with detailed descriptions
   - Multi-agent code review
   - Automated merge workflows
@@ -79,11 +80,14 @@ bash .claude/skills/git-workflow-complete/scripts/status_check.sh
 
 ### Phase 1: Pre-Commit Checks
 
+O `pre-commit.sh` opera sobre o **índice Git** (`git diff --cached`): faça `git add` antes de o invocar. A procura por padrões de segredos **falha o script** (exit 1) se encontrar ficheiros staged com correspondências — alinhado à deteção de `.env`. A heurística é larga (`password`, `token`, etc.); trate falsos positivos no código ou retire o ficheiro do stage.
+
 ```bash
 # Check git status
 bash .claude/skills/git-workflow-complete/scripts/status_check.sh
 
-# Run pre-commit validations
+# Run pre-commit validations (after git add)
+git add -A   # ou ficheiros específicos
 bash .claude/skills/git-workflow-complete/scripts/pre-commit.sh
 ```
 
@@ -278,8 +282,8 @@ gh pr review 123 --request-changes --body "Precisa ajustar..."
 
 | Script | Descrição | Uso |
 |--------|-----------|-----|
-| `smart_commit.sh` | Commit inteligente com auto-detecção | `bash smart_commit.sh ["mensagem"]` |
-| `pre-commit.sh` | Validações antes do commit | `bash pre-commit.sh` |
+| `smart_commit.sh` | Commit inteligente com auto-detecção (lista de ficheiros: índice ou, se vazio, working tree) | `bash smart_commit.sh ["mensagem"]` |
+| `pre-commit.sh` | Validações no índice; segredos heurísticos e `.env` bloqueiam com exit 1 | `bash pre-commit.sh` |
 | `status_check.sh` | Status completo do repo | `bash status_check.sh` |
 | `review_pr.sh` | Assistente de code review | `bash review_pr.sh <PR_NUMBER>` |
 | `merge_pr.sh` | Merge com verificações | `bash merge_pr.sh <PR_NUMBER> [--squash]` |
@@ -337,7 +341,7 @@ Fixes #123
 
 ## 🔒 Security Checklist
 
-- [ ] Nenhum segredo/commit no código
+- [ ] Nenhum segredo no código (correr `pre-commit.sh` após `git add`; corrigir matches ou falsos positivos da heurística)
 - [ ] `.env` files não commitados
 - [ ] Credenciais hardcoded removidas
 - [ ] Console.logs de debug removidos
@@ -414,5 +418,5 @@ git commit --amend
 ---
 
 **Last Updated:** 2026-04-19
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Project:** agl-hostman

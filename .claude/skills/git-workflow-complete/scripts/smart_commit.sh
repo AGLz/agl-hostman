@@ -31,7 +31,11 @@ echo ""
 if [[ -z "$MESSAGE" ]]; then
     echo -e "${BLUE}🔍 Analisando alterações...${NC}"
     
-    CHANGED_FILES=$(git diff --cached --name-only 2>/dev/null || git status --porcelain | awk '{print $2}')
+    # Reason: `git diff --cached` com sucesso e saída vazia não dispara `||`; usar working tree se não houver staged.
+    CHANGED_FILES=$(git diff --cached --name-only 2>/dev/null)
+    if [[ -z "$CHANGED_FILES" ]]; then
+        CHANGED_FILES=$(git status --porcelain | awk '{print $2}')
+    fi
     
     # Detectar escopo baseado nos arquivos alterados
     SCOPE="chore"
