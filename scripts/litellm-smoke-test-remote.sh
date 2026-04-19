@@ -8,13 +8,13 @@ MODELS=(
   qwen-coder
   glm-flash
   gemini-lite
+  agl-primary
+  ollama-nemotron-3-nano-4b
   or-hermes-free
   or-nemotron-super-free
   or-llama-3.3-70b-free
   or-minimax-m2.5-free
-  or-step-3.5-free
   or-gemma-3-4b-free
-  or-qwen3-coder-free
   openrouter-free
   openrouter/openrouter/free
 )

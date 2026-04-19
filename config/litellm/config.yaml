@@ -1,3 +1,5 @@
+# Ollama: o serviço corre em CT200 (AGLSRV1), não no CT179.
+# api_base neste ficheiro: LAN 192.168.0.200:11434; fora da LAN usar Tailscale (ver docs/ollama-api-guide.md, config-remote.yaml).
 cache_params:
   host: 192.168.0.137
   password: os.environ/REDIS_PASSWORD
@@ -62,114 +64,109 @@ litellm_settings:
   fallbacks:
   - agl-primary:
     - glm-4.7-flash
-    - ollama-nemotron-3-nano-4b
-    - ollama-qwen3-1.7b
-    - ollama-qwen3-0.6b
     - qwen-coder
-    - or-nemotron-free
+    - ollama-nemotron-3-nano-4b
+    - or-nemotron-super-free
   - openai/ollama-nemotron-3-nano-4b:
     - glm-4.7-flash
-    - ollama-qwen3-1.7b
-    - ollama-qwen3-0.6b
     - qwen-coder
-    - or-nemotron-free
+    - or-nemotron-super-free
   - ollama-nemotron-3-nano-4b:
     - glm-4.7-flash
-    - ollama-qwen3-1.7b
     - qwen-coder
-    - or-nemotron-free
+    - or-nemotron-super-free
   - claude-opus:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - claude-opus-4-6:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - claude-sonnet:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - claude-sonnet-4-6:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - claude-sonnet-4-5-20250929:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - claude-haiku:
     - glm-flash
     - qwen-turbo
-    - or-llama-free
+    - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - claude-haiku-4-5-20251001:
     - glm-flash
     - qwen-turbo
-    - or-llama-free
+    - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - zai/glm-4.5-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - zai/glm-4.7-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - zai/glm-5:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - zai/glm-4.7:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - glm-4.5-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - glm-4.7-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - kimi/moonshot-v1-128k:
     - qwen3.5-plus
     - glm-flash
-    - or-nemotron-free
+    - or-nemotron-super-free
   - moonshot-v1-128k:
     - qwen3.5-plus
     - glm-flash
-    - or-nemotron-free
+    - or-nemotron-super-free
   - glm:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - glm-5:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - glm-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - glm-air:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
+    - or-nemotron-super-free
   - cursor-composer:
     - cursor-glm-5
     - cursor-deepseek
@@ -183,132 +180,128 @@ litellm_settings:
   - cursor-claude-sonnet:
     - cursor-glm-5
     - cursor-deepseek
-    - or-nemotron-free
+    - or-nemotron-super-free
   - cursor-claude-opus:
     - cursor-glm-5
     - cursor-deepseek
-    - or-nemotron-free
+    - or-nemotron-super-free
   - cursor-glm-5:
     - cursor-deepseek
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - deepseek:
     - qwen-coder
     - glm-flash
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - r1:
     - deepseek
     - qwen-coder
     - glm-flash
-    - or-nemotron-free
+    - or-nemotron-super-free
   - kimi:
     - qwen3.5-plus
     - glm-flash
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - kimi-128k:
     - qwen3.5-plus
     - glm-flash
-    - or-nemotron-free
+    - or-nemotron-super-free
   - gpt:
     - qwen-coder
     - glm-flash
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - gpt-4o:
     - qwen-coder
     - glm-flash
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - gemini:
     - qwen-coder
     - glm-flash
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - gemini-lite:
     - glm-flash
     - qwen-turbo
-    - or-llama-free
+    - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - qwen3.5:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - qwen3.5-plus:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - qwen3-max:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-minimax-free
+    - or-nemotron-super-free
+    - or-minimax-m2.5-free
   - qwen-plus:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - qwen-coder:
     - glm-flash
     - qwen3.5-plus
-    - or-nemotron-free
-    - or-llama-free
+    - or-nemotron-super-free
+    - or-llama-3.3-70b-free
   - qwen-turbo:
     - glm-flash
     - qwen-coder
-    - or-llama-free
+    - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
-  - or-nemotron-free:
-    - or-minimax-free
-    - or-llama-free
+  - or-nemotron-super-free:
+    - or-minimax-m2.5-free
+    - or-llama-3.3-70b-free
     - glm-flash
     - qwen-coder
-  - or-minimax-free:
-    - or-llama-free
-    - or-step-free
+  - or-minimax-m2.5-free:
+    - or-llama-3.3-70b-free
+    - or-gemma-3-4b-free
     - glm-flash
     - qwen-coder
-  - or-llama-free:
-    - or-step-free
+  - or-llama-3.3-70b-free:
+    - or-gemma-3-4b-free
     - or-gemma-3-12b-free
     - glm-flash
     - qwen-coder
-  - or-step-free:
-    - or-gemma-3-4b-free
-    - glm-flash
-    - qwen-turbo
   - or-gemma-3-4b-free:
     - glm-flash
     - qwen-turbo
-    - or-llama-free
+    - or-llama-3.3-70b-free
   - or-gemma-3-12b-free:
     - glm-flash
     - qwen-coder
-    - or-llama-free
+    - or-llama-3.3-70b-free
   - or-gemma-3-27b-free:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
+    - or-nemotron-super-free
   - or-mistral-small-free:
     - glm-flash
     - qwen-coder
-    - or-llama-free
+    - or-llama-3.3-70b-free
   - or-hermes-free:
     - glm-flash
     - qwen-coder
-    - or-nemotron-free
+    - or-nemotron-super-free
   - openrouter/openrouter/free:
     - zai/glm-4.7-flash
-    - or-llama-free
-    - or-nemotron-free
+    - or-llama-3.3-70b-free
+    - or-nemotron-super-free
     - glm-flash
   - openrouter-free:
     - zai/glm-4.7-flash
-    - or-llama-free
-    - or-nemotron-free
+    - or-llama-3.3-70b-free
+    - or-nemotron-super-free
     - glm-flash
   forward_client_headers_to_llm_api: true
   num_retries: 2
@@ -342,7 +335,7 @@ model_list:
   model_name: infra-agent
 - litellm_params:
     api_base: http://192.168.0.200:11434
-    model: ollama/qwen3:4b
+    model: ollama/nemotron-3-nano:4b
     stream: true
     timeout: 120
   model_info:
@@ -351,7 +344,7 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Primário AGL agldv03 — Qwen3 4B local (PT/multilingue); Nemotron nos fallbacks do router
+    note: Primário AGL — Nemotron 3 Nano 4B via Ollama no CT200 (AGLSRV1, 192.168.0.200:11434)
     output_cost_per_token: 0
   model_name: agl-primary
 - litellm_params:
@@ -950,50 +943,6 @@ model_list:
   model_name: groq-gpt-oss-120b-k2
 - litellm_params:
     api_base: http://192.168.0.200:11434
-    model: ollama/qwen3:0.6b
-    stream: true
-    timeout: 60
-  model_info:
-    access: ollama
-    free_tier: true
-    max_tokens: 4096
-    note: Reasoning — 0.6B, ~523MB, mínimo latência
-  model_name: ollama-qwen3-0.6b
-- litellm_params:
-    api_base: http://192.168.0.200:11434
-    model: ollama/qwen3:1.7b
-    stream: true
-    timeout: 90
-  model_info:
-    access: ollama
-    free_tier: true
-    max_tokens: 8192
-    note: Reasoning — 1.7B, ~1.4GB, melhor equilíbrio
-  model_name: ollama-qwen3-1.7b
-- litellm_params:
-    api_base: http://192.168.0.200:11434
-    model: ollama/qwen3:4b
-    stream: true
-    timeout: 120
-  model_info:
-    access: ollama
-    free_tier: true
-    max_tokens: 8192
-    note: Qwen3 4B — ~2.5GB, thinking opcional via API; alias explícito para fallbacks
-  model_name: ollama-qwen3-4b
-- litellm_params:
-    api_base: http://192.168.0.200:11434
-    model: ollama/deepseek-r1:1.5b
-    stream: true
-    timeout: 90
-  model_info:
-    access: ollama
-    free_tier: true
-    max_tokens: 8192
-    note: Reasoning — R1 1.5B, ~1.1GB, forte em matemática/lógica
-  model_name: ollama-deepseek-r1-1.5b
-- litellm_params:
-    api_base: http://192.168.0.200:11434
     model: ollama/nemotron-3-nano:4b
     stream: true
     timeout: 120
@@ -1023,14 +972,6 @@ model_list:
     max_tokens: 8192
     note: Rotação automática entre modelos gratuitos
   model_name: openrouter-free
-- litellm_params:
-    api_key: os.environ/OPENROUTER_API_KEY
-    model: openrouter/qwen/qwen3-coder:free
-  model_info:
-    access: openrouter
-    free_tier: true
-    max_tokens: 8192
-  model_name: or-qwen3-coder-free
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY
     model: openrouter/z-ai/glm-4.5-air:free
@@ -1087,14 +1028,6 @@ model_list:
     free_tier: true
     max_tokens: 8192
   model_name: or-hermes-free
-- litellm_params:
-    api_key: os.environ/OPENROUTER_API_KEY
-    model: openrouter/stepfun/step-3.5-flash:free
-  model_info:
-    access: openrouter
-    free_tier: true
-    max_tokens: 8192
-  model_name: or-step-3.5-free
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY
     model: openrouter/minimax/minimax-m2.5:free
@@ -1172,15 +1105,6 @@ model_list:
     free_tier: true
     max_tokens: 8192
   model_name: openrouter/meta-llama/llama-3.3-70b-instruct:free
-- litellm_params:
-    api_key: os.environ/OPENROUTER_API_KEY
-    model: openrouter/stepfun/step-3.5-flash:free
-  model_info:
-    access: openrouter
-    context_window: 131072
-    free_tier: true
-    max_tokens: 8192
-  model_name: openrouter/stepfun/step-3.5-flash:free
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY
     model: openrouter/google/gemma-3-4b-it:free

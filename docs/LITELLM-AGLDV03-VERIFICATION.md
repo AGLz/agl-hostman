@@ -38,14 +38,26 @@ Resumo de execução real no servidor (mensagem de teste curta tipo «Reply exac
 | `openrouter/openrouter/free` | HTTP 200 (respostas podem ser verbosas) |
 | `glm-flash-2` | HTTP **400** — nome inválido neste proxy |
 | `or-minimax-m2.5-free` | Erro **400** upstream (ex.: limites de contexto / payload) num teste mínimo — rever payload ou doc do modelo |
-| `or-step-3.5-free` | **404** OpenRouter — «No endpoints found» para o id remoto (pode ser temporário ou descontinuação) |
+| `or-step-3.5-free` | Removido do `config.yaml` do repo (404 upstream recorrente) |
 | `or-llama-3.3-70b-free` | **429** rate limit upstream (OpenRouter free) — mensagem sugere retry ou chave própria |
-| `or-qwen3-coder-free` | **429** idem |
+| `or-qwen3-coder-free` | Removido do `config.yaml` do repo (quota 429); usar `qwen-coder` (DashScope) |
 | `openrouter-free` | Verificar corpo JSON (pode exigir parsing cuidadoso em scripts) |
 
 Conclusão: o caminho **Hermes → LiteLLM → `qwen-coder` / `glm-flash` / `gemini-lite` / `or-hermes-free`** está **saudável** para chamadas simples. Os alias **OpenRouter :free** oscilam com **429** e **404** conforme quota e disponibilidade upstream.
 
+## Ollama (CT200 / AGLSRV1)
+
+O **Ollama com GPU** não corre no agldv03 (CT179). Está no **CT200** do **AGLSRV1** (Proxmox `192.168.0.245`, `pct exec 200`).
+
+| Acesso | URL |
+|--------|-----|
+| LAN (LiteLLM noutros CTs na mesma rede) | `http://192.168.0.200:11434` |
+| Tailscale (CT200) | `http://100.116.57.111:11434` |
+
+No repositório, `config/litellm/config.yaml` usa **`192.168.0.200:11434`** para todas as entradas `api_base` Ollama; `config/litellm/config-remote.yaml` usa o IP Tailscale. Testes de conectividade a partir do contentor `litellm-proxy` no agldv03 devem usar **este IP**, não `127.0.0.1` nem o IP do próprio CT179 — aí o serviço Ollama **não** existe.
+
 ## Referências
 
 - Hermes + `~/.hermes`: `docs/HERMES-AGENT-AGLDV03.md`
+- Ollama CT200 (API, firewall): `docs/ollama-api-guide.md`
 - Matriz de modelos no repo: `config/litellm/config.yaml` (pode diferir ligeiramente do `config.yaml` em produção no CT)

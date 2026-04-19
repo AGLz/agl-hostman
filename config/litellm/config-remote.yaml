@@ -570,58 +570,9 @@ model_list:
       free_tier: true
 
   # ============================================================
-  # OLLAMA — CT200 (LiteLLM remote: Tailscale 100.116.57.111; LAN em config.yaml)
-  # GPU: GeForce GTX 1650 — 4096 MiB (4GB VRAM).
-  # SOMENTE modelos com reasoning (thinking mode).
+  # OLLAMA — CT200 AGLSRV1 (Tailscale 100.116.57.111; LAN 192.168.0.200 em config.yaml)
+  # Um único modelo exposto no proxy: Nemotron 3 Nano 4B (evitar lista longa / VRAM).
   # ============================================================
-
-  - model_name: "ollama-qwen3-0.6b"
-    litellm_params:
-      model: "ollama/qwen3:0.6b"
-      api_base: "http://100.116.57.111:11434"
-      timeout: 60
-      stream: true
-    model_info:
-      max_tokens: 4096
-      access: ollama
-      free_tier: true
-      note: "Reasoning — 0.6B, ~523MB"
-
-  - model_name: "ollama-qwen3-1.7b"
-    litellm_params:
-      model: "ollama/qwen3:1.7b"
-      api_base: "http://100.116.57.111:11434"
-      timeout: 90
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-      note: "Reasoning — 1.7B, ~1.4GB"
-
-  - model_name: "ollama-qwen3-4b"
-    litellm_params:
-      model: "ollama/qwen3:4b"
-      api_base: "http://100.116.57.111:11434"
-      timeout: 120
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-      note: "Qwen3 4B — ~2.5GB; thinking opcional (alinhar com config.yaml LAN)"
-
-  - model_name: "ollama-deepseek-r1-1.5b"
-    litellm_params:
-      model: "ollama/deepseek-r1:1.5b"
-      api_base: "http://100.116.57.111:11434"
-      timeout: 90
-      stream: true
-    model_info:
-      max_tokens: 8192
-      access: ollama
-      free_tier: true
-      note: "Reasoning — R1 1.5B, ~1.1GB"
 
   - model_name: "ollama-nemotron-3-nano-4b"
     litellm_params:
@@ -659,15 +610,6 @@ model_list:
       access: openrouter
       free_tier: true
       note: "Rotaao automatica entre modelos gratuitos"
-
-  - model_name: "or-qwen3-coder-free"
-    litellm_params:
-      model: "openrouter/qwen/qwen3-coder:free"
-      api_key: os.environ/OPENROUTER_API_KEY
-    model_info:
-      max_tokens: 8192
-      access: openrouter
-      free_tier: true
 
   - model_name: "or-glm-air-free"
     litellm_params:
@@ -722,9 +664,9 @@ litellm_settings:
   # ============================================================
   # Latencia referencia: qwen3.5-flash ~0.6s, qwen-flash ~0.5s, qwen-coder ~0.9s, deepseek ~1.4s
   fallbacks:
-    - agl-primary: [qwen3.5-flash, qwen-flash, ollama-qwen3-4b, ollama-nemotron-3-nano-4b, ollama-qwen3-1.7b, ollama-qwen3-0.6b, deepseek]
-    - openai/ollama-nemotron-3-nano-4b: [qwen3.5-flash, qwen-flash, ollama-qwen3-4b, ollama-qwen3-1.7b, ollama-qwen3-0.6b, deepseek]
-    - ollama-nemotron-3-nano-4b: [qwen3.5-flash, qwen-flash, ollama-qwen3-4b, ollama-qwen3-1.7b, deepseek]
+    - agl-primary: [qwen3.5-flash, qwen-flash, ollama-nemotron-3-nano-4b, qwen-coder, deepseek]
+    - openai/ollama-nemotron-3-nano-4b: [qwen3.5-flash, qwen-flash, qwen-coder, deepseek]
+    - ollama-nemotron-3-nano-4b: [qwen3.5-flash, qwen-flash, qwen-coder, deepseek]
 
     # === Claude fallbacks (qwen3.5-flash first, qwen-coder for code) ===
     - claude-opus: [qwen3.5-flash, qwen-coder, deepseek, gemini]

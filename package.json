@@ -12,6 +12,7 @@
     "test:litellm:battery": "node scripts/litellm/litellm-full-battery.js",
     "test:litellm:battery:quick": "node scripts/litellm/litellm-full-battery.js --tier quick",
     "test:litellm:battery:dry": "node scripts/litellm/litellm-full-battery.js --dry-probe",
+    "test:ollama": "node --test tests/unit/litellm-ollama-ct200-entries.test.js tests/unit/ollama-stack-litellm-small-qwen.test.js tests/unit/litellm-battery-manifest.test.js",
     "sync:litellm:opt": "bash scripts/litellm/sync-litellm-repo-to-opt.sh",
     "sync:litellm:opt:copy-only": "bash scripts/litellm/sync-litellm-repo-to-opt.sh --no-restart",
     "test:all": "node --test tests/api/ && node --test tests/integration/litellm-claude-flow.test.js && node tests/hive-mind/test-hive-mind-integration.js",
