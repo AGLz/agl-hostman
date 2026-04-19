@@ -7,7 +7,7 @@ docker exec litellm-proxy python3 -c "
 import urllib.request
 u='${OLLAMA_URL}/api/tags'
 try:
-    r = urllib.request.urlopen(u, timeout=8)
+    r = urllib.request.urlopen(u, timeout=15)
     b = r.read()
     print('OK', r.status, 'bytes', len(b))
     print(b[:240].decode('utf-8', errors='replace'))
