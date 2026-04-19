@@ -61,4 +61,5 @@ Exemplos de linhas úteis em `agent.log`: pedidos ao auxiliar (*Auxiliary compre
 ## Ligações no repositório
 
 - LiteLLM: `config/litellm/config.yaml` (aliases `qwen-coder`, `gemini-lite`, etc.).
+- Verificação real no agldv03 (SSH, logs, smoke tests): `docs/LITELLM-AGLDV03-VERIFICATION.md`.
 - OpenClaw (outro agente): `docs/OPENCLAW.md`.
