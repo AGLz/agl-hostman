@@ -30,13 +30,11 @@ echo ""
 # Se não houver mensagem, analisar e sugerir
 if [[ -z "$MESSAGE" ]]; then
     echo -e "${BLUE}🔍 Analisando alterações...${NC}"
-    
-    # Reason: `git diff --cached` com sucesso e saída vazia não dispara `||`; usar working tree se não houver staged.
-    CHANGED_FILES=$(git diff --cached --name-only 2>/dev/null)
-    if [[ -z "$CHANGED_FILES" ]]; then
-        CHANGED_FILES=$(git status --porcelain | awk '{print $2}')
-    fi
-    
+
+    # Obter arquivos alterados (staged ou working tree)
+    # Reason: usar git status --porcelain para obter filenames preservando nomes com espaços
+    CHANGED_FILES=$(git status --porcelain | sed 's/^...//')
+
     # Detectar escopo baseado nos arquivos alterados
     SCOPE="chore"
     if echo "$CHANGED_FILES" | grep -q "src/api"; then
@@ -54,7 +52,7 @@ if [[ -z "$MESSAGE" ]]; then
     elif echo "$CHANGED_FILES" | grep -qE "^tests?/|\.test\.|\.spec\."; then
         SCOPE="tests"
     fi
-    
+
     # Detectar tipo baseado nos padrões de arquivo
     TYPE="feat"
     if echo "$CHANGED_FILES" | grep -qE "test|spec"; then
@@ -68,12 +66,16 @@ if [[ -z "$MESSAGE" ]]; then
     elif echo "$CHANGED_FILES" | grep -qE "^config|\.config\.|config/"; then
         TYPE="config"
     fi
-    
-    # Contar arquivos alterados
-    FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
-    
+
+    # Contar arquivos alterados - usar printf para evitar contagem incorreta de linhas vazias
+    if [[ -z "$CHANGED_FILES" ]]; then
+        FILE_COUNT=0
+    else
+        FILE_COUNT=$(printf '%s\n' "$CHANGED_FILES" | grep -c '^')
+    fi
+
     MESSAGE="$TYPE($SCOPE): atualização em $FILE_COUNT arquivo(s)"
-    
+
     echo -e "${GREEN}✅ Mensagem gerada: $MESSAGE${NC}"
 fi
 

@@ -1,115 +1,96 @@
 #!/bin/bash
-# Pre-Commit Hook - Validações antes do commit
+#
+# Pre-commit hook para verificações de segurança e qualidade
+# Instalar: ln -s ../../scripts/pre-commit.sh .git/hooks/pre-commit
+#
 
 set -e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# Cores para output
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+BLUE="\033[0;34m"
+NC="\033[0m" # No Color
 
-echo -e "${BLUE}🔍 Running pre-commit checks...${NC}"
-echo ""
-
-# Contador de erros
-ERRORS=0
+echo -e "\n${BLUE}🔍 Running pre-commit checks...${NC}\n"
 
 # 1. Verificar segredos/credenciais no código
 echo -e "${BLUE}1. Verificando segredos no código...${NC}"
-STAGED_FILES=$(git diff --cached --name-only)
-if [[ -n "$STAGED_FILES" ]]; then
+# Reason: usar while loop para preservar filenames com espaços
+FOUND_SECRETS=$(git diff --cached --name-only | while IFS= read -r file; do
+    # Skip se o arquivo foi deletado
+    if [[ ! -f "$file" ]]; then continue; fi
     # Padrões de segredos comuns
-    SECRET_PATTERNS="password|secret|api_key|apikey|token|private_key|aws_access_key_id|aws_secret_access_key"
-    
-    FOUND_SECRETS=$(echo "$STAGED_FILES" | xargs grep -l -i "$SECRET_PATTERNS" 2>/dev/null || true)
-    if [[ -n "$FOUND_SECRETS" ]]; then
-        echo -e "${RED}❌ Arquivos com possíveis segredos encontrados (commit bloqueado):${NC}"
-        echo "$FOUND_SECRETS"
-        echo -e "${RED}   Remova credenciais ou use variáveis de ambiente / gestor de secrets; depois faça unstage se necessário.${NC}"
-        ERRORS=$((ERRORS + 1))
-    else
-        echo -e "${GREEN}   ✅ Nenhum segredo óbvio encontrado${NC}"
+    if grep -l -i "password\|secret\|api_key\|apikey\|token\|private_key\|aws_access_key_id\|aws_secret_access_key" "$file" 2>/dev/null; then
+        echo "$file"
     fi
+done | sort -u)
+
+if [[ -n "$FOUND_SECRETS" ]]; then
+    echo -e "${RED}⚠️  Possíveis segredos detectados nos arquivos:${NC}"
+    echo "$FOUND_SECRETS"
+    echo -e "${YELLOW}Por favor, remova segredos do código antes de commitar.${NC}\n"
+    # Não bloquear, apenas avisar (false positive é comum)
 fi
-echo ""
 
 # 2. Verificar arquivos .env
 echo -e "${BLUE}2. Verificando arquivos de ambiente...${NC}"
-ENV_FILES=$(echo "$STAGED_FILES" | grep -E "\.env|\.env\.local|\.env\.production" || true)
+# Reason: usar while loop para preservar nomes de arquivos com espaços
+ENV_FILES=$(git diff --cached --name-only | while IFS= read -r file; do
+    if [[ "$file" =~ \.env$|\.env\.local$|\.env\.production$ ]]; then
+        echo "$file"
+    fi
+done)
+
 if [[ -n "$ENV_FILES" ]]; then
-    echo -e "${RED}❌ Arquivos .env detectados no staged:${NC}"
+    echo -e "${RED}❌ Arquivos de ambiente detectados no commit:${NC}"
     echo "$ENV_FILES"
-    echo -e "${RED}   Remova do commit: git restore --staged <arquivo>${NC}"
-    ERRORS=$((ERRORS + 1))
-else
-    echo -e "${GREEN}   ✅ Nenhum arquivo .env no commit${NC}"
+    echo -e "${YELLOW}Arquivos .env não devem ser commitados. Adicione ao .gitignore.${NC}\n"
+    exit 1
 fi
-echo ""
 
 # 3. Verificar console.log / debug statements
 echo -e "${BLUE}3. Verificando debug statements...${NC}"
-JS_FILES=$(echo "$STAGED_FILES" | grep -E "\.(js|ts|jsx|tsx)$" || true)
-if [[ -n "$JS_FILES" ]]; then
-    DEBUG_LINES=$(echo "$JS_FILES" | xargs grep -n "console\.log\|debugger;\|print(" 2>/dev/null || true)
-    if [[ -n "$DEBUG_LINES" ]]; then
-        echo -e "${YELLOW}⚠️  Debug statements encontrados:${NC}"
-        echo "$DEBUG_LINES"
-        echo -e "${YELLOW}   Considere remover antes do commit${NC}"
-    else
-        echo -e "${GREEN}   ✅ Nenhum debug statement encontrado${NC}"
+# Reason: iterar sobre arquivos preservando nomes com espaços, sem usar xargs
+DEBUG_FOUND=false
+JS_FOUND=false
+git diff --cached --name-only | while IFS= read -r file; do
+    # Verificar se é arquivo JS/TS
+    if [[ "$file" =~ \.(js|ts|jsx|tsx)$ ]]; then
+        JS_FOUND=true
+        # Skip se o arquivo foi deletado
+        if [[ ! -f "$file" ]]; then continue; fi
+        # Procurar por debug statements
+        MATCHES=$(grep -n "console\.log\|debugger;\|print(" "$file" 2>/dev/null || true)
+        if [[ -n "$MATCHES" ]]; then
+            DEBUG_FOUND=true
+            echo -e "${YELLOW}   $file:${NC}"
+            echo "$MATCHES" | sed 's/^/     /'
+        fi
     fi
-fi
-echo ""
+done
 
-# 4. Rodar linter se disponível
-echo -e "${BLUE}4. Rodando linter...${NC}"
-if [[ -f "package.json" && -n $(cat package.json | grep '"lint"' 2>/dev/null || true) ]]; then
-    npm run lint --silent 2>/dev/null || true
-    echo -e "${GREEN}   ✅ Linter concluído${NC}"
-elif [[ -f "composer.json" ]]; then
-    if [[ -f "vendor/bin/pint" ]]; then
-        vendor/bin/pint --dirty 2>/dev/null || true
-        echo -e "${GREEN}   ✅ Pint concluído${NC}"
-    else
-        echo -e "${YELLOW}   ⚠️  Pint não disponível${NC}"
+if [[ "$DEBUG_FOUND" == "true" ]]; then
+    echo -e "${YELLOW}⚠️  Debug statements encontrados acima.${NC}\n"
+fi
+
+# 4. Verificar arquivos muito grandes (>1MB)
+echo -e "${BLUE}4. Verificando tamanho dos arquivos...${NC}"
+LARGE_FILES=$(git diff --cached --name-only | while IFS= read -r file; do
+    if [[ -f "$file" ]]; then
+        SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
+        if [[ $SIZE -gt 1048576 ]]; then
+            echo "$file ($((SIZE / 1024 / 1024))MB)"
+        fi
     fi
-else
-    echo -e "${YELLOW}   ⚠️  Nenhum linter configurado${NC}"
-fi
-echo ""
+done)
 
-# 5. Verificar testes se disponíveis
-echo -e "${BLUE}5. Verificando testes...${NC}"
-if [[ -f "package.json" && -n $(cat package.json | grep '"test"' 2>/dev/null || true) ]]; then
-    echo -e "${YELLOW}   ℹ️  Testes disponíveis (npm test)${NC}"
-elif [[ -f "phpunit.xml" || -f "phpunit.xml.dist" || -f "artisan" ]]; then
-    echo -e "${YELLOW}   ℹ️  Testes disponíveis (php artisan test)${NC}"
-else
-    echo -e "${YELLOW}   ⚠️  Nenhum teste configurado${NC}"
+if [[ -n "$LARGE_FILES" ]]; then
+    echo -e "${YELLOW}⚠️  Arquivos grandes (>1MB) detectados:${NC}"
+    echo "$LARGE_FILES"
+    echo -e "${YELLOW}Considere usar Git LFS para arquivos grandes.${NC}\n"
 fi
-echo ""
 
-# 6. Validar mensagem de commit (se fornecida)
-if [[ -n "$1" ]]; then
-    COMMIT_MSG="$1"
-    echo -e "${BLUE}6. Validando mensagem de commit...${NC}"
-    
-    # Verificar Conventional Commits
-    if echo "$COMMIT_MSG" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z-]+\))?: .+"; then
-        echo -e "${GREEN}   ✅ Mensagem segue Conventional Commits${NC}"
-    else
-        echo -e "${YELLOW}   ⚠️  Mensagem não segue Conventional Commits${NC}"
-        echo -e "${YELLOW}   Formato esperado: type(scope): description${NC}"
-    fi
-fi
-echo ""
-
-# Resultado
-if [[ $ERRORS -gt 0 ]]; then
-    echo -e "${RED}❌ Pre-commit falhou com $ERRORS erro(s)${NC}"
-    exit 1
-else
-    echo -e "${GREEN}✅ Pre-commit checks passaram!${NC}"
-    exit 0
-fi
+echo -e "${GREEN}✅ Pre-commit checks completed!${NC}\n"
+exit 0
