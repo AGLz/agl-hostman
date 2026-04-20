@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard AGL - Wireframe</title>
+    <style>
+        /* Design System - Intentionally rough/sketch aesthetic */
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        /* Header */
+        .header {
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .last-update {
+            color: #666;
+            font-size: 14px;
+        }
+        .refresh-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Stats Overview */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .stat-green { color: #22c55e; }
+        .stat-yellow { color: #f59e0b; }
+        .stat-red { color: #ef4444; }
+        
+        /* Grid Container */
+        .grid-container {
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .grid-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px;
+            gap: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        /* CT Cards */
+        .ct-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ct-card {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        /* Semaphore colors */
+        .ct-card.green {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+        .ct-card.yellow {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+        .ct-card.red {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+        
+        /* Card Content */
+        .ct-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .ct-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .ct-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        .ct-tag {
+            display: inline-block;
+            background: #e5e7eb;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        
+        /* Metrics */
+        .metric {
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .metric-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .metric-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        .metric-fill.green { background: #22c55e; }
+        .metric-fill.yellow { background: #f59e0b; }
+        .metric-fill.red { background: #ef4444; }
+        
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .status-running {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-stopped {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+        .legend-green { background: #f0fdf4; border-color: #22c55e; }
+        .legend-yellow { background: #fffbeb; border-color: #f59e0b; }
+        .legend-red { background: #fef2f2; border-color: #ef4444; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .grid-header,
+            .ct-card {
+                grid-template-columns: 2fr 1fr 1fr 80px;
+            }
+            .grid-header > :nth-child(3),
+            .grid-header > :nth-child(4),
+            .ct-card > .metric:nth-of-type(2),
+            .ct-card > .metric:nth-of-type(3) {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .stats { grid-template-columns: 1fr; }
+            .grid-header,
+            .ct-card {
+                grid-template-columns: 1fr 80px;
+            }
+            .grid-header > :nth-child(2),
+            .ct-card > .metric:first-of-type {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <h1>🏭 Dashboard AGL - Infraestrutura</h1>
+            <span class="last-update">Última atualização: 14:32:15 (45s atrás)</span>
+        </div>
+        <button class="refresh-btn">🔄 Atualizar</button>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value stat-green">24</div>
+            <div class="stat-label">CTs/VMs Online</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-green">20</div>
+            <div class="stat-label">Saúdaveis</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-yellow">3</div>
+            <div class="stat-label">Atenção</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-red">1</div>
+            <div class="stat-label">Crítico</div>
+        </div>
+    </div>
+    
+    <!-- Grid Container -->
+    <div class="grid-container">
+        <div class="grid-header">
+            <div>Nome / ID</div>
+            <div>CPU</div>
+            <div>RAM</div>
+            <div>Disco</div>
+            <div>Estado</div>
+            <div>Ação</div>
+        </div>
+        
+        <div class="ct-grid">
+            <!-- Card 1: Verde (saudável) -->
+            <div class="ct-card green">
+                <div class="ct-info">
+                    <span class="ct-name">agldv03</span>
+                    <span class="ct-meta">CT179 • aglsrv1</span>
+                    <span class="ct-tag">OpenClaw</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">23%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 23%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">45%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">32%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 32%"></div>
+                    </div>
+                </div>
+                <div class="status-badge status-running">Running</div>
+                <button style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Ver</button>
+            </div>
+            
+            <!-- Card 2: Verde -->
+            <div class="ct-card green">
+                <div class="ct-info">
+                    <span class="ct-name">pegaprox</span>
+                    <span class="ct-meta">CT210 • aglsrv1</span>
+                    <span class="ct-tag">PegaProx</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">15%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 15%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">38%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 38%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">28%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 28%"></div>
+                    </div>
+                </div>
+                <div class="status-badge status-running">Running</div>
+                <button style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Ver</button>
+            </div>
+            
+            <!-- Card 3: Amarelo (atenção - RAM alta) -->
+            <div class="ct-card yellow">
+                <div class="ct-info">
+                    <span class="ct-name">litellm-gateway</span>
+                    <span class="ct-meta">CT200 • aglsrv1</span>
+                    <span class="ct-tag">LiteLLM</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">65%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill yellow" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">87%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill red" style="width: 87%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">45%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="status-badge status-running">Running</div>
+                <button style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Ver</button>
+            </div>
+            
+            <!-- Card 4: Amarelo (atenção - disco) -->
+            <div class="ct-card yellow">
+                <div class="ct-info">
+                    <span class="ct-name">zabbix</span>
+                    <span class="ct-meta">VM148 • aglsrv1</span>
+                    <span class="ct-tag">Monitor</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">42%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 42%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">55%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 55%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">85%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill yellow" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="status-badge status-running">Running</div>
+                <button style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Ver</button>
+            </div>
+            
+            <!-- Card 5: Vermelho (crítico - CPU alta) -->
+            <div class="ct-card red">
+                <div class="ct-info">
+                    <span class="ct-name">aglwk45-dev</span>
+                    <span class="ct-meta">VM104 • aglsrv1</span>
+                    <span class="ct-tag">OpenClaw</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">94%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill red" style="width: 94%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">78%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill yellow" style="width: 78%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">62%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill green" style="width: 62%"></div>
+                    </div>
+                </div>
+                <div class="status-badge status-running">Running</div>
+                <button style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Ver</button>
+            </div>
+            
+            <!-- Card 6: Vermelho (stopped) -->
+            <div class="ct-card red">
+                <div class="ct-info">
+                    <span class="ct-name">backup-temp</span>
+                    <span class="ct-meta">CT175 • aglsrv1</span>
+                    <span class="ct-tag">Backup</span>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">-</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">-</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">-</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="status-badge status-stopped">Stopped</div>
+                <button style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Ver</button>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-green"></div>
+                <span>Saudável (tudo OK)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-yellow"></div>
+                <span>Atenção (métrica elevada)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-red"></div>
+                <span>Crítico (ação necessária)</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Design Decisions (HTML Comments) -->
+    <!-- 
+    DESIGN DECISIONS:
+    
+    1. GRID vs CARDS: Optei por cards verticais em vez de grid horizontal
+       porque facilita scan visual e permite mais detalhes por CT.
+    
+    2. CORES SEMAFORO: O card inteiro assume a cor (não só um badge) para
+       que problemas saltem à vista imediatamente. Verde/amarelo/vermelho
+       são cores universais de status.
+    
+    3. MÉTRICAS: CPU/RAM/Disco são as 3 métricas críticas. Cada uma tem
+       uma barra visual para perceber "quão cheio" está de relance.
+    
+    4. RESPONSIVIDADE: Em mobile, escondemos métricas secundárias e focamos
+       no nome e estado. O admin pode precisar de ver no tablet.
+    
+    5. TAGS: Cada CT tem tags (OpenClaw, LiteLLM, etc.) para identificar
+       rapidamente o propósito sem memorizar VMIDs.
+    
+    6. STATS OVERVIEW: Os 4 cards no topo dão um resumo imediato do parque.
+       "1 Crítico" -> ação imediata.
+    -->
+</body>
+</html>
