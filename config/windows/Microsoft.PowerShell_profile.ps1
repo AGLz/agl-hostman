@@ -7,7 +7,7 @@
 # ===============================================
 
 # ===============================================
-# VARI??VEIS DE AMBIENTE - M??LTIPLOS MODELOS
+# Environment variables - multiple AI providers
 # ===============================================
 
 # Anthropic Claude
@@ -21,7 +21,7 @@ $env:GOOGLE_API_KEY = "<YOUR_GOOGLE_API_KEY>"
 $env:GEMINI_API_KEY = "<YOUR_GOOGLE_API_KEY>"
 
 # ===============================================
-# CLAUDE FLOW - CONFIGURA????O COMPLETA
+# Claude Flow - configuration
 # ===============================================
 
 # Core Configuration
@@ -110,7 +110,7 @@ $env:NODE_ENV = "production"
 $env:NODE_OPTIONS = "--max-old-space-size=8192"
 
 # ===============================================
-# FUNÇÕES DE CHAMADA DIRETA AOS MODELOS DE IA
+# Direct API helper functions (ccz, gpt, gemini, ...)
 # ===============================================
 
 function ccz {
@@ -352,27 +352,27 @@ function cf-dev {
     $env:CLAUDE_FLOW_DEBUG_MODE = "true"
     $env:CLAUDE_FLOW_VERBOSE = "true"
     $env:CLAUDE_FLOW_LOG_LEVEL = "debug"
-    Write-Host "[OK]?? Claude Flow: Development mode enabled" -ForegroundColor Green
+    Write-Host "[OK] Claude Flow: Development mode enabled" -ForegroundColor Green
 }
 
 function cf-prod {
     $env:CLAUDE_FLOW_DEBUG_MODE = "false"
     $env:CLAUDE_FLOW_VERBOSE = "false"
     $env:CLAUDE_FLOW_LOG_LEVEL = "warn"
-    Write-Host "[OK]?? Claude Flow: Production mode enabled" -ForegroundColor Green
+    Write-Host "[OK] Claude Flow: Production mode enabled" -ForegroundColor Green
 }
 
 function cf-safe {
     $env:CLAUDE_FLOW_AUTO_COMMIT = "false"
     $env:CLAUDE_FLOW_AUTO_PUSH = "false"
     $env:CLAUDE_FLOW_ALLOW_SHELL_EXEC = "false"
-    Write-Host "[OK]?? Claude Flow: Safe mode enabled (no auto-commit/push/shell-exec)" -ForegroundColor Yellow
+    Write-Host "[OK] Claude Flow: Safe mode enabled (no auto-commit/push/shell-exec)" -ForegroundColor Yellow
 }
 
 function cf-auto {
     $env:CLAUDE_FLOW_AUTO_COMMIT = "true"
     $env:CLAUDE_FLOW_AUTO_PUSH = "false"
-    Write-Host "[OK]?? Claude Flow: Auto-commit enabled (no auto-push)" -ForegroundColor Green
+    Write-Host "[OK] Claude Flow: Auto-commit enabled (no auto-push)" -ForegroundColor Green
 }
 
 # ===============================================
@@ -416,8 +416,19 @@ function sparc-tdd { claude-flow sparc tdd $args }
 # ALIASES - DESENVOLVIMENTO
 # ===============================================
 
-# NPM/PNPM
-Set-Alias -Name npm -Value pnpm
+# Prefer pnpm when available (Set-Alias cannot reliably target pnpm.exe on Windows PowerShell 5.1)
+$script:AglpNpmCmd = Get-Command npm.cmd -CommandType Application -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1
+function npm {
+    $pnpm = Get-Command pnpm.cmd -CommandType Application -ErrorAction SilentlyContinue
+    if (-not $pnpm) { $pnpm = Get-Command pnpm -CommandType Application -ErrorAction SilentlyContinue }
+    if ($pnpm) {
+        & $pnpm.Source @args
+    } elseif ($script:AglpNpmCmd) {
+        & $script:AglpNpmCmd @args
+    } else {
+        Write-Error "Neither pnpm nor npm.cmd found in PATH."
+    }
+}
 
 # Node.js Performance
 function node-perf {
@@ -439,10 +450,10 @@ function gl { git log --oneline --graph --decorate $args }
 function gd { git diff $args }
 
 # ===============================================
-# FUN????ES UTILIT??RIAS
+# Utility functions
 # ===============================================
 
-# Verificar configura??ao do Claude Flow
+# Show Claude Flow / Node / API key status
 function cf-check {
     Write-Host "`n=== Claude Flow Configuration ===" -ForegroundColor Cyan
     Write-Host "Max Agents: $env:CLAUDE_FLOW_MAX_AGENTS"
@@ -478,10 +489,10 @@ function cf-init-dirs {
     foreach ($dir in $dirs) {
         if (-not (Test-Path $dir)) {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Write-Host "[OK]?? Created: $dir" -ForegroundColor Green
+            Write-Host "[OK] Created: $dir" -ForegroundColor Green
         }
     }
-    Write-Host "`n[OK]?? Claude Flow directories initialized" -ForegroundColor Green
+    Write-Host "`n[OK] Claude Flow directories initialized" -ForegroundColor Green
 }
 
 # Limpar cache do Claude Flow
@@ -489,9 +500,9 @@ function cf-clean {
     $cacheDir = "$HOME\.claude-flow\cache"
     if (Test-Path $cacheDir) {
         Remove-Item -Path "$cacheDir\*" -Recurse -Force
-        Write-Host "[OK]?? Claude Flow cache cleaned" -ForegroundColor Green
+        Write-Host "[OK] Claude Flow cache cleaned" -ForegroundColor Green
     } else {
-        Write-Host "[OK]?? Cache directory not found" -ForegroundColor Yellow
+        Write-Host "[OK] Cache directory not found" -ForegroundColor Yellow
     }
 }
 
@@ -500,31 +511,28 @@ function cf-clean {
 # ===============================================
 
 function prompt {
-    $location = Get-Location
-    $gitBranch = ""
-    
-    if (Test-Path .git) {
+    # Return a single string only; Write-Host here breaks PSReadLine in VS Code/Cursor integrated terminals.
+    $path = (Get-Location).Path
+    $branch = ""
+    if (Test-Path -LiteralPath (Join-Path $path '.git')) {
         try {
-            $branch = git rev-parse --abbrev-ref HEAD 2>$null
-            if ($branch) {
-                $gitBranch = " ($branch)"
-            }
-        } catch {}
+            $b = git rev-parse --abbrev-ref HEAD 2>$null
+            if ($? -and $b) { $branch = " ($b)" }
+        } catch { }
     }
-    
-    Write-Host "PS " -NoNewline -ForegroundColor Green
-    Write-Host "$location" -NoNewline -ForegroundColor Cyan
-    Write-Host "$gitBranch" -NoNewline -ForegroundColor Yellow
-    Write-Host " >" -NoNewline -ForegroundColor Green
-    return " "
+    return "PS $path$branch> "
 }
 
 # ===============================================
-# INICIALIZA????O
+# Startup
 # ===============================================
 
-# Criar diret?rios do Claude Flow se n?o existirem
-cf-init-dirs | Out-Null
+# Create Claude Flow dirs if missing (non-fatal if permissions deny)
+try {
+    cf-init-dirs | Out-Null
+} catch {
+    Write-Warning "cf-init-dirs skipped: $_"
+}
 
 # Mensagem de boas-vindas
 Write-Host "`n=== AGL PowerShell Profile Loaded ===" -ForegroundColor Cyan
@@ -548,7 +556,7 @@ Write-Host ""
 # 2. Substitua <YOUR_*_API_KEY> pelas suas chaves reais
 # 3. Recarregue o perfil: . $PROFILE
 #
-# Ou configure via vari?veis de ambiente do sistema:
+# Or set system/user environment variables:
 # - ANTHROPIC_API_KEY
 # - OPENAI_API_KEY
 # - GOOGLE_API_KEY

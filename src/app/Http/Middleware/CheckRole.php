@@ -2,127 +2,85 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\AuditLog;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Check Role Middleware
- * AGL Infrastructure Admin Platform - Phase 5
- *
- * Validates user has required role(s) before allowing access.
- * Supports multiple role checks with 'any' or 'all' logic.
- *
- * Usage:
- * - Route::middleware('role:admin')
- * - Route::middleware('role:admin,super-admin|any')
- * - Route::middleware('role:admin,operator|all')
- */
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  $roles  Comma-separated roles, optionally followed by |any or |all
-     */
     public function handle(Request $request, Closure $next, string $roles): Response
     {
-        // Check authentication
-        if (! auth()->check()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'error' => 'Unauthenticated',
-                    'message' => 'Authentication required',
-                ], 401);
-            }
+        $user = $request->user();
 
-            return redirect()->route('login');
+        if (! $user) {
+            return response('Unauthorized', 401);
         }
 
-        $user = auth()->user();
-
-        // Check if user is active
-        if (! $user->isActive()) {
-            AuditLog::logSecurityEvent(
-                $user,
-                'inactive_user_access',
-                "Inactive user attempted to access: {$request->path()}",
-                [
-                    'ip' => $request->ip(),
-                    'url' => $request->fullUrl(),
-                    'method' => $request->method(),
-                ]
-            );
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'error' => 'Account Inactive',
-                    'message' => 'Your account has been deactivated. Please contact an administrator.',
-                ], 403);
-            }
-
-            abort(403, 'Your account has been deactivated. Please contact an administrator.');
+        if (($user->is_active ?? true) === false) {
+            return response('Forbidden', 403);
         }
 
-        // Parse roles and logic
-        [$roleList, $logic] = $this->parseRoles($roles);
+        [$roleList, $mode] = $this->parseRoles($roles);
 
-        // Check roles based on logic
-        $hasRole = $logic === 'any'
-            ? $user->hasAnyRole($roleList)
-            : $user->hasAllRoles($roleList);
-
-        if (! $hasRole) {
-            // Log unauthorized access attempt
-            AuditLog::logSecurityEvent(
-                $user,
-                'unauthorized_access',
-                "User attempted to access role-protected resource: {$request->path()}",
-                [
-                    'required_roles' => $roleList,
-                    'logic' => $logic,
-                    'user_roles' => $user->roles->pluck('name')->toArray(),
-                    'ip' => $request->ip(),
-                    'url' => $request->fullUrl(),
-                    'method' => $request->method(),
-                ]
-            );
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'error' => 'Forbidden',
-                    'message' => 'You do not have the required role to perform this action.',
-                    'required_roles' => $roleList,
-                ], 403);
-            }
-
-            abort(403, 'You do not have the required role to perform this action.');
+        if (! $this->matchesRoles($user, $roleList, $mode)) {
+            return response('Forbidden', 403);
         }
 
         return $next($request);
     }
 
-    /**
-     * Parse role string into array and logic type
-     *
-     * @return array [roles_array, logic_type]
-     */
     private function parseRoles(string $roles): array
     {
-        // Check for logic modifier (|any or |all)
-        if (str_contains($roles, '|')) {
-            [$roleString, $logic] = explode('|', $roles, 2);
-            $logic = in_array($logic, ['any', 'all']) ? $logic : 'all';
-        } else {
-            $roleString = $roles;
-            $logic = 'all';
+        [$rolePart, $mode] = array_pad(explode('|', $roles, 2), 2, 'any');
+
+        $roleList = array_values(array_filter(array_map('trim', explode(',', $rolePart))));
+        $mode = strtolower(trim($mode)) === 'all' ? 'all' : 'any';
+
+        return [$roleList, $mode];
+    }
+
+    private function matchesRoles(object $user, array $roles, string $mode): bool
+    {
+        if ($roles === []) {
+            return true;
         }
 
-        // Split roles by comma
-        $roleList = array_map('trim', explode(',', $roleString));
+        if ($mode === 'all') {
+            foreach ($roles as $role) {
+                if (! $this->hasRole($user, $role)) {
+                    return false;
+                }
+            }
 
-        return [$roleList, $logic];
+            return true;
+        }
+
+        foreach ($roles as $role) {
+            if ($this->hasRole($user, $role)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasRole(object $user, string $role): bool
+    {
+        if (method_exists($user, 'hasRole')) {
+            return $user->hasRole($role);
+        }
+
+        $roles = $user->roles ?? collect();
+
+        if (is_iterable($roles)) {
+            foreach ($roles as $userRole) {
+                $name = is_object($userRole) ? ($userRole->name ?? null) : $userRole;
+                if ($name === $role) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

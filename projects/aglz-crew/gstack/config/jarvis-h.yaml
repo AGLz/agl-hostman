@@ -1,0 +1,100 @@
+# GStack Configuration for Jarvis H (Hermes)
+# CT-204 - CPO/CRO Executive Agent
+
+agent:
+  name: "Jarvis H"
+  codename: "Hermes"
+  role: "CPO/CRO"
+  ct_id: "CT-204"
+  ip: "192.168.0.204"
+  version: "1.0.0-aglz"
+  
+  # Persona Configuration
+  persona:
+    base: "demis_hassabis_jeff_dean"
+    traits:
+      - "scientific_visionary"
+      - "product_innovator"
+      - "systems_thinker"
+      - "research_driven"
+    
+browser:
+  engine: "chromium"
+  headless: true
+  viewport:
+    width: 1920
+    height: 1080
+  
+  launch_options:
+    args:
+      - "--no-sandbox"
+      - "--disable-setuid-sandbox"
+      - "--disable-dev-shm-usage"
+      - "--disable-gpu"
+    
+  pool:
+    min_pages: 1
+    max_pages: 5
+    timeout: 30000
+
+server:
+  port_range:
+    min: 10000
+    max: 60000
+  idle_timeout: 1800000  # 30 minutes
+  state_file: ".gstack/browse.json"
+  
+a2a:
+  enabled: true
+  port: 8080
+  protocol: "http"
+  
+  peers:
+    - id: "jarvis-o"
+      name: "Jarvis O (OpenClaw)"
+      endpoint: "http://192.168.0.203:8080"
+      role: "ceo_coo"
+      ct_id: "CT-203"
+      
+    - id: "agl-crew"
+      name: "AGLz Crew"
+      endpoint: "http://192.168.0.205:8080"
+      role: "scrum_teams"
+      ct_id: "CT-205"
+
+skills:
+  enabled:
+    - browse
+    - qa
+    - research
+    - design-review
+    - investigate
+    
+  config:
+    browse:
+      default_viewport: "1920x1080"
+      screenshot_dir: "/var/lib/gstack/screenshots"
+      
+    research:
+      search_apis:
+        - brave_search
+        - perplexity
+      
+    qa:
+      test_timeout: 30000
+      screenshot_on_failure: true
+
+logging:
+  level: "info"
+  format: "json"
+  output: "file"
+  file: "/var/log/gstack/browser.log"
+  max_size: "100MB"
+  max_files: 10
+
+paths:
+  home: "/opt/gstack"
+  config: "/etc/gstack"
+  data: "/var/lib/gstack"
+  logs: "/var/log/gstack"
+  temp: "/tmp/gstack"

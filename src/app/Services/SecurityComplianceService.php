@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Security Compliance Service
@@ -89,7 +91,7 @@ class SecurityComplianceService
     /**
      * Check A01: Broken Access Control
      */
-    private function checkBrokenAccessControl(): array
+    public function checkBrokenAccessControl(): array
     {
         $result = [
             'compliant' => true,
@@ -128,7 +130,7 @@ class SecurityComplianceService
     /**
      * Check A02: Cryptographic Failures
      */
-    private function checkCryptographicFailures(): array
+    public function checkCryptographicFailures(): array
     {
         $result = [
             'compliant' => true,
@@ -170,7 +172,7 @@ class SecurityComplianceService
     /**
      * Check A03: Injection
      */
-    private function checkInjection(): array
+    public function checkInjection(): array
     {
         $result = [
             'compliant' => true,
@@ -219,7 +221,7 @@ class SecurityComplianceService
     /**
      * Check A04: Insecure Design
      */
-    private function checkInsecureDesign(): array
+    public function checkInsecureDesign(): array
     {
         $result = [
             'compliant' => true,
@@ -253,7 +255,7 @@ class SecurityComplianceService
     /**
      * Check A05: Security Misconfiguration
      */
-    private function checkSecurityMisconfiguration(): array
+    public function checkSecurityMisconfiguration(): array
     {
         $result = [
             'compliant' => true,
@@ -296,7 +298,7 @@ class SecurityComplianceService
     /**
      * Check A06: Vulnerable and Outdated Components
      */
-    private function checkVulnerableComponents(): array
+    public function checkVulnerableComponents(): array
     {
         $result = [
             'compliant' => true,
@@ -306,7 +308,7 @@ class SecurityComplianceService
 
         // Check for composer audit
         try {
-            $process = \Illuminate\Support\Process::timeout(60)->run('composer audit --no-dev');
+            $process = Process::timeout(60)->run('composer audit --no-dev');
             if (! $process->successful()) {
                 $result['compliant'] = false;
                 $result['findings'][] = 'PHP dependencies have known vulnerabilities';
@@ -318,7 +320,7 @@ class SecurityComplianceService
 
         // Check for npm audit
         try {
-            $process = \Illuminate\Support\Process::timeout(60)->run('npm audit --json');
+            $process = Process::timeout(60)->run('npm audit --json');
             if (! $process->successful()) {
                 $result['compliant'] = false;
                 $result['findings'][] = 'Node dependencies have known vulnerabilities';
@@ -342,7 +344,7 @@ class SecurityComplianceService
     /**
      * Check A07: Identification and Authentication Failures
      */
-    private function checkAuthFailures(): array
+    public function checkAuthFailures(): array
     {
         $result = [
             'compliant' => true,
@@ -386,7 +388,7 @@ class SecurityComplianceService
     /**
      * Check A08: Software and Data Integrity Failures
      */
-    private function checkIntegrityFailures(): array
+    public function checkIntegrityFailures(): array
     {
         $result = [
             'compliant' => true,
@@ -417,7 +419,7 @@ class SecurityComplianceService
     /**
      * Check A09: Security Logging and Monitoring Failures
      */
-    private function checkLoggingFailures(): array
+    public function checkLoggingFailures(): array
     {
         $result = [
             'compliant' => true,
@@ -451,7 +453,7 @@ class SecurityComplianceService
     /**
      * Check A10: Server-Side Request Forgery
      */
-    private function checkSSRF(): array
+    public function checkSSRF(): array
     {
         $result = [
             'compliant' => true,
@@ -534,7 +536,7 @@ class SecurityComplianceService
     /**
      * Check data minimization
      */
-    private function checkDataMinimization(): array
+    public function checkDataMinimization(): array
     {
         $result = [
             'compliant' => true,
@@ -562,7 +564,7 @@ class SecurityComplianceService
     /**
      * Check right to access
      */
-    private function checkRightToAccess(): array
+    public function checkRightToAccess(): array
     {
         $result = [
             'compliant' => true,
@@ -594,7 +596,7 @@ class SecurityComplianceService
     /**
      * Check right to erasure
      */
-    private function checkRightToErasure(): array
+    public function checkRightToErasure(): array
     {
         $result = [
             'compliant' => true,
@@ -622,7 +624,7 @@ class SecurityComplianceService
     /**
      * Check right to portability
      */
-    private function checkRightToPortability(): array
+    public function checkRightToPortability(): array
     {
         $result = [
             'compliant' => true,
@@ -639,7 +641,7 @@ class SecurityComplianceService
     /**
      * Check consent management
      */
-    private function checkConsentManagement(): array
+    public function checkConsentManagement(): array
     {
         $result = [
             'compliant' => true,
@@ -663,7 +665,7 @@ class SecurityComplianceService
     /**
      * Check data breach notification
      */
-    private function checkDataBreachNotification(): array
+    public function checkDataBreachNotification(): array
     {
         $result = [
             'compliant' => true,
@@ -681,7 +683,7 @@ class SecurityComplianceService
     /**
      * Check data protection by design
      */
-    private function checkDataProtectionByDesign(): array
+    public function checkDataProtectionByDesign(): array
     {
         $result = [
             'compliant' => true,
@@ -738,7 +740,7 @@ class SecurityComplianceService
     /**
      * Check password policy
      */
-    private function checkPasswordPolicy(): array
+    public function checkPasswordPolicy(): array
     {
         $result = [
             'compliant' => true,
@@ -758,7 +760,7 @@ class SecurityComplianceService
     /**
      * Check session management
      */
-    private function checkSessionManagement(): array
+    public function checkSessionManagement(): array
     {
         $result = [
             'compliant' => true,
@@ -782,7 +784,7 @@ class SecurityComplianceService
     /**
      * Check API security
      */
-    private function checkAPISecurity(): array
+    public function checkAPISecurity(): array
     {
         $result = [
             'compliant' => true,
@@ -813,7 +815,7 @@ class SecurityComplianceService
     /**
      * Check file upload security
      */
-    private function checkFileUploadSecurity(): array
+    public function checkFileUploadSecurity(): array
     {
         $result = [
             'compliant' => true,
@@ -855,7 +857,7 @@ class SecurityComplianceService
     /**
      * Check backup security
      */
-    private function checkBackupSecurity(): array
+    public function checkBackupSecurity(): array
     {
         $result = [
             'compliant' => true,
@@ -874,7 +876,7 @@ class SecurityComplianceService
     /**
      * Check dependency management
      */
-    private function checkDependencyManagement(): array
+    public function checkDependencyManagement(): array
     {
         $result = [
             'compliant' => true,
@@ -901,6 +903,23 @@ class SecurityComplianceService
     /**
      * Calculate compliance scores
      */
+    public function checkErrorHandling(): array
+    {
+        $findings = [];
+        $recommendations = [];
+
+        if (config('app.debug')) {
+            $findings[] = 'Application debug mode is enabled';
+            $recommendations[] = 'Disable APP_DEBUG outside local development';
+        }
+
+        return [
+            'compliant' => empty($findings),
+            'findings' => $findings,
+            'recommendations' => $recommendations,
+        ];
+    }
+
     private function calculateComplianceScores(): array
     {
         $totalChecks = count($this->checklist);

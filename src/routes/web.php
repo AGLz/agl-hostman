@@ -25,6 +25,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [LocalAuthController::class, 'logout'])->name('logout');
 });
 
+Route::post('/logout', [LocalAuthController::class, 'logout'])->name('logout.root');
+
 // Protected routes
 Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->group(function () {
@@ -56,11 +58,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/mission-control', function () {
         return view('app');
     })->name('mission-control');
-    Route::get("/mc-test", function () { return response()->json(["ok" => true]); });
     Route::get('/mission-control/{any}', function () {
         return view('app');
     })->where('any', '.*')->name('mission-control.any');
-
 
     // API: Current user info (used by React SPA)
     Route::get('/api/user', function () {
@@ -123,7 +123,6 @@ Route::get('/horizon', function () {
 })->middleware(['auth']);
 
 // Archon AI Command Center Routes
-Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('archon')->name('archon.')->group(function () {
     // Dashboard
     Route::get('/', [\App\Http\Controllers\ArchonController::class, 'index'])->name('index');
@@ -148,19 +147,16 @@ Route::middleware(['auth'])->prefix('archon')->name('archon.')->group(function (
 });
 
 // Alert Center (Phase 3)
-Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('alerts')->name('alerts.')->group(function () {
     Route::get('/', [\App\Http\Controllers\AlertController::class, 'index'])->name('index');
 });
 
 // Network Topology Visualizer (Phase 3)
-Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('network')->name('network.')->group(function () {
     Route::get('/topology', [\App\Http\Controllers\NetworkTopologyController::class, 'index'])->name('topology');
 });
 
 // Admin RBAC Routes
-Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     // Roles management - Read operations
     Route::middleware(['permission:view-roles'])->prefix('roles')->name('roles.')->group(function () {
@@ -212,7 +208,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::middleware(['permission:view-users'])->prefix('users')->name('users.')->group(function () {
         Route::get('/', function () {
-    return redirect('/auth/login');
             return redirect()->route('dashboard');
         })->name('roles');
         Route::get('/{user}/access', [\App\Http\Controllers\Admin\UserRoleController::class, 'showAccess'])->name('access');

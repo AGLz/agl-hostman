@@ -1,0 +1,293 @@
+version: '3.9'
+
+# Dokploy-compatible Docker Compose for Laravel
+# This file is optimized for production deployment with Dokploy
+
+services:
+  # Laravel Application (PHP-FPM)
+  app:
+    image: ${REGISTRY_URL:-harbor.example.com}/laravel-app:${IMAGE_TAG:-latest}
+    container_name: laravel-app
+    restart: always
+    environment:
+      # Application
+      APP_NAME: "Laravel App"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-https://app.example.com}
+
+      # Database
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-laravel}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+
+      # Cache & Session
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # Mail
+      MAIL_MAILER: smtp
+      MAIL_HOST: ${MAIL_HOST:-smtp.mailtrap.io}
+      MAIL_PORT: ${MAIL_PORT:-2525}
+      MAIL_USERNAME: ${MAIL_USERNAME:-null}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-null}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-null}
+
+      # Logging
+      LOG_CHANNEL: stack
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+    volumes:
+      # Persistent storage
+      - app_storage:/app/storage
+      - app_bootstrap:/app/bootstrap/cache
+
+    networks:
+      - laravel
+
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      replicas: ${APP_REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 30s
+        failure_action: rollback
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: laravel-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Configuration
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+
+      # Logs
+      - nginx_logs:/var/log/nginx
+    networks:
+      - laravel
+
+    depends_on:
+      app:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: laravel-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+      MYSQL_USER: ${DB_USERNAME:-laravel}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    networks:
+      - laravel
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: laravel-redis
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - laravel
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # Queue Worker
+  queue:
+    image: ${REGISTRY_URL:-harbor.example.com}/laravel-app:${IMAGE_TAG:-latest}
+    container_name: laravel-queue
+    restart: always
+    command: >
+      php artisan queue:work
+      --daemon
+      --sleep=3
+      --tries=3
+      --max-time=3600
+      --timeout=90
+    environment:
+      APP_ENV: production
+      DB_HOST: mysql
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-laravel}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - laravel
+
+    depends_on:
+      - mysql
+      - redis
+
+    deploy:
+      replicas: ${QUEUE_REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Scheduler
+  scheduler:
+    image: ${REGISTRY_URL:-harbor.example.com}/laravel-app:${IMAGE_TAG:-latest}
+    container_name: laravel-scheduler
+    restart: always
+    command: >
+      sh -c "
+      while true; do
+        php artisan schedule:run --verbose --no-interaction &
+        sleep 60
+      done
+      "
+    environment:
+      APP_ENV: production
+      DB_HOST: mysql
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-laravel}
+      DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - laravel
+
+    depends_on:
+      - mysql
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+networks:
+  laravel:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: laravel_br
+
+volumes:
+  mysql_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/mysql
+
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/redis
+
+  app_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /app/storage
+
+  app_bootstrap:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /app/bootstrap/cache
+
+  nginx_logs:
+    driver: local

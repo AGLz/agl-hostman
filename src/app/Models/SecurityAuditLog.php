@@ -17,6 +17,8 @@ class SecurityAuditLog extends Model
 {
     use HasFactory;
 
+    public const UPDATED_AT = null;
+
     /**
      * The table associated with the model.
      *

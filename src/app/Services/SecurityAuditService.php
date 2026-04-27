@@ -6,8 +6,9 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Process;
 use Illuminate\Support\Str;
 
 /**
@@ -276,7 +277,7 @@ class SecurityAuditService
     /**
      * Check for hardcoded secrets
      */
-    private function checkHardcodedSecrets(): array
+    public function checkHardcodedSecrets(): array
     {
         $result = [
             'status' => 'pass',
@@ -320,7 +321,7 @@ class SecurityAuditService
     /**
      * Check for SQL injection risks
      */
-    private function checkSqlInjectionRisks(): array
+    public function checkSqlInjectionRisks(): array
     {
         $result = [
             'status' => 'pass',
@@ -352,7 +353,7 @@ class SecurityAuditService
     /**
      * Check for XSS vulnerabilities
      */
-    private function checkXssVulnerabilities(): array
+    public function checkXssVulnerabilities(): array
     {
         $result = [
             'status' => 'pass',
@@ -389,7 +390,7 @@ class SecurityAuditService
     /**
      * Check file handling security
      */
-    private function checkFileHandlingSecurity(): array
+    public function checkFileHandlingSecurity(): array
     {
         $result = [
             'status' => 'pass',
@@ -428,7 +429,7 @@ class SecurityAuditService
     /**
      * Check for insecure configurations
      */
-    private function checkInsecureConfigurations(): array
+    public function checkInsecureConfigurations(): array
     {
         $result = [
             'status' => 'pass',
@@ -508,7 +509,7 @@ class SecurityAuditService
     /**
      * Check password policy
      */
-    private function checkPasswordPolicy(): array
+    public function checkPasswordPolicy(): array
     {
         $result = [
             'status' => 'pass',
@@ -542,7 +543,7 @@ class SecurityAuditService
     /**
      * Check session configuration
      */
-    private function checkSessionConfiguration(): array
+    public function checkSessionConfiguration(): array
     {
         $result = [
             'status' => 'pass',
@@ -593,7 +594,7 @@ class SecurityAuditService
     /**
      * Check 2FA availability
      */
-    private function checkTwoFactorAvailability(): array
+    public function checkTwoFactorAvailability(): array
     {
         $result = [
             'status' => 'pass',
@@ -625,7 +626,7 @@ class SecurityAuditService
     /**
      * Check auth rate limiting
      */
-    private function checkAuthRateLimiting(): array
+    public function checkAuthRateLimiting(): array
     {
         $result = [
             'status' => 'pass',
@@ -688,7 +689,7 @@ class SecurityAuditService
     /**
      * Check RBAC implementation
      */
-    private function checkRBACImplementation(): array
+    public function checkRBACImplementation(): array
     {
         $result = [
             'status' => 'pass',
@@ -724,7 +725,7 @@ class SecurityAuditService
     /**
      * Check policy usage
      */
-    private function checkPolicyUsage(): array
+    public function checkPolicyUsage(): array
     {
         $result = [
             'status' => 'pass',
@@ -748,7 +749,7 @@ class SecurityAuditService
     /**
      * Check middleware protection
      */
-    private function checkMiddlewareProtection(): array
+    public function checkMiddlewareProtection(): array
     {
         $result = [
             'status' => 'pass',
@@ -814,7 +815,7 @@ class SecurityAuditService
     /**
      * Check encryption at rest
      */
-    private function checkEncryptionAtRest(): array
+    public function checkEncryptionAtRest(): array
     {
         $result = [
             'status' => 'pass',
@@ -841,7 +842,7 @@ class SecurityAuditService
     /**
      * Check TLS configuration
      */
-    private function checkTLSConfiguration(): array
+    public function checkTLSConfiguration(): array
     {
         $result = [
             'status' => 'pass',
@@ -866,7 +867,7 @@ class SecurityAuditService
     /**
      * Check logging security
      */
-    private function checkLoggingSecurity(): array
+    public function checkLoggingSecurity(): array
     {
         $result = [
             'status' => 'pass',
@@ -943,7 +944,7 @@ class SecurityAuditService
     /**
      * Check API rate limiting
      */
-    private function checkAPIRateLimiting(): array
+    public function checkAPIRateLimiting(): array
     {
         $result = [
             'status' => 'pass',
@@ -971,7 +972,7 @@ class SecurityAuditService
     /**
      * Check API authentication
      */
-    private function checkAPIAuthentication(): array
+    public function checkAPIAuthentication(): array
     {
         $result = [
             'status' => 'pass',
@@ -999,7 +1000,7 @@ class SecurityAuditService
     /**
      * Check API validation
      */
-    private function checkAPIValidation(): array
+    public function checkAPIValidation(): array
     {
         $result = [
             'status' => 'pass',
@@ -1024,7 +1025,7 @@ class SecurityAuditService
     /**
      * Check CORS configuration
      */
-    private function checkCORSConfiguration(): array
+    public function checkCORSConfiguration(): array
     {
         $result = [
             'status' => 'pass',
@@ -1088,7 +1089,7 @@ class SecurityAuditService
     /**
      * Check environment variables
      */
-    private function checkEnvironmentVariables(): array
+    public function checkEnvironmentVariables(): array
     {
         $result = [
             'status' => 'pass',
@@ -1120,7 +1121,7 @@ class SecurityAuditService
     /**
      * Check sensitive configs
      */
-    private function checkSensitiveConfigs(): array
+    public function checkSensitiveConfigs(): array
     {
         $result = [
             'status' => 'pass',
@@ -1186,7 +1187,7 @@ class SecurityAuditService
     /**
      * Check log channels
      */
-    private function checkLogChannels(): array
+    public function checkLogChannels(): array
     {
         $result = [
             'status' => 'pass',
@@ -1209,7 +1210,7 @@ class SecurityAuditService
     /**
      * Check audit logging
      */
-    private function checkAuditLogging(): array
+    public function checkAuditLogging(): array
     {
         $result = [
             'status' => 'pass',

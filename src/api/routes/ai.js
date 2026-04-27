@@ -6,6 +6,8 @@ const { getLiteLLMStatus, getRufloStatus } = require('../../services/ai-stack');
 
 const execAsync = promisify(exec);
 
+const RUFLO_COMMAND = process.env.RUFLO_COMMAND || 'ruflo';
+
 const OPENCLAW_INFO = {
   name: 'OpenClaw',
   version: '1.0.0',
@@ -40,9 +42,7 @@ async function aiRoutes(fastify) {
     }
 
     try {
-      const cmd = action === 'start'
-        ? 'npx ruflo@latest daemon start'
-        : 'npx ruflo@latest daemon stop';
+      const cmd = `${RUFLO_COMMAND} daemon ${action}`;
 
       const { stdout, stderr } = await execAsync(cmd, { timeout: 15000 });
 

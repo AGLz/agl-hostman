@@ -109,6 +109,9 @@ logs/mcp-monitoring/
 *.bak.*
 .claude/settings.json.bak*
 
+# Clones locais de git worktree (não versionar)
+.claude/worktrees/
+
 # Dolt database files (added by bd init)
 .dolt/
 
