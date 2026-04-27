@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 M="${1:?model id}"
-K="$(grep -m1 '^LITELLM_MASTER_KEY=' /opt/litellm/.env | cut -d= -f2-)"
-K="${K//\"/}"
-curl -sS -X POST "http://127.0.0.1:4000/v1/chat/completions" \
-  -H "Authorization: Bearer ${K}" -H "Content-Type: application/json" \
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+K="$("$DIR/_litellm-master-key.sh")"
+CURL_AUTH=()
+if [[ -n "$K" ]]; then
+  CURL_AUTH=(-H "Authorization: Bearer ${K}")
+fi
+curl -sS --max-time 120 -X POST "http://127.0.0.1:4000/v1/chat/completions" \
+  "${CURL_AUTH[@]}" -H "Content-Type: application/json" \
   -d "{\"model\":\"${M}\",\"messages\":[{\"role\":\"user\",\"content\":\"x\"}],\"max_tokens\":4}"

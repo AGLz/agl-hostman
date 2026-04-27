@@ -109,7 +109,7 @@
 | fgsrv5-nfs.mount | ❌ Failed | - | Obsolete (use fgsrv5-wg) |
 | fgsrv6-nfs.mount | ❌ Failed | - | Obsolete (use fgsrv6-wg) |
 | rclone-wg.service | ❌ Failed | - | Running but systemd shows failed |
-| pve-container@200 | ❌ Failed | - | Container 200 stopped |
+| pve-container@200 | ✅ Running (CT200) | 11434 no CT | Ollama só no CT200, não no host |
 | pve-container@999 | ❌ Failed | - | Orphaned (config missing) |
 | zfs-snapshot-manager | ❌ Failed | - | Needs investigation |
 
@@ -158,17 +158,17 @@ ls -lh /var/run/vzdump.lock  # 0 bytes = lock held by running process
 
 ## Container Issues
 
-### CT200 (ollama) - STOPPED ⚠️
+### CT200 (ollama) — canónico para Ollama
 
-**Expected State**: Running (GPU compute for LLMs)
-**Actual State**: Stopped
-**Service**: pve-container@200.service (failed)
+**Política**: Ollama corre **só** no CT200 (`pct exec 200`, IP típica `192.168.0.200:11434`). **Não** instalar `ollama.service` no host Proxmox.
 
-**Action**: Manual restart required
+**GPU**: pass-through para o CT; no host manter apenas `post-reboot-gpu.service` (wake PCI / verificação), sem serviço Ollama.
+
+**Verificação**:
 ```bash
-pct start 200
 pct status 200
-journalctl -u pve-container@200.service -n 50
+pct exec 200 -- systemctl is-active ollama
+pct exec 200 -- curl -sS http://127.0.0.1:11434/api/tags
 ```
 
 ### CT999 - ORPHANED 🗑️
@@ -257,12 +257,13 @@ top -c
 bash /root/agl-hostman/scripts/aglsrv1-emergency-remediation.sh
 ```
 
-### 4. Restart CT200 (ollama) (MEDIUM) 🟡
+### 4. CT200 (ollama) (MEDIUM) 🟡
 
-**Urgency**: Within 24 hours
+**Urgency**: Within 24 hours if parado
 
 ```bash
 pct start 200
+# Ollama: usar API em http://192.168.0.200:11434 (não no host)
 ```
 
 ### 5. Remove Obsolete Storage Configs (LOW) 🔵

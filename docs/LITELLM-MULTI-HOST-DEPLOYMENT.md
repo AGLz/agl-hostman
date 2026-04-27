@@ -18,6 +18,8 @@
 | **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
 | **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | 100.116.57.111 (TS) | litellm-redis (Docker) |
 
+**Nota (2026-04) — alias `agl-primary` (LAN, `config.yaml`)**: no agldv03/04/12 o primário Ollama local é **`ollama/qwen3:4b`** (CT200 `192.168.0.200:11434`); **`ollama-nemotron-3-nano-4b`** fica na cadeia de fallbacks. No **fgsrv06** o `agl-primary` em `config-remote.yaml` continua a ser **DashScope `qwen3.5-flash`**, com Ollama CT200 só como fallback via Tailscale.
+
 ---
 
 ## Pré-requisitos por host
@@ -25,7 +27,8 @@
 1. **Docker** e **Docker Compose** instalados
 2. **Acesso SSH** como root
 3. **API keys** no `.env` (Anthropic, ZAI, DeepSeek, etc.)
-4. **Tailscale** (fgsrv06 precisa para Ollama via 100.116.57.111)
+4. **`LITELLM_MASTER_KEY`** (recomendada em `/opt/litellm/.env`): ver `config/litellm/.env.example`. Sem esta variável o LiteLLM pode aceitar pedidos **sem** cabeçalho `Authorization` (útil em LAN fechada; **evitar** se a porta 4000 for acessível fora da equipa). Os scripts em `scripts/litellm/` usam `_litellm-master-key.sh` e omitam `Bearer` se a chave estiver vazia.
+5. **Tailscale** (fgsrv06 precisa para Ollama via 100.116.57.111)
 
 ---
 

@@ -1,0 +1,2 @@
+# Scripts shell: sempre LF (evitar shebang quebrado em Linux)
+*.sh text eol=lf

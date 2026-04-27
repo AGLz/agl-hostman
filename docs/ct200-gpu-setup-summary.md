@@ -128,6 +128,17 @@ dpkg --purge libnvidia-compute-535 libnvidia-compute-580 nvidia-dkms-580 \
 ldconfig
 ```
 
+#### Issue 4 (2026-04-19): Ollama só CPU — `total_vram=0 B` apesar de `nvidia-smi` OK
+**Causa**: faltava `lxc.cgroup2.devices.allow: c 509:* rwm` no `/etc/pve/lxc/200.conf` em produção. O major **509** é o dispositivo **`/dev/nvidia-uvm`**; sem permissão no cgroup v2 o bind mount existe mas o runtime CUDA não inicializa → descoberta de GPU devolve lista vazia (`initial_count=0`) e o Ollama cai para CPU.
+
+**Correção**:
+```ini
+lxc.cgroup2.devices.allow: c 509:* rwm
+```
+Reiniciar o CT (`pct reboot 200`). Opcional no serviço Ollama: `OLLAMA_LLM_LIBRARY=cuda_v12` quando coexistem `cuda_v12` e `cuda_v13` no bundle.
+
+**Verificação**: `journalctl -u ollama` deve mostrar `library=CUDA` e `total_vram="4.0 GiB"`; `ollama ps` com modelo carregado → `100% GPU`.
+
 ### 3. Container Verification
 ```bash
 # Inside CT200

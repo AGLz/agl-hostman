@@ -1,0 +1,8 @@
+# Ollama na AGLSRV1 deve correr APENAS no CT200 (nome: ollama), com GPU pass-through.
+# Não instalar nem ativar ollama.service no host Proxmox (evita duplicar RAM/GPU e portas).
+#
+# Dentro do CT200, o unit vem de `curl -fsSL https://ollama.com/install.sh | sh` (ou pacote).
+# Limites 1 modelo / 1 pedido paralelo: o CT200 usa `override.conf` (ver `ct200-ollama-override.conf`).
+# Alternativa mínima: `10-agl-ollama-concurrency.conf` como drop-in extra.
+#   pct push 200 scripts/aglsrv1/ct200-ollama-override.conf /etc/systemd/system/ollama.service.d/override.conf
+#   pct exec 200 -- systemctl daemon-reload && pct exec 200 -- systemctl restart ollama
