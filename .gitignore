@@ -97,6 +97,7 @@ logs/security/
 playwright-report/
 test-results/
 playwright/.cache/
+tests/e2e/.auth/
 
 # Logs
 proxmox_mcp.log

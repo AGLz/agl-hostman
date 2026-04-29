@@ -1,83 +1,48 @@
 <?php
 
-use App\Http\Controllers\Auth\LocalAuthController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\WorkOSController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
-    return redirect('/auth/login');
+    return view('app');
 })->name('home');
 
-// Authentication
+// Sessão web (email/password) — o formulário em auth/login faz POST para route('login')
 Route::prefix('auth')->group(function () {
-    // Local login (fallback when WorkOS is not configured)
-    Route::get('/login', [LocalAuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LocalAuthController::class, 'login'])->name('login.submit');
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
 
     Route::get('/forgot-password', function () {
         return redirect()->route('login');
     })->name('password.request');
 
-    // WorkOS OAuth (only when configured)
     Route::get('/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
     Route::get('/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
-    Route::post('/logout', [LocalAuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
 });
 
-Route::post('/logout', [LocalAuthController::class, 'logout'])->name('logout.root');
-
 // Protected routes
-Route::get("/mc-test-public", function () { return response()->json(["ok" => true]); });
 Route::middleware(['auth'])->group(function () {
-    // Default landing → Mission Control
-    Route::get('/', function () {
-        return view('app');
-    })->name('home');
-
-    // Dashboard redirect → Mission Control
     Route::get('/dashboard', function () {
-        return redirect('/mission-control');
+        return view('app');
     })->name('dashboard');
 
-    // Infrastructure dashboard (accessible via sidebar)
+    // SPA catch-all routes — servem view('app') para que o BrowserRouter
+    // trate o routing do lado do cliente (evita 404/Inertia no refresh direto)
     Route::get('/infrastructure', fn() => view('app'))->name('infrastructure');
-    Route::get('/monitoring', fn() => view('app'))->name('monitoring');
     Route::get('/metrics', fn() => view('app'))->name('metrics');
+    Route::get('/scrum', fn() => view('app'))->name('scrum');
+    Route::get('/memory', fn() => view('app'))->name('memory');
+    Route::get('/notifications', fn() => view('app'))->name('notifications');
 
     // Dokploy Dashboard (client-side route)
     Route::get('/dokploy', function () {
         return view('app');
     })->name('dokploy');
-    Route::get('/dokploy/{any}', function () {
-        return view('app');
-    })->where('any', '.*')->name('dokploy.any');
 
-    // Mission Control - SPA catch-all routes
-    Route::get("/mc-test", function () { return response()->json(["ok" => true]); });
-    Route::get('/mission-control', function () {
-        return view('app');
-    })->name('mission-control');
-    Route::get('/mission-control/{any}', function () {
-        return view('app');
-    })->where('any', '.*')->name('mission-control.any');
-
-    // API: Current user info (used by React SPA)
-    Route::get('/api/user', function () {
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'avatar_url' => $user->avatar_url,
-            'roles' => $user->roles->pluck('name'),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
-            'is_active' => $user->is_active,
-        ]);
-    })->name('api.user');
+    Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
 
     Route::resource('daily-memory', \App\Http\Controllers\DailyMemoryController::class);
 

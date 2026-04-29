@@ -163,7 +163,7 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.71.107.26 | fgsrv05 | linux | Active | Cloud VPS 05 / NFS server |
 | 100.83.51.9 | fgsrv06 | linux | Idle | Cloud VPS 06 / WireGuard hub |
 | 100.72.240.65 | fgsrv07-cloudflared7 | linux | Active | Cloudflare Tunnel (CT170) |
-| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL slave HA (CT235) |
+| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL primary CT235 (ex-réplica HA; promoção master) |
 | 100.109.181.93 | fgsrv07 | linux | Active | Cloud VPS 07 / Proxmox |
 
 ### Endpoints & Dispositivos Pessoais (6 hosts)
@@ -299,14 +299,19 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 | VMID | Name | Status | Network | Purpose |
 |------|------|--------|---------|---------|
 | 170 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel |
-| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL Slave (HA) |
+| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL primary (HA; promovido de slave) — **4 vCPU** (alvo stack fg; ver `scripts/maint/fgsrv07/pct-bump-fg-stack-cores.sh`) |
 | 239 | pihole7 | running | vmbr70 (192.168.70.139) | DNS/Ad-blocking (HA) |
+| 240 | fileserver7 | running | vmbr70 (192.168.70.240) | Fileserver |
+| 241 | agldv07 | running | vmbr70 (192.168.70.241) | Dev/workstation |
+| 242 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus |
+| 243 | **fg-legacy** | running | vmbr70 (192.168.70.243) · Tailscale **100.93.105.113** (`fg-legacy`) | fg_antigo **www5.falg.com.br** — HTTP **:80** em LAN; **4 vCPU**; BD **`falgimoveis11`** em **mysql7** `192.168.70.135:3306` (migração 2026-04; ver `docs/fg-mysql-ha/infos.md` + `docs/maint/FGSRV07-fg-antigo-ct-provisioning.md`) |
 
-**MySQL HA Replication**:
-- Master: CT135 (AGLSRV5) - Tailscale: 100.98.1.119
-- Slave: CT235 (FGSRV7) - Tailscale: 100.83.7.16
-- Replication User: repl / Repl@123456
-- Status: ✅ Active via Tailscale (Master-Slave async)
+**MySQL (FGSRV07 — CT235 / mysql7)**  
+- **Papel actual (2026-04):** **primário / master** de escrita — o CT235 foi **promovido** (antes documentado como *slave* de HA em relação ao par com AGLSRV5).  
+- **Réplica leitura:** **CT135** (`mysql5`) em **AGLSRV5** (Tailscale `100.98.1.119`) — replicação GTID **235 → 135** (`repl` só a partir do IP Tailscale do slave); estado operacional em `docs/fg-mysql-ha/infos.md`; scripts em `scripts/maint/mysql-ha/README.md`.  
+- **LAN:** `192.168.70.135` · **Tailscale:** `100.83.7.16` (`fgsrv07-mysql7`).  
+- **Replicação / histórico:** a topologia *master ↔ slave* com CT135 (AGLSRV5) pode ter ficado **obsoleta** ou **reconfigurada** após a promoção; **confirmar em operações** com `SHOW REPLICA STATUS` / `SHOW MASTER STATUS` e backups antes de alterar ACLs ou DNS.  
+- **Credenciais** de replicação e root **não** pertencem a este ficheiro.
 
 **NAT Configuration**:
 ```bash
@@ -319,8 +324,8 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 - Service: systemd (CT170 - cloudflared7)
 - Endpoints:
   - `man7.aglz.io` → Proxmox Web UI (8006) ✅
-  - `mysql-slave.falg.com.br` → MySQL HA Slave (3306)
-  - `mysql-slave.aglz.io` → MySQL HA Slave (3306)
+  - `mysql-slave.falg.com.br` → MySQL CT235 (3306) — **hostname legacy**; serviço trata-se do **primário** após promoção (validar na Cloudflare).
+  - `mysql-slave.aglz.io` → MySQL CT235 (3306) — idem
 - Auto-start: ✅ systemd enabled
 
 **Access**:
@@ -393,6 +398,8 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 | Public IP | 191.252.201.205 | - | ✅ Internet |
 | WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active |
 | Tailscale | 100.67.99.115 | - | ✅ Active |
+
+**MySQL — tuning RAM / `innodb_buffer_pool`**: ver `docs/maint/FGSRV03-MYSQL-MEMORY-TUNING.md` e template `scripts/maint/templates/mysql-fgsrv03-mysqld-snippet.cnf`.
 
 ---
 

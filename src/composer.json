@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "darkaonline/l5-swagger": "^9.0",
+        "fakerphp/faker": "^1.24",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.39",
@@ -21,7 +22,6 @@
         "workos/workos-php": "^4.27"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.23",
         "laravel/boost": "*",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
