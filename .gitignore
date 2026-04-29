@@ -109,6 +109,7 @@ logs/mcp-monitoring/
 !.claude/settings.json
 *.bak.*
 .claude/settings.json.bak*
+.claude/skills/
 
 # Clones locais de git worktree (não versionar)
 .claude/worktrees/

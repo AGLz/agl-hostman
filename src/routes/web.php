@@ -20,7 +20,6 @@ Route::prefix('auth')->group(function () {
 
     Route::get('/workos/redirect', [WorkOSController::class, 'redirect'])->name('workos.redirect');
     Route::get('/workos/callback', [WorkOSController::class, 'callback'])->name('workos.callback');
-    Route::post('/logout', [WorkOSController::class, 'logout'])->name('logout');
 });
 
 // Protected routes
