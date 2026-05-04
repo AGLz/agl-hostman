@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Test LiteLLM models and OpenClaw gateway connectivity."""
 import urllib.request
 import json
 import sys
 
 LITELLM_URL = "http://localhost:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_KEY = "${LITELLM_MASTER_KEY}"
 GATEWAY_URL = "http://localhost:28789"
 GATEWAY_TOKEN = "5b3f1c9612b577ae6117de9b72597c63d1692d57ad5d8bc0"
 

@@ -1,16 +1,16 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Test ZAI models with zai/ prefix and check Ollama + Gemini issues."""
 import urllib.request
 import json
 import time
 
 LITELLM_URL = "http://localhost:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_KEY = "${LITELLM_MASTER_KEY}"
 
 TESTS = [
     # ZAI with prefix
     "zai/glm-5",
-    "zai/glm-4.7-flash", 
+    "zai/glm-4.7-flash",
     "zai/glm-4.7",
     "zai/glm-4.5-flash",
     # Ollama - check which models are pulled

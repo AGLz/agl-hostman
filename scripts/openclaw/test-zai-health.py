@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Diagnose why ZAI models get removed - test API endpoints LiteLLM uses for health."""
 import urllib.request, json, subprocess
 
@@ -31,7 +31,7 @@ for label, url, auth in TESTS:
 # Check if there's a cooldown or model group issue
 print("\n--- LiteLLM model groups ---")
 req = urllib.request.Request("http://localhost:4000/model/info")
-req.add_header("Authorization", "Bearer sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0")
+req.add_header("Authorization", "Bearer ${LITELLM_MASTER_KEY}")
 resp = urllib.request.urlopen(req, timeout=10)
 data = json.loads(resp.read())
 models = data.get("data", [])

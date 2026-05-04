@@ -1,25 +1,25 @@
-# OpenClaw Docker Migration — 2026-04-13
+﻿# OpenClaw Docker Migration â€” 2026-04-13
 
 ## Resumo
 
-OpenClaw migrado do host (systemd) para container Docker, com integração LiteLLM e Telegram funcionando.
+OpenClaw migrado do host (systemd) para container Docker, com integraÃ§Ã£o LiteLLM e Telegram funcionando.
 
 ## Problemas Resolvidos
 
 ### 1. Networking Docker
-**Problema:** OpenClaw e LiteLLM estavam em redes Docker diferentes, sem comunicação.
-**Solução:** Conectar o container OpenClaw à rede `litellm_litellm-net`:
+**Problema:** OpenClaw e LiteLLM estavam em redes Docker diferentes, sem comunicaÃ§Ã£o.
+**SoluÃ§Ã£o:** Conectar o container OpenClaw Ã  rede `litellm_litellm-net`:
 ```bash
 docker network connect litellm_litellm-net openclaw-repo-openclaw-gateway-1
 ```
 
 ### 2. Provider Configuration
-**Problema:** Provider apontava para 127.0.0.1:4000 (não acessível do container).
-**Solução:** Configurar para usar o IP do LiteLLM na rede compartilhada:
+**Problema:** Provider apontava para 127.0.0.1:4000 (nÃ£o acessÃ­vel do container).
+**SoluÃ§Ã£o:** Configurar para usar o IP do LiteLLM na rede compartilhada:
 ```json
 {
   "baseUrl": "http://192.168.32.3:4000",
-  "apiKey": "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0",
+  "apiKey": "${LITELLM_MASTER_KEY}",
   "api": "openai-completions",
   "models": []
 }
@@ -27,10 +27,10 @@ docker network connect litellm_litellm-net openclaw-repo-openclaw-gateway-1
 
 ### 3. Config Validation Errors
 **Problemas encontrados:**
-- `channels.telegram.streaming`: "partial" não é válido → mudar para `true`
-- `agents.defaults.tools`: chave não reconhecida → remover
-- `models.providers.openai.models`: obrigatório ser array → adicionar `[]`
-- `models.providers.openai.api`: obrigatório → adicionar `"openai-completions"`
+- `channels.telegram.streaming`: "partial" nÃ£o Ã© vÃ¡lido â†’ mudar para `true`
+- `agents.defaults.tools`: chave nÃ£o reconhecida â†’ remover
+- `models.providers.openai.models`: obrigatÃ³rio ser array â†’ adicionar `[]`
+- `models.providers.openai.api`: obrigatÃ³rio â†’ adicionar `"openai-completions"`
 
 ### 4. Telegram Bot Token
 **Token encontrado em:** `/root/.openclaw/openclaw.json.backup`
@@ -40,8 +40,8 @@ docker network connect litellm_litellm-net openclaw-repo-openclaw-gateway-1
 **Bot:** @JarvisWK45_bot
 
 ### 5. Host Process Cleanup
-**Problema:** Processos openclaw-gateway órfãos no host consumindo memória.
-**Solução:**
+**Problema:** Processos openclaw-gateway Ã³rfÃ£os no host consumindo memÃ³ria.
+**SoluÃ§Ã£o:**
 ```bash
 systemctl --user stop openclaw-gateway
 systemctl --user disable openclaw-gateway
@@ -50,16 +50,16 @@ ps aux | grep openclaw | grep -v grep | grep -v docker | awk '{print $2}' | xarg
 ```
 
 ### 6. Cron Jobs Paths
-**Problema:** Paths `/root/.openclaw/` e `127.0.0.1:4000` não funcionam no container.
-**Solução:** Substituir por `/home/node/.openclaw/` e `http://192.168.32.3:4000`.
+**Problema:** Paths `/root/.openclaw/` e `127.0.0.1:4000` nÃ£o funcionam no container.
+**SoluÃ§Ã£o:** Substituir por `/home/node/.openclaw/` e `http://192.168.32.3:4000`.
 
-## Configuração Final
+## ConfiguraÃ§Ã£o Final
 
 ### Container
 - **Nome:** `openclaw-repo-openclaw-gateway-1`
 - **Status:** healthy
 - **Portas:** 28789 (gateway), 28790 (bridge)
-- **Memória:** ~630MB
+- **MemÃ³ria:** ~630MB
 - **Rede:** `openclaw-repo_default` (172.30.0.2) + `litellm_litellm-net` (192.168.32.4)
 
 ### LiteLLM
@@ -84,7 +84,7 @@ ps aux | grep openclaw | grep -v grep | grep -v docker | awk '{print $2}' | xarg
 - `/mnt/overpower/apps/dev/agl/openclaw-repo/config/openclaw.json`
 - `/mnt/overpower/apps/dev/agl/openclaw-repo/config/cron/jobs.json`
 
-## Comandos Úteis
+## Comandos Ãšteis
 
 ```bash
 # Check container status
@@ -107,13 +107,13 @@ docker network connect litellm_litellm-net openclaw-repo-openclaw-gateway-1
 ```
 
 ## Host Status
-- **systemd openclaw-gateway:** disabled ✅
-- **Host processes:** 0 ✅
-- **All services running in Docker** ✅
+- **systemd openclaw-gateway:** disabled âœ…
+- **Host processes:** 0 âœ…
+- **All services running in Docker** âœ…
 
 ## Scripts Criados
-- `scripts/openclaw/validate-openclaw-docker.sh` — Validação completa (23 checks)
-- `scripts/openclaw/health-vs-schedules.sh` — Gateway health vs cron schedules alignment
+- `scripts/openclaw/validate-openclaw-docker.sh` â€” ValidaÃ§Ã£o completa (23 checks)
+- `scripts/openclaw/health-vs-schedules.sh` â€” Gateway health vs cron schedules alignment
 
 ## Arquivos Marcados como DEPRECATED
 - `config/openclaw/openclaw-gateway.service.d-env.conf`
@@ -123,73 +123,73 @@ docker network connect litellm_litellm-net openclaw-repo-openclaw-gateway-1
 
 ---
 
-## Validação Final (2026-04-13 10:31 UTC-03)
+## ValidaÃ§Ã£o Final (2026-04-13 10:31 UTC-03)
 
 ### Validation Script Results
 ```
-✅ Pass: 23
-❌ Fail: 0
-⚠️  Warn: 1 (websites-monitor was running at check time)
-STATUS: ⚠️  WARNINGS (all checks passed)
+âœ… Pass: 23
+âŒ Fail: 0
+âš ï¸  Warn: 1 (websites-monitor was running at check time)
+STATUS: âš ï¸  WARNINGS (all checks passed)
 ```
 
 ### Health vs Schedules Results
 ```
-✅ Pass: 5
-❌ Fail: 0
-⚠️  Warn: 0
-STATUS: ✅ ALL GOOD
+âœ… Pass: 5
+âŒ Fail: 0
+âš ï¸  Warn: 0
+STATUS: âœ… ALL GOOD
 ```
 
 ### Checks Validated
 | Category | Check | Result |
 |----------|-------|--------|
-| Container Health | openclaw-repo-openclaw-gateway-1 | ✅ healthy |
-| Container Health | litellm-proxy | ✅ healthy |
-| Network | LiteLLM network connected | ✅ |
-| Network | LiteLLM chat completions | ✅ OK |
-| Gateway | /healthz endpoint | ✅ OK |
-| Config | File exists + valid JSON | ✅ |
-| Config | Provider URL (192.168.32.3:4000) | ✅ |
-| Config | Primary model (openai/qwen3.5-flash) | ✅ |
-| Config | Telegram enabled | ✅ |
-| Telegram | Bot connected (@JarvisWK45_bot) | ✅ |
-| Models | Primary model responds | ✅ |
-| Cron | 6/6 jobs ok | ✅ |
-| Schedule | All intervals match expected | ✅ |
-| LiteLLM | 72 models available | ✅ |
-| LiteLLM | qwen3.5-flash in model list | ✅ |
-| Fallback | qwen-flash responds | ✅ |
+| Container Health | openclaw-repo-openclaw-gateway-1 | âœ… healthy |
+| Container Health | litellm-proxy | âœ… healthy |
+| Network | LiteLLM network connected | âœ… |
+| Network | LiteLLM chat completions | âœ… OK |
+| Gateway | /healthz endpoint | âœ… OK |
+| Config | File exists + valid JSON | âœ… |
+| Config | Provider URL (192.168.32.3:4000) | âœ… |
+| Config | Primary model (openai/qwen3.5-flash) | âœ… |
+| Config | Telegram enabled | âœ… |
+| Telegram | Bot connected (@JarvisWK45_bot) | âœ… |
+| Models | Primary model responds | âœ… |
+| Cron | 6/6 jobs ok | âœ… |
+| Schedule | All intervals match expected | âœ… |
+| LiteLLM | 72 models available | âœ… |
+| LiteLLM | qwen3.5-flash in model list | âœ… |
+| Fallback | qwen-flash responds | âœ… |
 
 ---
 
 *Fix aplicado: 2026-04-13 09:20 UTC-03*
-*Validação final: 2026-04-13 10:43 UTC-03*
+*ValidaÃ§Ã£o final: 2026-04-13 10:43 UTC-03*
 
 ---
 
 ## Fix 2: Telegram Bot Corrigido (2026-04-13 11:03 UTC-03)
 
 ### Problema
-O bot estava configurado como @JarvisWK45_bot, mas o bot correto do host é **@Jarvis3b3Bot**.
+O bot estava configurado como @JarvisWK45_bot, mas o bot correto do host Ã© **@Jarvis3b3Bot**.
 
 ### Token
 ```
 8526208493:AAHMux0VLVq8Qsr1-xOy8ReK3XGyoCnJmcg
 ```
 
-### Alterações
+### AlteraÃ§Ãµes
 - `.env`: TELEGRAM_BOT_TOKEN atualizado
-- `dmPolicy`: `pairing` → `open` (sem necessidade de pairing)
-- `groupPolicy`: `allowlist` → `open`
-- `allowFrom`: `["*"]` (obrigatório para política open)
+- `dmPolicy`: `pairing` â†’ `open` (sem necessidade de pairing)
+- `groupPolicy`: `allowlist` â†’ `open`
+- `allowFrom`: `["*"]` (obrigatÃ³rio para polÃ­tica open)
 
 ## Fix 3: Docker Network Persistente (2026-04-13 11:21 UTC-03)
 
 ### Problema
-`docker compose down/up` removia a conexão com a rede `litellm_litellm-net`, causando timeout no LiteLLM.
+`docker compose down/up` removia a conexÃ£o com a rede `litellm_litellm-net`, causando timeout no LiteLLM.
 
-### Solução
+### SoluÃ§Ã£o
 Adicionado ao `docker-compose.yml`:
 ```yaml
 networks:
@@ -218,7 +218,7 @@ networks:
 
 ## Migration Completa: Agents, Skills, Workspaces, Memories (2026-04-13 12:07-12:13 UTC-03)
 
-### Dados Migrados do Host → Container
+### Dados Migrados do Host â†’ Container
 
 | Item | Host Path | Container Path | Count/Size |
 |------|-----------|----------------|------------|
@@ -238,7 +238,7 @@ networks:
 
 ### Agents Configurados
 
-| Agent | Workspace | Modelo Primário |
+| Agent | Workspace | Modelo PrimÃ¡rio |
 |-------|-----------|-----------------|
 | main | ~/.openclaw/workspace | openai/qwen3.5-flash |
 | altman | ~/.openclaw/workspace-altman | openai/gpt-5.3-chat-latest |
@@ -260,9 +260,9 @@ networks:
 ### Notas
 - **docker-compose.yml** atualizado com 33 workspace mounts + litellm network
 - **openclaw.json** com `agents.list` contendo todos os 16 agents
-- Tasks/Flows DBs copiados (896 task runs de histórico, registry de flows)
+- Tasks/Flows DBs copiados (896 task runs de histÃ³rico, registry de flows)
 - Memory main.sqlite copiada para ambos `memory/` e `workspace/memory/`
-- Host systemd service: **disabled** (não será mais usado)
+- Host systemd service: **disabled** (nÃ£o serÃ¡ mais usado)
 
 ---
 
@@ -276,16 +276,16 @@ networks:
 
 | Access Type | Status | Details |
 |-------------|--------|---------|
-| **Internet** | ✅ | Exit via host NAT (IP: 191.183.137.104) |
-| **LiteLLM** | ✅ | 192.168.32.3:4000 (shared `litellm_litellm-net`) |
-| **LAN** | ✅ | Full LAN access via Docker bridge + host routing |
-| **Tailscale** | ✅ | Tailscale IPs reachable (fgsrv06, aglwk45, etc.) |
-| **SSH Remote** | ✅ | fgsrv06 verified working via Tailscale |
-| **Docker CLI** | ✅ | Socket mounted (ro), CLI installed in `openclaw:infra` image |
-| **WebUI** | ✅ | Port 28789, token auth |
-| **Telegram** | ✅ | @Jarvis3b3Bot connected and polling |
-| **Cron** | ✅ | 6/6 jobs running OK |
-| **Diagnostics** | ✅ | ping, nc, curl, wget installed |
+| **Internet** | âœ… | Exit via host NAT (IP: 191.183.137.104) |
+| **LiteLLM** | âœ… | 192.168.32.3:4000 (shared `litellm_litellm-net`) |
+| **LAN** | âœ… | Full LAN access via Docker bridge + host routing |
+| **Tailscale** | âœ… | Tailscale IPs reachable (fgsrv06, aglwk45, etc.) |
+| **SSH Remote** | âœ… | fgsrv06 verified working via Tailscale |
+| **Docker CLI** | âœ… | Socket mounted (ro), CLI installed in `openclaw:infra` image |
+| **WebUI** | âœ… | Port 28789, token auth |
+| **Telegram** | âœ… | @Jarvis3b3Bot connected and polling |
+| **Cron** | âœ… | 6/6 jobs running OK |
+| **Diagnostics** | âœ… | ping, nc, curl, wget installed |
 
 ### Custom Image: `openclaw:infra`
 
@@ -297,12 +297,12 @@ Built from `Dockerfile.openclaw`:
 ### SSH Config in Container
 
 SSH config maps hostnames to Tailscale IPs:
-- `agldv03` → 100.94.221.87 (via Tailscale)
-- `fgsrv06` → 100.83.51.9
-- `aglwk45` → 100.117.146.21 (Administrator user)
-- `agldv12` → 100.71.217.115
-- `agldv04` → 100.113.9.98
-- `archon` → 100.80.30.59
+- `agldv03` â†’ 100.94.221.87 (via Tailscale)
+- `fgsrv06` â†’ 100.83.51.9
+- `aglwk45` â†’ 100.117.146.21 (Administrator user)
+- `agldv12` â†’ 100.71.217.115
+- `agldv04` â†’ 100.113.9.98
+- `archon` â†’ 100.80.30.59
 - etc.
 
 ### Docker Compose Mounts

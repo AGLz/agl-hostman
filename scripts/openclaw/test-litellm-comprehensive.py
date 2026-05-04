@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Comprehensive LiteLLM model test - tests ALL models for response, latency, errors.
 Groups by provider and reports detailed results.
@@ -9,7 +9,7 @@ import time
 import sys
 
 LITELLM_URL = "http://localhost:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_KEY = "${LITELLM_MASTER_KEY}"
 
 # All models from the LiteLLM config, grouped by provider
 MODELS = {
@@ -84,7 +84,7 @@ def test_model(model, timeout=30):
         "messages": [{"role": "user", "content": "Say OK"}],
         "max_tokens": 10
     }).encode()
-    
+
     start = time.time()
     try:
         req = urllib.request.Request(f"{LITELLM_URL}/v1/chat/completions", data=payload)

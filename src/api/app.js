@@ -14,10 +14,11 @@ const aiRoutes = require('./routes/ai');
 async function build(opts = {}) {
   const logger = opts.logger !== false;
   const apiKey = opts.apiKey ?? process.env.HOSTMAN_API_KEY ?? '';
+  const corsOrigin = opts.corsOrigin ?? process.env.HOSTMAN_CORS_ORIGIN ?? true;
 
   const app = fastify({ logger });
   await app.register(cors, {
-    origin: true,
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 

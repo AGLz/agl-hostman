@@ -8,7 +8,6 @@ use App\Repositories\ProxmoxContainerRepository;
 use App\Services\FlexibleCacheService;
 use App\Services\ProxmoxApiClient;
 use Illuminate\Support\Facades\Cache;
-use Mockery;
 use Tests\TestCase;
 
 class ProxmoxContainerRepositoryTest extends TestCase

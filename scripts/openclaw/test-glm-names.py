@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Test ZAI models with the correct config model_name (no prefix)."""
 import urllib.request, json, time
 
 URL = "http://localhost:4000/v1/chat/completions"
-KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+KEY = "${LITELLM_MASTER_KEY}"
 
 # These are the model_name values from config.yaml
 MODELS = [

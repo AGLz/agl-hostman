@@ -6,12 +6,25 @@ const { promisify } = require('util');
 const execAsync = promisify(exec);
 
 const LITELLM_BASE_URL = process.env.LITELLM_BASE_URL || 'http://localhost:4000';
+const HTTP_TIMEOUT_MS = parseInt(process.env.HOSTMAN_HTTP_TIMEOUT_MS || '5000', 10);
+const RUFLO_COMMAND = process.env.RUFLO_COMMAND || 'ruflo';
 
-let fetch;
-try {
-  fetch = require('node-fetch');
-} catch {
-  fetch = null;
+let fetchClient;
+
+async function getFetch() {
+  if (fetchClient) return fetchClient;
+  if (typeof fetch === 'function') {
+    fetchClient = fetch;
+    return fetchClient;
+  }
+
+  try {
+    const mod = await import('node-fetch');
+    fetchClient = mod.default;
+    return fetchClient;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -19,13 +32,17 @@ try {
  * @returns {{ status: string, details: object }}
  */
 async function getLiteLLMStatus() {
-  if (!fetch) {
+  const fetchFn = await getFetch();
+  if (!fetchFn) {
     return { status: 'unknown', details: { error: 'node-fetch not available' } };
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS);
+
   try {
     const url = `${LITELLM_BASE_URL}/health/readiness`;
-    const response = await fetch(url, { timeout: 5000 });
+    const response = await fetchFn(url, { signal: controller.signal });
 
     if (response.ok) {
       let details = {};
@@ -46,6 +63,8 @@ async function getLiteLLMStatus() {
       status: 'offline',
       details: { error: err.message, url: `${LITELLM_BASE_URL}/health/readiness` },
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -55,7 +74,7 @@ async function getLiteLLMStatus() {
  */
 async function getRufloStatus() {
   try {
-    const { stdout, stderr } = await execAsync('npx ruflo@latest daemon status', {
+    const { stdout, stderr } = await execAsync(`${RUFLO_COMMAND} daemon status`, {
       timeout: 10000,
     });
 
