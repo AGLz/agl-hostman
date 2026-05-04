@@ -3,7 +3,7 @@
 #
 # Fluxo:
 #   1) Obtém ~/.openclaw/openclaw.json do agldv03 (ou usa OPENCLAW_WK45_JSON_PREPARED já com jq client).
-#   2) Aplica openclaw-litellm-client.jq (LiteLLM em 100.94.221.87:4000).
+#   2) Aplica openclaw-litellm-client.jq (LiteLLM em 100.125.249.8:4000).
 #   3) scp do JSON + vm104_guest_push_openclaw_json.py para o Proxmox.
 #   4) python3 no AGLSRV1 corre qm guest exec na VM104.
 #

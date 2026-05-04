@@ -5,10 +5,10 @@
 
 set -euo pipefail
 
-CONTAINER="openclaw-repo-openclaw-gateway-1"
+CONTAINER="${OPENCLAW_CONTAINER:-agl-openclaw-openclaw-gateway-1}"
 LITELLM_CONTAINER="litellm-proxy"
-LITELLM_IP="192.168.32.3"
-LITELLM_KEY="sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_GATEWAY_URL="${LITELLM_GATEWAY_URL:-http://100.125.249.8:4000}"
+LITELLM_KEY="${LITELLM_MASTER_KEY:-}"
 GATEWAY_PORT="28789"
 CONFIG_FILE="/mnt/overpower/apps/dev/agl/openclaw-repo/config/openclaw.json"
 VERBOSE="${1:-}"
@@ -68,15 +68,15 @@ echo "🌐 Network Connectivity"
 if docker inspect "$CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' 2>/dev/null | grep -q "litellm"; then
     pass "Container connected to LiteLLM network"
 else
-    fail "Container NOT on LiteLLM network"
+    info "Container not on LiteLLM Docker network; CT186 gateway URL is ${LITELLM_GATEWAY_URL}"
 fi
 
 # Test LiteLLM from container
 RESULT=$(docker exec "$CONTAINER" node -e "
-  fetch('http://${LITELLM_IP}:4000/v1/chat/completions', {
+  fetch('${LITELLM_GATEWAY_URL}/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer ${LITELLM_KEY}',
+      ...(process.env.LITELLM_MASTER_KEY ? {'Authorization': 'Bearer ${LITELLM_KEY}'} : {}),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({

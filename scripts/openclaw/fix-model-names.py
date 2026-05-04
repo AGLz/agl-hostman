@@ -5,7 +5,12 @@ Since all providers route through LiteLLM, model names must match LiteLLM's mode
 """
 import json
 
-PATH = "/mnt/overpower/apps/dev/agl/openclaw-repo/config/openclaw.json"
+import os
+
+PATH = os.environ.get(
+    "OPENCLAW_CONFIG_PATH",
+    "/mnt/overpower/apps/dev/agl/openclaw-repo/config/openclaw.json",
+)
 
 with open(PATH) as f:
     cfg = json.load(f)
@@ -13,8 +18,8 @@ with open(PATH) as f:
 # =============================================
 # 1. Consolidate to single provider pointing to LiteLLM
 # =============================================
-LITELLM_URL = "http://192.168.32.3:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_URL = os.environ.get("LITELLM_GATEWAY_URL", "http://100.125.249.8:4000")
+LITELLM_KEY = os.environ.get("LITELLM_MASTER_KEY", "")
 
 # Replace all providers with a single "openai" provider
 # LiteLLM exposes an OpenAI-compatible API

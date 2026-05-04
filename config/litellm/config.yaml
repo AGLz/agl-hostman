@@ -66,15 +66,15 @@ litellm_settings:
     - glm-4.7-flash
     - qwen-coder
     - ollama-nemotron-3-nano-4b
-    - or-nemotron-super-free
+    - gpt-4o
   - openai/ollama-nemotron-3-nano-4b:
     - glm-4.7-flash
     - qwen-coder
-    - or-nemotron-super-free
+    - gpt-4o
   - ollama-nemotron-3-nano-4b:
     - glm-4.7-flash
     - qwen-coder
-    - or-nemotron-super-free
+    - gpt-4o
   - claude-opus:
     - glm-flash
     - qwen-coder
@@ -118,18 +118,15 @@ litellm_settings:
   - zai/glm-4.7-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - zai/glm-5:
     - glm-flash
     - qwen-coder
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - gpt-4o
   - zai/glm-4.7:
     - glm-flash
     - qwen-coder
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - gpt-4o
   - glm-4.5-flash:
     - qwen-coder
     - qwen3.5-plus
@@ -138,8 +135,7 @@ litellm_settings:
   - glm-4.7-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - kimi/moonshot-v1-128k:
     - qwen3.5-plus
     - glm-flash
@@ -151,18 +147,15 @@ litellm_settings:
   - glm:
     - glm-flash
     - qwen-coder
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - gpt-4o
   - glm-5:
     - glm-flash
     - qwen-coder
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - gpt-4o
   - glm-flash:
     - qwen-coder
     - qwen3.5-plus
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - glm-air:
     - glm-flash
     - qwen-coder
@@ -192,8 +185,7 @@ litellm_settings:
   - deepseek:
     - qwen-coder
     - glm-flash
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - r1:
     - deepseek
     - qwen-coder
@@ -236,8 +228,7 @@ litellm_settings:
   - qwen3.5-plus:
     - glm-flash
     - qwen-coder
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - qwen3-max:
     - glm-flash
     - qwen-coder
@@ -246,13 +237,11 @@ litellm_settings:
   - qwen-plus:
     - glm-flash
     - qwen-coder
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - qwen-coder:
     - glm-flash
     - qwen3.5-plus
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - gpt-4o
   - qwen-turbo:
     - glm-flash
     - qwen-coder
@@ -295,13 +284,13 @@ litellm_settings:
     - or-nemotron-super-free
   - openrouter/openrouter/free:
     - zai/glm-4.7-flash
-    - or-llama-3.3-70b-free
-    - or-nemotron-super-free
+    - qwen-plus
+    - gpt-4o
     - glm-flash
   - openrouter-free:
     - zai/glm-4.7-flash
-    - or-llama-3.3-70b-free
-    - or-nemotron-super-free
+    - qwen-plus
+    - gpt-4o
     - glm-flash
   forward_client_headers_to_llm_api: true
   num_retries: 2

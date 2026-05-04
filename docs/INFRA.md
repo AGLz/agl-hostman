@@ -8,15 +8,19 @@
 
 ## 🤖 AI Systems Overview
 
-### Jarvis (AI Butler)
-- **Host**: AGLWK45 (VM104 no AGLSRV1)
-- **Software**: OpenClaw
-- **Resources**: 32GB RAM, 24 Cores, Windows 11
-- **Role**: Infrastructure management, monitoring, automation
-- **Access**: Tailscale 100.117.146.21, LAN 192.168.0.245
-- **Workspace**: C:\Users\Administrator\.openclaw\workspace
-- **Gateway**: Port 18789 (loopback)
-- **Model**: zai/glm-5 via LiteLLM (100.94.221.87:4000)
+### Jarvis / OpenClaw Runtime
+- **Host atual**: CT187 `agl-openclaw` no AGLSRV1
+- **Software**: OpenClaw em Docker Compose (`/opt/agl-openclaw`)
+- **Role**: Infrastructure management, monitoring, Telegram automation
+- **Access**: Tailscale `100.123.184.125`
+- **Workspace**: `/home/node/.openclaw` dentro do container
+- **Gateway**: `http://127.0.0.1:18789/healthz` no CT187; `http://100.123.184.125:28789` externo
+- **Model**: `openai/jarvis-thinking` via LiteLLM CT186 (`http://100.125.249.8:4000`)
+- **Imagem Docker**: `agl-openclaw:ops` com `ssh`, `git`, `docker` client e ferramentas de infra
+
+### Legacy / Satellite OpenClaw
+- **AGLWK45**: VM104 no AGLSRV1, Tailscale `100.117.146.21`; manter como workstation/legado, nao como runtime principal.
+- **agldv03**: CT179, Tailscale `100.94.221.87`; origem historica do Docker/OpenClaw, nao usar como endpoint LiteLLM atual.
 
 ### OpenClaw Configuration
 | Setting | Value |
@@ -27,7 +31,10 @@
 | **Compaction** | Safeguard mode |
 
 ### LiteLLM Gateway
-- **URL**: http://100.94.221.87:4000 (agldv03 CT179)
+- **URL**: http://100.125.249.8:4000 (agl-litellm CT186)
+- **Host atual**: CT186 `agl-litellm`
+- **Alias Jarvis**: `openai/jarvis-thinking`
+- **Health rule**: `/v1/models` com HTTP `200` ou `401` indica gateway vivo; `401` significa auth obrigatoria.
 - **Providers**: zai, anthropic, openai, google, deepseek, moonshot, ollama
 - **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
 - **Ollama Models (GTX 1650 4GB, reasoning only)**: Qwen3 0.6B/1.7B (thinking mode), DeepSeek-R1 1.5B
@@ -113,6 +120,8 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.69.187.105 | aglsrv1-aglfs1 | linux | Active | File server / NFS (CT178) |
 | 100.117.146.21 | aglsrv1-aglwk45 | windows | Active | Windows workstation VM |
 | 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
+| 100.125.249.8 | aglsrv1-agl-litellm | linux | Active | LiteLLM gateway central (CT186) |
+| 100.123.184.125 | aglsrv1-agl-openclaw | linux | Active | OpenClaw/Jarvis runtime (CT187) |
 | 100.72.66.106 | aglsrv1-dokploy | linux | Active | Dokploy deployment manager (CT180) |
 | 100.105.133.18 | aglsrv1-haos | linux | Offline 158d | Home Assistant OS VM |
 | 100.116.57.111 | aglsrv1-ollama | linux | Active | Ollama GPU inference (CT200) |
@@ -181,6 +190,18 @@ arp -a | grep 1c:2a:a3:1e:86:77
 ```bash
 # Advertise LAN routes via Tailscale
 tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
+```
+
+**LXC/CT login pattern**:
+```bash
+# Use accept-routes=false in containers with a local LAN interface.
+# Otherwise Tailscale subnet routes can override the container's local route.
+tailscale up --accept-dns=false --accept-routes=false --hostname=<tailscale-hostname> --ssh
+```
+
+For CT136 (`agldv05`) on AGLSRV5:
+```bash
+ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv5-agldv05 --ssh'
 ```
 
 ### WireGuard Hub
@@ -520,8 +541,15 @@ traceroute 10.6.0.5
 | aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | ✅ |
 | aglsrv6-pbs | 1.2TB | PBS | - | - | ✅ |
 | aglsrv6b-pbs | 1.0TB | PBS | - | - | ✅ |
-| spark | 7.1TB | Local | Disk | - | ✅ 91.54% used |
-| overpower | 9.8TB | Local | Disk | - | ✅ 92.54% used |
+| spark | 6.4TB | Local | ZFS | - | OK if >=200GB free; alert below 200GB free |
+| overpower | 11TB | Local | ZFS | - | OK if >=200GB free; alert below 200GB free |
+
+**Storage note 2026-05-02**:
+- `spark/base-recovery` foi removido por solicitacao operacional.
+- Backups completos grandes de VM/CT foram movidos de `/spark/base/dump` para `/overpower/base/dump` para liberar `spark`; nao apagar backups antigos sem confirmar existencia de backup mais novo por VMID.
+- `large-vms-backup` ficou temporariamente desabilitado em `/etc/pve/jobs.cfg` para evitar nova falha por falta de espaco; `small-vms-backup` permanece habilitado.
+- Para `spark` e `overpower`, uso percentual alto nao deve disparar alerta sozinho; a rotina operacional alerta apenas com menos de 200GB livres ou mount ausente/inacessivel.
+- `snapdir=hidden` deve ficar ativo em `spark` e `overpower`; varreduras amplas em `.zfs/snapshot` podem disparar `mount.zfs` em massa e travar processos em estado `D`.
 
 **Total WireGuard Storage**: 6.0 TB
 - NFS: 1.2TB (fgsrv5-wg + fgsrv6-wg + ct111-shares + ct111-sistema)

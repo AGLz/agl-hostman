@@ -10,6 +10,12 @@ const { spawnSync } = require('child_process');
 const SCRIPT = path.join(__dirname, '../../scripts/openclaw/replace-openrouter-gemini-free-fallback.py');
 const WANT = 'zai/glm-4.7-flash';
 
+function pythonCommand() {
+  if (process.env.PYTHON) return { command: process.env.PYTHON, args: [] };
+  if (process.platform === 'win32') return { command: 'py', args: ['-3'] };
+  return { command: 'python3', args: [] };
+}
+
 test('replace-openrouter-gemini-free-fallback.py substitui google/... e openrouter/google/... :free', () => {
   const tmp = path.join(os.tmpdir(), `oc-gemini-free-${process.pid}.json`);
   fs.writeFileSync(
@@ -22,7 +28,8 @@ test('replace-openrouter-gemini-free-fallback.py substitui google/... e openrout
     'utf8',
   );
 
-  const r = spawnSync('python3', [SCRIPT, tmp], { encoding: 'utf8' });
+  const py = pythonCommand();
+  const r = spawnSync(py.command, [...py.args, SCRIPT, tmp], { encoding: 'utf8' });
   assert.strictEqual(r.status, 0, r.stderr || r.stdout);
 
   const data = JSON.parse(fs.readFileSync(tmp, 'utf8'));

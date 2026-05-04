@@ -27,12 +27,12 @@ sleep 3
 # Reconectar
 echo "[3/3] Reconectando Tailscale..."
 if [[ -n "$AUTHKEY" ]]; then
-  ssh "root@$CT185_IP" "tailscale up --authkey=$AUTHKEY --accept-dns=false --hostname=$HOSTNAME --ssh"
+  ssh "root@$CT185_IP" "tailscale up --authkey=$AUTHKEY --accept-dns=false --accept-routes=false --hostname=$HOSTNAME --ssh"
 else
   echo "Execute dentro do CT185 (ou copie o link para o browser):"
   echo "  ssh root@$CT185_IP"
-  echo "  tailscale up --accept-dns=false --hostname=$HOSTNAME --ssh"
-  ssh "root@$CT185_IP" "tailscale up --accept-dns=false --hostname=$HOSTNAME --ssh"
+  echo "  tailscale up --accept-dns=false --accept-routes=false --hostname=$HOSTNAME --ssh"
+  ssh "root@$CT185_IP" "tailscale up --accept-dns=false --accept-routes=false --hostname=$HOSTNAME --ssh"
 fi
 
 echo ""

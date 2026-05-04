@@ -4,9 +4,9 @@
 # Does each cron job's model actually exist and respond in LiteLLM?
 # Usage: bash scripts/openclaw/health-vs-schedules.sh [--verbose]
 
-CONTAINER="openclaw-repo-openclaw-gateway-1"
-LITELLM_IP="192.168.32.3"
-LITELLM_KEY="sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+CONTAINER="${OPENCLAW_CONTAINER:-agl-openclaw-openclaw-gateway-1}"
+LITELLM_GATEWAY_URL="${LITELLM_GATEWAY_URL:-http://100.125.249.8:4000}"
+LITELLM_KEY="${LITELLM_MASTER_KEY:-}"
 GATEWAY_PORT="28789"
 CRON_FILE="/mnt/overpower/apps/dev/agl/openclaw-repo/config/cron/jobs.json"
 VERBOSE="${1:-}"
@@ -75,10 +75,10 @@ if [ "$DEFAULT_MODEL" != "MISSING" ]; then
 
     echo "  Testing $MODEL_NAME via LiteLLM..."
     RESULT=$(docker exec "$CONTAINER" timeout 30 node -e "
-      fetch('http://${LITELLM_IP}:4000/v1/chat/completions', {
+      fetch('${LITELLM_GATEWAY_URL}/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer ${LITELLM_KEY}',
+          ...(process.env.LITELLM_MASTER_KEY ? {'Authorization': 'Bearer ${LITELLM_KEY}'} : {}),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -110,10 +110,10 @@ if [ -n "$FALLBACKS" ]; then
         FALLBACK_NAME="${FALLBACK#*/}"
 
         RESULT=$(docker exec "$CONTAINER" timeout 30 node -e "
-          fetch('http://${LITELLM_IP}:4000/v1/chat/completions', {
+          fetch('${LITELLM_GATEWAY_URL}/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': 'Bearer ${LITELLM_KEY}',
+              ...(process.env.LITELLM_MASTER_KEY ? {'Authorization': 'Bearer ${LITELLM_KEY}'} : {}),
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -154,8 +154,13 @@ fi
 echo ""
 echo "📚 LiteLLM Models"
 
-MODEL_COUNT=$(curl -s -m 10 "http://${LITELLM_IP}:4000/v1/models" \
-    -H "Authorization: Bearer ${LITELLM_KEY}" 2>/dev/null | python3 -c "
+AUTH_HEADER=()
+if [ -n "$LITELLM_KEY" ]; then
+    AUTH_HEADER=(-H "Authorization: Bearer ${LITELLM_KEY}")
+fi
+
+MODEL_COUNT=$(curl -s -m 10 "${LITELLM_GATEWAY_URL}/v1/models" \
+    "${AUTH_HEADER[@]}" 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
 print(len(d.get('data', [])))
@@ -165,8 +170,8 @@ if [ -n "$MODEL_COUNT" ] && [ "$MODEL_COUNT" -gt 0 ]; then
     pass "LiteLLM reports $MODEL_COUNT models available"
 
     if [ -n "$MODEL_NAME" ]; then
-        MODEL_IN_LIST=$(curl -s -m 10 "http://${LITELLM_IP}:4000/v1/models" \
-            -H "Authorization: Bearer ${LITELLM_KEY}" 2>/dev/null | python3 -c "
+        MODEL_IN_LIST=$(curl -s -m 10 "${LITELLM_GATEWAY_URL}/v1/models" \
+            "${AUTH_HEADER[@]}" 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
 models = [m['id'] for m in d.get('data', [])]

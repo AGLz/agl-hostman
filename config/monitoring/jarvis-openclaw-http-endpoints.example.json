@@ -28,7 +28,7 @@
       "id": "litellm-agldv03",
       "name": "LiteLLM readiness",
       "hostRole": "CT179 agldv03",
-      "primary": "http://100.94.221.87:4000/health/readiness",
+      "primary": "http://100.125.249.8:4000/health/readiness",
       "fallbacks": ["http://192.168.0.179:4000/health/readiness"],
       "notes": "Tailscale costuma ser o caminho preferido a partir da wk45; LAN como fallback."
     }

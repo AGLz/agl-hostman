@@ -11,8 +11,8 @@ import json
 import time
 import os
 
-LITELLM_URL = "http://localhost:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_URL = os.environ.get("LITELLM_GATEWAY_URL", "http://100.125.249.8:4000")
+LITELLM_KEY = os.environ.get("LITELLM_MASTER_KEY", "")
 BASE = "/home/node/.openclaw"
 
 def test_model(model, timeout=30):
@@ -25,7 +25,8 @@ def test_model(model, timeout=30):
     try:
         req = urllib.request.Request(f"{LITELLM_URL}/v1/chat/completions", data=payload)
         req.add_header("Content-Type", "application/json")
-        req.add_header("Authorization", f"Bearer {LITELLM_KEY}")
+        if LITELLM_KEY:
+            req.add_header("Authorization", f"Bearer {LITELLM_KEY}")
         resp = urllib.request.urlopen(req, timeout=timeout)
         data = json.loads(resp.read())
         content = data["choices"][0]["message"]["content"]
@@ -69,18 +70,18 @@ for agent in agents:
     ws = agent.get("workspace", "").replace("~/.openclaw/", BASE + "/")
     if not ws or not os.path.isdir(ws):
         continue
-    
+
     has_soul = os.path.exists(os.path.join(ws, "SOUL.md"))
     has_hbeat = os.path.exists(os.path.join(ws, "HEARTBEAT.md"))
     has_memory = os.path.isdir(os.path.join(ws, "memory"))
-    
+
     # Check SOUL.md has self-improvement section
     has_si = False
     soul_path = os.path.join(ws, "SOUL.md")
     if has_soul:
         with open(soul_path) as f:
             has_si = "Self-Improvement" in f.read()
-    
+
     if has_soul and has_hbeat and has_memory and has_si:
         si_ok += 1
     else:

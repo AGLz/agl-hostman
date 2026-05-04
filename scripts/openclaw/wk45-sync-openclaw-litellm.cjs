@@ -4,7 +4,7 @@
  * Substitui sk-litellm-default + localhost:4000, força models.providers.* → LiteLLM
  * (remove dependência de ${ZAI_API_KEY}, ${OPENROUTER_API_KEY}, etc.).
  *
- * Uso: LITELLM_MASTER_KEY=... LITELLM_PROXY_BASE_URL=http://100.94.221.87:4000 node wk45-sync-openclaw-litellm.cjs [openclaw.json]
+ * Uso: LITELLM_MASTER_KEY=... LITELLM_PROXY_BASE_URL=http://100.125.249.8:4000 node wk45-sync-openclaw-litellm.cjs [openclaw.json]
  */
 'use strict';
 
@@ -17,7 +17,7 @@ const cfgPath =
   path.join(process.env.USERPROFILE || 'C:\\Users\\Administrator', '.openclaw', 'openclaw.json');
 
 const key = process.env.LITELLM_MASTER_KEY || '';
-const proxyUrl = process.env.LITELLM_PROXY_BASE_URL || 'http://100.94.221.87:4000';
+const proxyUrl = process.env.LITELLM_PROXY_BASE_URL || 'http://100.125.249.8:4000';
 
 if (!key) {
   console.error('Missing LITELLM_MASTER_KEY');
@@ -29,7 +29,7 @@ if (!fs.existsSync(cfgPath)) {
   process.exit(2);
 }
 
-const j = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+const j = JSON.parse(fs.readFileSync(cfgPath, 'utf8').replace(/^\uFEFF/, ''));
 
 function walk(node) {
   if (node === null || node === undefined) {
@@ -50,7 +50,7 @@ function walk(node) {
   if (
     Object.prototype.hasOwnProperty.call(node, 'baseUrl') &&
     typeof node.baseUrl === 'string' &&
-    /localhost:4000|127\.0\.0\.1:4000/.test(node.baseUrl)
+    /localhost:4000|127\.0\.0\.1:4000|192\.168\.0\.179:4000/.test(node.baseUrl)
   ) {
     node.baseUrl = proxyUrl;
   }

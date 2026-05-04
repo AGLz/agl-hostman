@@ -9,6 +9,9 @@ const { spawnSync } = require('node:child_process');
 const SCRIPT = path.join(__dirname, '../../scripts/litellm/validate-groq-keys.sh');
 const SYNC = path.join(__dirname, '../../scripts/openclaw/sync-systemd-openclaw-env.sh');
 const ENV_EXAMPLE = path.join(__dirname, '../../config/litellm/.env.example');
+const BASH = process.platform === 'win32' && fs.existsSync('C:\\Program Files\\Git\\bin\\bash.exe')
+  ? 'C:\\Program Files\\Git\\bin\\bash.exe'
+  : 'bash';
 
 test('validate-groq-keys.sh existe e aponta para API Groq', () => {
   const src = fs.readFileSync(SCRIPT, 'utf8');
@@ -29,7 +32,7 @@ test('.env.example documenta GROQ_API_KEY2', () => {
 });
 
 test('validate-groq-keys.sh sem chaves no env: exit 2', () => {
-  const r = spawnSync('bash', [SCRIPT], {
+  const r = spawnSync(BASH, [SCRIPT], {
     encoding: 'utf8',
     env: { ...process.env, GROQ_API_KEY: '', GROQ_API_KEY2: '' },
   });

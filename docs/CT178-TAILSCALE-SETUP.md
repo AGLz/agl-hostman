@@ -1,8 +1,8 @@
 # CT178 (aglfs1) - Tailscale Setup
 
-> **Data**: 2025-12-22  
-> **Container**: CT178 (aglfs1)  
-> **Host**: AGLSRV1 (192.168.0.245)  
+> **Data**: 2025-12-22
+> **Container**: CT178 (aglfs1)
+> **Host**: AGLSRV1 (192.168.0.245)
 > **Status**: ✅ Configurado
 
 ## Informações de Conexão
@@ -71,7 +71,7 @@ pct exec 178 -- systemctl status tailscaled
 
 ## Notas
 
-- O Tailscale foi configurado com `--accept-routes` para permitir roteamento
+- O Tailscale deve ser configurado com `--accept-routes=false` para preservar a rota LAN local do CT
 - O serviço está habilitado para iniciar automaticamente no boot
 - IP Tailscale: **100.69.187.105** (atribuído automaticamente)
 
