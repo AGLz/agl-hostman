@@ -380,11 +380,13 @@ class ComplianceChecker
     {
         $summary = $results['summary'] ?? [];
         $grade = $results['grade'] ?? 'F';
+        $overallScore = $summary['overall_score'] ?? 0;
+        $auditSummary = $results['audit']['summary'] ?? [];
 
         $report = "# Security Compliance Report\n\n";
         $report .= "Generated: {$results['timestamp']}\n";
         $report .= "Grade: {$grade}\n";
-        $report .= "Overall Score: {$summary['overall_score'] ?? 0}/100\n\n";
+        $report .= "Overall Score: {$overallScore}/100\n\n";
 
         $report .= "## OWASP Top 10 Compliance\n\n";
         $report .= "Score: {$results['owasp']['compliance_percentage']}%\n";
@@ -395,9 +397,9 @@ class ComplianceChecker
         $report .= "Status: {$results['gdpr']['passed']}/{$results['gdpr']['total']} checks passed\n\n";
 
         $report .= "## Findings Summary\n\n";
-        $report .= "Critical: {$results['audit']['summary']['critical'] ?? 0}\n";
-        $report .= "High: {$results['audit']['summary']['high'] ?? 0}\n";
-        $report .= "Medium: {$results['audit']['summary']['medium'] ?? 0}\n";
+        $report .= "Critical: ".($auditSummary['critical'] ?? 0)."\n";
+        $report .= "High: ".($auditSummary['high'] ?? 0)."\n";
+        $report .= "Medium: ".($auditSummary['medium'] ?? 0)."\n";
 
         return $report;
     }

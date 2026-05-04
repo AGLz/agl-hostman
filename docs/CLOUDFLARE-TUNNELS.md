@@ -86,6 +86,10 @@ ingress:
 
 **Comandos Úteis**:
 ```bash
+# Diagnostico 502 / origin (ex.: exo.aglz.io -> 192.168.70.242:8080) desde CT170 + CT242
+# Na maquina com SSH ao FGSRV07: bash scripts/maint/fgsrv07/ct170-verify-exo-tunnel-origin.sh
+# RESTART_CLOUDFLARED=1 … — reinicia cloudflared apos mudar rotas no Zero Trust
+
 # Verificar status do container
 ssh root@100.109.181.93 'pct status 170'
 

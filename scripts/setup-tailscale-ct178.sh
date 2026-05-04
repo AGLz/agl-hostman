@@ -24,7 +24,7 @@ if [[ ! -f /etc/pve/lxc/${CT_ID}.conf ]]; then
     echo -e "${YELLOW}⚠️  Script deve ser executado no AGLSRV1 ou via SSH${NC}"
     echo -e "${YELLOW}   Executando via SSH no AGLSRV1...${NC}"
     echo ""
-    
+
     # Executar via SSH se não estivermos no host
     ssh root@${AGLSRV1_IP} "bash -s" < "$0"
     exit $?
@@ -52,7 +52,7 @@ echo ""
 # Instalar Tailscale dentro do container
 pct exec ${CT_ID} -- bash -c "
     set -e
-    
+
     # Verificar se já está instalado
     if command -v tailscale &> /dev/null; then
         echo 'Tailscale já está instalado'
@@ -84,7 +84,7 @@ if echo "$AUTH_STATUS" | grep -q "Logged in"; then
     echo -e "${BOLD}Status atual:${NC}"
     pct exec ${CT_ID} -- tailscale status --peers=false
     echo ""
-    
+
     # Obter IP do Tailscale
     TAILSCALE_IP=$(pct exec ${CT_ID} -- tailscale ip -4 2>/dev/null || echo "")
     if [[ -n "$TAILSCALE_IP" ]]; then
@@ -95,25 +95,25 @@ else
     echo ""
     echo -e "${BOLD}Iniciando autenticação...${NC}"
     echo ""
-    
+
     # Iniciar Tailscale (vai gerar URL de autenticação)
-    pct exec ${CT_ID} -- tailscale up --accept-routes || true
-    
+    pct exec ${CT_ID} -- tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv1-aglfs1 --ssh || true
+
     echo ""
     echo -e "${YELLOW}⚠️  Se uma URL de autenticação foi exibida acima,${NC}"
     echo -e "${YELLOW}   visite-a no navegador para completar a autenticação.${NC}"
     echo ""
     echo -e "${YELLOW}   Ou execute manualmente dentro do container:${NC}"
-    echo -e "${BOLD}   pct exec ${CT_ID} -- tailscale up${NC}"
+    echo -e "${BOLD}   pct exec ${CT_ID} -- tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv1-aglfs1 --ssh${NC}"
     echo ""
-    
+
     read -p "Pressione Enter após completar a autenticação..."
-    
+
     # Verificar status após autenticação
     echo ""
     echo -e "${BOLD}Verificando status...${NC}"
     pct exec ${CT_ID} -- tailscale status --peers=false
-    
+
     # Obter IP do Tailscale
     TAILSCALE_IP=$(pct exec ${CT_ID} -- tailscale ip -4 2>/dev/null || echo "")
     if [[ -n "$TAILSCALE_IP" ]]; then

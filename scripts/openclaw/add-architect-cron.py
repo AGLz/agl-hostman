@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Add openclaw-architect-check cron job."""
 import json
+import os
 import time
 
-CRON_PATH = "/mnt/overpower/apps/dev/agl/openclaw-repo/config/cron/jobs.json"
+CRON_PATH = os.environ.get(
+    "OPENCLAW_CRON_PATH",
+    "/mnt/overpower/apps/dev/agl/openclaw-repo/config/cron/jobs.json",
+)
+LITELLM_GATEWAY_URL = os.environ.get("LITELLM_GATEWAY_URL", "http://100.125.249.8:4000")
 
 with open(CRON_PATH) as f:
     cron = json.load(f)
@@ -51,16 +56,17 @@ cat /home/node/.openclaw/cron/jobs.json | python3 -c "import sys,json; d=json.lo
 
 ### 3. LiteLLM Model Health
 ```bash
-# Quick test of primary models
-curl -s -X POST http://localhost:4000/v1/chat/completions \
-  -H "Authorization: Bearer sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"qwen-plus","messages":[{"role":"user","content":"OK"}],"max_tokens":5}' 2>/dev/null | grep -q "choices" && echo "qwen-plus: OK" || echo "qwen-plus: FAIL"
+# Reachability check. HTTP 200 or 401 means the CT186 gateway is alive.
+code=$(curl -s -o /dev/null -w "%{http_code}" -m 10 """ + LITELLM_GATEWAY_URL + """/v1/models || true)
+case "$code" in
+  200|401) echo "LiteLLM CT186: reachable ($code)" ;;
+  *) echo "LiteLLM CT186: FAIL ($code)" ;;
+esac
 ```
 
 ### 4. Workspace Audit
 ```bash
-# Find orphan workspaces
+# Find orphan workspaces. Historical backup/memory/log paths are intentionally excluded.
 ls -d /home/node/.openclaw/workspace-* 2>/dev/null | while read d; do
   name=$(basename "$d" | sed 's/workspace-//')
   grep -q "\"id\": \"$name\"" /home/node/.openclaw/openclaw.json || echo "ORPHAN: $d"

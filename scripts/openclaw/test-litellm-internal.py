@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Check LiteLLM internal model info and diagnose ZAI issue."""
 import urllib.request, json
 
 URL = "http://localhost:4000"
-KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+KEY = "${LITELLM_MASTER_KEY}"
 
 # 1. Check /model/info
 req = urllib.request.Request(f"{URL}/model/info")

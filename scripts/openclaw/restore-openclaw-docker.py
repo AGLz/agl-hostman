@@ -7,13 +7,14 @@ current Docker agents list, adapts baseUrls for LiteLLM Docker network.
 import json
 import datetime
 import sys
+import os
 
-LITELLM_URL = "http://192.168.32.3:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_URL = os.environ.get("LITELLM_GATEWAY_URL", "http://100.125.249.8:4000")
+LITELLM_KEY = os.environ.get("LITELLM_MASTER_KEY", "")
 BACKUP = "/root/.openclaw.bak.wk45-sync-20260325180822/openclaw.json"
 AGENTS_FILE = "/tmp/agents-list.json"
 OUTPUT = "/tmp/openclaw-restored.json"
-BOT_TOKEN = "8526208493:AAHMux0VLVq8Qsr1-xOy8ReK3XGyoCnJmcg"
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
 def main():
     with open(BACKUP) as f:

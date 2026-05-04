@@ -1,6 +1,6 @@
 # Claude-Flow + LiteLLM — Multi-Model e Fallback
 
-> **Last Updated**: 2026-02-19  
+> **Last Updated**: 2026-02-19
 > **Integração**: Claude-Flow (Ruflo) v3.1.x + LiteLLM Proxy
 
 ## Visão geral
@@ -108,7 +108,7 @@ npx agentic-flow@alpha hooks intel route "Optimize database queries" --top-k 3
 npx ruflo@latest hooks intel route "Build REST API" --top-k 3
 ```
 
-**Deploy completo**: `./scripts/ruflo-deploy-agldv03.sh [host]` — ver `docs/RUFLO-ADVANCED.md`  
+**Deploy completo**: `./scripts/ruflo-deploy-agldv03.sh [host]` — ver `docs/RUFLO-ADVANCED.md`
 **Sync config multi-host**: `./scripts/ruflo/sync-config-all-hosts.sh` — ver `docs/CLAUDE-FLOW-CONFIG.md`
 
 ---
@@ -256,7 +256,7 @@ export ANTHROPIC_AUTH_TOKEN=$LITELLM_MASTER_KEY
 node scripts/openclaw/use-litellm-local.mjs
 ```
 
-**Hosts legados** (agldv05, agldv06) sem LiteLLM local: usar `litellm-gateway-client.env` apontando para agldv03.
+**Hosts legados/satelites** (agldv04, agldv05, agldv06, agldv07, agldv12) sem LiteLLM local: usar `litellm-gateway-client.env` apontando para o CT186 `agl-litellm` (`http://100.125.249.8:4000`).
 
 ---
 
@@ -268,7 +268,7 @@ node scripts/openclaw/use-litellm-local.mjs
 | `config/litellm/config-remote.yaml` | Config para fgsrv06 (Ollama via Tailscale) |
 | `config/litellm/.env.example`   | Template de variáveis        |
 | `config/openclaw/litellm-gateway-local.env` | localhost:4000 (hosts com LiteLLM) |
-| `config/openclaw/litellm-gateway-client.env` | Override para hosts legados (agldv05/06) |
+| `config/openclaw/litellm-gateway-client.env` | Override para hosts sem LiteLLM local; aponta para CT186 `agl-litellm` |
 | `docker/litellm/docker-compose.yml` | Stack Docker LiteLLM     |
 | `scripts/litellm/start.sh`      | Inicialização (repo local)    |
 | `scripts/litellm/deploy-litellm-host.sh` | Deploy em host remoto  |
@@ -294,5 +294,5 @@ node scripts/openclaw/use-litellm-local.mjs
 
 ---
 
-**Maintainer**: agl-hostman  
+**Maintainer**: agl-hostman
 **Relacionado**: `docs/OPENCLAW.md`, `docs/FREE-LLM-MODELS.md`, `docs/RUFLO-ADVANCED.md`

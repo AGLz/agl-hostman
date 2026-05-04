@@ -3,9 +3,25 @@
 > **Contexto**: Portar capacidades do Claude Code / Qwen CLI para o Cursor CLI
 > **Data**: 2026-04-06
 
+## Onde estão as coisas (sem duplicar à toa)
+
+| Camada | Caminho típico | Conteúdo |
+|--------|----------------|-----------|
+| **Global (prioridade)** | `~/.claude/skills/` | gstack (`gstack/` com slash skills), skills pessoais, backups `*.backup.*` |
+| **Cursor só gstack** | `~/.cursor/skills/gstack*` | Gerado por `bun run gen:skill-docs --host cursor` (ou `./setup --host cursor`) — **usar esta árvore** para comandos gstack no Cursor |
+| **Projeto (este repo)** | `.claude/skills/` | ~100+ skills de fluxo (AgentDB, v3, backend-*, flow-nexus, …) + **`agl-infra`** — **não** estão todas em `~/.claude/skills` por nome no mesmo nível; o global desta máquina tem outro conjunto (gstack + skills “raiz”) |
+| **Projeto (mínimo)** | `.agents/skills/` | Subconjunto: memory, security-audit, sparc, swarm |
+| **Worktree** | `.claude/worktrees/wonderful-shtern/.claude/skills` | **Symlink** para `../../../skills` (mesma árvore que `.claude/skills/` do repo) — evita ~100 SKILL.md duplicados |
+
+**Duplicação gstack no Cursor**: o clone `~/.claude/skills/gstack` contém a mesma skill em `.cursor/`, `.factory/`, `.hermes/`, etc. O Cursor não devia indexar essas pastas de outros hosts; o repo tem `.cursorignore` para `gstack/.factory/` … se o gstack estiver **dentro** do workspace. Se o clone só está em `~/.claude/skills/gstack`, configura o Cursor para **não** adicionar como pasta de skills o interior do gstack — só `~/.cursor/skills/gstack*`.
+
+**Relatório local**: `python3 scripts/skills_dedup_report.py` — lista nomes de skill repetidos entre `~/.claude/skills`, `~/.cursor/skills`, `.claude/skills`, `.agents/skills`.
+
+**Sincronizar projeto → global (opcional, máquina única)**: copiar pastas de `.claude/skills/` para `~/.claude/skills/` só onde ainda não existam; **não apagar** o `.claude/skills` do repo se outros developers precisarem do bundle sem setup global.
+
 ## Skills Disponíveis (portadas do Claude Code)
 
-Estas skills estão disponíveis no projeto via `.claude/skills/` e `.agents/skills/`. O Cursor CLI deve usá-las como referência:
+Referência cruzada: **global** para ferramentas tipo gstack / Qwen; **projeto** para stack AGL + claude-flow skills vendidas no monorepo. O Cursor CLI deve usar ambos, mas **sem** registar o interior multi-host do gstack.
 
 ### Infra & DevOps (prioridade AGL)
 | Skill | Localização | Uso |

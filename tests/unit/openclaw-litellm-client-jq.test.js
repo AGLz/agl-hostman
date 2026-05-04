@@ -4,11 +4,12 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 
 const JQ = path.join(__dirname, '../../config/openclaw/openclaw-litellm-client.jq');
+const jqAvailable = spawnSync('jq', ['--version'], { encoding: 'utf8' }).status === 0;
 
-test('openclaw-litellm-client.jq: localhost:4000 → agldv03', () => {
+test('openclaw-litellm-client.jq: localhost:4000 -> CT186', { skip: jqAvailable ? false : 'jq not found' }, () => {
   const input = JSON.stringify({
     models: {
       providers: {
@@ -19,8 +20,8 @@ test('openclaw-litellm-client.jq: localhost:4000 → agldv03', () => {
   });
   const out = execFileSync('jq', ['-f', JQ], { input, encoding: 'utf8' });
   const data = JSON.parse(out);
-  assert.strictEqual(data.models.providers.anthropic.baseUrl, 'http://100.94.221.87:4000');
-  assert.strictEqual(data.models.providers.z.nested.baseUrl, 'http://100.94.221.87:4000');
+  assert.strictEqual(data.models.providers.anthropic.baseUrl, 'http://100.125.249.8:4000');
+  assert.strictEqual(data.models.providers.z.nested.baseUrl, 'http://100.125.249.8:4000');
 });
 
 test('openclaw-litellm-client.jq: ficheiro existe', () => {

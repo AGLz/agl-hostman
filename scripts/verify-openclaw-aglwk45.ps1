@@ -27,7 +27,7 @@ openclaw models list 2>&1 | Select-Object -First 12
 Write-Host ""
 Write-Host "--- LiteLLM Gateway (agldv03) ---" -ForegroundColor Yellow
 try {
-    $r = Invoke-WebRequest -Uri "http://100.94.221.87:4000/health" -UseBasicParsing -TimeoutSec 5
+    $r = Invoke-WebRequest -Uri "http://100.125.249.8:4000/health" -UseBasicParsing -TimeoutSec 5
     Write-Host "OK: $($r.StatusCode)" -ForegroundColor Green
 } catch {
     Write-Host "Falha: $_" -ForegroundColor Red

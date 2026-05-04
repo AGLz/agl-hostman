@@ -9,6 +9,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * MCP Security Middleware
@@ -27,12 +28,15 @@ class McpSecurity
     {
         $startTime = microtime(true);
 
-        // Perform security checks
-        $this->validateContentType($request);
-        $this->validateRequestSize($request);
-        $this->checkIpWhitelist($request);
-        $this->authenticateApiKey($request);
-        $this->applyRateLimiting($request);
+        try {
+            $this->validateRequestSize($request);
+            $this->validateContentType($request);
+            $this->checkIpWhitelist($request);
+            $this->authenticateApiKey($request);
+            $this->applyRateLimiting($request);
+        } catch (HttpExceptionInterface $exception) {
+            return response($exception->getMessage(), $exception->getStatusCode());
+        }
 
         // Process request
         $response = $next($request);
@@ -56,6 +60,10 @@ class McpSecurity
     {
         $allowedTypes = config('mcp.validation.allowed_content_types', ['application/json']);
         $contentType = $request->header('Content-Type');
+
+        if ((int) $request->header('Content-Length', 0) === 0 && $request->getContent() === '') {
+            return;
+        }
 
         if ($contentType && ! in_array($contentType, $allowedTypes)) {
             abort(415, 'Unsupported Media Type');

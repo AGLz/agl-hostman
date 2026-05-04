@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Detailed LiteLLM chat test with error reporting."""
 import urllib.request
 import json
 import sys
 
 LITELLM_URL = "http://localhost:4000"
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_KEY = "${LITELLM_MASTER_KEY}"
 
 MODELS = [
     "zai/glm-5",
-    "zai/glm-4.7-flash", 
+    "zai/glm-4.7-flash",
     "deepseek/deepseek-chat",
     "openrouter/z-ai/glm-4.5-air:free",
     "openrouter/deepseek/deepseek-chat",

@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Test models that appeared in LiteLLM startup log but fail on API."""
 import urllib.request, json, time
 
 URL = "http://localhost:4000/v1/chat/completions"
-KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+KEY = "${LITELLM_MASTER_KEY}"
 
 # Models from startup log that should work
 MODELS = [
     "agl-primary-zai-glm-flash",
-    "infra-agent", 
+    "infra-agent",
     "cursor-glm-5",
     "or-glm-4.5-air-free",
     "or-glm-air-free",  # from test-all

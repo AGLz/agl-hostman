@@ -6,7 +6,7 @@
 # Uso:
 #   bash scripts/openclaw/wk45-sync-openclaw-litellm.sh
 #   LITELLM_MASTER_KEY='sk-...' bash scripts/openclaw/wk45-sync-openclaw-litellm.sh
-#   LITELLM_PROXY_BASE_URL='http://100.94.221.87:4000' bash scripts/openclaw/wk45-sync-openclaw-litellm.sh
+#   LITELLM_PROXY_BASE_URL='http://100.125.249.8:4000' bash scripts/openclaw/wk45-sync-openclaw-litellm.sh
 #
 # Se LITELLM_MASTER_KEY não estiver definida, tenta SSH ao agldv03 (requer chave SSH).
 set -euo pipefail
@@ -15,7 +15,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 JQ_FILTER="$REPO_ROOT/config/openclaw/wk45-sync-openclaw-litellm.jq"
 OPENCLAW_JSON="${OPENCLAW_JSON:-$HOME/.openclaw/openclaw.json}"
 GATEWAY_HOST="${LITELLM_SSH_HOST:-root@100.94.221.87}"
-PROXY_URL="${LITELLM_PROXY_BASE_URL:-http://100.94.221.87:4000}"
+PROXY_URL="${LITELLM_PROXY_BASE_URL:-http://100.125.249.8:4000}"
 
 [[ ! -f "$JQ_FILTER" ]] && { echo "Erro: $JQ_FILTER não encontrado"; exit 1; }
 [[ ! -f "$OPENCLAW_JSON" ]] && { echo "Erro: $OPENCLAW_JSON não existe"; exit 1; }

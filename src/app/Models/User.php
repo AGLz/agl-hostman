@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -24,6 +25,7 @@ class User extends Authenticatable
         hasAnyRole as protected hasAnyRoleFromTrait;
         hasAllRoles as protected hasAllRolesFromTrait;
         getAllPermissions as protected getAllPermissionsFromTrait;
+        givePermissionTo as protected givePermissionToFromTrait;
     }
 
     /**
@@ -195,8 +197,11 @@ class User extends Authenticatable
             return false;
         }
 
-        // Use Spatie's hasPermissionTo from HasRoles trait
-        return $this->hasPermissionToFromTrait($permission);
+        try {
+            return $this->hasPermissionToFromTrait($permission);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -210,7 +215,11 @@ class User extends Authenticatable
             return false;
         }
 
-        return $this->hasAnyPermissionFromTrait($permissions);
+        try {
+            return $this->hasAnyPermissionFromTrait($permissions);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -224,7 +233,27 @@ class User extends Authenticatable
             return false;
         }
 
-        return $this->hasAllPermissionsFromTrait($permissions);
+        try {
+            return $this->hasAllPermissionsFromTrait($permissions);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public function givePermissionTo(...$permissions): static
+    {
+        $guard = $this->getDefaultGuardName();
+        $flatPermissions = collect($permissions)->flatten();
+
+        foreach ($flatPermissions as $permission) {
+            if (is_string($permission)) {
+                Permission::findOrCreate($permission, $guard);
+            }
+        }
+
+        $this->givePermissionToFromTrait(...$permissions);
+
+        return $this;
     }
 
     /**

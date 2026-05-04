@@ -12,11 +12,14 @@
     "test:litellm:battery": "node scripts/litellm/litellm-full-battery.js",
     "test:litellm:battery:quick": "node scripts/litellm/litellm-full-battery.js --tier quick",
     "test:litellm:battery:dry": "node scripts/litellm/litellm-full-battery.js --dry-probe",
-    "test:ollama": "node --test tests/unit/litellm-ollama-ct200-entries.test.js tests/unit/ollama-stack-litellm-small-qwen.test.js tests/unit/litellm-battery-manifest.test.js",
     "sync:litellm:opt": "bash scripts/litellm/sync-litellm-repo-to-opt.sh",
     "sync:litellm:opt:copy-only": "bash scripts/litellm/sync-litellm-repo-to-opt.sh --no-restart",
     "test:all": "node --test tests/api/ && node --test tests/integration/litellm-claude-flow.test.js && node tests/hive-mind/test-hive-mind-integration.js",
-    "test:e2e": "playwright test",
+    "test:e2e": "NODE_ENV=test npx playwright test",
+    "playwright:install": "NODE_ENV=development npx playwright install chromium",
+    "test:e2e:falg": "PW_SKIP_WEBSERVER=1 NODE_ENV=test npx playwright test -c playwright.falg.config.js",
+    "test:e2e:falg:www5-aglz": "PW_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=https://www5.aglz.io NODE_ENV=test npx playwright test -c playwright.falg.config.js tests/e2e/falg/www5-aglz-login.spec.js",
+    "test:e2e:ah": "PW_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=https://ah.aglz.io npx playwright test tests/e2e/ah-hosted.spec.js",
     "seed:user": "node scripts/seed-test-user.js",
     "migrate": "node src/database/migrate.js",
     "lint": "eslint src/api/ src/services/ tests/api/ --ext .js",
@@ -31,9 +34,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
-    "eslint": "^8.57.0"
+    "eslint": "^8.57.0",
+    "playwright": "^1.58.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -1,7 +1,7 @@
 # CT185 (agldv12) — Clone do agldv03 + Turbo Flow
 
-> **Status**: Em configuração  
-> **Criado**: 2026-03-16  
+> **Status**: Em configuração
+> **Criado**: 2026-03-16
 > **Origem**: Clone do CT179 (agldv03)
 
 ## Resumo
@@ -79,8 +79,8 @@ systemctl stop tailscaled
 rm -rf /var/lib/tailscale/tailscaled.state
 systemctl start tailscaled
 
-tailscale up --accept-dns=false --hostname=aglsrv1-agldv12 --ssh
-# (ou com auth key: tailscale up --authkey=tskey-auth-xxx --accept-dns=false --hostname=aglsrv1-agldv12 --ssh)
+tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv1-agldv12 --ssh
+# (ou com auth key: tailscale up --authkey=tskey-auth-xxx --accept-dns=false --accept-routes=false --hostname=aglsrv1-agldv12 --ssh)
 ```
 
 Ou via script (executa via SSH): `./scripts/proxmox/reset-tailscale-ct185.sh` (opcional: passar auth key como arg)
@@ -114,7 +114,7 @@ gnx-analyze     # Indexar repo no knowledge graph
 
 ### Integração com AGL
 
-- **LiteLLM**: agldv12 usa gateway em agldv03 (`http://100.94.221.87:4000`)
+- **LiteLLM**: agldv12 usa gateway central CT186 `agl-litellm` (`http://100.125.249.8:4000`)
 - **Tailscale**: **obrigatório resetar** após clone (passo 3) — clone herda identidade do agldv03
 - **WireGuard**: opcional, seguir padrão dos outros dev containers
 

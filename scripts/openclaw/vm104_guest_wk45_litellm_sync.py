@@ -112,7 +112,7 @@ def main() -> int:
         return 2
 
     key = fetch_master_key()
-    proxy = os.environ.get("LITELLM_PROXY_BASE_URL", "http://100.94.221.87:4000")
+    proxy = os.environ.get("LITELLM_PROXY_BASE_URL", "http://100.125.249.8:4000")
     key_b64 = base64.b64encode(key.encode("utf-8")).decode("ascii")
 
     upload_b64_file(vmid, cjs_host.read_bytes(), GUEST_B64_CJS, GUEST_CJS)

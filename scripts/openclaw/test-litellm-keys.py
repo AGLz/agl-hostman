@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Check LiteLLM key access and model availability."""
 import urllib.request
 import json
 import subprocess
 
 # Get master key
-result = subprocess.run(["grep", "LITELLM_MASTER_KEY", "/opt/litellm/.env"], 
+result = subprocess.run(["grep", "LITELLM_MASTER_KEY", "/opt/litellm/.env"],
                        capture_output=True, text=True)
 MASTER_KEY = result.stdout.strip().split("=", 1)[1] if result.returncode == 0 else ""
-API_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+API_KEY = "${LITELLM_MASTER_KEY}"
 
 def get_models(key, label):
     req = urllib.request.Request("http://localhost:4000/v1/models")

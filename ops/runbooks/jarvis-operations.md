@@ -6,7 +6,7 @@
 
 **Maintainer**: Sr.Big + Jarvis (self-documenting)
 
-**Last Updated**: 2026-04-12
+**Last Updated**: 2026-04-27
 
 ---
 
@@ -75,6 +75,27 @@ ssh root@100.94.221.87
 openclaw cron list
 openclaw cron run --name "<nome>"
 ```
+
+### CT179 (agldv03): acessos para cron e administração de infra
+
+Os jobs agendados (`openclaw cron`) neste contentor invocam scripts em `scripts/monitoring/` e checks HTTP. Falhas recorrentes costumam ser **rede** (Tailscale / WireGuard / LAN), **SSH sem chave** para o host Proxmox, ou **serviços locais** (LiteLLM, Node).
+
+**Matriz de rede (referência):** `docs/INFRA.md` — secção *From CT179 (agldv03)*: LAN + WireGuard (`10.6.0.0/24`, CT179 = `10.6.0.19`) + Tailscale.
+
+| Requisito | Motivo | Verificação rápida (dentro do CT179) |
+|-----------|--------|--------------------------------------|
+| **Tailscale ativo** | `host-health.sh` faz ping a IPs `100.x` (AGLSRV1, AGLSRV6, FGSRV6, …) | `tailscale status` · `ping -c2 100.107.113.33` |
+| **WireGuard `wg0`** | Rotas preferenciais para mesh; NFS/SSHFS em alguns fluxos | `wg show wg0` · `ping -c2 10.6.0.5` (hub) · `ping -c2 10.6.0.10` (AGLSRV1) |
+| **LAN `192.168.0.0/24`** | SSH a AGLSRV1 para `pct`/`qm` e serviços na LAN | `ping -c2 192.168.0.245` · `ssh -o BatchMode=yes -o ConnectTimeout=5 root@192.168.0.245 true` |
+| **LiteLLM local** | `ai-stack-health.sh` e gateway dos agentes | `curl -sfS http://127.0.0.1:4000/health/readiness` |
+| **OpenClaw em execução** | Daemon/process manager esperado pelo health script | `pgrep -af openclaw` (ou equivalente ao teu setup) |
+| **Chaves SSH / token API** | Jobs que administram Proxmox remotamente precisam de credenciais em `~/.ssh/` ou env — **nunca** no Git | Testar `ssh root@10.6.0.10` ou API conforme o teu `jobs.json` |
+
+**LXC (Proxmox):** se um job precisar de aninhar containers ou Docker dentro do CT179, o template pode precisar de `features: nesting=1,keyctl=1` (e política de segurança alinhada à equipa). Sem isso, comandos falham com erros de cgroup/permissão.
+
+**Logs OpenClaw (Linux):** `~/.openclaw/logs/`, `~/.openclaw/cron/` (incl. saída por job, conforme versão). Reproduzir: `openclaw cron run --name "<nome>"` e inspecionar stderr.
+
+**Script de pré-requisitos no repo:** `bash scripts/openclaw/verify-ct179-openclaw-infra-access.sh` (executar **no** CT179).
 
 ### Legado Windows (AGLWK45)
 
@@ -414,7 +435,7 @@ openclaw sessions_send --sessionKey "agent:infra:main" --message "Check ZFS pool
 ### Workspace Management
 ```powershell
 # Clean old memory files
-Get-ChildItem "C:\Users\Administrator\.openclaw\workspace\memory\*.md" | 
+Get-ChildItem "C:\Users\Administrator\.openclaw\workspace\memory\*.md" |
   Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } |
   Remove-Item
 

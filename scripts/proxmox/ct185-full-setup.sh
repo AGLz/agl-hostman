@@ -73,11 +73,11 @@ ssh "root@$CT185_IP" "systemctl start tailscaled"
 sleep 3
 
 if [[ -n "$TAILSCALE_AUTHKEY" ]]; then
-  ssh "root@$CT185_IP" "tailscale up --authkey=$TAILSCALE_AUTHKEY --accept-dns=false --hostname=aglsrv1-agldv12 --ssh"
+  ssh "root@$CT185_IP" "tailscale up --authkey=$TAILSCALE_AUTHKEY --accept-dns=false --accept-routes=false --hostname=aglsrv1-agldv12 --ssh"
 else
   echo "  Execute dentro do CT185 para completar auth Tailscale (ou use --tailscale-authkey=tskey-xxx):"
-  echo "    tailscale up --accept-dns=false --hostname=aglsrv1-agldv12 --ssh"
-  ssh "root@$CT185_IP" "tailscale up --accept-dns=false --hostname=aglsrv1-agldv12 --ssh" || true
+  echo "    tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv1-agldv12 --ssh"
+  ssh "root@$CT185_IP" "tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv1-agldv12 --ssh" || true
 fi
 echo ""
 

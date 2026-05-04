@@ -52,7 +52,7 @@ docker exec openclaw-repo-openclaw-gateway-1 node -e '
   fetch("http://192.168.32.3:4000/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": "Bearer sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0",
+      "Authorization": "Bearer ${LITELLM_MASTER_KEY}",
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
@@ -78,7 +78,7 @@ bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/openclaw/validate-openclaw-
     "providers": {
       "openai": {
         "baseUrl": "http://192.168.32.3:4000",
-        "apiKey": "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0",
+        "apiKey": "${LITELLM_MASTER_KEY}",
         "api": "openai-completions",
         "models": []
       }
@@ -681,10 +681,10 @@ Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; po
 |---------|-----------|
 | `config/openclaw/openclaw-patch.json` | Patch com Anthropic, moonshot/kimi-k2.5, fallbacks |
 | `config/openclaw/openclaw-litellm-local.jq` | Patch jq para providers → localhost:4000 |
-| `config/openclaw/fgsrv06-litellm.jq` | **fgsrv06**: mesmo que o local (LiteLLM no próprio host); **não** usar `100.94.221.87:4000` aqui |
+| `config/openclaw/fgsrv06-litellm.jq` | **fgsrv06**: mesmo que o local (LiteLLM no próprio host); converte URL do CT186 para `localhost:4000` quando necessário |
 | `config/openclaw/litellm-gateway-local.env` | LITELLM_GATEWAY_URL + ANTHROPIC_BASE_URL → localhost:4000 (deploy copia para `~/.openclaw/litellm-gateway.env` em hosts com LiteLLM local) |
-| `config/openclaw/litellm-gateway-client.env` | Hosts sem LiteLLM local: aponta ao agldv03 |
-| `config/openclaw/openclaw-litellm-client.jq` | Satélites: `localhost:4000` → `100.94.221.87:4000` após copiar JSON do agldv03 |
+| `config/openclaw/litellm-gateway-client.env` | Hosts sem LiteLLM local: aponta ao CT186 `agl-litellm` |
+| `config/openclaw/openclaw-litellm-client.jq` | Satélites: `localhost:4000` → `100.125.249.8:4000` após copiar JSON do agldv03 |
 | `scripts/openclaw/propagate-openclaw-from-agldv03.sh` | **agldv03 →** agldv04, 05, 07, 12, fgsrv06; opcional **AGLWK45_VIA_AGLSRV1=1** → VM104 via AGLSRV1; **não** toca em `cron/` |
 | `scripts/openclaw/propagate-openclaw-to-aglwk45-qemu.sh` | Só **aglwk45**: `scp` + `vm104_guest_push_openclaw_json.py` no Proxmox (`AGLSRV1_HOST`, `AGLWK45_VMID`) |
 | `scripts/openclaw/vm104_guest_push_openclaw_json.py` | No **AGLSRV1**: `qm guest exec` — escreve `openclaw.json` completo no guest (backup `.bak.propagate-*`) |
@@ -716,7 +716,7 @@ Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; po
 | `scripts/openclaw/fix-openclaw-agldv03-fgsrv06.sh` | **agldv03 + fgsrv06**: regen `openclaw.conf` (`sync-systemd-openclaw-env.sh`), `chmod 600` em `openclaw.json`, restart `openclaw-gateway`. Opcional: `DOCTOR=1` (com timeout) para `openclaw doctor --yes` |
 | `scripts/openclaw/invoke-remote-openclaw-upgrade.sh` | **agldv03 + fgsrv06**: `npm install -g openclaw@latest` + `openclaw gateway install --force` + restart (usa `remote-openclaw-upgrade-gateway.sh` via scp) |
 | `scripts/openclaw/remote-openclaw-upgrade-gateway.sh` | Script copiado para `/tmp/` no host; não correr localmente (é para o tarball remoto) |
-| `scripts/openclaw/wk45-sync-openclaw-litellm.sh` | **aglwk45**: alinha `apiKey` + `baseUrl` ao agldv03 (evita 401 `sk-litellm-default`) |
+| `scripts/openclaw/wk45-sync-openclaw-litellm.sh` | **aglwk45**: alinha `apiKey` + `baseUrl` ao CT186 `agl-litellm` (evita 401 `sk-litellm-default`) |
 | `config/openclaw/wk45-litellm-gateway.env.example` | Template `~/.openclaw/litellm-gateway.env` na VM Windows (chave real) |
 | `tests/unit/openclaw-agents-fragment.test.js` | Valida fragmento multi-agente |
 

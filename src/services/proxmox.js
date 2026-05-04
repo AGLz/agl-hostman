@@ -1,17 +1,29 @@
 'use strict';
 
-// Disable SSL verification for self-signed Proxmox certificates
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+const https = require('https');
 
 const PROXMOX_HOST = process.env.PROXMOX_HOST || null;
 const TOKEN_ID = process.env.PROXMOX_TOKEN_ID || null;
 const TOKEN_SECRET = process.env.PROXMOX_TOKEN_SECRET || null;
+const REQUEST_TIMEOUT_MS = parseInt(process.env.PROXMOX_TIMEOUT_MS || '5000', 10);
+const TLS_VERIFY = process.env.PROXMOX_TLS_VERIFY === 'true';
 
-let fetch;
-try {
-  fetch = require('node-fetch');
-} catch {
-  fetch = null;
+let fetchClient;
+
+async function getFetch() {
+  if (fetchClient) return fetchClient;
+  if (typeof fetch === 'function') {
+    fetchClient = fetch;
+    return fetchClient;
+  }
+
+  try {
+    const mod = await import('node-fetch');
+    fetchClient = mod.default;
+    return fetchClient;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -34,18 +46,23 @@ function authHeader() {
  */
 async function apiGet(path) {
   if (!isConfigured()) return null;
-  if (!fetch) return null;
+
+  const fetchFn = await getFetch();
+  if (!fetchFn) return null;
 
   const url = `https://${PROXMOX_HOST}:8006/api2/json${path}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchFn(url, {
       method: 'GET',
       headers: {
         Authorization: authHeader(),
         'Content-Type': 'application/json',
       },
-      timeout: 5000,
+      agent: new https.Agent({ rejectUnauthorized: TLS_VERIFY }),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -56,6 +73,8 @@ async function apiGet(path) {
     return json.data || null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

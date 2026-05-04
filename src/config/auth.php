@@ -112,4 +112,17 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'rate_limiting' => [
+        'max_attempts' => env('AUTH_RATE_LIMIT_MAX_ATTEMPTS', 5),
+        'decay_minutes' => env('AUTH_RATE_LIMIT_DECAY_MINUTES', 1),
+    ],
+
+    'verification' => env('AUTH_EMAIL_VERIFICATION', false),
+
+    'verification_routes' => [
+        'notice' => 'verification.notice',
+        'verify' => 'verification.verify',
+        'send' => 'verification.send',
+    ],
+
 ];

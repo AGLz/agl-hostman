@@ -23,9 +23,9 @@ ssh "root@$CT185_IP" "git clone -b main https://github.com/marcuspat/turbo-flow 
 echo "[2/4] Executando setup Turbo Flow..."
 ssh "root@$CT185_IP" "cd $TURBO_FLOW_DIR && chmod +x devpods/setup.sh && ./devpods/setup.sh"
 
-# 3. Configurar LiteLLM gateway (apontar para agldv03)
-echo "[3/4] Configurando LiteLLM gateway (agldv03:4000)..."
-ssh "root@$CT185_IP" "mkdir -p ~/.claude && echo 'LITELLM_GATEWAY_URL=http://100.94.221.87:4000' >> ~/.claude/turbo-flow.env 2>/dev/null || true"
+# 3. Configurar LiteLLM gateway (apontar para CT186)
+echo "[3/4] Configurando LiteLLM gateway (CT186 agl-litellm:4000)..."
+ssh "root@$CT185_IP" "mkdir -p ~/.claude && echo 'LITELLM_GATEWAY_URL=http://100.125.249.8:4000' >> ~/.claude/turbo-flow.env 2>/dev/null || true"
 
 # 4. Post-setup
 echo "[4/4] Executando post-setup..."
@@ -35,6 +35,6 @@ echo ""
 echo "=== Instalação concluída ==="
 echo "  Repo: $TURBO_FLOW_DIR"
 echo "  Comandos: turbo-status, turbo-help, rf-doctor"
-echo "  Gateway LiteLLM: agldv03 (100.94.221.87:4000)"
+echo "  Gateway LiteLLM: CT186 agl-litellm (100.125.249.8:4000)"
 echo ""
 echo "Conectar: ssh root@$CT185_IP"

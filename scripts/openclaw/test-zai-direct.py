@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Test ZAI API directly and via LiteLLM to isolate the issue."""
 import urllib.request
 import json
@@ -70,7 +70,7 @@ except Exception as e:
 
 # Test 3: Check LiteLLM health for ZAI models
 print("\n--- Test 3: LiteLLM health check ---")
-LITELLM_KEY = "sk-litellm-8fd0003fd1a3883e7d6308c60cb5eed3ac4680832e801ded90e1873ce4dfe1a0"
+LITELLM_KEY = "${LITELLM_MASTER_KEY}"
 req3 = urllib.request.Request("http://localhost:4000/health")
 req3.add_header("Authorization", f"Bearer {LITELLM_KEY}")
 try:
