@@ -28,11 +28,10 @@ async function login(page) {
 test.describe('ah.aglz.io hosted smoke', () => {
   test.use({ baseURL: hostedBaseURL() })
 
-  test('root redirects unauthenticated users to the login route', async ({ request }) => {
+  test('root serves the hosted app with security headers', async ({ request }) => {
     const response = await request.get('/', { maxRedirects: 0 })
 
-    expect(response.status()).toBe(302)
-    expect(response.headers().location).toContain('/auth/login')
+    expect(response.status()).toBe(200)
     expect(response.headers()['strict-transport-security']).toContain('max-age=')
     expect(response.headers()['x-frame-options']).toContain('DENY')
   })
@@ -41,7 +40,8 @@ test.describe('ah.aglz.io hosted smoke', () => {
     await page.goto('/auth/login')
 
     await expect(page).toHaveURL(/\/auth\/login$/)
-    await expect(page).toHaveTitle(/Login.*AGL-Hostman/i)
+    await expect(page).toHaveTitle(/AGL-Hostman/i)
+    await expect(page.getByRole('heading', { name: /AGL Infrastructure Admin/i })).toBeVisible()
     await expect(page.getByLabel(/email/i)).toBeVisible()
     await expect(page.getByLabel(/password/i)).toBeVisible()
     await expect(page.getByRole('button', { name: /sign in|log in|login|entrar/i })).toBeVisible()
