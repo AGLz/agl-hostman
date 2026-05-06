@@ -6,6 +6,7 @@
 *No tasks in progress*
 
 ## ✅ Concluído
+- [x] **Refactor OpenClaw API**: `OpenClawController` dividido em `App\Services\OpenClaw/*` + `config/openclaw.php` (env só na config); testes Pest ajustados a `config()` (2026-05-06)
 - [x] **TASK-INFRA-FGSRV07-CT243-MYSQL-HA-2026-04**: FGSRV07 **CT243** **`fg-legacy`** (`192.168.70.243`, 8 GiB, Nginx+PHP5.6); modelos HA MariaDB **235→135** (`scripts/maint/mysql-ha/`); réplica **não** ligada em runtime (credenciais MariaDB); `INFRA.md` tabela CT240–243
 - [x] **TASK-INFRA-FGSRV07-FG-ANTIGO-DOC-2026-04**: FGSRV07 `fg_antigo`: `INFRA.md` CT235 como **MySQL primary** (ex-slave); guias `FGSRV07-fg-antigo-ct-provisioning.md` (**rsync**, até **8 GiB** RAM, tunnel CF manual), `FGSRV04-php-runtime-fg-antigo-checkpoint.md` (**PHP 5.6 FPM** efectivo no `fg_old`); `FGSRV04-fg-antigo-php-optimization.md` + `FG-ANTIGO-GIT-E-FLUXO.md` secção 2.1 (2026-04-28)
 - [x] **TASK-INFRA-FGSRV03-MYSQL-MEM-DOC-2026-04**: Documentação FGSRV3: `docs/maint/FGSRV03-MYSQL-MEMORY-TUNING.md` (restart `mysql`, orçamento RAM vs `innodb_buffer_pool_size`/`max_connections`, checklist pós-deploy) + template `scripts/maint/templates/mysql-fgsrv03-mysqld-snippet.cnf`; pontapé em `INFRA.md` § FGSRV3 (2026-04-28)
