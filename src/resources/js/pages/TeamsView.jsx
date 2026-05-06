@@ -22,7 +22,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { chatWithOpenClawAgent, fetchOpenClawStatus, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
 
 // Organization structure data
 const ORG_STRUCTURE = {
@@ -158,11 +160,92 @@ function OrgTreeNode({ node, level = 0, onSelect }) {
     );
 }
 
-function AgentCard({ agentId, agent }) {
+function AgentChatPanel({ agentId, agent, onClose }) {
+    const [messages, setMessages] = useState([]);
+    const [draft, setDraft] = useState('Responda apenas: pong');
+    const [sending, setSending] = useState(false);
+
+    const sendMessage = async () => {
+        const text = draft.trim();
+        if (!text || sending) return;
+
+        const nextMessages = [...messages, { role: 'user', content: text }];
+        setMessages(nextMessages);
+        setDraft('');
+        setSending(true);
+
+        try {
+            const response = await chatWithOpenClawAgent(agentId, text, messages);
+            setMessages([
+                ...nextMessages,
+                {
+                    role: 'assistant',
+                    content: response.success ? response.message : response.error,
+                    meta: response.latency_ms ? `${response.latency_ms}ms` : null,
+                },
+            ]);
+        } catch (error) {
+            setMessages([...nextMessages, { role: 'assistant', content: error.message }]);
+        } finally {
+            setSending(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+            <div className="w-full max-w-xl mx-4 rounded-xl bg-[#1a1a24] border border-white/10 p-5" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <Brain className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold text-white">{agent.name}</h3>
+                        <p className="text-sm text-white/40">{agent.role} · {agentId}</p>
+                    </div>
+                </div>
+
+                <div className="h-72 overflow-y-auto rounded-lg bg-black/20 border border-white/5 p-3 space-y-2">
+                    {messages.length === 0 ? (
+                        <p className="text-sm text-white/30">Direct test chat with this OpenClaw agent.</p>
+                    ) : messages.map((message, index) => (
+                        <div
+                            key={index}
+                            className={cn(
+                                "rounded-lg px-3 py-2 text-sm",
+                                message.role === 'user' ? "bg-blue-500/10 text-blue-100" : "bg-white/[0.04] text-white/70"
+                            )}
+                        >
+                            <p className="whitespace-pre-wrap">{message.content}</p>
+                            {message.meta && <p className="mt-1 text-[10px] text-white/30">{message.meta}</p>}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-3 flex gap-2">
+                    <Input
+                        value={draft}
+                        onChange={e => setDraft(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') sendMessage();
+                        }}
+                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                        placeholder="Message agent..."
+                    />
+                    <Button onClick={sendMessage} disabled={sending || !draft.trim()} className="bg-white/10 text-white hover:bg-white/15">
+                        {sending ? '...' : 'Send'}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function AgentCard({ agentId, agent, onChat }) {
     const statusConfig = {
         active: { color: 'bg-green-500/10 text-green-400 border-green-500/30', icon: CheckCircle, label: 'Active' },
         standby: { color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30', icon: Pause, label: 'Standby' },
         inactive: { color: 'bg-gray-500/10 text-gray-400 border-gray-500/30', icon: XCircle, label: 'Inactive' },
+        error: { color: 'bg-red-500/10 text-red-400 border-red-500/30', icon: AlertCircle, label: 'Error' },
     };
     const status = statusConfig[agent.status] || statusConfig.inactive;
     const StatusIcon = status.icon;
@@ -211,6 +294,16 @@ function AgentCard({ agentId, agent }) {
                     <span className="text-white/60 font-mono">{agentId}</span>
                 </div>
             </div>
+
+            <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 w-full bg-white/5 border-white/10 text-white/60 hover:text-white"
+                onClick={() => onChat(agentId, agent)}
+            >
+                <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                Test chat
+            </Button>
         </motion.div>
     );
 }
@@ -219,19 +312,23 @@ function OpenClawStatus() {
     const [agents, setAgents] = useState(OPENCLAW_AGENTS);
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
+    const [selectedChat, setSelectedChat] = useState(null);
+
+    const loadStatus = async () => {
+        const data = await fetchOpenClawStatus();
+        if (data.agents) {
+            const nextAgents = Array.isArray(data.agents)
+                ? Object.fromEntries(data.agents.map(agent => [agent.id, agent]))
+                : data.agents;
+            setAgents(prev => ({ ...prev, ...nextAgents }));
+        }
+        setLastUpdate(data.checked_at ? new Date(data.checked_at) : new Date());
+    };
 
     useEffect(() => {
-        // Fetch real OpenClaw data
-        fetch('/api/openclaw/status')
-            .then(res => res.json())
-            .then(data => {
-                if (data.agents) {
-                    setAgents(prev => ({ ...prev, ...data.agents }));
-                }
-                setLastUpdate(new Date());
-            })
-            .catch(() => {})
-            .finally(() => setLoading(false));
+        loadStatus().catch(() => {}).finally(() => setLoading(false));
+        const timer = setInterval(() => loadStatus().catch(() => {}), POLL_INTERVAL_MS);
+        return () => clearInterval(timer);
     }, []);
 
     const stats = {
@@ -309,12 +406,7 @@ function OpenClawStatus() {
                         className="bg-white/5 border-white/10 text-white/60"
                         onClick={() => {
                             setLoading(true);
-                            fetch('/api/openclaw/status')
-                                .then(res => res.json())
-                                .then(data => {
-                                    if (data.agents) setAgents(prev => ({ ...prev, ...data.agents }));
-                                    setLastUpdate(new Date());
-                                })
+                            loadStatus()
                                 .finally(() => setLoading(false));
                         }}
                     >
@@ -324,13 +416,20 @@ function OpenClawStatus() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.entries(agents).map(([id, agent]) => (
-                        <AgentCard key={id} agentId={id} agent={agent} />
+                        <AgentCard key={id} agentId={id} agent={agent} onChat={(agentId, agent) => setSelectedChat({ agentId, agent })} />
                     ))}
                 </div>
                 <p className="text-xs text-white/30 mt-4">
-                    Last updated: {lastUpdate.toLocaleTimeString()}
+                    Last updated: {formatCheckedAt(lastUpdate)}
                 </p>
             </div>
+            {selectedChat && (
+                <AgentChatPanel
+                    agentId={selectedChat.agentId}
+                    agent={selectedChat.agent}
+                    onClose={() => setSelectedChat(null)}
+                />
+            )}
         </div>
     );
 }

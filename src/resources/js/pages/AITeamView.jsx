@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { chatWithOpenClawAgent, fetchOpenClawAgents, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
 
 
 const agentGroups = [
@@ -66,21 +68,18 @@ const agentRoles = {
     'scr-fg-antigo': { role: 'Scrum - FG Legacy', description: 'Legacy FG system tracking' },
 };
 
-// Sample agent statuses
-const SAMPLE_AGENT_DATA = agentGroups.flatMap(group =>
-    group.agents.map((id, i) => {
-        const statuses = ['active', 'idle', 'idle', 'idle', 'error'];
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
+const initialAgents = agentGroups.flatMap(group =>
+    group.agents.map(id => {
         const roleInfo = agentRoles[id] || { role: 'Specialist', description: 'AI specialist agent' };
         return {
             id,
             name: id,
             role: roleInfo.role,
             description: roleInfo.description,
-            status,
-            currentTask: status === 'active' ? `Processing ${id} tasks` : '',
-            lastActive: status === 'active' ? 'Just now' : `${Math.floor(Math.random() * 120) + 1}m ago`,
-            error: status === 'error' ? 'Connection timeout' : null,
+            status: 'idle',
+            currentTask: '',
+            lastActive: 'pending',
+            error: null,
             group: group.name,
             groupColor: group.color,
             groupIcon: group.icon,
@@ -92,12 +91,14 @@ function AgentCard({ agent, onClick }) {
     const statusColors = {
         active: 'border-green-500/30 bg-green-500/[0.03]',
         idle: 'border-yellow-500/20 bg-yellow-500/[0.02]',
+        standby: 'border-yellow-500/20 bg-yellow-500/[0.02]',
         error: 'border-red-500/30 bg-red-500/[0.03]',
     };
 
     const statusDotColors = {
         active: 'bg-green-500 shadow-green-500/50',
         idle: 'bg-yellow-500 shadow-yellow-500/50',
+        standby: 'bg-yellow-500 shadow-yellow-500/50',
         error: 'bg-red-500 shadow-red-500/50',
     };
 
@@ -140,7 +141,37 @@ function AgentCard({ agent, onClick }) {
 }
 
 function AgentDetailModal({ agent, onClose }) {
+    const [messages, setMessages] = useState([]);
+    const [draft, setDraft] = useState('Responda apenas: pong');
+    const [sending, setSending] = useState(false);
+
     if (!agent) return null;
+
+    const sendMessage = async () => {
+        const text = draft.trim();
+        if (!text || sending) return;
+
+        const nextMessages = [...messages, { role: 'user', content: text }];
+        setMessages(nextMessages);
+        setDraft('');
+        setSending(true);
+
+        try {
+            const response = await chatWithOpenClawAgent(agent.id, text, messages);
+            setMessages([
+                ...nextMessages,
+                {
+                    role: 'assistant',
+                    content: response.success ? response.message : response.error,
+                    meta: response.latency_ms ? `${response.latency_ms}ms` : null,
+                },
+            ]);
+        } catch (error) {
+            setMessages([...nextMessages, { role: 'assistant', content: error.message }]);
+        } finally {
+            setSending(false);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -193,10 +224,44 @@ function AgentDetailModal({ agent, onClose }) {
                     )}
                 </div>
 
-                <button
-                    onClick={onClose}
-                    className="mt-4 w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-sm transition-colors"
-                >
+                <div className="mt-4 border-t border-white/5 pt-4">
+                    <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
+                        {messages.length === 0 ? (
+                            <p className="text-xs text-white/30">Direct test chat with this OpenClaw agent.</p>
+                        ) : messages.map((message, index) => (
+                            <div
+                                key={index}
+                                className={cn(
+                                    "rounded-lg px-3 py-2 text-xs",
+                                    message.role === 'user' ? "bg-blue-500/10 text-blue-100" : "bg-white/[0.04] text-white/70"
+                                )}
+                            >
+                                <p className="whitespace-pre-wrap">{message.content}</p>
+                                {message.meta && <p className="mt-1 text-[10px] text-white/30">{message.meta}</p>}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                        <Input
+                            value={draft}
+                            onChange={e => setDraft(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') sendMessage();
+                            }}
+                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                            placeholder="Message agent..."
+                        />
+                        <Button
+                            onClick={sendMessage}
+                            disabled={sending || !draft.trim()}
+                            className="bg-white/10 text-white hover:bg-white/15"
+                        >
+                            {sending ? '...' : 'Send'}
+                        </Button>
+                    </div>
+                </div>
+
+                <button onClick={onClose} className="mt-4 w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-sm transition-colors">
                     Close
                 </button>
             </motion.div>
@@ -205,11 +270,12 @@ function AgentDetailModal({ agent, onClose }) {
 }
 
 export default function AITeamView() {
-    const [agents, setAgents] = useState(SAMPLE_AGENT_DATA);
+    const [agents, setAgents] = useState(initialAgents);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedAgent, setSelectedAgent] = useState(null);
     const [expandedGroups, setExpandedGroups] = useState({});
+    const [lastUpdate, setLastUpdate] = useState(null);
 
     useEffect(() => {
         // Initialize all groups as expanded
@@ -217,32 +283,36 @@ export default function AITeamView() {
         agentGroups.forEach(g => initial[g.name] = true);
         setExpandedGroups(initial);
 
-        // Try to fetch real agent data
-        fetch('/api/agents').then(res => res.json()).then(data => {
-            if (data && data.length > 0) {
-                // Map real data to our format
-                const mapped = data.map(a => ({
-                    ...a,
-                    group: agentGroups.find(g => g.agents.includes(a.id))?.name || 'Specialists',
-                    groupColor: agentGroups.find(g => g.agents.includes(a.id))?.color || 'from-gray-500 to-gray-600',
-                    groupIcon: agentGroups.find(g => g.agents.includes(a.id))?.icon || Users,
-                }));
-                setAgents(mapped);
-            }
-        }).catch(() => {});
+        const loadAgents = async () => {
+            const data = await fetchOpenClawAgents();
+            const mapped = data.map(a => ({
+                ...a,
+                description: agentRoles[a.id]?.description || a.description || 'AI specialist agent',
+                group: a.group || agentGroups.find(g => g.agents.includes(a.id))?.name || 'Specialists',
+                groupColor: agentGroups.find(g => g.name === a.group || g.agents.includes(a.id))?.color || 'from-gray-500 to-gray-600',
+                groupIcon: agentGroups.find(g => g.name === a.group || g.agents.includes(a.id))?.icon || Users,
+            }));
+            setAgents(mapped);
+            setLastUpdate(new Date().toISOString());
+        };
+
+        loadAgents().catch(() => {});
+        const timer = setInterval(() => loadAgents().catch(() => {}), POLL_INTERVAL_MS);
+        return () => clearInterval(timer);
     }, []);
 
     const filteredAgents = agents.filter(agent => {
         const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              agent.role.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || agent.status === statusFilter;
+        const normalizedStatus = agent.status === 'standby' ? 'idle' : agent.status;
+        const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
     const statusCounts = {
         all: agents.length,
         active: agents.filter(a => a.status === 'active').length,
-        idle: agents.filter(a => a.status === 'idle').length,
+        idle: agents.filter(a => ['idle', 'standby'].includes(a.status)).length,
         error: agents.filter(a => a.status === 'error').length,
     };
 
@@ -252,7 +322,9 @@ export default function AITeamView() {
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-white">AI Team</h1>
-                    <p className="text-sm text-white/40 mt-1">{agents.length} agents across {agentGroups.length} groups</p>
+                    <p className="text-sm text-white/40 mt-1">
+                        {agents.length} agents across {agentGroups.length} groups · updated {formatCheckedAt(lastUpdate)}
+                    </p>
                 </div>
 
                 {/* Filters */}
