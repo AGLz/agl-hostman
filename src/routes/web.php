@@ -35,6 +35,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/scrum', fn() => view('app'))->name('scrum');
     Route::get('/memory', fn() => view('app'))->name('memory');
     Route::get('/notifications', fn() => view('app'))->name('notifications');
+    Route::get('/mission-control/{path?}', fn() => view('app'))
+        ->where('path', '.*')
+        ->name('mission-control');
 
     // Dokploy Dashboard (client-side route)
     Route::get('/dokploy', function () {
