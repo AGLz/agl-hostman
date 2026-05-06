@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { fetchMissionControlSnapshot, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
 
 
 const container = {
@@ -109,7 +110,7 @@ function ActivityFeed({ activities }) {
 function AgentStatusBar({ agents }) {
     const statusGroups = {
         active: agents?.filter(a => a.status === 'active') || [],
-        idle: agents?.filter(a => a.status === 'idle') || [],
+        idle: agents?.filter(a => ['idle', 'standby'].includes(a.status)) || [],
         error: agents?.filter(a => a.status === 'error') || [],
     };
 
@@ -168,26 +169,6 @@ function AgentStatusBar({ agents }) {
     );
 }
 
-// Sample data until real APIs are ready
-const SAMPLE_AGENTS = [
-    { id: '1', name: 'main', status: 'active', role: 'Main Agent', currentTask: 'Processing requests', lastActive: 'Just now' },
-    { id: '2', name: 'devops', status: 'active', role: 'DevOps', currentTask: 'Monitoring infrastructure', lastActive: '2m ago' },
-    { id: '3', name: 'security', status: 'active', role: 'Security', currentTask: 'Scanning vulnerabilities', lastActive: '5m ago' },
-    { id: '4', name: 'infra-manager', status: 'idle', role: 'Infrastructure', currentTask: '', lastActive: '15m ago' },
-    { id: '5', name: 'sre-team', status: 'idle', role: 'SRE', currentTask: '', lastActive: '30m ago' },
-    { id: '6', name: 'release-manager', status: 'error', role: 'Release', currentTask: 'Deploy failed', lastActive: '1h ago', error: 'Deployment timeout' },
-    { id: '7', name: 'scr-agl-hostman', status: 'idle', role: 'Scrum', currentTask: '', lastActive: '2h ago' },
-];
-
-const SAMPLE_ACTIVITIES = [
-    { agent: 'devops', action: 'Checked Docker containers health', status: 'active', time: '30s ago' },
-    { agent: 'main', action: 'Processed user request for dashboard', status: 'active', time: '1m ago' },
-    { agent: 'security', action: 'Completed vulnerability scan', status: 'active', time: '3m ago' },
-    { agent: 'infra-manager', action: 'Monitored Proxmox cluster', status: 'idle', time: '10m ago' },
-    { agent: 'release-manager', action: 'Deployment failed: timeout', status: 'error', time: '1h ago' },
-    { agent: 'sre-team', action: 'Alert acknowledged', status: 'idle', time: '2h ago' },
-];
-
 export default function MissionControlDashboard() {
     const [metrics, setMetrics] = useState({
         activeTasks: 0,
@@ -196,40 +177,55 @@ export default function MissionControlDashboard() {
         totalAgents: 0,
         errors: 0,
     });
-    const [activities, setActivities] = useState(SAMPLE_ACTIVITIES);
-    const [agents, setAgents] = useState(SAMPLE_AGENTS);
+    const [activities, setActivities] = useState([]);
+    const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdate, setLastUpdate] = useState(null);
+    const [gatewayStatus, setGatewayStatus] = useState('unknown');
 
     useEffect(() => {
         fetchMissionControlData();
+        const timer = setInterval(fetchMissionControlData, POLL_INTERVAL_MS);
+        return () => clearInterval(timer);
     }, []);
 
     const fetchMissionControlData = async () => {
+        setRefreshing(true);
         try {
-            const [agentsRes, tasksRes] = await Promise.all([
-                fetch('/api/agents').catch(() => null),
-                fetch('/api/tasks/summary').catch(() => null),
+            const { agents: agentsData, tasks, openclaw } = await fetchMissionControlSnapshot();
+            const activeAgents = agentsData.filter(a => a.status === 'active').length;
+            const errors = (tasks.failed || 0) + agentsData.filter(a => a.status === 'error').length;
+
+            setAgents(agentsData);
+            setGatewayStatus(openclaw.status);
+            setMetrics({
+                activeTasks: tasks.active || 0,
+                totalTasks: tasks.total || 0,
+                activeAgents,
+                totalAgents: agentsData.length,
+                errors,
+            });
+            setActivities([
+                {
+                    agent: 'openclaw',
+                    action: `Gateway ${openclaw.gateway} at ${openclaw.base_url}`,
+                    status: openclaw.status === 'online' ? 'active' : 'error',
+                    time: formatCheckedAt(openclaw.checked_at),
+                },
+                ...agentsData.slice(0, 8).map(agent => ({
+                    agent: agent.id,
+                    action: agent.currentTask || `${agent.role} ${agent.status}`,
+                    status: agent.status,
+                    time: agent.lastActive || formatCheckedAt(openclaw.checked_at),
+                })),
             ]);
-
-            if (agentsRes && agentsRes.ok) {
-                const agentsData = await agentsRes.json();
-                setAgents(agentsData);
-            }
-
-            if (tasksRes && tasksRes.ok) {
-                const tasksData = await tasksRes.json();
-                setMetrics({
-                    activeTasks: tasksData.active || 0,
-                    totalTasks: tasksData.total || 0,
-                    activeAgents: agentsData?.filter(a => a.status === 'active').length || 0,
-                    totalAgents: agentsData?.length || 7,
-                    errors: tasksData.failed || 0,
-                });
-            }
+            setLastUpdate(openclaw.checked_at || new Date().toISOString());
         } catch (err) {
             console.error('Failed to fetch mission control data:', err);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -240,7 +236,9 @@ export default function MissionControlDashboard() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-white">Mission Control</h1>
-                        <p className="text-sm text-white/40 mt-1">Central command center for AGL Infrastructure</p>
+                        <p className="text-sm text-white/40 mt-1">
+                            Central command center for AGL Infrastructure · updated {formatCheckedAt(lastUpdate)}
+                        </p>
                     </div>
                     <Button
                         variant="outline"
@@ -248,7 +246,7 @@ export default function MissionControlDashboard() {
                         className="bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10"
                         onClick={fetchMissionControlData}
                     >
-                        <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                        <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
                         Refresh
                     </Button>
                 </div>
@@ -286,11 +284,11 @@ export default function MissionControlDashboard() {
                     />
                     <MetricCard
                         title="System Status"
-                        value={loading ? '...' : 'Operational'}
+                        value={loading ? '...' : gatewayStatus}
                         icon={Server}
-                        trend="All healthy"
-                        color="bg-purple-500/10"
-                        subtitle="Infrastructure OK"
+                        trend={gatewayStatus === 'online' ? 'live' : 'check'}
+                        color={gatewayStatus === 'online' ? "bg-green-500/10" : "bg-red-500/10"}
+                        subtitle="CT187 OpenClaw"
                     />
                 </motion.div>
 

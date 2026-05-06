@@ -2,7 +2,7 @@
 
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { getLiteLLMStatus, getRufloStatus } = require('../../services/ai-stack');
+const { getLiteLLMStatus, getOpenClawStatus, getRufloStatus } = require('../../services/ai-stack');
 
 const execAsync = promisify(exec);
 
@@ -11,22 +11,32 @@ const RUFLO_COMMAND = process.env.RUFLO_COMMAND || 'ruflo';
 const OPENCLAW_INFO = {
   name: 'OpenClaw',
   version: '1.0.0',
-  description: 'AGL Orchestration Layer for Claude AI integration',
+  description: 'AGL OpenClaw/Jarvis runtime on AGLSRV1 CT187',
+  ct: 'CT187',
+  host: 'agl-openclaw',
+  tailscale_ip: '100.123.184.125',
+  lan_ip: '192.168.0.187',
+  base_url: process.env.OPENCLAW_BASE_URL || 'http://100.123.184.125:28789',
   config_path: '/mnt/overpower/apps/dev/agl/agl-hostman/config/openclaw',
   status: 'configured',
 };
 
 async function aiRoutes(fastify) {
   fastify.get('/ai/status', async (_request, _reply) => {
-    const [litellm, ruflo] = await Promise.all([
+    const [litellm, openclawStatus, ruflo] = await Promise.all([
       getLiteLLMStatus(),
+      getOpenClawStatus(),
       getRufloStatus(),
     ]);
 
     return {
       litellm,
       ruflo,
-      openclaw: OPENCLAW_INFO,
+      openclaw: {
+        ...OPENCLAW_INFO,
+        status: openclawStatus.status,
+        details: openclawStatus.details,
+      },
       timestamp: new Date().toISOString(),
     };
   });

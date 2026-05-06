@@ -25,8 +25,8 @@ import { Button } from '@/components/ui/button';
 
 
 const INTEGRATIONS = [
-    { name: 'LiteLLM Gateway', icon: Zap, status: 'healthy', url: 'http://127.0.0.1:4000', lastCheck: '30s ago' },
-    { name: 'OpenClaw Gateway', icon: Brain, status: 'healthy', url: 'http://127.0.0.1:3001', lastCheck: '1m ago' },
+    { name: 'LiteLLM Gateway', icon: Zap, status: 'healthy', url: 'http://100.125.249.8:4000', lastCheck: '30s ago' },
+    { name: 'OpenClaw Gateway', icon: Brain, status: 'healthy', url: 'http://100.123.184.125:28789', lastCheck: '1m ago' },
     { name: 'n8n Workflow', icon: RefreshCw, status: 'healthy', url: 'http://192.168.0.202:5678', lastCheck: '2m ago' },
     { name: 'Proxmox API', icon: Server, status: 'healthy', url: 'https://192.168.0.245:8006', lastCheck: '5m ago' },
     { name: 'DashScope (Qwen)', icon: Globe, status: 'healthy', url: 'https://dashscope-intl.aliyuncs.com', lastCheck: '10m ago' },
@@ -203,8 +203,8 @@ export default function MissionControlSettings() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="p-4 rounded-lg bg-white/[0.03] border border-white/5">
                                     <p className="text-xs text-white/40 mb-1">Default Model</p>
-                                    <p className="text-sm font-medium text-white/80">qwen3.5-flash</p>
-                                    <p className="text-[10px] text-white/30 mt-1">DashScope Singapore - 1M context</p>
+                                    <p className="text-sm font-medium text-white/80">openai/jarvis-thinking</p>
+                                    <p className="text-[10px] text-white/30 mt-1">CT186 LiteLLM - reasoning enabled</p>
                                 </div>
                                 <div className="p-4 rounded-lg bg-white/[0.03] border border-white/5">
                                     <p className="text-xs text-white/40 mb-1">Coding Model</p>
@@ -218,8 +218,8 @@ export default function MissionControlSettings() {
                                 </div>
                                 <div className="p-4 rounded-lg bg-white/[0.03] border border-white/5">
                                     <p className="text-xs text-white/40 mb-1">Fallback Model</p>
-                                    <p className="text-sm font-medium text-white/80">or-glm-air-free</p>
-                                    <p className="text-[10px] text-white/30 mt-1">OpenRouter free tier</p>
+                                    <p className="text-sm font-medium text-white/80">r1 / qwen3.5-flash</p>
+                                    <p className="text-[10px] text-white/30 mt-1">Validated CT186 fallbacks</p>
                                 </div>
                             </div>
                         </div>
