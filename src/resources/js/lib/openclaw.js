@@ -47,5 +47,24 @@ export async function chatWithOpenClawAgent(agentId, message, history = []) {
 
 export function formatCheckedAt(value) {
     if (!value) return 'never';
-    return new Date(value).toLocaleTimeString();
+    const date = value instanceof Date ? value : new Date(value);
+
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    return date.toLocaleTimeString();
+}
+
+export function formatAgentLastActive(value) {
+    if (!value) return 'never';
+    if (['live', 'unreachable', 'no sessions', 'unknown'].includes(value)) return value;
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    const diffSeconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+    if (diffSeconds < 60) return `${diffSeconds}s ago`;
+    if (diffSeconds < 3600) return `${Math.round(diffSeconds / 60)}m ago`;
+    if (diffSeconds < 86400) return `${Math.round(diffSeconds / 3600)}h ago`;
+
+    return date.toLocaleString();
 }

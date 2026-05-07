@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { chatWithOpenClawAgent, fetchOpenClawStatus, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
+import { chatWithOpenClawAgent, fetchOpenClawStatus, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
 
 // Organization structure data
 const ORG_STRUCTURE = {
@@ -61,27 +61,7 @@ const ORG_STRUCTURE = {
     ],
 };
 
-// OpenClaw agents data
-const OPENCLAW_AGENTS = {
-    main: { name: 'Main Agent', role: 'Coordinator', status: 'active', sessions: 12, lastActive: '2m ago' },
-    devops: { name: 'DevOps Agent', role: 'DevOps Engineer', status: 'active', sessions: 8, lastActive: '5m ago' },
-    security: { name: 'Security Agent', role: 'Security Analyst', status: 'active', sessions: 15, lastActive: '1m ago' },
-    'sre-team': { name: 'SRE Team', role: 'Site Reliability', status: 'active', sessions: 6, lastActive: '10m ago' },
-    'infra-manager': { name: 'Infra Manager', role: 'Infrastructure Manager', status: 'active', sessions: 4, lastActive: '15m ago' },
-    'release-manager': { name: 'Release Manager', role: 'Release Coordination', status: 'standby', sessions: 2, lastActive: '1h ago' },
-    'scr-agl-hostman': { name: 'Scrum - Hostman', role: 'Project Tracking', status: 'active', sessions: 20, lastActive: '3m ago' },
-    'scr-api8': { name: 'Scrum - API8', role: 'API Tracking', status: 'standby', sessions: 5, lastActive: '30m ago' },
-    'scr-api9': { name: 'Scrum - API9', role: 'API Tracking', status: 'standby', sessions: 3, lastActive: '45m ago' },
-    'scr-crowbar': { name: 'Scrum - Crowbar', role: 'Project Tracking', status: 'standby', sessions: 1, lastActive: '2h ago' },
-    altman: { name: 'Altman', role: 'AI Advisor', status: 'standby', sessions: 0, lastActive: '1d ago' },
-    musk: { name: 'Musk', role: 'Strategy Advisor', status: 'standby', sessions: 0, lastActive: '2d ago' },
-    gates: { name: 'Gates', role: 'Tech Advisor', status: 'standby', sessions: 0, lastActive: '3d ago' },
-    hassabis: { name: 'Hassabis', role: 'AI Research', status: 'standby', sessions: 0, lastActive: '1d ago' },
-    hinton: { name: 'Hinton', role: 'AI Research', status: 'standby', sessions: 0, lastActive: '4d ago' },
-    karpathy: { name: 'Karpathy', role: 'ML Advisor', status: 'standby', sessions: 0, lastActive: '2d ago' },
-    nadella: { name: 'Nadella', role: 'Cloud Strategy', status: 'standby', sessions: 0, lastActive: '3d ago' },
-    pichai: { name: 'Pichai', role: 'AI Strategy', status: 'standby', sessions: 0, lastActive: '2d ago' },
-};
+const EMPTY_AGENTS = {};
 
 function OrgTreeNode({ node, level = 0, onSelect }) {
     const [isExpanded, setIsExpanded] = useState(true);
@@ -284,7 +264,7 @@ function AgentCard({ agentId, agent, onChat }) {
                         <Clock className="w-3 h-3" />
                         Last active
                     </span>
-                    <span className="text-white/60">{agent.lastActive}</span>
+                    <span className="text-white/60">{formatAgentLastActive(agent.lastActive)}</span>
                 </div>
                 <div className="flex items-center justify-between text-white/40">
                     <span className="flex items-center gap-1">
@@ -309,10 +289,13 @@ function AgentCard({ agentId, agent, onChat }) {
 }
 
 function OpenClawStatus() {
-    const [agents, setAgents] = useState(OPENCLAW_AGENTS);
+    const [agents, setAgents] = useState(EMPTY_AGENTS);
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [selectedChat, setSelectedChat] = useState(null);
+    const [gateway, setGateway] = useState('unknown');
+    const [source, setSource] = useState('unknown');
+    const [error, setError] = useState(null);
 
     const loadStatus = async () => {
         const data = await fetchOpenClawStatus();
@@ -320,14 +303,17 @@ function OpenClawStatus() {
             const nextAgents = Array.isArray(data.agents)
                 ? Object.fromEntries(data.agents.map(agent => [agent.id, agent]))
                 : data.agents;
-            setAgents(prev => ({ ...prev, ...nextAgents }));
+            setAgents(nextAgents);
         }
+        setGateway(data.gateway || 'unknown');
+        setSource(data.source || 'unknown');
         setLastUpdate(data.checked_at ? new Date(data.checked_at) : new Date());
+        setError(null);
     };
 
     useEffect(() => {
-        loadStatus().catch(() => {}).finally(() => setLoading(false));
-        const timer = setInterval(() => loadStatus().catch(() => {}), POLL_INTERVAL_MS);
+        loadStatus().catch(err => setError(err.message)).finally(() => setLoading(false));
+        const timer = setInterval(() => loadStatus().catch(err => setError(err.message)), POLL_INTERVAL_MS);
         return () => clearInterval(timer);
     }, []);
 
@@ -399,7 +385,10 @@ function OpenClawStatus() {
             {/* Agents Grid */}
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white">OpenClaw Agents</h3>
+                    <div>
+                        <h3 className="text-lg font-semibold text-white">OpenClaw Agents</h3>
+                        <p className="text-xs text-white/30">{gateway} · {source}</p>
+                    </div>
                     <Button
                         variant="outline"
                         size="sm"
@@ -414,6 +403,11 @@ function OpenClawStatus() {
                         Refresh
                     </Button>
                 </div>
+                {error && (
+                    <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                        {error}
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.entries(agents).map(([id, agent]) => (
                         <AgentCard key={id} agentId={id} agent={agent} onChat={(agentId, agent) => setSelectedChat({ agentId, agent })} />
@@ -437,6 +431,22 @@ function OpenClawStatus() {
 export default function TeamsView() {
     const [selectedNode, setSelectedNode] = useState(null);
     const [activeTab, setActiveTab] = useState('org'); // 'org' or 'openclaw'
+    const [agents, setAgents] = useState(EMPTY_AGENTS);
+
+    useEffect(() => {
+        const loadAgents = async () => {
+            const data = await fetchOpenClawStatus();
+            if (!data.agents) return;
+
+            setAgents(Array.isArray(data.agents)
+                ? Object.fromEntries(data.agents.map(agent => [agent.id, agent]))
+                : data.agents);
+        };
+
+        loadAgents().catch(() => {});
+        const timer = setInterval(() => loadAgents().catch(() => {}), POLL_INTERVAL_MS);
+        return () => clearInterval(timer);
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -509,7 +519,7 @@ export default function TeamsView() {
                             {selectedNode && selectedNode.members ? (
                                 <div className="space-y-3">
                                     {selectedNode.members.map(memberId => {
-                                        const agent = OPENCLAW_AGENTS[memberId];
+                                        const agent = agents[memberId];
                                         return agent ? (
                                             <div key={memberId} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
                                                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">

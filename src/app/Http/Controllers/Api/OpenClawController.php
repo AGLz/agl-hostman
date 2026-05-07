@@ -42,8 +42,13 @@ class OpenClawController extends Controller
         return response()->json([
             'total' => count($agents),
             'active' => count(array_filter($agents, fn ($a) => ($a['status'] ?? '') === 'active')),
+            'standby' => count(array_filter($agents, fn ($a) => in_array($a['status'] ?? '', ['idle', 'standby'], true))),
+            'errors' => count(array_filter($agents, fn ($a) => ($a['status'] ?? '') === 'error')),
             'categorized' => $categorized,
             'agents' => array_values($agents),
+            'gateway' => $status['gateway'],
+            'source' => $status['source'],
+            'base_url' => $status['base_url'],
             'checked_at' => $status['checked_at'],
         ]);
     }
@@ -98,8 +103,10 @@ class OpenClawController extends Controller
         return response()->json([
             'total' => count($tasks),
             'active' => count(array_filter($tasks, fn ($t) => ($t['status'] ?? '') === 'running')),
+            'queued' => count(array_filter($tasks, fn ($t) => ($t['status'] ?? '') === 'queued')),
             'failed' => count(array_filter($tasks, fn ($t) => in_array($t['status'] ?? '', ['failed', 'lost']))),
             'completed' => count(array_filter($tasks, fn ($t) => ($t['status'] ?? '') === 'succeeded')),
+            'recent' => array_slice($tasks, 0, 10),
             'checked_at' => $status['checked_at'],
         ]);
     }

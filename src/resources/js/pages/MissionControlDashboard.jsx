@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { fetchMissionControlSnapshot, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
+import { fetchMissionControlSnapshot, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
 
 
 const container = {
@@ -217,7 +217,7 @@ export default function MissionControlDashboard() {
                     agent: agent.id,
                     action: agent.currentTask || `${agent.role} ${agent.status}`,
                     status: agent.status,
-                    time: agent.lastActive || formatCheckedAt(openclaw.checked_at),
+                    time: formatAgentLastActive(agent.lastActive) || formatCheckedAt(openclaw.checked_at),
                 })),
             ]);
             setLastUpdate(openclaw.checked_at || new Date().toISOString());

@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { chatWithOpenClawAgent, fetchOpenClawAgents, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
+import { chatWithOpenClawAgent, fetchOpenClawAgents, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
 
 
 const agentGroups = [
@@ -128,7 +128,7 @@ function AgentCard({ agent, onClick }) {
             <div className="flex items-center justify-between text-[10px] text-white/30">
                 <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {agent.lastActive}
+                    {formatAgentLastActive(agent.lastActive)}
                 </span>
                 {agent.status === 'error' && (
                     <Badge variant="secondary" className="bg-red-500/10 text-red-400 border-none text-[9px]">
@@ -211,7 +211,7 @@ function AgentDetailModal({ agent, onClose }) {
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-white/5">
                         <span className="text-sm text-white/50">Last Active</span>
-                        <span className="text-sm text-white/70">{agent.lastActive}</span>
+                        <span className="text-sm text-white/70">{formatAgentLastActive(agent.lastActive)}</span>
                     </div>
                     {agent.error && (
                         <div className="flex items-center justify-between py-2 border-b border-white/5">

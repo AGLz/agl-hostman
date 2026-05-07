@@ -71,6 +71,52 @@ test.describe('ah.aglz.io hosted smoke', () => {
     expect(Object.keys(data.agents || {}).length).toBeGreaterThan(0)
   })
 
+  test('agent dashboard APIs expose live agent and task summaries', async ({ request }) => {
+    test.skip(process.env.AH_EXPECT_OPENCLAW_API !== '1', 'Set AH_EXPECT_OPENCLAW_API=1 after deploying the OpenClaw API routes')
+
+    const [agentsResponse, flatAgentsResponse, tasksResponse] = await Promise.all([
+      request.get('/api/openclaw/agents'),
+      request.get('/api/agents'),
+      request.get('/api/tasks/summary'),
+    ])
+
+    expect(agentsResponse.ok()).toBeTruthy()
+    expect(flatAgentsResponse.ok()).toBeTruthy()
+    expect(tasksResponse.ok()).toBeTruthy()
+
+    const agents = await agentsResponse.json()
+    const flatAgents = await flatAgentsResponse.json()
+    const tasks = await tasksResponse.json()
+
+    expect(agents).toMatchObject({
+      total: expect.any(Number),
+      active: expect.any(Number),
+      standby: expect.any(Number),
+      errors: expect.any(Number),
+      gateway: expect.any(String),
+      source: expect.any(String),
+      base_url: expect.any(String),
+      checked_at: expect.any(String),
+    })
+    expect(agents.total).toBeGreaterThan(0)
+    expect(agents.agents[0]).toMatchObject({
+      id: expect.any(String),
+      name: expect.any(String),
+      role: expect.any(String),
+      group: expect.any(String),
+      status: expect.stringMatching(/active|standby|idle|error/),
+    })
+    expect(flatAgents.length).toBe(agents.total)
+    expect(tasks).toMatchObject({
+      total: expect.any(Number),
+      active: expect.any(Number),
+      queued: expect.any(Number),
+      failed: expect.any(Number),
+      completed: expect.any(Number),
+      checked_at: expect.any(String),
+    })
+  })
+
   test('authenticated OpenClaw dashboard loads with agent chat controls', async ({ page }) => {
     await login(page)
     await page.goto('/mission-control/openclaw')
