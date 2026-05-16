@@ -99,6 +99,15 @@ class AuthenticationSecurityTest extends TestCase
         $this->assertFalse($result);
     }
 
+    public function test_inactive_user_not_retrieved_by_id(): void
+    {
+        $user = User::factory()->inactive()->create();
+
+        $retrieved = Auth::createUserProvider('users')->retrieveById($user->id);
+
+        $this->assertNull($retrieved);
+    }
+
     /**
      * Test session is secure
      */

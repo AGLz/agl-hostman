@@ -13,20 +13,32 @@ class CheckPermission
         $user = $request->user();
 
         if (! $user) {
-            return response('Unauthorized', 401);
+            return $this->deny($request, 401, 'Authentication required');
         }
 
         if (($user->is_active ?? true) === false) {
-            return response('Forbidden', 403);
+            return $this->deny($request, 403, 'Account inactive');
         }
 
         [$permissions, $mode] = $this->parsePermissions($permission, $mode);
 
         if (! $this->hasRequiredPermissions($user, $permissions, $mode)) {
-            return response('Forbidden', 403);
+            return $this->deny($request, 403, 'Insufficient permissions');
         }
 
         return $next($request);
+    }
+
+    private function deny(Request $request, int $status, string $message): Response
+    {
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'error' => $status === 401 ? 'Unauthorized' : 'Forbidden',
+                'message' => $message,
+            ], $status);
+        }
+
+        return response($message, $status);
     }
 
     private function parsePermissions(string $permission, string $mode): array

@@ -38,4 +38,25 @@ class ActiveEloquentUserProvider extends EloquentUserProvider
 
         return $query->where('is_active', true)->first();
     }
+
+    public function retrieveById($identifier): ?Authenticatable
+    {
+        $model = $this->createModel();
+
+        return $this->newModelQuery()
+            ->where($model->getAuthIdentifierName(), $identifier)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    public function retrieveByToken($identifier, #[\SensitiveParameter] $token): ?Authenticatable
+    {
+        $user = parent::retrieveByToken($identifier, $token);
+
+        if ($user !== null && ($user->is_active ?? true) === false) {
+            return null;
+        }
+
+        return $user;
+    }
 }

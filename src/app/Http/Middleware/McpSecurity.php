@@ -311,8 +311,7 @@ class McpSecurity
             }
         }
 
-        // Check query parameter
-        if ($request->has('api_key')) {
+        if (config('mcp.allow_query_api_key', false) && $request->has('api_key')) {
             return $request->input('api_key');
         }
 

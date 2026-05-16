@@ -52,6 +52,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PerformanceMiddleware::class,
         ]);
 
+        $middleware->api(append: [
+            \App\Http\Middleware\EnsureUserIsActive::class,
+        ]);
+
         // Apply security middleware to web routes
         $middleware->web(prepend: [
             \App\Http\Middleware\SecurityHeaders::class,
@@ -59,6 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
+            \App\Http\Middleware\EnsureUserIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -387,9 +387,10 @@ class MiddlewareSecurityTest extends TestCase
     /**
      * Test McpSecurity extracts API key from query parameter
      */
-    public function test_mcp_security_extracts_api_key_from_query(): void
+    public function test_mcp_security_extracts_api_key_from_query_when_allowed(): void
     {
         Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
+        Config::set('mcp.allow_query_api_key', true);
 
         $middleware = new McpSecurity;
         $request = Request::create('/mcp?api_key=valid-api-key-12345', 'POST');
@@ -397,6 +398,32 @@ class MiddlewareSecurityTest extends TestCase
         $response = $middleware->handle($request, fn () => new Response);
 
         $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    public function test_mcp_security_rejects_query_api_key_when_disabled(): void
+    {
+        Config::set('mcp.api_keys', ['test-service' => 'valid-api-key-12345']);
+        Config::set('mcp.allow_query_api_key', false);
+
+        $middleware = new McpSecurity;
+        $request = Request::create('/mcp?api_key=valid-api-key-12345', 'POST');
+
+        $response = $middleware->handle($request, fn () => new Response);
+
+        $this->assertEquals(401, $response->getStatusCode());
+    }
+
+    public function test_check_permission_returns_json_for_api_requests(): void
+    {
+        $middleware = new CheckPermission;
+        $request = Request::create('/api/users', 'GET');
+        $request->headers->set('Accept', 'application/json');
+
+        $response = $middleware->handle($request, fn () => new Response, 'manage users');
+
+        $this->assertEquals(401, $response->getStatusCode());
+        $this->assertJson($response->getContent());
+        $this->assertStringContainsString('Authentication required', $response->getContent());
     }
 
     /**
