@@ -31,7 +31,7 @@ Sistema completo de proteção para **100% dos dados** do servidor **fgsrv3 (191
 ### Banco de Dados Alvo
 - **Servidor**: fgsrv3 (191.252.201.205:3306)
 - **Database**: `Bkp_falg`
-- **Credenciais**: root/power@123 (obtidas das apps api* em fgsrv5)
+- **Credenciais**: `root` + password no **cofre** (histórico legado fgsrv3; não documentar em texto claro).
 
 ### Arquivos de Configuração
 
@@ -41,7 +41,7 @@ Arquivo de credenciais para conexão com fgsrv3:
 [client]
 host=191.252.201.205
 user=root
-password=power@123
+password=<definir no cofre; não commitar>
 ```
 **Permissões**: 600 (rw-------)
 

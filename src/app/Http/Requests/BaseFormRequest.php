@@ -7,7 +7,6 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpException;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Base Form Request with enhanced validation
@@ -21,9 +20,18 @@ abstract class BaseFormRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Default authorization logic
-        // Override in child classes for specific requirements
-        return Auth::check() && Auth::user()->isActive();
+        return true;
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        if (! isset($this->validator)) {
+            $validator = validator($this->all(), $this->rules(), $this->messages(), $this->attributes());
+
+            return data_get($validator->validated(), $key, $default);
+        }
+
+        return parent::validated($key, $default);
     }
 
     /**

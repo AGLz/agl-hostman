@@ -18,7 +18,7 @@
 | **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
 | **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | 100.116.57.111 (TS) | litellm-redis (Docker) |
 
-**Nota (2026-04) — alias `agl-primary` (LAN, `config.yaml`)**: no agldv03/04/12 o primário Ollama local é **`ollama/qwen3:4b`** (CT200 `192.168.0.200:11434`); **`ollama-nemotron-3-nano-4b`** fica na cadeia de fallbacks. No **fgsrv06** o `agl-primary` em `config-remote.yaml` continua a ser **DashScope `qwen3.5-flash`**, com Ollama CT200 só como fallback via Tailscale.
+**Nota (2026-05) — Ollama CT200**: um único modelo local **`ollama/qwen3:4b`** (LAN `192.168.0.200:11434`; Tailscale `100.116.57.111` em `config-remote.yaml`). Aliases LiteLLM: `ollama-qwen3-4b` / `openai/ollama-qwen3-4b`. No **fgsrv06** o `agl-primary` em `config-remote.yaml` continua a ser **DashScope `qwen3.5-flash`**, com Ollama CT200 como fallback via Tailscale quando a cadeia o incluir.
 
 ---
 

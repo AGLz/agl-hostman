@@ -31,4 +31,12 @@ test('jarvis-openclaw-http-endpoints.example.json: estrutura e URLs canónicos',
   const block = data.doNotUseForTheseServices.find((x) => x.ip === '100.72.240.65');
   assert.ok(block, 'proibição explícita do IP cloudflared7');
   assert.match(block.reason, /n8n|wg-easy/i);
+
+  const cut = data.cutoverDedicatedLxc;
+  assert.ok(cut && Array.isArray(cut.lanChecksFromAgldv03), 'cutoverDedicatedLxc.lanChecksFromAgldv03');
+  assert.strictEqual(cut.lanChecksFromAgldv03.length, 2);
+  const llm186 = cut.lanChecksFromAgldv03.find((e) => e.id === 'litellm-ct186-lan');
+  const oc187 = cut.lanChecksFromAgldv03.find((e) => e.id === 'openclaw-ct187-lan');
+  assert.ok(llm186?.url?.includes('192.168.0.186:4000'), 'LiteLLM CT186');
+  assert.ok(oc187?.url?.includes('192.168.0.187:28789'), 'OpenClaw CT187 gateway');
 });

@@ -1,28 +1,28 @@
-﻿# AGL Infrastructure Map
+# AGL Infrastructure Map
 
-> **Last Updated**: 2026-03-23 | **Version**: 3.0.0
+> **Last Updated**: 2026-05-13 | **Version**: 3.0.1
 > **Reference**: Always read this document for infrastructure queries
 > **Maintainer**: Jarvis (AI Butler) + Sr.Big
 
 ---
 
-## ðŸ¤– AI Systems Overview
+## 🤖 AI Systems Overview
 
-### Jarvis / OpenClaw Runtime
-- **Host atual**: CT187 `agl-openclaw` no AGLSRV1
-- **Software**: OpenClaw em Docker Compose (`/opt/agl-openclaw`)
-- **Role**: Infrastructure management, monitoring, Telegram automation
-- **Access**: Tailscale `100.123.184.125`
-- **Workspace**: `/home/node/.openclaw` dentro do container
-- **Gateway**: `http://127.0.0.1:18789/healthz` no CT187; `http://100.123.184.125:28789` externo
-- **Model**: `openai/jarvis-thinking` via LiteLLM CT186 (`http://100.125.249.8:4000`)
-- **Imagem Docker**: `agl-openclaw:ops` com `ssh`, `git`, `docker` client e ferramentas de infra
+### Jarvis (AI Butler)
 
-### Legacy / Satellite OpenClaw
-- **AGLWK45**: VM104 no AGLSRV1, Tailscale `100.117.146.21`; manter como workstation/legado, nao como runtime principal.
-- **agldv03**: CT179, Tailscale `100.94.221.87`; origem historica do Docker/OpenClaw, nao usar como endpoint LiteLLM atual.
+- **Host**: **CT187** (LXC `agl-openclaw`, Proxmox **AGLSRV1**; OpenClaw em Docker, ver [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md))
+- **Software**: OpenClaw (stack em `/opt/agl-openclaw` no CT)
+- **Resources** (defaults do `pct-create`): 8GB RAM, 4 vCPU por CT — ajustável no `agl-litellm-openclaw-lxc.env`
+- **Role**: Infrastructure management, monitoring, automation
+- **Access (LAN)**: `192.168.0.187` — **Gateway (healthz)**: `http://192.168.0.187:28789/healthz` (porta publicada no compose CT187; dentro do contentor ver runbook)
+- **Tailscale (CT187)**: hostname típico `agl-openclaw-ct187`; IP com `pct exec 187 -- tailscale ip -4`
+- **Workspace**: volume em `/opt/agl-openclaw/workspace` (montado no contentor OpenClaw)
+- **Model**: via **LiteLLM no CT186** — LAN `http://192.168.0.186:4000` (Tailscale do CT186: `pct exec 186 -- tailscale ip -4`)
+
+**Nota (legado):** Jarvis correu no passado em **AGLWK45 (VM104)** com Windows; o cutover canónico para LXC **186/187** está documentado em [`docs/OPENCLAW.md`](OPENCLAW.md).
 
 ### OpenClaw Configuration
+
 | Setting | Value |
 |---------|-------|
 | **Agents** | main (default), infra, storage, harbor, net |
@@ -31,15 +31,17 @@
 | **Compaction** | Safeguard mode |
 
 ### LiteLLM Gateway
-- **URL**: http://100.125.249.8:4000 (agl-litellm CT186)
-- **Host atual**: CT186 `agl-litellm`
-- **Alias Jarvis**: `openai/jarvis-thinking`
-- **Health rule**: `/v1/models` com HTTP `200` ou `401` indica gateway vivo; `401` significa auth obrigatoria.
-- **Providers**: zai, anthropic, openai, google, deepseek, moonshot, ollama
-- **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) Â· **LAN** `http://192.168.0.200:11434/v1`
-- **Ollama Models (GTX 1650 4GB, reasoning only)**: Qwen3 0.6B/1.7B (thinking mode), DeepSeek-R1 1.5B
+
+- **Host**: **CT186** (LXC `agl-litellm`, Proxmox **AGLSRV1**; Docker em `/opt/agl-litellm`)
+- **URL (LAN)**: <http://192.168.0.186:4000> — readiness: `/health/readiness`
+- **URL (Tailscale, CT186)**: obter com `pct exec 186 -- tailscale ip -4` (hostname típico `agl-litellm-ct186`)
+- **Providers** (config em repo): zai, anthropic, openai, google, deepseek, moonshot, ollama, etc. — ver [`config/litellm/config.yaml`](../config/litellm/config.yaml)
+- **Legado (parado após cutover 2026-05):** stack Docker no **agldv03 CT179** (`http://100.94.221.87:4000`) — não usar como canónico; ver [`docs/OPENCLAW.md`](OPENCLAW.md)
+- **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
+- **Ollama Models (CT200)**: modelo local servido pelo LiteLLM como **`ollama/qwen3:4b`** (aliases `agl-primary`, `ollama-qwen3-4b`); detalhe em [`docs/ct200-model-performance.md`](ct200-model-performance.md)
 
 ### Daily Memory System (agl-hostman)
+
 - **Dashboard**: /daily-memory
 - **API**: /api/daily-memory
 - **Purpose**: Track all work sessions and discussions
@@ -47,7 +49,7 @@
 
 ---
 
-## ðŸ“‹ Table of Contents
+## 📋 Table of Contents
 
 1. [AI Systems Overview](#-ai-systems-overview)
 2. [Network Overview](#-network-overview)
@@ -59,35 +61,37 @@
 
 ---
 
-## ðŸŒ Network Overview
+## 🌐 Network Overview
 
 ### Network Segments
 
 | Network | CIDR | Purpose | Status |
 |---------|------|---------|--------|
-| WireGuard Mesh | 10.6.0.0/24 | Encrypted inter-site connectivity | âœ… Active (14 nodes) |
-| Local LAN | 192.168.0.0/24 | Primary local network | âœ… Active |
-| Local LAN Alt | 192.168.1.0/24 | Secondary local network | âœ… Active |
-| Tailscale | 100.64.0.0/10 | Cross-site VPN overlay | âœ… Active |
+| WireGuard Mesh | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ Active (14 nodes) |
+| Local LAN | 192.168.0.0/24 | Primary local network | ✅ Active |
+| Local LAN Alt | 192.168.1.0/24 | Secondary local network | ✅ Active |
+| Tailscale | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active |
 
 ### Network Infrastructure Devices
 
 | Device | Model | IP | MAC | Purpose | Status |
 |--------|-------|-----|-----|---------|--------|
-| **SWT-AGLSRV1** | ZX-SWTG124AS | 192.168.0.242 | 1C:2A:A3:1E:86:77 | Network Switch (AGLSRV1 LAN) | âœ… Active |
+| **SWT-AGLSRV1** | ZX-SWTG124AS | 192.168.0.242 | 1C:2A:A3:1E:86:77 | Network Switch (AGLSRV1 LAN) | ✅ Active |
 
 **ZX-SWTG124AS Details**:
+
 - **Firmware**: V1.9 (Jan 03 2024)
 - **Hardware**: V1.0
-- **Manufacturer**: è”æžœ (Lianguo) / Similar to LG-SWTG1224AS
+- **Manufacturer**: 联果 (Lianguo) / Similar to LG-SWTG1224AS
 - **Ports**: 24x 2.5G RJ-45 + 2x 10G SFP+ (estimated)
 - **Network Standard**: IEEE 802.3af/at (PoE support)
 - **Gateway**: 192.168.0.1
 - **Netmask**: 255.255.255.0
-- **Web Management**: http://192.168.0.242
+- **Web Management**: <http://192.168.0.242>
 - **Material**: Metal chassis (~3.2kg)
 
 **Management Access**:
+
 ```bash
 # Web UI access from LAN
 http://192.168.0.242
@@ -104,24 +108,23 @@ arp -a | grep 1c:2a:a3:1e:86:77
 **Address Range**: 100.64.0.0/10 (Carrier-Grade NAT per RFC6598)
 
 **Key Features**:
+
 - **NAT Traversal**: ~98% P2P penetration success rate behind CGNAT
 - **Protocol**: WireGuard-based with DERP relay fallback
 - **No Public IP Required**: Works through ISP CGNAT restrictions
 
-**Connected Devices** â€” 44 hosts total (31 active, 5 idle, 8 offline):
+**Connected Devices** — 44 hosts total (31 active, 5 idle, 8 offline):
 
 ### AGLSRV1 Group (10 hosts)
 
 | Tailscale IP | Hostname | OS | Status | Purpose |
 |---|---|---|---|---|
 | 100.107.113.33 | aglsrv1 | linux | Active | Proxmox host node (bare metal) |
-| 100.94.221.87 | aglsrv1-agldv03 | linux | Active | Dev container CT179 (agldv03) â€” primary dev |
+| 100.94.221.87 | aglsrv1-agldv03 | linux | Active | Dev container CT179 (agldv03) — primary dev |
 | 100.113.9.98 | aglsrv1-agldv04 | linux | Idle | Dev container agldv04 |
 | 100.69.187.105 | aglsrv1-aglfs1 | linux | Active | File server / NFS (CT178) |
 | 100.117.146.21 | aglsrv1-aglwk45 | windows | Active | Windows workstation VM |
-| 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) â€” 8181 (API), 8051 (MCP), 3737 (UI) |
-| 100.125.249.8 | aglsrv1-agl-litellm | linux | Active | LiteLLM gateway central (CT186) |
-| 100.123.184.125 | aglsrv1-agl-openclaw | linux | Active | OpenClaw/Jarvis runtime (CT187) |
+| 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
 | 100.72.66.106 | aglsrv1-dokploy | linux | Active | Dokploy deployment manager (CT180) |
 | 100.105.133.18 | aglsrv1-haos | linux | Offline 158d | Home Assistant OS VM |
 | 100.116.57.111 | aglsrv1-ollama | linux | Active | Ollama GPU inference (CT200) |
@@ -136,7 +139,7 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.92.46.119 | aglsrv5-aglwk79 | windows | Active | Windows workstation VM |
 | 100.66.136.84 | aglsrv5-fileserver5 | linux | Active | File server / NFS |
 | 100.82.254.91 | aglsrv5-mesh5 | linux | Active | WireGuard mesh node |
-| 100.98.1.119 | aglsrv5-mysql5 | linux | Active | MySQL master (CT135) |
+| 100.98.1.119 | aglsrv5-mysql5 | linux | Active | MySQL slave read_only (CT135); ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
 | 100.68.158.60 | aglsrv5-unraid | linux | Active | Unraid NAS storage |
 
 ### AGLSRV6 Group (11 hosts)
@@ -172,7 +175,8 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.71.107.26 | fgsrv05 | linux | Active | Cloud VPS 05 / NFS server |
 | 100.83.51.9 | fgsrv06 | linux | Idle | Cloud VPS 06 / WireGuard hub |
 | 100.72.240.65 | fgsrv07-cloudflared7 | linux | Active | Cloudflare Tunnel (CT170) |
-| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL primary CT235 (ex-rÃ©plica HA; promoÃ§Ã£o master) |
+| *(após login no CT171)* | fgsrv07-cloudflared7b | linux | Reauth pendente | CT171 `cloudflared7b` — reset Tailscale: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`; depois `pct exec 171 -- tailscale ip -4` e actualizar esta linha |
+| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL master / GTID (CT235); ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
 | 100.109.181.93 | fgsrv07 | linux | Active | Cloud VPS 07 / Proxmox |
 
 ### Endpoints & Dispositivos Pessoais (6 hosts)
@@ -187,24 +191,14 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.64.43.53 | xiaomi-21121210g | android | Offline 134d | Xiaomi device |
 
 **Subnet Router Configuration** (if needed):
+
 ```bash
 # Advertise LAN routes via Tailscale
 tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 ```
 
-**LXC/CT login pattern**:
-```bash
-# Use accept-routes=false in containers with a local LAN interface.
-# Otherwise Tailscale subnet routes can override the container's local route.
-tailscale up --accept-dns=false --accept-routes=false --hostname=<tailscale-hostname> --ssh
-```
-
-For CT136 (`agldv05`) on AGLSRV5:
-```bash
-ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --accept-routes=false --hostname=aglsrv5-agldv05 --ssh'
-```
-
 ### WireGuard Hub
+
 - **Server**: FGSRV6 (vps41772)
 - **Public IP**: 186.202.57.120
 - **WireGuard IP**: 10.6.0.5
@@ -213,26 +207,29 @@ ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --acce
 
 ---
 
-## ðŸ–¥ï¸ Hosts and Servers
+## 🖥️ Hosts and Servers
 
 ### AGLSRV1 (Main Production Host)
+
 **Hostname**: algsrv1
 **Type**: Proxmox VE Host
 **Location**: Local (192.168.0.0/24)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
-| Local LAN | 192.168.0.245 | vmbr0 | âœ… Primary |
-| WireGuard | 10.6.0.10 | wg0 | âœ… Port 51810 |
-| Tailscale | 100.107.113.33 | tailscale0 | âœ… Active |
+| Local LAN | 192.168.0.245 | vmbr0 | ✅ Primary |
+| WireGuard | 10.6.0.10 | wg0 | ✅ Port 51810 |
+| Tailscale | 100.107.113.33 | tailscale0 | ✅ Active |
 
 **Resources**:
+
 - Total VMs/CTs: 68 (42 running, 26 stopped)
 - Primary Dev Container: CT179 (agldv03) - 48GB RAM
 - AI Infrastructure: CT183 (archon), CT200 (ollama)
 - Storage: local-zfs (1.7TB), spark (7.1TB), overpower (9.8TB)
 
 **Key Services**:
+
 - DNS/DHCP: CT102 (pihole)
 - Media: CT113 (plex), CT121-124 (arr stack)
 - Development: CT179 (agldv03), CT180 (dokploy)
@@ -240,9 +237,10 @@ ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --acce
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 
 **Archon Stack (CT183)**:
+
 - **Tailscale IP**: 100.80.30.59 | **LAN IP**: 192.168.0.183
 - **Services**: archon-server (8181), archon-mcp (8051), archon-ui (3737)
-- **Network**: `network_mode: host` â€” containers share CT's network namespace
+- **Network**: `network_mode: host` — containers share CT's network namespace
 - **Domain**: archon.aglz.io (Cloudflare Tunnel)
 - **Config**: `VITE_ALLOWED_HOSTS=archon.aglz.io,localhost,127.0.0.1`
 - **Health**: `curl http://100.80.30.59:8181/health`
@@ -252,22 +250,25 @@ ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --acce
 ---
 
 ### AGLSRV6 (Secondary Host)
+
 **Hostname**: AGLSRV6 (formerly man6)
 **Type**: Proxmox VE Host
 **Location**: Remote (behind WireGuard/Tailscale)
 
 | Network | Address | Interface | Status |
 |---------|---------|-----------|--------|
-| WireGuard | 10.6.0.12 | wg0 | âœ… Port 51812 (PRIMARY) |
-| Tailscale | 100.98.108.66 | tailscale0 | âœ… Fallback |
+| WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 (PRIMARY) |
+| Tailscale | 100.98.108.66 | tailscale0 | ✅ Fallback |
 
 **Resources**:
-- Containers: CT101â€“114, CT117, CT121 (+ CT116 parado, CT107/104 parados)
+
+- Containers: CT101–114, CT117, CT121 (+ CT116 parado, CT107/104 parados)
 - VMs: 6 (VM100, VM103, VM105-106, VM112, VM200)
 - Storage: 954GB (bb), 3.9TB (usb4tb), 1.2TB (PBS)
 
 **Key Services**:
-- DNS: **CT117 (pihole6)** â€” LAN **192.168.0.117** (migrado de CT115 em 2026-04-04; evita conflito com equipamento TP-LINK em `.115`)
+
+- DNS: **CT117 (pihole6)** — LAN **192.168.0.117** (migrado de CT115 em 2026-04-04; evita conflito com equipamento TP-LINK em `.115`)
 - Storage: CT111 (aluzdivina) - NFS server (10.6.0.20)
 - Backup: CT113 (PBS), CT172 (PBS)
 - Development: CT108 (agldv06)
@@ -276,6 +277,7 @@ ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --acce
 ---
 
 ### FGSRV7 (Cloud VPS - Cluster Node)
+
 **Location**: Cloud VPS (vps64306)
 **Type**: Proxmox VE Host
 **Role**: Cluster node with AGLSRV5, Cloudflare Tunnel host
@@ -283,32 +285,37 @@ ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --acce
 
 | Network | Address | Port | Status |
 |---------|---------|------|--------|
-| Public IP | 191.252.93.227 | - | âœ… Internet |
-| Tailscale | 100.109.181.93 | - | âœ… Active |
-| WireGuard | 10.6.0.24 | 51824/UDP | ðŸ”„ Pending |
+| Public IP | 191.252.93.227 | - | ✅ Internet |
+| Tailscale | 100.109.181.93 | - | ✅ Active |
+| WireGuard | 10.6.0.24 | 51824/UDP | 🔄 Pending |
 
 **Proxmox**:
+
 - Version: 9.1.5
 - Kernel: 6.17.9-1-pve
 - Storage: ~200GB local (bkp)
 - Cluster: aglsrv5 + fgsrv7 + QDevice
 
 **Resources** (Optimized 2026-02-23):
+
 - RAM: 7.8GB total, ~5.2GB available
 - **Swap: 32GB file** (`/swapfile`, swappiness=10)
 - Disk: 195GB (28% used after swap creation)
 
 **Network Bridges**:
+
 | Bridge | Type | IP | Purpose |
 |--------|------|-----|---------|
 | vmbr0 | Linux Bridge | 191.252.93.227/24 | Public network |
 | vmbr70 | OVS Bridge | 192.168.70.1/24 | Internal container network |
 
 **DNS**:
+
 - Servers: 8.8.8.8, 1.1.1.1
 - Search: aglz.io
 
 **/etc/hosts**:
+
 ```
 127.0.0.1 localhost
 191.252.93.227 vps64306.publiccloud.com.br vps64306
@@ -317,80 +324,106 @@ ssh root@100.119.223.113 'pct exec 136 -- tailscale up --accept-dns=false --acce
 ```
 
 **Containers**:
+
 | VMID | Name | Status | Network | Purpose |
 |------|------|--------|---------|---------|
-| 170 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel |
-| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL primary (HA; promovido de slave) â€” **4 vCPU** (alvo stack fg; ver `scripts/maint/fgsrv07/pct-bump-fg-stack-cores.sh`) |
+| 170 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel (fgsrv7) |
+| 171 | cloudflared7b | running | vmbr70 (192.168.70.171) | Cloudflare Tunnel **fgsrv7b** — ver `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` |
+| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL Master (HA / GTID) |
 | 239 | pihole7 | running | vmbr70 (192.168.70.139) | DNS/Ad-blocking (HA) |
-| 240 | fileserver7 | running | vmbr70 (192.168.70.240) | Fileserver |
-| 241 | agldv07 | running | vmbr70 (192.168.70.241) | Dev/workstation |
-| 242 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus |
-| 243 | **fg-legacy** | running | vmbr70 (192.168.70.243) Â· Tailscale **100.93.105.113** (`fg-legacy`) | fg_antigo **www5.falg.com.br** â€” HTTP **:80** em LAN; **4 vCPU**; BD **`falgimoveis11`** em **mysql7** `192.168.70.135:3306` (migraÃ§Ã£o 2026-04; ver `docs/fg-mysql-ha/infos.md` + `docs/maint/FGSRV07-fg-antigo-ct-provisioning.md`) |
+| 240 | fileserver7 | running | vmbr70 | Partilha ficheiros |
+| 241 | agldv07 | running | vmbr70 | Dev / workloads |
+| 242 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus (Docker); público **<https://evo.aglz.io>** |
+| 243 | fg-legacy | running | vmbr70 | Legado |
 
-**MySQL (FGSRV07 â€” CT235 / mysql7)**
-- **Papel actual (2026-04):** **primÃ¡rio / master** de escrita â€” o CT235 foi **promovido** (antes documentado como *slave* de HA em relaÃ§Ã£o ao par com AGLSRV5).
-- **RÃ©plica leitura:** **CT135** (`mysql5`) em **AGLSRV5** (Tailscale `100.98.1.119`) â€” replicaÃ§Ã£o GTID **235 â†’ 135** (`repl` sÃ³ a partir do IP Tailscale do slave); estado operacional em `docs/fg-mysql-ha/infos.md`; scripts em `scripts/maint/mysql-ha/README.md`.
-- **LAN:** `192.168.70.135` Â· **Tailscale:** `100.83.7.16` (`fgsrv07-mysql7`).
-- **ReplicaÃ§Ã£o / histÃ³rico:** a topologia *master â†” slave* com CT135 (AGLSRV5) pode ter ficado **obsoleta** ou **reconfigurada** apÃ³s a promoÃ§Ã£o; **confirmar em operaÃ§Ãµes** com `SHOW REPLICA STATUS` / `SHOW MASTER STATUS` e backups antes de alterar ACLs ou DNS.
-- **Credenciais** de replicaÃ§Ã£o e root **nÃ£o** pertencem a este ficheiro.
+**EvoNexus CT242 (SQLite única):** dashboard, scheduler, telegram e agentes no volume `workspace` devem usar **`/workspace/dashboard/data/evonexus.db`** (não `dashboard.db` na raiz nem `dashboard/data/dashboard.db`). Unificação e mounts: `scripts/evonexus/unify-single-sqlite-evonexus-db.sh` em `/opt/evonexus`. Tailscale no CT: `lxc.mount.entry` para `/dev/net/tun` no `242.conf`.
+
+**EvoNexus — Claude no terminal e LiteLLM:** o `claude-bridge` não herda o `.env` do contentor; injeta apenas `env_vars` do `providers.json` que passam na whitelist em `terminal-server/src/provider-config.js`. No upstream, **`ANTHROPIC_BASE_URL` e `ANTHROPIC_AUTH_TOKEN` não estão na lista** — se o perfil `anthropic` tiver gateway LiteLLM nesses campos, são ignorados e o `claude` arranca sem API key efetiva (mensagem tipo «não estás logado»). Mitigação: montar o overlay **`scripts/evonexus/overlays/terminal-server-provider-config.js`** em `/workspace/dashboard/terminal-server/src/provider-config.js` (ver cabeçalho do ficheiro) e no `providers.json` preencher `env_vars` com `ANTHROPIC_BASE_URL`, **`ANTHROPIC_AUTH_TOKEN`** (Bearer = `LITELLM_MASTER_KEY` no proxy), `DISABLE_LOGIN_COMMAND=1` quando aplicável; reiniciar o serviço `dashboard`. **Claude Code 2.1+:** não definir **`ANTHROPIC_API_KEY` e `ANTHROPIC_AUTH_TOKEN` em simultâneo** para hosts que não sejam `api.anthropic.com` — o cliente avisa *Auth conflict* e o comportamento fica ambíguo; o script **`scripts/evonexus/sync-providers-anthropic-from-env.py`** remove `ANTHROPIC_API_KEY` nesse caso após o merge. O perfil **litellm** com `openclaude` usa `OPENAI_*` (já permitidos); o problema costuma aparecer ao usar o binário **`claude`** com Anthropic + proxy.
+
+**EvoNexus — root, DSP e modelo por defeito:** o bridge original não aplicava `global_settings.dangerouslySkipPermissions` e **nunca** passava `--dangerously-skip-permissions` como root. Overlay **`scripts/evonexus/overlays/claude-bridge.js`** lê o `providers.json`, combina com `IS_SANDBOX=1` no compose do dashboard e repassa `IS_SANDBOX` ao PTY; injeta `--model` a partir de `ANTHROPIC_MODEL` (sync: **`scripts/evonexus/sync-providers-anthropic-from-env.py`**, omissão **`qwen3.5-plus`** quando `.env` não define modelo). Índice: **`scripts/evonexus/overlays/README-evonexus-overlays.md`**.
+
+**EvoNexus — backup antes de reiniciar o CT242:** no CT, pasta `/root/backups/evonexus-jarvis-<data>-<hora>/` com `opt-evonexus.tgz`, `vol-evonexus_*.tgz` (todos os volumes) e `inventory-claude-config.txt`; arquivo único `evonexus-jarvis-*-FULL.tgz` em `/root/backups/`. Cópia espelhada no **FGSRV7** em `/root/backups-ct242-evonexus/` (`pct pull`). Dentro da pasta há **`RESTORE.md`** com passos de restauro (Jarvis vive em `agent_memory` + ficheiros sob `.claude/` no volume de config/workspace — ver inventário).
+
+**MySQL HA Replication**:
+
+- Master: CT235 (FGSRV7) — Tailscale: 100.83.7.16 — doc: `docs/maint/MYSQL-HA-POST-RESET-2026-04.md`
+- Slave (read_only): CT135 (AGLSRV5) — Tailscale: 100.98.1.119; LAN secundária: 172.2.2.135/24 (eth1)
+- Replication User: repl / Repl@123456
+- Status: ✅ Active via Tailscale (Master-Slave async)
 
 **NAT Configuration**:
+
 ```bash
 iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 # Persisted via /etc/systemd/system/iptables-restore.service
 ```
 
 **Cloudflare Tunnel (fgsrv7)**:
+
 - Tunnel ID: `513cec7b-754d-4dd8-a69d-d15942180fe4`
 - Service: systemd (CT170 - cloudflared7)
 - Endpoints:
-  - `man7.aglz.io` â†’ Proxmox Web UI (8006) âœ…
-  - `mysql-slave.falg.com.br` â†’ MySQL CT235 (3306) â€” **hostname legacy**; serviÃ§o trata-se do **primÃ¡rio** apÃ³s promoÃ§Ã£o (validar na Cloudflare).
-  - `mysql-slave.aglz.io` â†’ MySQL CT235 (3306) â€” idem
-- Auto-start: âœ… systemd enabled
+  - `man7.aglz.io` → Proxmox Web UI (8006) ✅
+  - `evo.aglz.io` → EvoNexus CT242 (`/terminal*` → `:32352`, resto → `:8080`) ✅
+  - `mysql-slave.falg.com.br` → MySQL HA Slave (3306)
+  - `mysql-slave.aglz.io` → MySQL HA Slave (3306)
+- Auto-start: ✅ systemd enabled
+
+**Segundo túnel — fgsrv7b (CT171 `cloudflared7b`)**:
+
+- Nome na Zero Trust: **fgsrv7b** — Tunnel ID: `850f2d28-367f-4bd2-a887-6998240828e3`; instalado com `cloudflared service install <token>` no CT171; rotas e DNS na consola Cloudflare.
+- LAN: `192.168.70.171/24` (evitar colisão com CT170).
+- **Tailscale**: o clone herdava o mesmo nó que o CT170 (`100.72.240.65`). Limpar estado e novo join com hostname **`fgsrv07-cloudflared7b`**: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh` (no FGSRV7: `CT_VMID=171 TS_HOSTNAME=fgsrv07-cloudflared7b bash …`). Opcional: `TAILSCALE_AUTHKEY` para join não interactivo. Após login, actualizar a tabela «FGSRV Group» com `pct exec 171 -- tailscale ip -4`.
+- Provisionamento: `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` (executar no FGSRV7 com `CF_TUNNEL_TOKEN` definido).
 
 **Access**:
-- Web UI: https://man7.aglz.io âœ…
-- SSH (Tailscale): `ssh root@100.109.181.93`
-- SSH (Public): `ssh root@191.252.93.227`
+
+- Web UI: <https://man7.aglz.io> ✅
+- SSH (Tailscale): `ssh root@100.109.181.93` (chave conforme agente / `~/.ssh/config` Host `fgsrv7`)
+- SSH (IP público): `ssh FGSRV07` ou `ssh -i ~/.ssh/id_rsa root@191.252.93.227` (Host `FGSRV07` em `~/.ssh/config` usa `id_rsa`)
 
 ---
 
 ### FGSRV6 (Cloud VPS - WireGuard Hub)
+
 **Location**: Cloud VPS (vps41772)
 **Type**: Proxmox VE Host
 **Role**: WireGuard mesh hub, NFS server, Cloudflare Tunnel host
 
 | Network | Address | Port | Status |
 |---------|---------|------|--------|
-| Public IP | 186.202.57.120 | - | âœ… Internet |
-| WireGuard | 10.6.0.5 | 51823/UDP | âœ… Hub |
-| Tailscale | 100.83.51.9 | - | âœ… Active |
+| Public IP | 186.202.57.120 | - | ✅ Internet |
+| WireGuard | 10.6.0.5 | 51823/UDP | ✅ Hub |
+| Tailscale | 100.83.51.9 | - | ✅ Active |
 
 **NFS Exports**:
+
 - Export: 197GB NFSv4.2
 - Mounted on: AGLSRV1 as `fgsrv6-wg` (10.6.0.5)
 
 **Cloudflare Tunnel (aglsrv5e)**:
+
 - Tunnel ID: `863fd93d-73c5-4c3e-90b5-7cbd37643f70`
 - Container: `cloudflared-tunnel` (Docker)
 - Endpoints: n8n5e.aglz.io, portainer5e.aglz.io
-- Auto-start: âœ… `restart: unless-stopped`
+- Auto-start: ✅ `restart: unless-stopped`
 
 ---
 
 ### FGSRV5 (Cloud VPS)
+
 **Location**: Cloud VPS (191.252.200.20)
 **Type**: Proxmox VE Host
 **Role**: NFS server, storage backend
 
 | Network | Address | Port | Status |
 |---------|---------|------|--------|
-| Public IP | 191.252.200.20 | - | âœ… Internet |
-| WireGuard | 10.6.0.11 | 51811/UDP | âœ… Active |
-| Tailscale | 100.71.107.26 | - | âœ… Active |
+| Public IP | 191.252.200.20 | - | ✅ Internet |
+| WireGuard | 10.6.0.11 | 51811/UDP | ✅ Active |
+| Tailscale | 100.71.107.26 | - | ✅ Active |
 
 **NFS Exports**:
+
 - Export: 77GB NFSv4.2
 - Mounted on: AGLSRV1 as `fgsrv5-wg` (10.6.0.11)
 - **Notes**: SSH timeout issues reported
@@ -398,56 +431,57 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 ---
 
 ### FGSRV4 (Cloud VPS)
+
 **Location**: Cloud VPS (vps22826.publiccloud.com.br)
 **Type**: Proxmox VE Host
 
 | Network | Address | Port | Status |
 |---------|---------|------|--------|
-| WireGuard | 10.6.0.16 | 51816/UDP | âœ… Active |
-| Tailscale | 100.111.79.2 | - | âœ… Active |
+| WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active |
+| Tailscale | 100.111.79.2 | - | ✅ Active |
 
 **User**: sysadmin
 
 ---
 
 ### FGSRV3 (Cloud VPS)
+
 **Location**: Cloud VPS (191.252.201.205)
 **Type**: Proxmox VE Host
 
 | Network | Address | Port | Status |
 |---------|---------|------|--------|
-| Public IP | 191.252.201.205 | - | âœ… Internet |
-| WireGuard | 10.6.0.18 | 51818/UDP | âœ… Active |
-| Tailscale | 100.67.99.115 | - | âœ… Active |
-
-**MySQL â€” tuning RAM / `innodb_buffer_pool`**: ver `docs/maint/FGSRV03-MYSQL-MEMORY-TUNING.md` e template `scripts/maint/templates/mysql-fgsrv03-mysqld-snippet.cnf`.
+| Public IP | 191.252.201.205 | - | ✅ Internet |
+| WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active |
+| Tailscale | 100.67.99.115 | - | ✅ Active |
 
 ---
 
-## ðŸ”— WireGuard Mesh
+## 🔗 WireGuard Mesh
 
 ### Active Nodes (14 Total)
 
 | Node | IP | Port | Type | Host | Status |
 |------|-----|------|------|------|--------|
-| **FGSRV6** | 10.6.0.5 | 51823 | Hub | Cloud VPS | âœ… Hub |
-| CT120 | 10.6.0.1 | 51820 | Container | AGLSRV1 | âœ… |
-| CT121 | 10.6.0.3 | 51821 | Container | AGLSRV6 | âœ… |
-| AGLSRV1 | 10.6.0.10 | 51810 | Host | Local | âœ… |
-| FGSRV5 | 10.6.0.11 | 51811 | Host | Cloud VPS | âœ… |
-| **AGLSRV6** | 10.6.0.12 | 51812 | Host | Remote | âœ… PRIMARY |
-| AGLSRV6B | 10.6.0.13 | 51813 | Host | Remote | âœ… |
-| CT113 | 10.6.0.14 | 51814 | Container | AGLSRV6 | âœ… |
-| CT172 | 10.6.0.15 | 51815 | Container | AGLSRV6B | âœ… |
-| FGSRV4 | 10.6.0.16 | 51816 | Host | Cloud VPS | âœ… |
-| AGLSRV5 | 10.6.0.17 | 51817 | Host | Remote | âœ… |
-| FGSRV3 | 10.6.0.18 | 51818 | Host | Cloud VPS | âœ… |
-| **CT179** | 10.6.0.19 | 51819 | Container | AGLSRV1 | âœ… Dev |
-| **CT111** | 10.6.0.20 | 51820 | Container | AGLSRV6 | âœ… NFS |
+| **FGSRV6** | 10.6.0.5 | 51823 | Hub | Cloud VPS | ✅ Hub |
+| CT120 | 10.6.0.1 | 51820 | Container | AGLSRV1 | ✅ |
+| CT121 | 10.6.0.3 | 51821 | Container | AGLSRV6 | ✅ |
+| AGLSRV1 | 10.6.0.10 | 51810 | Host | Local | ✅ |
+| FGSRV5 | 10.6.0.11 | 51811 | Host | Cloud VPS | ✅ |
+| **AGLSRV6** | 10.6.0.12 | 51812 | Host | Remote | ✅ PRIMARY |
+| AGLSRV6B | 10.6.0.13 | 51813 | Host | Remote | ✅ |
+| CT113 | 10.6.0.14 | 51814 | Container | AGLSRV6 | ✅ |
+| CT172 | 10.6.0.15 | 51815 | Container | AGLSRV6B | ✅ |
+| FGSRV4 | 10.6.0.16 | 51816 | Host | Cloud VPS | ✅ |
+| AGLSRV5 | 10.6.0.17 | 51817 | Host | Remote | ✅ |
+| FGSRV3 | 10.6.0.18 | 51818 | Host | Cloud VPS | ✅ |
+| **CT179** | 10.6.0.19 | 51819 | Container | AGLSRV1 | ✅ Dev |
+| **CT111** | 10.6.0.20 | 51820 | Container | AGLSRV6 | ✅ NFS |
 
 ### Configuration Standards
 
 **Containers (No PresharedKey)**:
+
 ```ini
 [Interface]
 PrivateKey = <PRIVATE_KEY>
@@ -463,6 +497,7 @@ Endpoint = 186.202.57.120:51823
 ```
 
 **Hosts (With PresharedKey)**:
+
 ```ini
 [Interface]
 PrivateKey = <PRIVATE_KEY>
@@ -479,6 +514,7 @@ Endpoint = 186.202.57.120:51823
 ```
 
 ### LXC Container Requirements
+
 ```ini
 # Required in /etc/pve/lxc/XXX.conf
 features: keyctl=1,nesting=1
@@ -489,11 +525,13 @@ lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 ### WireGuard Performance Best Practices
 
 **Topology Notes**:
+
 - **Hub-and-Spoke**: Central hub (FGSRV6) routes all traffic - simpler but adds latency
 - **Full Mesh**: P2P connections between all nodes - lower latency, more complex
 - **Hybrid** (current): Hub for external, mesh for local - balanced approach
 
 **Performance Optimization**:
+
 ```bash
 # Check handshake status (should be recent, < 3 min)
 wg show wg0 latest-handshakes
@@ -509,16 +547,19 @@ iperf3 -c 10.6.0.5  # Test to hub
 ```
 
 **MTU Considerations**:
+
 - Default MTU: 1420 (accommodates WireGuard overhead)
 - WireGuard overhead: ~60 bytes per packet
 - Path MTU discovery: Automatic, but may need adjustment on some networks
 
 **Keepalive Tuning**:
+
 - `PersistentKeepalive = 25` - Maintains NAT mappings (recommended)
 - Lower values (15-20) for unstable connections
 - Higher values (60-120) to reduce bandwidth usage
 
 **Troubleshooting**:
+
 ```bash
 # No handshake - check firewall
 iptables -L -n | grep 51823
@@ -532,33 +573,27 @@ traceroute 10.6.0.5
 
 ---
 
-## ðŸ’¾ Storage Configuration
+## 💾 Storage Configuration
 
 ### AGLSRV1 Storage Mounts
 
 | Storage | Size | Type | Source | Path | Status |
 |---------|------|------|--------|------|--------|
-| local | 77GB | Local | Disk | - | âœ… |
-| local-zfs | 1.7TB | ZFS | Pool | - | âœ… |
-| fgsrv5-wg | 77GB | NFS | 10.6.0.11:/ | /mnt/pve/fgsrv5-wg | âœ… |
-| fgsrv6-wg | 197GB | NFS | 10.6.0.5:/ | /mnt/pve/fgsrv6-wg | âœ… |
-| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | /mnt/pve/ct111-shares | âœ… |
-| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | /mnt/pve/ct111-sistema | âœ… |
-| aglsrv6-bb | 954GB | SSHFS | 10.6.0.12:/mnt/pve/bb | /mnt/pve/aglsrv6-bb | âœ… |
-| aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | âœ… |
-| aglsrv6-pbs | 1.2TB | PBS | - | - | âœ… |
-| aglsrv6b-pbs | 1.0TB | PBS | - | - | âœ… |
-| spark | 6.4TB | Local | ZFS | - | OK if >=200GB free; alert below 200GB free |
-| overpower | 11TB | Local | ZFS | - | OK if >=200GB free; alert below 200GB free |
-
-**Storage note 2026-05-02**:
-- `spark/base-recovery` foi removido por solicitacao operacional.
-- Backups completos grandes de VM/CT foram movidos de `/spark/base/dump` para `/overpower/base/dump` para liberar `spark`; nao apagar backups antigos sem confirmar existencia de backup mais novo por VMID.
-- `large-vms-backup` ficou temporariamente desabilitado em `/etc/pve/jobs.cfg` para evitar nova falha por falta de espaco; `small-vms-backup` permanece habilitado.
-- Para `spark` e `overpower`, uso percentual alto nao deve disparar alerta sozinho; a rotina operacional alerta apenas com menos de 200GB livres ou mount ausente/inacessivel.
-- `snapdir=hidden` deve ficar ativo em `spark` e `overpower`; varreduras amplas em `.zfs/snapshot` podem disparar `mount.zfs` em massa e travar processos em estado `D`.
+| local | 77GB | Local | Disk | - | ✅ |
+| local-zfs | 1.7TB | ZFS | Pool | - | ✅ |
+| fgsrv5-wg | 77GB | NFS | 10.6.0.11:/ | /mnt/pve/fgsrv5-wg | ✅ |
+| fgsrv6-wg | 197GB | NFS | 10.6.0.5:/ | /mnt/pve/fgsrv6-wg | ✅ |
+| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | /mnt/pve/ct111-shares | ✅ |
+| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | /mnt/pve/ct111-sistema | ✅ |
+| aglsrv6-bb | 954GB | SSHFS | 10.6.0.12:/mnt/pve/bb | /mnt/pve/aglsrv6-bb | ✅ |
+| aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | ✅ |
+| aglsrv6-pbs | 1.2TB | PBS | - | - | ✅ |
+| aglsrv6b-pbs | 1.0TB | PBS | - | - | ✅ |
+| spark | 7.1TB | Local | Disk | - | ✅ 91.54% used |
+| overpower | 9.8TB | Local | Disk | - | ✅ 92.54% used |
 
 **Total WireGuard Storage**: 6.0 TB
+
 - NFS: 1.2TB (fgsrv5-wg + fgsrv6-wg + ct111-shares + ct111-sistema)
 - SSHFS: 4.8TB (aglsrv6-bb + aglsrv6-usb4tb)
 
@@ -566,9 +601,9 @@ traceroute 10.6.0.5
 
 | Storage | Type | Source | Path | Status |
 |---------|------|--------|------|--------|
-| fileserver5-nfs | NFS | 10.6.0.21 (CT138 fileserver5) | /mnt/pve/fileserver5-nfs | âœ… |
+| fileserver5-nfs | NFS | 10.6.0.21 (CT138 fileserver5) | /mnt/pve/fileserver5-nfs | ✅ |
 
-**Rename**: `ct138-nfs` â†’ `fileserver5-nfs` (ver [STORAGE-RENAME-CT138-TO-FILESERVER5](wireguard/STORAGE-RENAME-CT138-TO-FILESERVER5.md))
+**Rename**: `ct138-nfs` → `fileserver5-nfs` (ver [STORAGE-RENAME-CT138-TO-FILESERVER5](wireguard/STORAGE-RENAME-CT138-TO-FILESERVER5.md))
 
 ### CT111 (aluzdivina) NFS Server
 
@@ -577,22 +612,26 @@ traceroute 10.6.0.5
 **Host**: AGLSRV6
 
 **Storage**:
+
 - /mnt/shares: 66GB XFS (NFS exported)
 - /mnt/sistema: 819GB ZFS (NFS exported)
 - /mnt/bb: CIFS from 192.168.0.203
 - /mnt/bkp: 3.9TB ExFAT
 
 **NFS Exports**:
+
 - 192.168.0.0/24 (Local LAN)
 - 10.6.0.0/24 (WireGuard mesh)
 
 **Performance**:
+
 - Latency to hub: 15-22ms
 - Mounted on AGLSRV1 as ct111-shares (66GB) and ct111-sistema (818GB)
 
 ### NFS v4.2 Optimization
 
 **Recommended Mount Options**:
+
 ```bash
 # Optimized NFSv4.2 mount command
 mount -t nfs -o vers=4.2,rsize=1048576,wsize=1048576,timeo=600,retrans=2,hard,noatime 10.6.0.20:/mnt/shares /mnt/pve/ct111-shares
@@ -610,6 +649,7 @@ mount -t nfs -o vers=4.2,rsize=1048576,wsize=1048576,timeo=600,retrans=2,hard,no
 | `noatime` | - | Disable access time updates |
 
 **/etc/fstab Entry Example**:
+
 ```fstab
 # NFS mounts via WireGuard
 10.6.0.5:/ /mnt/pve/fgsrv6-wg nfs4 vers=4.2,rsize=1048576,wsize=1048576,timeo=600,retrans=2,hard,noatime,_netdev 0 0
@@ -619,12 +659,14 @@ mount -t nfs -o vers=4.2,rsize=1048576,wsize=1048576,timeo=600,retrans=2,hard,no
 ```
 
 **Multiple Connections (Kernel 5.3+)**:
+
 ```bash
 # Use nconnect for parallel TCP connections
 mount -t nfs -o vers=4.2,nconnect=8,rsize=1048576,wsize=1048576 ...
 ```
 
 **Client-Side Kernel Tuning** (`/etc/sysctl.conf`):
+
 ```bash
 # Network buffer optimization for NFS
 net.core.wmem_max = 16777216
@@ -639,6 +681,7 @@ Apply with: `sudo sysctl -p`
 ### SSHFS Optimization
 
 **Recommended Mount Command**:
+
 ```bash
 sshfs root@10.6.0.12:/mnt/pve/bb /mnt/pve/aglsrv6-bb \
     -o reconnect \
@@ -663,6 +706,7 @@ sshfs root@10.6.0.12:/mnt/pve/bb /mnt/pve/aglsrv6-bb \
 | `compression` | no | Disable on fast networks |
 
 **/etc/fstab Entry Example**:
+
 ```fstab
 # SSHFS mounts via WireGuard
 root@10.6.0.12:/mnt/pve/bb /mnt/pve/aglsrv6-bb fuse.sshfs reconnect,cache_timeout=120,attr_timeout=120,kernel_cache,big_writes,max_readahead=524288,compression=no,_netdev 0 0
@@ -670,6 +714,7 @@ root@10.6.0.12:/mnt/usb4tb-direct /mnt/pve/aglsrv6-usb4tb fuse.sshfs reconnect,c
 ```
 
 **SSH Config Optimization** (`~/.ssh/config`):
+
 ```
 Host aglsrv6-wg
     HostName 10.6.0.12
@@ -686,6 +731,7 @@ Host aglsrv6-wg
 ### ZFS Storage Best Practices
 
 **Current Pools on AGLSRV1**:
+
 - `local-zfs`: 1.7TB - Proxmox VM/CT storage
 - `spark`: 7.1TB (91.54% used) - Data storage
 - `overpower`: 9.8TB (92.54% used) - Primary storage
@@ -699,6 +745,7 @@ Host aglsrv6-wg
 | RAIDZ3 | 5, 7, 11, 19 | 2^n + 3 |
 
 **Performance Optimization**:
+
 ```bash
 # Add L2ARC cache (SSD)
 zpool add poolname cache /dev/sdX
@@ -717,6 +764,7 @@ zpool scrub poolname
 ```
 
 **Maintenance Commands**:
+
 ```bash
 # Check pool health
 zpool status
@@ -732,17 +780,19 @@ zpool status -v local-zfs
 ```
 
 **Memory Requirements**:
+
 - Rule of thumb: ~1GB RAM per TB of storage
 - For ZFS with dedup: ~5GB RAM per TB
 - ARC cache: Uses available RAM automatically
 
 ---
 
-## ðŸ“¦ Container Inventory
+## 📦 Container Inventory
 
 ### AGLSRV1 Containers (Running - 42 Total)
 
 #### Infrastructure & Network
+
 | VMID | Name | IP (LAN) | IP (WG/TS) | Purpose |
 |------|------|----------|------------|---------|
 | 102 | pihole | 192.168.0.102 | TS: 100.114.66.80 | DNS/DHCP |
@@ -754,6 +804,7 @@ zpool status -v local-zfs
 | 176 | iventoy | 192.168.0.176 | - | Network boot |
 
 #### Media & Automation
+
 | VMID | Name | IP (LAN) | Purpose |
 |------|------|----------|---------|
 | 111 | tautulli | 192.168.0.111 | Plex monitoring |
@@ -772,6 +823,7 @@ zpool status -v local-zfs
 | 172 | prowlarr | 192.168.0.172 | Indexer manager |
 
 #### Development & DevOps
+
 | VMID | Name | IP (LAN) | IP (WG/TS) | RAM | Purpose |
 |------|------|----------|------------|-----|---------|
 | 103 | portainer | 192.168.0.103 | - | - | Docker mgmt |
@@ -782,12 +834,14 @@ zpool status -v local-zfs
 | 202 | n8n-docker | 192.168.0.202 | - | - | Workflow automation |
 
 #### AI & Machine Learning
+
 | VMID | Name | IP (LAN) | IP (TS) | GPU | Purpose |
 |------|------|----------|---------|-----|---------|
 | 183 | archon | 192.168.0.183 | - | - | **AI Command Center** |
-| 200 | ollama | 192.168.0.200 | 100.116.57.111 | âœ… NVIDIA | LLM compute |
+| 200 | ollama | 192.168.0.200 | 100.116.57.111 | ✅ NVIDIA | LLM compute |
 
 #### Databases & Services
+
 | VMID | Name | IP (LAN) | Purpose |
 |------|------|----------|---------|
 | 131 | mysql | 192.168.0.131 | MySQL DB |
@@ -796,12 +850,14 @@ zpool status -v local-zfs
 | 149 | postgresql | 192.168.0.149 | PostgreSQL |
 
 #### Monitoring & Security
+
 | VMID | Name | IP (LAN) | Purpose |
 |------|------|----------|---------|
 | 132 | observium | 192.168.0.132 | Network monitoring |
 | 133 | aping | 192.168.0.133 | Network testing |
 
 #### Game Servers
+
 | VMID | Name | IP (LAN) | Purpose |
 |------|------|----------|---------|
 | 161 | gameserver | 192.168.0.161 | Game hosting |
@@ -809,6 +865,7 @@ zpool status -v local-zfs
 | 201 | amp-server | 192.168.0.201 | AMP game panel |
 
 #### Caching & Performance
+
 | VMID | Name | IP (LAN) | Purpose |
 |------|------|----------|---------|
 | 173 | cacheng | 192.168.0.173 | Cache engine |
@@ -818,6 +875,7 @@ zpool status -v local-zfs
 ### AGLSRV6 Containers
 
 #### Infrastructure
+
 | VMID | Name | IP (WG/TS) | Purpose |
 |------|------|------------|---------|
 | 101 | cloudflared6 | TS: 100.120.181.108 | Cloudflare tunnel |
@@ -827,17 +885,20 @@ zpool status -v local-zfs
 | 121 | wireguard | WG: 10.6.0.3 | WireGuard node |
 
 #### Storage & Backup
+
 | VMID | Name | IP (WG/TS) | Purpose |
 |------|------|------------|---------|
 | 111 | aluzdivina | WG: 10.6.0.20, TS: 100.65.189.83 | **NFS Server** |
 | 113 | pbs | WG: 10.6.0.14, TS: 100.70.155.60 | PBS backup |
 
 #### Development
+
 | VMID | Name | IP (TS) | Purpose |
 |------|------|---------|---------|
 | 108 | agldv06 | 100.71.229.12 | Development |
 
 #### Services
+
 | VMID | Name | Purpose |
 |------|------|---------|
 | 104 | luzdivina | - |
@@ -845,13 +906,14 @@ zpool status -v local-zfs
 | 110 | mssql6 | SQL Server |
 
 #### Kubernetes (Stopped)
+
 | VMID | Name | Status | Purpose |
 |------|------|--------|---------|
 | 107 | kuber601 | Stopped | Kubernetes |
 
 ---
 
-## ðŸ”€ Connection Matrix
+## 🔀 Connection Matrix
 
 ### From WSL2 (AGLHQ11)
 
@@ -884,6 +946,7 @@ zpool status -v local-zfs
 | CT111 NFS | WireGuard | 10.6.0.20 | `ls /mnt/pve/ct111-shares` |
 
 **Storage Access**:
+
 ```bash
 ls /mnt/pve/fgsrv6-wg      # FGSRV6 NFS
 ls /mnt/pve/ct111-shares   # CT111 NFS
@@ -909,21 +972,24 @@ df -h | grep wg            # All WireGuard mounts
 ### From Proxmox Hosts
 
 **From AGLSRV1 Host**:
+
 - Direct LAN access: 192.168.0.x
 - Container console: `pct enter <VMID>`
 - WireGuard mesh: 10.6.0.x
 - Tailscale: 100.x.x.x
 
 **From AGLSRV6 Host**:
+
 - Container console: `pct enter <VMID>`
 - WireGuard mesh: 10.6.0.x (PRIMARY)
 - Tailscale: 100.x.x.x (fallback)
 
 ---
 
-## ðŸ” Quick Commands
+## 🔍 Quick Commands
 
 ### Infrastructure Status
+
 ```bash
 # From any Proxmox host
 pct list                    # List all containers
@@ -936,6 +1002,7 @@ ssh root@10.6.0.12 'pct list'             # AGLSRV6 via WireGuard
 ```
 
 ### Network Testing
+
 ```bash
 # WireGuard status
 wg show                     # Show WireGuard status
@@ -952,6 +1019,7 @@ ip route | grep tailscale  # Tailscale routes
 ```
 
 ### Storage Operations
+
 ```bash
 # Check mounts
 df -h | grep wg            # WireGuard storage
@@ -964,6 +1032,7 @@ umount -f /mnt/pve/fgsrv6-wg && mount -a
 ```
 
 ### Service Management
+
 ```bash
 # Check container status
 pct status <VMID>
@@ -977,31 +1046,31 @@ docker-compose ps          # Compose stack status
 
 ---
 
-## â˜ï¸ Cloudflare Tunnels
+## ☁️ Cloudflare Tunnels
 
-### TÃºneis Ativos
+### Túneis Ativos
 
 | Tunnel | ID | Host | Status | Endpoints |
 |--------|-----|------|--------|-----------|
-| aglsrv1 | `f7ab6239-...` | ? | âœ… 4 conn | - |
-| aglsrv5 | `02d57187-...` | AGLSRV5 (CT130) | âœ… 4 conn | - |
-| **aglsrv5e** | `863fd93d-...` | **FGSRV6** (Docker) | âœ… 4 conn | n8n5e, portainer5e |
-| aglsrv6 | `a00590ff-...` | ? | âœ… 8 conn | - |
-| archon | `908b1097-...` | AGLSRV1 (CT117) | âœ… 4 conn | archon.aglz.io |
-| **fgsrv7** | `513cec7b-...` | **FGSRV7** (Host) | âœ… 4 conn | **man7.aglz.io** |
+| aglsrv1 | `f7ab6239-...` | ? | ✅ 4 conn | - |
+| aglsrv5 | `02d57187-...` | AGLSRV5 (CT130) | ✅ 4 conn | - |
+| **aglsrv5e** | `863fd93d-...` | **FGSRV6** (Docker) | ✅ 4 conn | n8n5e, portainer5e |
+| aglsrv6 | `a00590ff-...` | ? | ✅ 8 conn | - |
+| archon | `908b1097-...` | AGLSRV1 (CT117) | ✅ 4 conn | archon.aglz.io |
+| **fgsrv7** | `513cec7b-...` | **FGSRV7** (Host) | ✅ 4 conn | **man7.aglz.io** |
 
-### TÃºneis Inativos
+### Túneis Inativos
 
 | Tunnel | ID | Status |
 |--------|-----|--------|
-| aglsrv2 | `f1fe0665-...` | âŒ Offline |
-| aglsrv3 | `ca4eeb4f-...` | âŒ Offline |
-| aglsrv4 | `1d44ad9b-...` | âŒ Offline |
+| aglsrv2 | `f1fe0665-...` | ❌ Offline |
+| aglsrv3 | `ca4eeb4f-...` | ❌ Offline |
+| aglsrv4 | `1d44ad9b-...` | ❌ Offline |
 
-### Comandos RÃ¡pidos
+### Comandos Rápidos
 
 ```bash
-# Listar tÃºneis (via CT117)
+# Listar túneis (via CT117)
 ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel list'
 
 # Status FGSRV6 (aglsrv5e)
@@ -1014,25 +1083,26 @@ ssh root@100.119.223.113 'pct exec 130 -- systemctl status cloudflared'
 ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel info archon'
 ```
 
-**DocumentaÃ§Ã£o Completa**: `docs/CLOUDFLARE-TUNNELS.md`
+**Documentação Completa**: `docs/CLOUDFLARE-TUNNELS.md`
 
 ---
 
-## ðŸ“š Related Documentation
+## 📚 Related Documentation
 
 - **PegaProx**: `docs/PEGAPROX.md` - Multi-cluster Proxmox management (CT210)
 - **Main Config**: `CLAUDE.md` - Claude Code configuration
 - **Archon**: `docs/archon-integration.md` - AI Command Center
-- **OpenClaw**: `docs/OPENCLAW.md` - AI agent platform, multi-model config, versÃµes
+- **OpenClaw**: `docs/OPENCLAW.md` - AI agent platform, multi-model config, versões
 - **Claude-Flow + LiteLLM**: `docs/CLAUDE-FLOW-LITELLM.md` - Multi-model gateway, fallbacks, Claude Code
 - **LiteLLM Multi-Host**: `docs/LITELLM-MULTI-HOST-DEPLOYMENT.md` - Deploy local em agldv03/04/12, fgsrv06
+- **LiteLLM + OpenClaw LXC dedicados (CT186/187)**: `docs/LITELLM-OPENCLAW-DEDICATED-LXC.md` — Proxmox AGLSRV1, scripts `scripts/proxmox/` (VMIDs 150/151 no nó costumam ser VMs QEMU)
 - **Ruflo Advanced**: `docs/RUFLO-ADVANCED.md` - 3-tier router, RuVector, Hive Mind, ReasoningBank (agldv03)
 - **Docker in LXC**: `docs/docker-in-lxc-apparmor-solution.md`
 - **WireGuard**: Various host-specific docs
 
 ---
 
-**Document Version**: 2.9.1
-**Last Updated**: 2026-03-16
+**Document Version**: 3.0.1
+**Last Updated**: 2026-05-13
 **Maintainer**: Claude Code (agl-hostman project)
 **Always Read**: This document should ALWAYS be read for infrastructure queries

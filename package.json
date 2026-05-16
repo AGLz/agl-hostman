@@ -20,6 +20,7 @@
     "test:e2e:falg": "PW_SKIP_WEBSERVER=1 NODE_ENV=test npx playwright test -c playwright.falg.config.js",
     "test:e2e:falg:www5-aglz": "PW_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=https://www5.aglz.io NODE_ENV=test npx playwright test -c playwright.falg.config.js tests/e2e/falg/www5-aglz-login.spec.js",
     "test:e2e:ah": "PW_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=https://ah.aglz.io npx playwright test tests/e2e/ah-hosted.spec.js",
+    "test:e2e:evonexus": "PW_SKIP_WEBSERVER=1 NODE_ENV=test npx playwright test -c playwright.evonexus.config.js tests/e2e/evonexus-terminal-ws.spec.js",
     "seed:user": "node scripts/seed-test-user.js",
     "migrate": "node src/database/migrate.js",
     "lint": "eslint src/api/ src/services/ tests/api/ --ext .js",

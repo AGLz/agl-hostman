@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Auth\ActiveEloquentUserProvider;
+use App\Validation\SecureValidator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Validator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,6 +15,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        if (! class_exists(\Illuminate\Support\Process::class)) {
+            class_alias(\Illuminate\Support\Facades\Process::class, \Illuminate\Support\Process::class);
+        }
+
+        Auth::provider('active_eloquent', function ($app, array $config) {
+            return new ActiveEloquentUserProvider($app['hash'], $config['model']);
+        });
+
         // Register ProxmoxApiClient with configuration
         $this->app->singleton(\App\Services\Proxmox\ProxmoxApiClient::class, function ($app) {
             return \App\Services\Proxmox\ProxmoxApiClient::fromConfig(
@@ -82,6 +94,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Validator::resolver(function ($translator, $data, $rules, $messages, $attributes) {
+            return new SecureValidator($translator, $data, $rules, $messages, $attributes);
+        });
     }
 }

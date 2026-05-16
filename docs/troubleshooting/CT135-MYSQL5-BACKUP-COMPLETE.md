@@ -36,7 +36,7 @@ Credenciais para conexão com fgsrv3:
 [client]
 host=191.252.201.205
 user=root
-password=power@123
+password=<definir no cofre; não commitar>
 ```
 **Permissões**: 600 (rw-------)
 

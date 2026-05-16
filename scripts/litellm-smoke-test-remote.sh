@@ -9,7 +9,7 @@ MODELS=(
   glm-flash
   gemini-lite
   agl-primary
-  ollama-nemotron-3-nano-4b
+  ollama-qwen3-4b
   or-hermes-free
   or-nemotron-super-free
   or-llama-3.3-70b-free

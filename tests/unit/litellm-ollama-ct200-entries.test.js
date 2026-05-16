@@ -11,30 +11,37 @@ const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.y
 const LAN_OLLAMA = '192.168.0.200:11434';
 const TS_OLLAMA = '100.116.57.111:11434';
 
-function assertOllamaSingleNemotron(yaml, label) {
-  assert.match(yaml, /ollama-nemotron-3-nano-4b/, label);
-  assert.match(yaml, /ollama\/nemotron-3-nano:4b/, label);
-  assert.match(yaml, /openai\/ollama-nemotron-3-nano-4b/, label);
-  assert.doesNotMatch(yaml, /ollama-qwen3-0\.6b/, label);
-  assert.doesNotMatch(yaml, /ollama-qwen3-1\.7b/, label);
-  assert.doesNotMatch(yaml, /ollama-qwen3-4b/, label);
-  assert.doesNotMatch(yaml, /ollama-deepseek-r1-1\.5b/, label);
-  assert.doesNotMatch(yaml, /ollama-gemma4/, label);
-  assert.doesNotMatch(yaml, /ollama-qwen3-8b/, label);
-  assert.doesNotMatch(yaml, /ollama-gemma2/, label);
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function assertOllamaCt200QwenOnly(yaml, label) {
+  assert.match(yaml, /ollama-qwen3-4b/, label);
+  assert.match(yaml, /ollama\/qwen3:4b/, label);
+  assert.match(yaml, /openai\/ollama-qwen3-4b/, label);
+  assert.doesNotMatch(yaml, /ollama\/nemotron-3-nano/, label);
+  assert.doesNotMatch(yaml, /ollama-nemotron-3-nano-4b/, label);
+  assert.doesNotMatch(yaml, /:cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-glm-4\.7-cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-qwen3\.5-cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-deepseek-v3\.2-cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-gemma4-31b-cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-kimi-k2\.6-cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-minimax-m2\.7-cloud/, label);
+  assert.doesNotMatch(yaml, /ollama-gpt-oss-20b-cloud/, label);
 }
 
 function escapeForRegex(ipHost) {
   return ipHost.replaceAll('.', '\\.');
 }
 
-test('LiteLLM local: Ollama CT200 via LAN em config.yaml (só Nemotron)', () => {
+test('LiteLLM local: Ollama CT200 via LAN — só qwen3:4b', () => {
   const yaml = fs.readFileSync(CONFIG, 'utf8');
-  assertOllamaSingleNemotron(yaml, 'config.yaml');
+  assertOllamaCt200QwenOnly(yaml, 'config.yaml');
   assert.match(
     yaml,
-    /model:\s*ollama\/nemotron-3-nano:4b[\s\S]*?model_name:\s*agl-primary/,
-    'config.yaml: agl-primary usa ollama/nemotron-3-nano:4b',
+    /model:\s*ollama\/qwen3:4b[\s\S]*?model_name:\s*agl-primary/,
+    'config.yaml: agl-primary usa ollama/qwen3:4b',
   );
   assert.match(
     yaml,
@@ -48,9 +55,10 @@ test('LiteLLM local: Ollama CT200 via LAN em config.yaml (só Nemotron)', () => 
   );
 });
 
-test('LiteLLM remote: Ollama CT200 via Tailscale em config-remote.yaml (só Nemotron)', () => {
+test('LiteLLM remote: Ollama CT200 via Tailscale — só qwen3:4b', () => {
   const yaml = fs.readFileSync(CONFIG_REMOTE, 'utf8');
-  assertOllamaSingleNemotron(yaml, 'config-remote.yaml');
+  assertOllamaCt200QwenOnly(yaml, 'config-remote.yaml');
+  assert.match(yaml, /model_name:\s*"ollama-qwen3-4b"/, 'config-remote.yaml: alias ollama-qwen3-4b');
   assert.match(
     yaml,
     new RegExp(escapeForRegex(TS_OLLAMA), 'g'),

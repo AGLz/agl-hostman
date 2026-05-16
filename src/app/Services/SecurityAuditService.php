@@ -708,6 +708,17 @@ class SecurityAuditService
             return $result;
         }
 
+        if (! Schema::hasTable('roles')) {
+            $result['status'] = 'fail';
+            $result['findings'][] = [
+                'severity' => 'high',
+                'message' => 'Roles table not found in database',
+            ];
+            $this->addFinding('high', 'RBAC', 'Run permission migrations before auditing RBAC');
+
+            return $result;
+        }
+
         // Check if roles are defined
         $roles = DB::table('roles')->count();
         if ($roles === 0) {

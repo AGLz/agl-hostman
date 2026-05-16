@@ -5,6 +5,7 @@ const cors = require('@fastify/cors');
 const hostsRoutes = require('./routes/hosts');
 const storageRoutes = require('./routes/storage');
 const aiRoutes = require('./routes/ai');
+const { parseCorsOrigin } = require('./cors-origin');
 
 /**
  * Build Fastify app for server or testing.
@@ -14,7 +15,7 @@ const aiRoutes = require('./routes/ai');
 async function build(opts = {}) {
   const logger = opts.logger !== false;
   const apiKey = opts.apiKey ?? process.env.HOSTMAN_API_KEY ?? '';
-  const corsOrigin = opts.corsOrigin ?? process.env.HOSTMAN_CORS_ORIGIN ?? true;
+  const corsOrigin = opts.corsOrigin ?? parseCorsOrigin(process.env.HOSTMAN_CORS_ORIGIN) ?? true;
 
   const app = fastify({ logger });
   await app.register(cors, {
@@ -61,4 +62,4 @@ async function build(opts = {}) {
   return app;
 }
 
-module.exports = { build };
+module.exports = { build, parseCorsOrigin };

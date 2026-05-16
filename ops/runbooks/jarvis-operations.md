@@ -64,6 +64,7 @@ Os monitores **não** correm na AGLWK45; correm no **agldv03** (CT179). OpenClaw
 | **n8n** (CT202) | `http://100.72.240.65:5679/...` | `http://192.168.0.202:5678/healthz` | Confirmar porta no CT202 |
 | **wg-easy** (FGSRV6) | Check em **100.72.240.65:51821** | `http://10.6.0.5:51821/` | `http://100.83.51.9:51821/` |
 | **LiteLLM** | — | `http://127.0.0.1:4000/health/readiness` (no CT179) ou `http://100.94.221.87:4000/...` | `http://192.168.0.179:4000/...` |
+| **LiteLLM / OpenClaw (LXC dedicados AGLSRV1)** | Duplicar o mesmo check no mesmo job que ainda usa CT179 | Após cutover: `http://192.168.0.186:4000/health/readiness` (CT186) e `http://192.168.0.187:28789/healthz` (CT187) desde agldv03/LAN | Ver `config/monitoring/jarvis-openclaw-http-endpoints.example.json` → `cutoverDedicatedLxc` e [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](../../docs/LITELLM-OPENCLAW-DEDICATED-LXC.md) |
 
 **100.72.240.65** = **`fgsrv07-cloudflared7`** — não usar para n8n/wg-easy.
 
@@ -96,6 +97,8 @@ Os jobs agendados (`openclaw cron`) neste contentor invocam scripts em `scripts/
 **Logs OpenClaw (Linux):** `~/.openclaw/logs/`, `~/.openclaw/cron/` (incl. saída por job, conforme versão). Reproduzir: `openclaw cron run --name "<nome>"` e inspecionar stderr.
 
 **Script de pré-requisitos no repo:** `bash scripts/openclaw/verify-ct179-openclaw-infra-access.sh` (executar **no** CT179).
+
+**CRLF:** Se o `bash` falhar com `syntax error near unexpected token $'{\r''`, o ficheiro tem finais de linha Windows. Corrigir no CT179: `sed -i 's/\r$//' scripts/openclaw/verify-ct179-openclaw-infra-access.sh` (e validar com `bash -n`). O repo declara `*.sh text eol=lf` em `.gitattributes` para evitar regressão após `git checkout`.
 
 ### Legado Windows (AGLWK45)
 
@@ -435,7 +438,7 @@ openclaw sessions_send --sessionKey "agent:infra:main" --message "Check ZFS pool
 ### Workspace Management
 ```powershell
 # Clean old memory files
-Get-ChildItem "C:\Users\Administrator\.openclaw\workspace\memory\*.md" |
+Get-ChildItem "C:\Users\Administrator\.openclaw\workspace\memory\*.md" | 
   Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } |
   Remove-Item
 

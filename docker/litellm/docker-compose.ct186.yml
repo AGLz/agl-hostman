@@ -1,0 +1,66 @@
+# LiteLLM dedicado — CT186 (LXC agl-litellm) em AGLSRV1
+# Executar a partir do directório que contém config.yaml e .env (ex.: /opt/agl-litellm).
+# Uso: docker compose -f docker-compose.ct186.yml up -d
+#
+# Copiar para o CT:
+#   config.yaml  ← agl-hostman/config/litellm/config.yaml
+#   .env         ← agl-hostman/config/litellm/.env (ou gerar no host; não commitar segredos)
+
+services:
+  litellm-db:
+    image: postgres:16-alpine
+    container_name: litellm-db
+    # Reason: CT186 herdava só nameservers IPv6; o motor bridge do Docker falhava na resolução.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: ${LITELLM_POSTGRES_PASSWORD:-litellm_db_pass}
+      POSTGRES_DB: litellm
+    volumes:
+      - litellm-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - litellm-net
+
+  litellm-proxy:
+    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:main-latest}
+    container_name: litellm-proxy
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    restart: unless-stopped
+    depends_on:
+      litellm-db:
+        condition: service_healthy
+    ports:
+      - "${LITELLM_HOST_PORT:-4000}:4000"
+    env_file:
+      - ./.env
+    environment:
+      - CONFIG_FILE_PATH=/app/config.yaml
+      - DATABASE_URL=postgresql://litellm:${LITELLM_POSTGRES_PASSWORD:-litellm_db_pass}@litellm-db:5432/litellm
+      - LITELLM_ALLOWED_ROUTES=/health,/health/readiness,/v1/models
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/readiness', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - litellm-net
+
+volumes:
+  litellm-db-data:
+
+networks:
+  litellm-net:
+    driver: bridge

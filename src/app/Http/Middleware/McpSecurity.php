@@ -60,13 +60,14 @@ class McpSecurity
     {
         $allowedTypes = config('mcp.validation.allowed_content_types', ['application/json']);
         $contentType = $request->header('Content-Type');
+        $isEmptyRequest = (int) $request->header('Content-Length', 0) === 0 && $request->getContent() === '';
 
-        if ((int) $request->header('Content-Length', 0) === 0 && $request->getContent() === '') {
-            return;
+        if ($contentType && ! in_array($contentType, $allowedTypes) && ! ($isEmptyRequest && str_starts_with($contentType, 'application/x-www-form-urlencoded'))) {
+            abort(415, 'Unsupported Media Type');
         }
 
-        if ($contentType && ! in_array($contentType, $allowedTypes)) {
-            abort(415, 'Unsupported Media Type');
+        if ($isEmptyRequest) {
+            return;
         }
     }
 
@@ -154,6 +155,10 @@ class McpSecurity
         $isValid = false;
 
         foreach ($validKeys as $service => $key) {
+            if (! is_string($key)) {
+                continue;
+            }
+
             if (hash_equals($key, $apiKey)) {
                 $isValid = true;
                 $request->attributes->set('mcp_service', $service);
@@ -209,7 +214,7 @@ class McpSecurity
             'viewer' => 100,
         ];
 
-        $maxAttempts = $roleLimits[$role] ?? config('mcp.rate_limiting.max_attempts', 60);
+        $maxAttempts = config('mcp.rate_limiting.max_attempts') ?? ($roleLimits[$role] ?? 60);
         $decayMinutes = config('mcp.rate_limiting.decay_minutes', 1);
         $key = 'mcp:rbac:'.$role.':'.$request->ip();
 
@@ -252,7 +257,7 @@ class McpSecurity
             'auditor' => 200,
             'viewer' => 100,
         ];
-        $maxAttempts = $roleLimits[$role] ?? 60;
+        $maxAttempts = config('mcp.rate_limiting.max_attempts') ?? ($roleLimits[$role] ?? 60);
         $key = 'mcp:rbac:'.$role.':'.$request->ip();
 
         $response->headers->set('X-RateLimit-Limit', (string) $maxAttempts);

@@ -60,7 +60,6 @@ class SecurityAuditLogFactory extends Factory
                 'auth', 'security', 'container', 'user', 'audit', 'scan',
             ], $this->faker->numberBetween(1, 3)),
             'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
-            'updated_at' => now(),
         ];
     }
 

@@ -8,12 +8,12 @@
 
 ---
 
-## Atualização 2026-04 — Qwen3 4B, Nemotron e LiteLLM
+## Atualização 2026-05 — CT200 só `qwen3:4b` (LiteLLM)
 
 | Peça | Detalhe |
 |------|---------|
-| **Primário LAN (`agl-primary`)** | Em `config/litellm/config.yaml`: `ollama/qwen3:4b` em `http://192.168.0.200:11434`. Fallback após Z.AI: `ollama-nemotron-3-nano-4b`, depois Qwen menores. |
-| **Alias** | `ollama-qwen3-4b` (mesmo modelo). Em **fgsrv06**: `config/litellm/config-remote.yaml` + Ollama Tailscale `100.116.57.111` (mantém-se `agl-primary` DashScope; cadeias de fallback incluem Qwen3 4B e Nemotron). |
+| **Primário LAN (`agl-primary`)** | Em `config/litellm/config.yaml`: `ollama/qwen3:4b` em `http://192.168.0.200:11434`. Ollama no CT200 com `OLLAMA_MAX_LOADED_MODELS=1`; disco só com este modelo; LiteLLM não expõe outros backends Ollama no CT200. |
+| **Alias** | `ollama-qwen3-4b` / `openai/ollama-qwen3-4b` (mesmo modelo). Em **fgsrv06**: `config/litellm/config-remote.yaml` + Ollama Tailscale `100.116.57.111`; `agl-primary` remoto continua DashScope com fallback para este alias quando aplicável. |
 | **Benchmark A/B** | `scripts/aglsrv1/benchmark-ollama-nemotron-vs-qwen3-ab.sh` — prompts PT / EN / JSON; JSON em `OUT_JSON` (omissão: `/tmp/ollama-ab-results.json`). Ex.: `OLLAMA_HOST=http://127.0.0.1:11434 bash scripts/aglsrv1/benchmark-ollama-nemotron-vs-qwen3-ab.sh`. |
 | **Deploy LiteLLM (agldv03)** | `sudo bash scripts/litellm/sync-litellm-repo-to-opt.sh` ou `npm run sync:litellm:opt:copy-only` (só cópia). Smoke: `bash scripts/litellm/test-chat-model.sh agl-primary`. |
 

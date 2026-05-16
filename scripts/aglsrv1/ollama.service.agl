@@ -6,3 +6,6 @@
 # Alternativa mínima: `10-agl-ollama-concurrency.conf` como drop-in extra.
 #   pct push 200 scripts/aglsrv1/ct200-ollama-override.conf /etc/systemd/system/ollama.service.d/override.conf
 #   pct exec 200 -- systemctl daemon-reload && pct exec 200 -- systemctl restart ollama
+# Aplicar override deste repo: scripts/aglsrv1/apply-ct200-ollama-override.sh (root no CT200).
+# Warm cloud no boot (AGLSRV1): scripts/aglsrv1/install-ct200-ollama-warm-boot.sh (pct 200).
+# Unit: ollama-warm-cloud.service — manual: pct exec 200 -- systemctl start ollama-warm-cloud.service

@@ -7,6 +7,7 @@ namespace Tests\Unit\Security;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -154,10 +155,12 @@ class AuthenticationSecurityTest extends TestCase
 
         $this->assertNull($user->remember_token);
 
-        $user->setRememberToken('test-token');
+        $token = str_repeat('a', 60);
+
+        $user->setRememberToken($token);
         $user->save();
 
-        $this->assertEquals('test-token', $user->remember_token);
+        $this->assertEquals($token, $user->remember_token);
         $this->assertEquals(60, strlen($user->remember_token));
     }
 

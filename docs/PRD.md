@@ -281,6 +281,7 @@ Stack sugerida: React + Vite + Tailwind (leve, sem framework pesado).
 # src/.env.example
 HOSTMAN_PORT=3030
 HOSTMAN_API_KEY=          # Bearer token para a API
+HOSTMAN_CORS_ORIGIN=      # Ex.: "https://falg.com.br,https://www5.falg.com.br" (ou JSON array)
 PROXMOX_HOST=192.168.0.245
 PROXMOX_TOKEN_ID=         # API token Proxmox
 PROXMOX_TOKEN_SECRET=
@@ -369,7 +370,7 @@ STORAGE_ALERT_THRESHOLD=90  # % de uso para alertar
 
 ### Segurança
 
-- Credentials do MySQL (`power@123`) estão em texto claro nos arquivos de análise — **não replicar em código**; usar variáveis de ambiente
+- Credenciais MySQL em análises antigas podem estar em texto claro — **não replicar**; usar cofre e variáveis de ambiente
 - A API REST deve exigir Bearer token (`HOSTMAN_API_KEY`)
 - Proxmox API: usar token de API (não usuário/senha)
 

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-04-12",
-  "description": "Referência canónica para HTTP checks OpenClaw no agldv03 (CT179). Jobs agendados e Telegram de monitorização devem correr aí, não na AGLWK45. Validar portas no Proxmox (CT202).",
+  "updated": "2026-05-13",
+  "description": "Referência canónica para HTTP checks: **LiteLLM CT186** + **OpenClaw CT187** em AGLSRV1 (LXC dedicados). Jobs desde agldv03 ou outro host na LAN 192.168.0.0/24. Entrada litellm-agldv03 = legado CT179 (stack Docker parada após cutover 2026-05); preferir cutoverDedicatedLxc (litellm-ct186-lan, openclaw-ct187-lan). Ver docs/LITELLM-OPENCLAW-DEDICATED-LXC.md e docs/INFRA.md.",
   "antiFlapping": {
     "consecutiveFailuresBeforeAlert": 3,
     "minMinutesBetweenRepeatTelegram": 60,
@@ -28,11 +28,27 @@
       "id": "litellm-agldv03",
       "name": "LiteLLM readiness",
       "hostRole": "CT179 agldv03",
-      "primary": "http://100.125.249.8:4000/health/readiness",
+      "primary": "http://100.94.221.87:4000/health/readiness",
       "fallbacks": ["http://192.168.0.179:4000/health/readiness"],
-      "notes": "Tailscale costuma ser o caminho preferido a partir da wk45; LAN como fallback."
+      "notes": "LEGADO CT179: stack parada após cutover 2026-05. Não usar como canónico. Preferir cutoverDedicatedLxc → litellm-ct186-lan (http://192.168.0.186:4000/health/readiness). Mantido só para transição ou comparação."
     }
   ],
+  "cutoverDedicatedLxc": {
+    "doc": "docs/LITELLM-OPENCLAW-DEDICATED-LXC.md",
+    "note": "Checks LAN desde agldv03 ou outro host na 192.168.0.0/24. Não duplicar o mesmo serviço no mesmo job que ainda aponta ao CT179 — migrar URLs ou usar jobs separados durante transição.",
+    "lanChecksFromAgldv03": [
+      {
+        "id": "litellm-ct186-lan",
+        "name": "LiteLLM readiness (CT186 dedicado AGLSRV1)",
+        "url": "http://192.168.0.186:4000/health/readiness"
+      },
+      {
+        "id": "openclaw-ct187-lan",
+        "name": "OpenClaw gateway healthz (CT187 dedicado AGLSRV1)",
+        "url": "http://192.168.0.187:28789/healthz"
+      }
+    ]
+  },
   "doNotUseForTheseServices": [
     {
       "ip": "100.72.240.65",

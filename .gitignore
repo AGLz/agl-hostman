@@ -20,6 +20,7 @@ src/web/node_modules/
 .env
 .env.local
 .env.*.local
+scripts/proxmox/agl-litellm-openclaw-lxc.env
 
 # IDE
 .vscode/
@@ -97,7 +98,7 @@ logs/security/
 playwright-report/
 test-results/
 playwright/.cache/
-tests/e2e/.auth/
+.playwright-browsers/
 
 # Logs
 proxmox_mcp.log
@@ -109,7 +110,6 @@ logs/mcp-monitoring/
 !.claude/settings.json
 *.bak.*
 .claude/settings.json.bak*
-.claude/skills/
 
 # Clones locais de git worktree (não versionar)
 .claude/worktrees/
@@ -157,3 +157,4 @@ Thumbs.db
 buildkit.toml
 node_modules
 proxmox_mcp.log
+

@@ -27,6 +27,14 @@ test('LiteLLM: IDs zai/glm-* (OpenClaw) em config.yaml', () => {
   assertZaiIds(fs.readFileSync(CONFIG, 'utf8'), 'config.yaml');
 });
 
+test('LiteLLM: rotas OpenAI económicas (gpt-4o-mini, gpt-4.4-mini, gpt-5-mini, gpt-5.4-nano)', () => {
+  const yaml = fs.readFileSync(CONFIG, 'utf8');
+  assert.match(yaml, /model_name:\s*gpt-4o-mini/, 'config.yaml: gpt-4o-mini');
+  assert.match(yaml, /model_name:\s*gpt-4\.4-mini/, 'config.yaml: gpt-4.4-mini');
+  assert.match(yaml, /model_name:\s*gpt-5-mini/, 'config.yaml: gpt-5-mini');
+  assert.match(yaml, /model_name:\s*gpt-5\.4-nano/, 'config.yaml: gpt-5.4-nano');
+});
+
 test('LiteLLM: config-remote.yaml sem Z.AI direto (usa OpenRouter free)', () => {
   const remote = fs.readFileSync(CONFIG_REMOTE, 'utf8');
   // config-remote usa OpenRouter free tier, nao Z.AI direto (removido por design)

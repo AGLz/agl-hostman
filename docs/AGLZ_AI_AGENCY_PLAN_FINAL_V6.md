@@ -5,6 +5,8 @@
 > **Motivo**: CT-210 já existe e não será usado neste planejamento
 > **Rede**: LAN 192.168.0.0/24
 
+> **Actualização infra 2026-05-13:** em **produção** na AGLSRV1 o stack canónico é **LiteLLM no CT186** (`http://192.168.0.186:4000`), **OpenClaw (Jarvis) no CT187** e **Ollama no CT200** — ver [`LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md) e [`INFRA.md`](INFRA.md). O quadro de **CT-203…CT-207** abaixo permanece como **desenho alvo** da agência AGLz (planeamento); não substitui os VMIDs reais 186/187/200.
+
 ---
 
 ## 📋 CTs EXISTENTES NO AGLSRV1 (Inventário)

@@ -20,6 +20,8 @@ return [
         'shadcn' => env('MCP_SHADCN_KEY'),
         // Ruv Swarm Coordination MCP Server
         'ruv_swarm' => env('MCP_RUV_SWARM_KEY'),
+        // Test-only MCP Server key
+        'test' => env('APP_ENV') === 'testing' ? 'test-key' : env('MCP_TEST_KEY'),
     ],
 
     /*

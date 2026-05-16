@@ -1,0 +1,450 @@
+/**
+ * Overlay EvoNexus: terminal-server claude-bridge.js
+ *
+ * Motivo: (1) global_settings.dangerouslySkipPermissions em providers.json não
+ * era aplicado — o spawn usava só o que o WS envia (muitas vezes false).
+ * (2) Em Docker o processo corre como root e o upstream desliga sempre
+ * --dangerously-skip-permissions; com IS_SANDBOX=1 tentamos reativar (alinhado
+ * a AGENTS.md / headless Claude Code).
+ * (3) IS_SANDBOX passa para o filho via whitelist SYSTEM_VARS.
+ * (4) CLAUDE_PROJECT_DIR = raiz da app Evo (/workspace): os hooks em
+ *     .claude/settings.json usam $CLAUDE_PROJECT_DIR/.claude/hooks e
+ *     dashboard/backend/claude_hook_dispatcher.py; sem isto o PTY pode
+ *     arrancar com cwd noutro volume e os hooks falham (exit 127 / stall).
+ * (5) node-pty ^1.0: onExit recebe um único objeto { exitCode, signal } —
+ *     normalizar antes de logar e de notificar o WebSocket.
+ * (6) Anthropic + gateway LiteLLM + --system-prompt: não passar --agent em
+ *     simultâneo (persona duplicada → respostas vazias / paragem após tool).
+ *
+ * Deploy: ver scripts/evonexus/overlays/README-evonexus-overlays.md
+ */
+const { spawn } = require('node-pty');
+const path = require('path');
+const fs = require('fs');
+const {
+  loadProviderConfig,
+  resolveProviderModel,
+  getProviderMode,
+} = require('./provider-config');
+
+/** Corpo do agente .md após frontmatter YAML (--- … ---). CRLF-safe. */
+function stripAgentMarkdownFrontmatter(raw) {
+  const normalized = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const match = normalized.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
+  return match ? match[1].trim() : normalized.trim();
+}
+
+class ClaudeBridge {
+  constructor() {
+    this.sessions = new Map();
+  }
+
+  /**
+   * Load active provider config from config/providers.json.
+   * Returns the CLI command to use and env vars to inject.
+   * Only allowlisted CLI commands and env var names are accepted.
+   */
+  _loadProviderConfig() {
+    return loadProviderConfig();
+  }
+
+  findClaudeCommand(cliCommand = 'claude') {
+    const { execSync } = require('child_process');
+
+    // Use shell-based `which` to resolve with full PATH (incl. nvm, fnm, etc.)
+    // Hardcoded dispatch to satisfy semgrep — each branch is a literal string
+    try {
+      let resolved;
+      if (cliCommand === 'openclaude') {
+        resolved = execSync('which openclaude', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+      } else {
+        resolved = execSync('which claude', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+      }
+      if (resolved) {
+        console.log(`[provider] Found ${cliCommand} at: ${resolved}`);
+        return resolved;
+      }
+    } catch {
+      // which failed — try hardcoded paths below
+    }
+
+    // Fallback: check common hardcoded paths
+    const home = process.env.HOME || '/';
+    const paths = cliCommand === 'openclaude'
+      ? [
+          path.join(home, '.local', 'bin', 'openclaude'),
+          '/usr/local/bin/openclaude',
+          '/usr/bin/openclaude',
+        ]
+      : [
+          path.join(home, '.claude', 'local', 'claude'),
+          path.join(home, '.local', 'bin', 'claude'),
+          '/usr/local/bin/claude',
+          '/usr/bin/claude',
+        ];
+
+    for (const p of paths) {
+      try {
+        if (fs.existsSync(p)) {
+          console.log(`[provider] Found ${cliCommand} at hardcoded path: ${p}`);
+          return p;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    console.error(`[provider] ${cliCommand} not found anywhere, using bare command name`);
+    return cliCommand;
+  }
+
+  async startSession(sessionId, options = {}) {
+    if (this.sessions.has(sessionId)) {
+      const existing = this.sessions.get(sessionId);
+      if (existing.active) {
+        // Idempotent: a duplicate startSession can arrive when the WebSocket
+        // reconnects through a reverse proxy (Traefik) and the frontend
+        // re-sends start_claude before learning the session is still alive.
+        // Returning the existing session instead of throwing prevents a
+        // confusing "Session already exists" toast on the user's terminal
+        // while keeping the original PTY intact.
+        console.log(`[bridge] startSession(${sessionId}) — already active, returning existing session`);
+        return existing;
+      }
+      // Orphaned dead session — clean up and restart
+      if (existing.process) {
+        try { existing.process.kill('SIGKILL'); } catch (_) {}
+      }
+      this.sessions.delete(sessionId);
+    }
+
+    const {
+      workingDir = process.cwd(),
+      dangerouslySkipPermissions = false,
+      agent = null,
+      onOutput = () => {},
+      onExit = () => {},
+      onError = () => {},
+      cols = 80,
+      rows = 24
+    } = options;
+
+    try {
+      // Reload provider config fresh on every session start
+      // so switching provider in the dashboard takes effect immediately
+      const providerConfig = this._loadProviderConfig();
+      const evoWorkspaceRoot = path.resolve(__dirname, '..', '..', '..');
+      const providerMode = getProviderMode(providerConfig);
+      const providerModel = resolveProviderModel(providerConfig);
+
+      // Block session if no provider is active
+      if (!providerConfig.active || providerConfig.active === 'none') {
+        const msg = '\r\n\x1b[1;33mNo AI provider is active.\x1b[0m\r\nGo to \x1b[1;32mProviders\x1b[0m in the dashboard to configure and activate a provider.\r\n';
+        if (onOutput) onOutput(msg);
+        if (onExit) onExit(1, null);
+        return;
+      }
+      if (providerConfig.active !== 'anthropic' && providerMode !== 'code') {
+        throw new Error(
+          `Provider "${providerConfig.active}" com modelo "${providerModel || 'não definido'}" está em modo Chat Completion/Memory Output. Use o Chat para esse modelo. O Terminal aceita apenas modelos Code.`
+        );
+      }
+
+      const cliCommand = this.findClaudeCommand(providerConfig.cli_command);
+
+      let skipPermissions = !!dangerouslySkipPermissions;
+      try {
+        const providersPath = path.join(__dirname, '..', '..', '..', 'config', 'providers.json');
+        if (fs.existsSync(providersPath)) {
+          const rootCfg = JSON.parse(fs.readFileSync(providersPath, 'utf8'));
+          if (rootCfg.global_settings?.dangerouslySkipPermissions) {
+            skipPermissions = true;
+          }
+        }
+      } catch (_) {
+        // mantém skipPermissions do WebSocket
+      }
+
+      console.log(`Starting session ${sessionId} with ${providerConfig.cli_command}`);
+      console.log(`Command: ${cliCommand}`);
+      console.log(`Working directory: ${workingDir}`);
+      console.log(`Agent: ${agent || 'none'}`);
+      console.log(`Terminal size: ${cols}x${rows}`);
+      if (skipPermissions) {
+        console.log(`⚠️ WARNING: Skipping permissions with --dangerously-skip-permissions flag (effective)`);
+      }
+
+      const isRoot = process.getuid && process.getuid() === 0;
+      const sandbox = process.env.IS_SANDBOX === '1';
+      const useDsp = skipPermissions && (!isRoot || sandbox);
+      const args = useDsp ? ['--dangerously-skip-permissions'] : [];
+
+      const providerEnv = providerConfig.env_vars || {};
+      const active = providerConfig.active || 'anthropic';
+      const anthropicBase = (providerEnv.ANTHROPIC_BASE_URL || '').trim();
+      const anthropicGatewayPersona =
+        active === 'anthropic' &&
+        !!agent &&
+        !!anthropicBase &&
+        !anthropicBase.includes('api.anthropic.com');
+
+      // Anthropic + LiteLLM: não combinar --agent com --system-prompt (corpo do .md).
+      // O CLI fica com dupla persona e o modelo costuma devolver vazio / parar após a 1.ª ferramenta.
+      if (agent && !anthropicGatewayPersona) {
+        args.push('--agent', agent);
+      }
+
+      // For non-Anthropic providers, use --system-prompt to force agent persona.
+      // For Anthropic + LiteLLM (gateway): third-party models (qwen, glm, …) often ignore
+      // --agent-only persona; injecting the agent markdown body avoids "stall after first tool".
+      // --append-system-prompt is too weak — GPT/Qwen-style models ignore appended instructions.
+      // --system-prompt REPLACES the default system prompt for this session only.
+      if (agent && (active !== 'anthropic' || anthropicGatewayPersona)) {
+        let agentFile = path.join(workingDir, '.claude', 'agents', `${agent}.md`);
+        if (!fs.existsSync(agentFile)) {
+          agentFile = path.join(evoWorkspaceRoot, '.claude', 'agents', `${agent}.md`);
+        }
+        let agentPrompt = '';
+        try {
+          const content = fs.readFileSync(agentFile, 'utf8');
+          agentPrompt = stripAgentMarkdownFrontmatter(content);
+        } catch {
+          agentPrompt = `You are the ${agent} agent.`;
+        }
+
+        const enforcePrompt = agentPrompt + '\n\n' +
+          'CRITICAL: You MUST fully embody this agent persona. ' +
+          'You are NOT Claude, OpenClaude, or a generic assistant — you ARE ' + agent + '. ' +
+          'When asked who you are, ALWAYS respond as ' + agent + '. ' +
+          'Never break character. Follow ALL instructions above.';
+
+        args.push('--system-prompt', enforcePrompt);
+        if (anthropicGatewayPersona) {
+          console.log('[spawn] Gateway Anthropic: injecting --system-prompt from agent file for third-party model');
+        }
+      }
+
+      if (active === 'anthropic') {
+        const modelFlag = (providerEnv.ANTHROPIC_MODEL || '').trim();
+        if (modelFlag) {
+          args.push('--model', modelFlag);
+        }
+      }
+
+      // Build a CLEAN environment for the spawned CLI process.
+      // We DON'T spread process.env — it may contain stale/cached vars
+      // (OPENAI_API_KEY, etc.) that override Codex OAuth auth.json.
+      // Instead, whitelist only essential system vars + provider config.
+      const SYSTEM_VARS = [
+        'HOME', 'USER', 'SHELL', 'PATH', 'LANG', 'LC_ALL', 'LC_CTYPE',
+        'LOGNAME', 'HOSTNAME', 'XDG_RUNTIME_DIR', 'XDG_DATA_HOME',
+        'XDG_CONFIG_HOME', 'XDG_CACHE_HOME', 'TMPDIR',
+        'SSH_AUTH_SOCK', 'SSH_AGENT_PID',
+        'NVM_DIR', 'NVM_BIN', 'NVM_INC',
+        'CODEX_HOME', 'CLAUDE_CONFIG_DIR',
+        'IS_SANDBOX',
+      ];
+      const cleanEnv = {};
+      for (const key of SYSTEM_VARS) {
+        if (process.env[key]) cleanEnv[key] = process.env[key];
+      }
+      if (sandbox && !cleanEnv.IS_SANDBOX) {
+        cleanEnv.IS_SANDBOX = '1';
+      }
+
+      // Ensure OPENAI_MODEL is set when using an OpenAI-based provider.
+      // OpenClaude's Codex mode requires 'codexplan' or 'codexspark' aliases
+      // to route to the Codex backend — a raw 'gpt-5.x' falls back to the
+      // regular chat completions API, which bypasses Codex OAuth entirely.
+      //
+      //   codexplan  → GPT-5.4 on Codex backend (high reasoning)
+      //   codexspark → GPT-5.3 Codex Spark (faster)
+      //
+      // For the plain 'openai' provider (API key mode), default to gpt-4.1.
+      if (!providerEnv['OPENAI_MODEL']) {
+        if (active === 'codex_auth') {
+          providerEnv['OPENAI_MODEL'] = 'codexplan';
+          console.log('[provider] OPENAI_MODEL not set — defaulting to codexplan (Codex OAuth)');
+        } else if (active === 'openai') {
+          providerEnv['OPENAI_MODEL'] = 'gpt-4.1';
+          console.log('[provider] OPENAI_MODEL not set — defaulting to gpt-4.1');
+        }
+      }
+
+      console.log(`[spawn] Args: ${JSON.stringify(args)}`);
+      const claudeProcess = spawn(cliCommand, args, {
+        cwd: workingDir,
+        env: {
+          ...cleanEnv,
+          ...providerEnv,
+          TERM: 'xterm-256color',
+          FORCE_COLOR: '1',
+          COLORTERM: 'truecolor',
+          // Último: hooks (settings.json) e provider.json nunca podem apagar isto.
+          CLAUDE_PROJECT_DIR: evoWorkspaceRoot,
+        },
+        cols,
+        rows,
+        name: 'xterm-color'
+      });
+
+      const session = {
+        process: claudeProcess,
+        workingDir,
+        created: new Date(),
+        active: true,
+        killTimeout: null
+      };
+
+      this.sessions.set(sessionId, session);
+
+      // Track if we've seen the trust prompt
+      let trustPromptHandled = false;
+      let dataBuffer = '';
+
+      claudeProcess.onData((data) => {
+        if (process.env.DEBUG) {
+          console.log(`Session ${sessionId} output:`, data);
+        }
+
+        // Buffer data to check for trust prompt
+        dataBuffer += data;
+
+        // Check for trust prompt and auto-accept it
+        if (!trustPromptHandled && dataBuffer.includes('Do you trust the files in this folder?')) {
+          trustPromptHandled = true;
+          console.log(`Auto-accepting trust prompt for session ${sessionId}`);
+          // The prompt shows "Enter to confirm" which means option 1 is already selected
+          // Just send Enter to confirm
+          setTimeout(() => {
+            claudeProcess.write('\r');
+            console.log(`Sent Enter to accept trust prompt for session ${sessionId}`);
+          }, 500);
+        }
+
+        // Clear buffer periodically to prevent memory issues
+        if (dataBuffer.length > 10000) {
+          dataBuffer = dataBuffer.slice(-5000);
+        }
+
+        onOutput(data);
+      });
+
+      claudeProcess.onExit((exitCode, signal) => {
+        let code = exitCode;
+        let sig = signal;
+        if (exitCode !== null && exitCode !== undefined && typeof exitCode === 'object' && 'exitCode' in exitCode) {
+          sig = exitCode.signal;
+          code = exitCode.exitCode;
+        }
+        console.log(`Claude session ${sessionId} exited with code ${code}, signal ${sig}`);
+        // Clear kill timeout if process exited naturally
+        if (session.killTimeout) {
+          clearTimeout(session.killTimeout);
+          session.killTimeout = null;
+        }
+        session.active = false;
+        this.sessions.delete(sessionId);
+        onExit(code, sig);
+      });
+
+      claudeProcess.on('error', (error) => {
+        console.error(`Claude session ${sessionId} error:`, error);
+        // Clear kill timeout if process errored
+        if (session.killTimeout) {
+          clearTimeout(session.killTimeout);
+          session.killTimeout = null;
+        }
+        session.active = false;
+        this.sessions.delete(sessionId);
+        onError(error);
+      });
+
+      console.log(`Claude session ${sessionId} started successfully`);
+      return session;
+
+    } catch (error) {
+      console.error(`Failed to start Claude session ${sessionId}:`, error);
+      throw new Error(`Failed to start Claude Code: ${error.message}`);
+    }
+  }
+
+  async sendInput(sessionId, data) {
+    const session = this.sessions.get(sessionId);
+    if (!session || !session.active) {
+      throw new Error(`Session ${sessionId} not found or not active`);
+    }
+
+    try {
+      session.process.write(data);
+    } catch (error) {
+      throw new Error(`Failed to send input to session ${sessionId}: ${error.message}`);
+    }
+  }
+
+  async resize(sessionId, cols, rows) {
+    const session = this.sessions.get(sessionId);
+    if (!session || !session.active) {
+      throw new Error(`Session ${sessionId} not found or not active`);
+    }
+
+    try {
+      session.process.resize(cols, rows);
+    } catch (error) {
+      console.warn(`Failed to resize session ${sessionId}:`, error.message);
+    }
+  }
+
+  async stopSession(sessionId) {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return;
+    }
+
+    try {
+      // Clear any existing kill timeout
+      if (session.killTimeout) {
+        clearTimeout(session.killTimeout);
+        session.killTimeout = null;
+      }
+
+      if (session.active && session.process) {
+        session.process.kill('SIGTERM');
+
+        session.killTimeout = setTimeout(() => {
+          if (session.active && session.process) {
+            session.process.kill('SIGKILL');
+          }
+        }, 5000);
+      }
+    } catch (error) {
+      console.warn(`Error stopping session ${sessionId}:`, error.message);
+    }
+
+    session.active = false;
+    this.sessions.delete(sessionId);
+  }
+
+  getSession(sessionId) {
+    return this.sessions.get(sessionId);
+  }
+
+  getAllSessions() {
+    return Array.from(this.sessions.entries()).map(([id, session]) => ({
+      id,
+      workingDir: session.workingDir,
+      created: session.created,
+      active: session.active
+    }));
+  }
+
+  async cleanup() {
+    const sessionIds = Array.from(this.sessions.keys());
+    for (const sessionId of sessionIds) {
+      await this.stopSession(sessionId);
+    }
+  }
+
+}
+
+module.exports = ClaudeBridge;

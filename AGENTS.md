@@ -6,11 +6,11 @@
 
 Repositório **agl-hostman**: automação, documentação operacional e APIs de apoio à infraestrutura AGL (Proxmox, containers, redes, LiteLLM, integrações). Convivem **API Node (Fastify)** e **aplicação Laravel** no ramo `src/`, mais configs e Docker na raiz.
 
-**Stack (resumo)**
-- Node.js 18+ — API em `src/api/` (Fastify, SQLite onde aplicável)
-- PHP / Laravel 12 — app principal em `src/` (Inertia **React**, Pest, Horizon, etc.; convénções em `.cursor/rules/laravel-boost.mdc`)
-- LiteLLM — `config/litellm/config.yaml` (+ `config-remote.yaml`); integração Cursor: `docs/CURSOR-LITELLM-INTEGRATION.md`
-- Docker / Compose — `docker/`, `docker-compose*.yml` na raiz
+**Stack (resumo)**  
+- Node.js 18+ — API em `src/api/` (Fastify, SQLite onde aplicável)  
+- PHP / Laravel 12 — app principal em `src/` (Inertia **React**, Pest, Horizon, etc.; convénções em `.cursor/rules/laravel-boost.mdc`)  
+- LiteLLM — `config/litellm/config.yaml` (+ `config-remote.yaml`); integração Cursor: `docs/CURSOR-LITELLM-INTEGRATION.md`  
+- Docker / Compose — `docker/`, `docker-compose*.yml` na raiz  
 
 **Última revisão deste ficheiro**: 2026-03-19
 
@@ -51,12 +51,12 @@ Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan
 | Max agents | 8 |
 | Estratégia | especializada por papel |
 
-**Usar swarm / decomposição:** alterações em 3+ ficheiros, features novas, refactor transversal, APIs com testes, segurança, performance.
+**Usar swarm / decomposição:** alterações em 3+ ficheiros, features novas, refactor transversal, APIs com testes, segurança, performance.  
 **Evitar:** edição única trivial, typos, só docs de uma linha (avaliar caso a caso).
 
 ### Skills (Claude Flow / Cursor)
 
-Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de swarm, SPARC, auditoria de segurança, infra AGL (`agl-infra`).
+Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de swarm, SPARC, auditoria de segurança, infra AGL (`agl-infra`), OpenClaw em contexto AGL (`openclaw-agl` — ver `CLAUDE.md`).
 
 ### Papéis típicos
 
@@ -125,17 +125,13 @@ Resumo — detalhe em `docs/INFRA.md`:
 | CT locked | `pct unlock <vmid>` antes de `pct start` |
 | Pi-hole CT102 | `pct unlock 102 && pct start 102` |
 | Cloudflared CT117 | `pct exec 117 -- systemctl restart cloudflared` |
-| LiteLLM CT186 | `agl-litellm`, Tailscale `100.125.249.8`, porta `4000`; `401` em `/v1/models` = vivo/auth obrigatoria |
-| OpenClaw CT187 | `agl-openclaw`, Tailscale `100.123.184.125`, Docker Compose em `/opt/agl-openclaw`, modelo `openai/jarvis-thinking` |
-| OpenClaw aglwk45 | VM104 — legado/workstation; nao e runtime principal atual |
+| OpenClaw aglwk45 | VM104 — via AGLSRV1 / scripts em `scripts/verify-openclaw-*` |
 
 ### OpenClaw (referência rápida)
 
 | Host | Tailscale / verificação |
 |------|-------------------------|
-| CT186 `agl-litellm` | `100.125.249.8` - LiteLLM central, porta `4000` |
-| CT187 `agl-openclaw` | `100.123.184.125` - OpenClaw/Jarvis runtime principal |
-| agldv03 | `100.94.221.87` - origem historica; evitar referencias novas ao bridge Docker antigo |
+| agldv03 | `100.94.221.87` — gateway OpenClaw ativo (fonte) |
 | agldv12 | `100.71.217.115` — **OpenClaw desligado** (clone do CT dev; evitar bots duplicados) |
 | fgsrv06 | `100.83.51.9` |
 | aglwk45 | VM104 no AGLSRV1 — LAN `192.168.0.33`, Tailscale `100.117.146.21` |
@@ -167,9 +163,9 @@ O modelo **Composer 2** na Cursor é proprietário; no proxy, **`cursor-composer
 
 ## Ligações
 
-- Ruflo (orquestração): https://github.com/ruvnet/ruflo
-- Claude Flow (histórico / MCP): https://github.com/ruvnet/claude-flow
-- LiteLLM Cursor: https://docs.litellm.ai/docs/tutorials/cursor_integration
+- Ruflo (orquestração): https://github.com/ruvnet/ruflo  
+- Claude Flow (histórico / MCP): https://github.com/ruvnet/claude-flow  
+- LiteLLM Cursor: https://docs.litellm.ai/docs/tutorials/cursor_integration  
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:full hash:d4f96305 -->
 ## Issue tracking (bd / beads)
@@ -185,18 +181,18 @@ bd update <id> --claim --json
 bd close <id> --reason "..." --json
 ```
 
-**Tipos:** `bug`, `feature`, `task`, `epic`, `chore`
-**Prioridade:** `0` crítico … `4` backlog
+**Tipos:** `bug`, `feature`, `task`, `epic`, `chore`  
+**Prioridade:** `0` crítico … `4` backlog  
 **Dependências:** `--deps discovered-from:bd-XXX`
 
 ### Landing the plane (fim de sessão)
 
 Trabalho considerado fechado apenas com **push** bem-sucedido quando há remoto Git:
 
-1. Registar follow-up em bd se necessário
-2. Testes / lint após mudanças de código (`npm test`, `php artisan test` no Laravel afetado)
-3. `git pull --rebase` → `bd dolt push` (quando usas Dolt remoto) → `git push`
-4. `git status`: **up to date** com `origin`
-5. Não deixar alterações críticas só locais sem issue associada
+1. Registar follow-up em bd se necessário  
+2. Testes / lint após mudanças de código (`npm test`, `php artisan test` no Laravel afetado)  
+3. `git pull --rebase` → `bd dolt push` (quando usas Dolt remoto) → `git push`  
+4. `git status`: **up to date** com `origin`  
+5. Não deixar alterações críticas só locais sem issue associada  
 
 <!-- END BEADS INTEGRATION -->

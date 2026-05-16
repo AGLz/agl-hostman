@@ -1,0 +1,15 @@
+[Unit]
+Description=Pré-aquece Ollama qwen3:4b no CT200
+After=ollama.service network-online.target
+Wants=ollama.service
+
+[Service]
+Type=oneshot
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+# Breve espera até o bind da API após o arranque do Ollama
+ExecStartPre=/bin/sleep 15
+ExecStart=/usr/local/sbin/warm-ollama-cloud-models.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

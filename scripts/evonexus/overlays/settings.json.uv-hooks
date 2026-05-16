@@ -1,0 +1,104 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "0"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/workspace/.claude/hooks/agent-tracker.sh\"",
+            "timeout": 15,
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspace && uv run python dashboard/backend/claude_hook_dispatcher.py PreToolUse",
+            "timeout": 300,
+            "async": true,
+            "_evonexus_managed": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/workspace/.claude/hooks/agent-tracker.sh\"",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspace && uv run python dashboard/backend/claude_hook_dispatcher.py Stop",
+            "timeout": 300,
+            "async": true,
+            "_evonexus_managed": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspace && uv run python dashboard/backend/claude_hook_dispatcher.py PostToolUse",
+            "timeout": 300,
+            "async": true,
+            "_evonexus_managed": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspace && uv run python dashboard/backend/claude_hook_dispatcher.py SubagentStop",
+            "timeout": 300,
+            "async": true,
+            "_evonexus_managed": true
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Bash(*)",
+      "Task(*)",
+      "Agent(*)",
+      "Skill(*)",
+      "WebFetch(*)",
+      "WebSearch(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(git push --force *)"
+    ]
+  }
+}

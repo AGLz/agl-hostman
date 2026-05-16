@@ -28,17 +28,19 @@ services:
       - OLLAMA_ORIGINS=*
 
       # Performance Tuning
-      - OLLAMA_MAX_LOADED_MODELS=3          # Keep 3 models in memory
-      - OLLAMA_NUM_PARALLEL=4               # Handle 4 concurrent requests
+      - OLLAMA_MAX_LOADED_MODELS=1          # Um modelo local (qwen3:4b); alinhar CT200 override
+      - OLLAMA_NUM_PARALLEL=1               # Um pedido paralelo por GPU modesta
       - OLLAMA_GPU_MEMORY_FRACTION=0.9      # Use 90% of GPU memory
-      - OLLAMA_MAX_QUEUE=512                # Queue size for requests
+      - OLLAMA_MAX_QUEUE=256                # Queue size for requests
 
       # GPU Configuration
       - OLLAMA_NUM_GPU=999                  # Use all available GPU layers
       - CUDA_VISIBLE_DEVICES=0              # Use GPU 0
 
       # Memory Management
-      - OLLAMA_KEEP_ALIVE=5m                # Keep models loaded for 5 min
+      - OLLAMA_KEEP_ALIVE=30m               # Alinhar CT200 systemd (cloud + Nemotron)
+      - OLLAMA_LOAD_TIMEOUT=5m
+      - OLLAMA_MAX_VRAM=0
       - OLLAMA_FLASH_ATTENTION=1            # Enable flash attention
 
     restart: unless-stopped

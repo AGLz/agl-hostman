@@ -47,11 +47,11 @@ echo "=========================================="
 echo "Configuration Required"
 echo "=========================================="
 echo ""
-echo "1. Edit /etc/mysql-ha/mysql-failover.conf"
-echo "   - Set ROLE (master or slave)"
-echo "   - Set THIS_SERVER_IP (Tailscale IP)"
-echo "   - Set MASTER_TAILSCALE_IP"
-echo "   - Set MySQL credentials"
+echo "1. Copiar template do repo para /etc/mysql-ha/mysql-failover.conf (no CT135 — slave)."
+echo "   - ROLE=slave"
+echo "   - MASTER_MYSQL_IP = Tailscale do master CT235 (100.83.7.16)"
+echo "   - THIS_SERVER_IP = Tailscale deste CT135 (100.98.1.119)"
+echo "   - MYSQL_PASS / CF_API_KEY a partir do cofre"
 echo ""
 echo "2. Get Cloudflare credentials:"
 echo "   a. Create API Token at:"
@@ -116,12 +116,10 @@ if [[ "$configure_now" == "y" || "$configure_now" == "Y" ]]; then
     # Update config file
     sed -i "s/^ROLE=.*/ROLE=\"${role}\"/" /etc/mysql-ha/mysql-failover.conf
     sed -i "s/^THIS_SERVER_IP=.*/THIS_SERVER_IP=\"${this_ip}\"/" /etc/mysql-ha/mysql-failover.conf
-    sed -i "s/^MASTER_TAILSCALE_IP=.*/MASTER_TAILSCALE_IP=\"${master_ip}\"/" /etc/mysql-ha/mysql-failover.conf
+    sed -i "s/^MASTER_MYSQL_IP=.*/MASTER_MYSQL_IP=\"${master_ip}\"/" /etc/mysql-ha/mysql-failover.conf
     sed -i "s/^MYSQL_PASS=.*/MYSQL_PASS=\"${mysql_pass}\"/" /etc/mysql-ha/mysql-failover.conf
-    sed -i "s|^CF_API_TOKEN=.*|CF_API_TOKEN=\"${cf_token}\"|" /etc/mysql-ha/mysql-failover.conf
+    sed -i "s/^CF_API_KEY=.*/CF_API_KEY=\"${cf_token}\"/" /etc/mysql-ha/mysql-failover.conf
     sed -i "s/^CF_ZONE_ID=.*/CF_ZONE_ID=\"${zone_id}\"/" /etc/mysql-ha/mysql-failover.conf
-    sed -i "s/^CF_RECORD_ID=.*/CF_RECORD_ID=\"${record_id}\"/" /etc/mysql-ha/mysql-failover.conf
-    sed -i "s/^CF_DNS_NAME=.*/CF_DNS_NAME=\"${dns_name}\"/" /etc/mysql-ha/mysql-failover.conf
 
     echo ""
     echo "Configuration saved!"

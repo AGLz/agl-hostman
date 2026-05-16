@@ -18,6 +18,7 @@
 | `a00590ff-2177-48c0-ad13-3abf90b765b9` | aglsrv6 | ? | - | ✅ 8 conexões | ? |
 | `908b1097-e182-4725-9960-626ecc003375` | archon | AGLSRV1 (CT117) | gru02, gru07, gru17 | ✅ 4 conexões | ✅ systemd |
 | `513cec7b-754d-4dd8-a69d-d15942180fe4` | **fgsrv7** | **FGSRV7** (Host) | gru07, gru20, gru21 | ✅ 4 conexões | ✅ systemd |
+| `850f2d28-367f-4bd2-a887-6998240828e3` | **fgsrv7b** | **FGSRV7** (CT171 `cloudflared7b`) | gru11, gru18, gru19, gru20 | ✅ 4 conexões | ✅ systemd (token) |
 
 ---
 
@@ -30,12 +31,14 @@
 **Localização**: Cloud VPS (vps64306) - 191.252.93.227
 
 **Host FGSRV7**:
+
 - **Proxmox**: 9.1.5 (Kernel 6.17.9-1-pve)
 - **Cluster**: aglsrv5 + fgsrv7 + QDevice
 - **Tailscale**: 100.109.181.93
 - **Public IP**: 191.252.93.227
 
 **Container CT170 (cloudflared7)**:
+
 - **VMID**: 170
 - **Hostname**: cloudflared7
 - **Network**: vmbr70 (OVS) - 192.168.70.170/24
@@ -43,53 +46,87 @@
 - **Resources**: 1 core, 1GB RAM
 - **Storage**: bkp:vm-170-disk-0 (4GB)
 
+**Container CT171 (`cloudflared7b`)** — segundo connector (túnel **fgsrv7b**); Tailscale: hostname **`fgsrv07-cloudflared7b`** após reset (não reutilizar o nó do CT170).
+
+- **Tunnel ID**: `850f2d28-367f-4bd2-a887-6998240828e3`
+- **Network**: vmbr70 — **192.168.70.171/24** (IP distinto do CT170)
+- **Provisionamento**: clone a partir do CT170 + `cloudflared service install <token>` — script `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh`
+- **Rotas**: definidas na Zero Trust (túnel gerido por token); não reutiliza `config.yml` do CT170 após o `service install`
+
 **Configuração cloudflared**:
-- **Tipo**: systemd service (CT170)
-- **Service**: `cloudflared.service`
-- **Config Path**: `/etc/cloudflared/config.yml`
-- **Credentials**: `/etc/cloudflared/513cec7b-754d-4dd8-a69d-d15942180fe4.json`
-- **Restart Policy**: `on-failure`
+
+- **CT171 (`cloudflared7b`) / túnel `fgsrv7b`**: connector instalado com token (`cloudflared service install`); rotas e ingress na consola Zero Trust (config remota), não o YAML estático do CT170.
+- **CT170 (`cloudflared7`)**: systemd `cloudflared.service`; **Config Path**: `/etc/cloudflared/config.yml`; **Credentials**: `/etc/cloudflared/513cec7b-754d-4dd8-a69d-d15942180fe4.json`; **Restart Policy**: `on-failure`
 
 **Configuração de Rede (Host)**:
+
 ```
 vmbr0  - Linux Bridge - 191.252.93.227/24 (public)
 vmbr70 - OVS Bridge   - 192.168.70.1/24   (internal)
 ```
 
 **NAT para containers**:
+
 ```bash
 iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 ```
 
 **Ingress Rules**:
+
 ```yaml
 tunnel: 513cec7b-754d-4dd8-a69d-d15942180fe4
 credentials-file: /etc/cloudflared/513cec7b-754d-4dd8-a69d-d15942180fe4.json
 
 ingress:
+  - hostname: cbapp.aglz.io
+    service: http://100.94.221.87:8077
   - hostname: man7.aglz.io
-    service: https://191.252.93.227:8006
+    service: https://192.168.70.1:8006
     originRequest:
       noTLSVerify: true
       disableChunkedEncoding: true
   - hostname: man7a.aglz.io
-    service: https://191.252.93.227:8006
+    service: https://192.168.70.1:8006
     originRequest:
       noTLSVerify: true
       disableChunkedEncoding: true
+  # EvoNexus: SPA/API no Flask :8080; WebSocket do terminal em :32352 (path /terminal/*)
+  - hostname: evo.aglz.io
+    path: ^/terminal
+    service: http://192.168.70.242:32352
+    originRequest:
+      httpHostHeader: evo.aglz.io
+      connectTimeout: 120s
+      noTLSVerify: true
+  - hostname: evo.aglz.io
+    service: http://192.168.70.242:8080
+    originRequest:
+      httpHostHeader: evo.aglz.io
+      connectTimeout: 120s
+      noTLSVerify: true
+  - hostname: mysql-ha.falg.com.br
+    service: tcp://192.168.70.135:3306
+  - hostname: db-ha.falg.com.br
+    service: tcp://192.168.70.135:3306
+  - hostname: mysql-slave.falg.com.br
+    service: tcp://192.168.70.135:3306
+  - hostname: mysql-slave.aglz.io
+    service: tcp://192.168.70.135:3306
   - service: http_status:404
 ```
 
 **Endpoints**:
-- man7.aglz.io → Proxmox Web UI (porta 8006)
-- man7a.aglz.io → Proxmox Web UI (porta 8006)
+
+- cbapp.aglz.io → backend remoto (Tailscale)
+- man7.aglz.io / man7a.aglz.io → Proxmox Web UI no host (`192.168.70.1:8006`)
+- **evo.aglz.io** → **EvoNexus** (CT242): pedidos com path **`/terminal*`** → `192.168.70.242:32352` (terminal-server WebSocket); resto → `192.168.70.242:8080` (Flask + SPA)
+- mysql-ha.falg.com.br, db-ha.falg.com.br, mysql-slave.* → MySQL CT235 (`192.168.70.135:3306`)
+
+> **Nota (2026-04):** em MariaDB HA o **master GTID** é o **CT235** (`192.168.70.135`); o **CT135** é **slave read_only**. Os hostnames `mysql-master` / `mysql-slave` nos túneis podem ser legados — confirmar que o **destino TCP** corresponde ao papel desejado. Detalhe: `docs/maint/MYSQL-HA-POST-RESET-2026-04.md`.
 
 **Comandos Úteis**:
-```bash
-# Diagnostico 502 / origin (ex.: exo.aglz.io -> 192.168.70.242:8080) desde CT170 + CT242
-# Na maquina com SSH ao FGSRV07: bash scripts/maint/fgsrv07/ct170-verify-exo-tunnel-origin.sh
-# RESTART_CLOUDFLARED=1 … — reinicia cloudflared apos mudar rotas no Zero Trust
 
+```bash
 # Verificar status do container
 ssh root@100.109.181.93 'pct status 170'
 
@@ -110,6 +147,7 @@ ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel info fgsrv7'
 ```
 
 **Troubleshooting**:
+
 ```bash
 # Se container perder rede após boot
 ssh root@100.109.181.93 '
@@ -129,6 +167,7 @@ ssh root@100.109.181.93 '
 **Localização**: Cloud VPS (vps41772) - 186.202.57.120
 
 **Configuração**:
+
 - **Tipo**: Docker container
 - **Container**: `cloudflared-tunnel`
 - **Imagem**: `cloudflare/cloudflared:latest`
@@ -137,6 +176,7 @@ ssh root@100.109.181.93 '
 - **Config Path**: `/opt/docker/cloudflared/`
 
 **Ingress Rules**:
+
 ```yaml
 - hostname: n8n5e.aglz.io
   service: https://186.202.57.120:4443
@@ -152,6 +192,7 @@ ssh root@100.109.181.93 '
 ```
 
 **Comandos Úteis**:
+
 ```bash
 # Verificar status
 ssh root@100.83.51.9 'docker ps --filter name=cloudflared'
@@ -175,12 +216,14 @@ ssh root@100.83.51.9 'cat /opt/docker/cloudflared/docker-compose.yml'
 **Localização**: AGLSRV5 - CT130 (cloudflared5)
 
 **Configuração**:
+
 - **Tipo**: systemd service
 - **Service**: `cloudflared.service`
 - **Status**: `enabled` ✅
 - **Restart**: `on-failure`
 
 **Comandos Úteis**:
+
 ```bash
 # Verificar status
 ssh root@100.119.223.113 'pct exec 130 -- systemctl status cloudflared'
@@ -201,11 +244,13 @@ ssh root@100.119.223.113 'pct exec 130 -- systemctl restart cloudflared'
 **Localização**: AGLSRV1 - CT117 (cloudflared)
 
 **Configuração**:
+
 - **Tipo**: systemd service / cloudflared run
 - **Config Path**: `/root/.cloudflared/config.yml`
 - **Backend**: archon.aglz.io → CT183 (192.168.0.183:8080)
 
 **Ingress Rules**:
+
 ```yaml
 - hostname: archon.aglz.io
   service: http://192.168.0.183:8080
@@ -220,11 +265,13 @@ ssh root@100.119.223.113 'pct exec 130 -- systemctl restart cloudflared'
 ```
 
 **Endpoints**:
+
 - archon.aglz.io → Archon AI (CT183:8080)
 - mysql-master.aglz.io → MySQL HA Master (CT131:3306)
 - mesh.aglz.io → MeshCentral (CT162)
 
 **Comandos Úteis**:
+
 ```bash
 # Verificar status
 ssh root@192.168.0.245 'pct exec 117 -- cloudflared tunnel list'
@@ -243,12 +290,13 @@ ssh root@192.168.0.245 'pct exec 117 -- cat /root/.cloudflared/config.yml'
 ### Método 1: Token (Recomendado)
 
 1. **Obter token** via Cloudflare Zero Trust Dashboard:
-   - Acesse: https://one.dash.cloudflare.com/
+   - Acesse: <https://one.dash.cloudflare.com/>
    - Networks → Tunnels → Create a tunnel
    - Escolha "Cloudflared connector"
    - Copie o token
 
 2. **Criar container/systemd**:
+
    ```bash
    # Docker
    docker run -d --name cloudflared-tunnel \
@@ -265,16 +313,19 @@ ssh root@192.168.0.245 'pct exec 117 -- cat /root/.cloudflared/config.yml'
 ### Método 2: Credenciais
 
 1. **Login**:
+
    ```bash
    cloudflared tunnel login
    ```
 
 2. **Criar túnel**:
+
    ```bash
    cloudflared tunnel create <NAME>
    ```
 
 3. **Configurar ingress** em `~/.cloudflared/config.yml`:
+
    ```yaml
    tunnel: <TUNNEL_ID>
    credentials-file: /root/.cloudflared/<TUNNEL_ID>.json
@@ -286,11 +337,13 @@ ssh root@192.168.0.245 'pct exec 117 -- cat /root/.cloudflared/config.yml'
    ```
 
 4. **Criar DNS**:
+
    ```bash
    cloudflared tunnel route dns <NAME> exemplo.aglz.io
    ```
 
 5. **Iniciar**:
+
    ```bash
    cloudflared tunnel run <NAME>
    ```
@@ -335,11 +388,13 @@ ssh root@192.168.0.245 'pct exec 117 -- journalctl -u cloudflared -f'
 ### Túnel Offline
 
 1. Verificar conectividade com Cloudflare edge:
+
    ```bash
    ping 198.41.192.27
    ```
 
 2. Verificar logs:
+
    ```bash
    # Docker
    docker logs cloudflared-tunnel --tail 100
@@ -349,6 +404,7 @@ ssh root@192.168.0.245 'pct exec 117 -- journalctl -u cloudflared -f'
    ```
 
 3. Reiniciar serviço:
+
    ```bash
    # Docker
    docker restart cloudflared-tunnel
@@ -360,6 +416,7 @@ ssh root@192.168.0.245 'pct exec 117 -- journalctl -u cloudflared -f'
 ### Erro de Token
 
 Se o token expirar ou for inválido:
+
 1. Obter novo token via Cloudflare Dashboard
 2. Atualizar `.env` ou systemd service
 3. Reiniciar serviço
@@ -378,8 +435,8 @@ dig n8n5e.aglz.io
 
 ## 📚 Referências
 
-- **Cloudflare Docs**: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
-- **Zero Trust Dashboard**: https://one.dash.cloudflare.com/
+- **Cloudflare Docs**: <https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/>
+- **Zero Trust Dashboard**: <https://one.dash.cloudflare.com/>
 - **INFRA.md**: `docs/INFRA.md`
 - **Archon Config**: `docs/cloudflare-archon-config.md`
 

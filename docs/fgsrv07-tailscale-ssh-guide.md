@@ -102,10 +102,10 @@ ssh root@fgsrv7.your-tailnet.ts.net
 ### Method 2: Traditional SSH (Fallback)
 
 ```bash
-# Using SSH key
-ssh -i ~/.ssh/fg_srv.pem root@191.252.93.227
+# IP público: usar id_rsa (não fg_srv.pem)
+ssh -i ~/.ssh/id_rsa root@191.252.93.227
 
-# Using SSH alias
+# Ou alias (~/.ssh/config Host FGSRV07 → IdentityFile id_rsa)
 ssh FGSRV07
 ```
 
@@ -175,6 +175,14 @@ tailscale ip -4
 
 # Update SSH config with correct IP
 ```
+
+### Issue: `ssh root@100.109.x` expira / recusa (mas `tailscale ping` OK)
+
+**Cause (FGSRV7, 2026-05):** `ShieldsUp` activo — bloqueia tráfego TCP entrante da tailnet para serviços locais (ex.: **sshd na porta 22**). `RunSSH: true` só cobre **`tailscale ssh`**, não o cliente OpenSSH normal para o IP 100.x.
+
+**Solução aplicada no host:** `tailscale set --shields-up=false` (ACLs da consola Tailscale continuam a aplicar-se). Verificar: `tailscale debug prefs | grep ShieldsUp`.
+
+**Alternativa sem desligar shields:** usar `tailscale ssh root@fgsrv07` a partir de máquinas com Tailscale instalado.
 
 ### Issue: Falls back to key-based SSH
 

@@ -92,7 +92,8 @@ Nodeid      Votes    Qdevice Name
 | VMID | Name | Status | Network | Purpose |
 |------|------|--------|---------|---------|
 | 170 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel fgsrv7 |
-| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL Slave (HA replication) |
+| 171 | cloudflared7b | running | vmbr70 (192.168.70.171) | Cloudflare Tunnel **fgsrv7b** — `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` |
+| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL Master (HA / GTID) — ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
 | 239 | pihole7 | running | vmbr70 (192.168.70.139) | DNS/Ad-blocking (HA migrated from AGLSRV5 CT139) |
 
 **Cloudflare Tunnel (fgsrv7)**:
@@ -288,20 +289,20 @@ Votequorum Qdevice
 | Service | Source | Destination | Status | Type |
 |---------|--------|-------------|--------|------|
 | Pi-hole DNS | AGLSRV5 CT139 | FGSRV7 CT239 | ✅ Running | Migration |
-| MySQL | AGLSRV5 CT135 | FGSRV7 CT235 | ✅ Replicating | Master-Slave |
+| MySQL | FGSRV7 CT235 (master) | AGLSRV5 CT135 (slave) | ✅ Replicating (GTID) | Master-Slave |
 
-**MySQL HA Configuration**:
+**MySQL HA Configuration** (2026-04 — ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md`):
 ```
-Master (CT135 on AGLSRV5):
-  - Tailscale IP: 100.98.1.119
-  - Binary Log: mysql-bin
-  - Server-ID: 1
-
-Slave (CT235 on FGSRV7):
+Master (CT235 mysql7 on FGSRV7):
   - Tailscale IP: 100.83.7.16
-  - Server-ID: 2
-  - Read-Only: ON
-  - Replication: async (0s delay) via Tailscale direct
+  - LAN: 192.168.70.135 (vmbr70)
+  - log_bin / server_id 235
+
+Slave read_only (CT135 mysql5 on AGLSRV5):
+  - Tailscale IP: 100.98.1.119
+  - LAN secundária: 172.2.2.135/24 (eth1 / vmbr1)
+  - server_id 135
+  - Replication: GTID via Tailscale (repl → master)
 ```
 
 **Tailscale Configuration for LXC**:
@@ -311,12 +312,12 @@ lxc.cgroup2.devices.allow: c 10:200 rwm
 lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 ```
 
-**Failover Procedure** (manual):
-1. Verify master (CT135) is down
-2. Stop slave on CT235: `STOP SLAVE;`
-3. Promote to master: `SET GLOBAL read_only = OFF;`
-4. Update application connection strings
-5. Optional: Set up new slave on recovered CT135
+**Failover Procedure** (manual — espelha o script automático no CT135):
+1. Confirmar master **CT235** inacessível (Tailscale / LAN).
+2. No **CT135**: `STOP SLAVE;` / `RESET SLAVE ALL;` conforme política; `SET GLOBAL read_only = OFF;`
+3. Actualizar DNS `mysql-ha` / `db-ha` para o túnel **AGLSRV5** (onde o CT135 é alcançável) — ou deixar o `mysql-failover.sh` fazer após falhas consecutivas.
+4. Actualizar connection strings das apps para o novo endpoint.
+5. Quando CT235 voltar: planear re-sync / novo slave a partir do promovido.
 
 ### Monitoring Commands
 ```bash

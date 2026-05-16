@@ -59,6 +59,28 @@ class SecurityAuditLog extends Model
         'created_at' => 'datetime',
     ];
 
+    public function getCasts(): array
+    {
+        $casts = parent::getCasts();
+        unset($casts[$this->getKeyName()]);
+
+        return $casts;
+    }
+
+    public function fill(array $attributes)
+    {
+        $createdAt = $attributes['created_at'] ?? null;
+        unset($attributes['created_at']);
+
+        parent::fill($attributes);
+
+        if ($createdAt !== null) {
+            $this->setAttribute('created_at', $createdAt);
+        }
+
+        return $this;
+    }
+
     /**
      * Event types
      */
@@ -173,7 +195,7 @@ class SecurityAuditLog extends Model
      */
     public function scopeRecent($query, int $days = 7)
     {
-        return $query->where('created_at', '>=', now()->subDays($days));
+        return $query->where('created_at', '>', now()->subDays($days));
     }
 
     /**
@@ -257,6 +279,15 @@ class SecurityAuditLog extends Model
             'severity' => self::SEVERITY_HIGH,
             'tags' => ['security-alert', 'auto-generated'],
         ]));
+    }
+
+    public static function logSecurityEvent($user, string $eventType, string $description, array $metadata = []): self
+    {
+        return static::log($eventType, $description, [
+            'user_id' => $user?->id,
+            'metadata' => $metadata,
+            'severity' => self::SEVERITY_HIGH,
+        ]);
     }
 
     /**

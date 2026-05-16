@@ -4,12 +4,12 @@
 # Monitors MySQL Master and triggers failover to Slave
 #
 # Architecture:
-#   AGLSRV5: CT130 (aglsrv5 tunnel) -> CT135 (mysql5 MASTER)
-#   FGSRV7:  CT170 (fgsrv7 tunnel)  -> CT235 (mysql7 SLAVE)
+#   Topologia 2026-04 (GTID): CT235 (mysql7) = MASTER · CT135 (mysql5) = SLAVE read_only.
+#   Túneis Cloudflare / DNS: validar destinos em config.yml (CT130/CT170).
 #
-# On failover:
-#   mysql-ha.falg.com.br -> aglsrv5 (switches to fgsrv7)
-#   db-ha.falg.com.br    -> aglsrv5 (switches to fgsrv7)
+# On failover (slave CT135 promovido): CNAME mysql-ha / db-ha → túnel que alcança AGLSRV5
+# (CF_FAILOVER_DNS_TUNNEL, por omissão = CF_MASTER_TUNNEL). Enquanto o master CT235 está UP,
+# o estado “túnel activo” segue CF_PRIMARY_MASTER_TUNNEL (por omissão = CF_SLAVE_TUNNEL / FGSRV7).
 #
 
 set -e
@@ -27,6 +27,10 @@ else
     exit 1
 fi
 
+# Defaults nomes legados CF_*: master CT235 via FGSRV7 = CF_SLAVE_TUNNEL; pós-failover DNS → CF_MASTER_TUNNEL (AGLSRV5).
+CF_PRIMARY_MASTER_TUNNEL="${CF_PRIMARY_MASTER_TUNNEL:-$CF_SLAVE_TUNNEL}"
+CF_FAILOVER_DNS_TUNNEL="${CF_FAILOVER_DNS_TUNNEL:-$CF_MASTER_TUNNEL}"
+
 # Ensure state directory exists
 mkdir -p "$(dirname "$STATE_FILE")"
 
@@ -41,7 +45,7 @@ init_state() {
     if [[ ! -f "$STATE_FILE" ]]; then
         echo "MASTER_UP=true" > "$STATE_FILE"
         echo "FAILURE_COUNT=0" >> "$STATE_FILE"
-        echo "CURRENT_MASTER=${CF_MASTER_TUNNEL}" >> "$STATE_FILE"
+        echo "CURRENT_MASTER=${CF_PRIMARY_MASTER_TUNNEL}" >> "$STATE_FILE"
         echo "LAST_FAILOVER=0" >> "$STATE_FILE"
     fi
     source "$STATE_FILE"
@@ -155,14 +159,14 @@ perform_failover() {
 
     # Promote this server (slave) to master
     if promote_slave; then
-        # Update both DNS records to point to slave tunnel
+        # mysql-ha / db-ha → túnel onde o promovido (CT135) é alcançável (tipicamente AGLSRV5)
         local failover_success=true
 
-        if ! update_cloudflare_dns "${CF_MYSQL_HA_ID}" "mysql-ha" "${CF_SLAVE_TUNNEL}"; then
+        if ! update_cloudflare_dns "${CF_MYSQL_HA_ID}" "mysql-ha" "${CF_FAILOVER_DNS_TUNNEL}"; then
             failover_success=false
         fi
 
-        if ! update_cloudflare_dns "${CF_DB_HA_ID}" "db-ha" "${CF_SLAVE_TUNNEL}"; then
+        if ! update_cloudflare_dns "${CF_DB_HA_ID}" "db-ha" "${CF_FAILOVER_DNS_TUNNEL}"; then
             failover_success=false
         fi
 
@@ -170,11 +174,11 @@ perform_failover() {
             # Update state
             MASTER_UP="true"
             FAILURE_COUNT=0
-            CURRENT_MASTER="${CF_SLAVE_TUNNEL}"
+            CURRENT_MASTER="${CF_FAILOVER_DNS_TUNNEL}"
             LAST_FAILOVER=$current_time
             save_state
 
-            send_notification "MySQL Failover: Switched to slave tunnel (FGSRV7)"
+            send_notification "MySQL Failover: DNS mysql-ha/db-ha → túnel pós-promoção (CT135)"
 
             log "FAILOVER COMPLETED SUCCESSFULLY"
             return 0

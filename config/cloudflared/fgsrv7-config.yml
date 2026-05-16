@@ -1,0 +1,31 @@
+# Cloudflared tunnel config (FGSRV7 / CT170 - cloudflared7)
+#
+# Objetivo: rotear EvoNexus (CT242) com WebSocket do terminal separado:
+# - /terminal*  -> terminal-server (WebSocket) em :32352
+# - restante    -> Flask/SPA em :8080
+#
+# Importante: a regra com "path: ^/terminal" DEVE vir antes da regra sem path,
+# senão o handshake WS cai no backend HTTP e o browser mostra "Invalid frame header".
+#
+# Nota: este ficheiro é um template de referência. O caminho real no CT170
+# costuma ser /etc/cloudflared/config.yml (ver docs/CLOUDFLARE-TUNNELS.md).
+
+credentials-file: /etc/cloudflared/513cec7b-754d-4dd8-a69d-d15942180fe4.json
+
+ingress:
+  # EvoNexus terminal WebSocket (xterm)
+  - hostname: evo.aglz.io
+    path: ^/terminal
+    service: http://192.168.70.242:32352
+    originRequest:
+      httpHostHeader: evo.aglz.io
+
+  # EvoNexus app (Flask + SPA)
+  - hostname: evo.aglz.io
+    service: http://192.168.70.242:8080
+    originRequest:
+      httpHostHeader: evo.aglz.io
+
+  # Default fallback
+  - service: http_status:404
+
