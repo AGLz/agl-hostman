@@ -29,19 +29,18 @@ class ApiAuthentication
         }
 
         // Check cache first
-        $cacheKey = 'api_key:'.substr($apiKey, 0, 8);
+        $cacheKey = 'api_key:' . substr($apiKey, 0, 8);
         $apiKeyModel = Cache::remember($cacheKey, 300, function () use ($apiKey) {
-            return ApiKey::where('key', $apiKey)->active()->first();
+            return ApiKey::query()->where('key', $apiKey)->first();
         });
 
-        if (! $apiKeyModel) {
+        if (! $apiKeyModel || ! $apiKeyModel->is_active) {
             return response()->json([
                 'error' => 'Invalid API key',
                 'message' => 'The provided API key is invalid or inactive',
             ], 401);
         }
 
-        // Check if expired
         if ($apiKeyModel->isExpired()) {
             Cache::forget($cacheKey);
 
@@ -60,7 +59,7 @@ class ApiAuthentication
         }
 
         // Rate limiting
-        $rateLimitKey = 'api_rate:'.$apiKeyModel->id;
+        $rateLimitKey = 'api_rate:' . $apiKeyModel->id;
         $limit = $apiKeyModel->rate_limit ?: 60;
 
         if (! RateLimiter::attempt($rateLimitKey, $limit, function () {}, 60)) {

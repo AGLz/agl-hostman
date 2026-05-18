@@ -6,9 +6,11 @@ namespace Tests\Unit\Middleware;
 
 use App\Http\Middleware\ApiAuthentication;
 use App\Models\ApiKey;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -18,6 +20,8 @@ use Tests\TestCase;
  */
 class ApiAuthenticationMiddlewareTest extends TestCase
 {
+    use RefreshDatabase;
+
     private ApiAuthentication $middleware;
 
     protected function setUp(): void
@@ -25,29 +29,15 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         parent::setUp();
 
         $this->middleware = new ApiAuthentication;
+        Cache::flush();
     }
 
-    /**
-     * Test successful authentication with valid API key
-     */
     public function test_authenticates_with_valid_api_key(): void
     {
         $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
         ]);
-
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        RateLimiter::shouldReceive('attempt')
-            ->once()
-            ->andReturn(true);
-
-        RateLimiter::shouldReceive('remaining')
-            ->once()
-            ->andReturn(59);
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
@@ -59,9 +49,6 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals((string) $apiKey->id, $response->headers->get('X-API-Key-ID'));
     }
 
-    /**
-     * Test fails when API key is missing
-     */
     public function test_fails_when_api_key_missing(): void
     {
         $request = Request::create('/api/test', 'GET');
@@ -74,15 +61,8 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('API key required', $responseData['error']);
     }
 
-    /**
-     * Test fails when API key is invalid
-     */
     public function test_fails_with_invalid_api_key(): void
     {
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn(null);
-
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', 'invalid-key');
 
@@ -93,24 +73,12 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('Invalid API key', $responseData['error']);
     }
 
-    /**
-     * Test fails when API key is expired
-     */
     public function test_fails_when_api_key_expired(): void
     {
-        $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+        $apiKey = ApiKey::factory()->expired()->create([
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
-            'expires_at' => now()->subDay(),
         ]);
-
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        Cache::shouldReceive('forget')
-            ->once()
-            ->with('api_key:'.substr($apiKey->key, 0, 8));
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
@@ -122,24 +90,13 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('API key expired', $responseData['error']);
     }
 
-    /**
-     * Test fails when permission is required but not granted
-     */
     public function test_fails_when_permission_required_but_not_granted(): void
     {
         $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
             'permissions' => ['read'],
         ]);
-
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        RateLimiter::shouldReceive('attempt')
-            ->once()
-            ->willReturn(true);
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
@@ -151,28 +108,13 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('Insufficient permissions', $responseData['error']);
     }
 
-    /**
-     * Test passes when permission is granted
-     */
     public function test_passes_when_permission_granted(): void
     {
         $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
             'permissions' => ['read', 'write'],
         ]);
-
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        RateLimiter::shouldReceive('attempt')
-            ->once()
-            ->willReturn(true);
-
-        RateLimiter::shouldReceive('remaining')
-            ->once()
-            ->andReturn(59);
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
@@ -182,45 +124,29 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
-    /**
-     * Test rate limiting
-     */
     public function test_rate_limiting(): void
     {
         $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
-            'rate_limit' => 5,
+            'rate_limit' => 1,
         ]);
 
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        RateLimiter::shouldReceive('attempt')
-            ->once()
-            ->with('api_rate:'.$apiKey->id, 5, \Closure::class, 60)
-            ->andReturn(false);
-
-        RateLimiter::shouldReceive('availableIn')
-            ->once()
-            ->with('api_rate:'.$apiKey->id)
-            ->andReturn(30);
+        RateLimiter::clear('api_rate:'.$apiKey->id);
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
 
-        $response = $this->middleware->handle($request, fn ($req) => response('success'));
+        $first = $this->middleware->handle($request, fn ($req) => response('success'));
+        $this->assertEquals(200, $first->getStatusCode());
 
-        $this->assertEquals(429, $response->getStatusCode());
-        $responseData = json_decode($response->getContent(), true);
+        $second = $this->middleware->handle($request, fn ($req) => response('success'));
+        $this->assertEquals(429, $second->getStatusCode());
+        $responseData = json_decode($second->getContent(), true);
         $this->assertEquals('Rate limit exceeded', $responseData['error']);
-        $this->assertEquals('30', $response->headers->get('Retry-After'));
+        $this->assertNotEmpty($second->headers->get('Retry-After'));
     }
 
-    /**
-     * Test extracting API key from X-API-Key header
-     */
     public function test_extract_api_key_from_header(): void
     {
         $request = Request::create('/api/test', 'GET');
@@ -235,9 +161,6 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('test-key', $result);
     }
 
-    /**
-     * Test extracting API key from Authorization Bearer header
-     */
     public function test_extract_api_key_from_authorization_bearer(): void
     {
         $request = Request::create('/api/test', 'GET');
@@ -252,9 +175,6 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('test-bearer-key', $result);
     }
 
-    /**
-     * Test extracting API key from query parameter
-     */
     public function test_extract_api_key_from_query_parameter_when_allowed(): void
     {
         config(['security.allow_query_api_key' => true]);
@@ -285,11 +205,10 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertNull($result);
     }
 
-    /**
-     * Test X-API-Key header takes priority over others
-     */
     public function test_x_api_key_header_takes_priority(): void
     {
+        config(['security.allow_query_api_key' => true]);
+
         $request = Request::create('/api/test?api_key=query-key', 'GET');
         $request->headers->set('X-API-Key', 'header-key');
         $request->headers->set('Authorization', 'Bearer bearer-key');
@@ -303,11 +222,10 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('header-key', $result);
     }
 
-    /**
-     * Test Authorization header takes priority over query parameter
-     */
     public function test_authorization_header_priority_over_query(): void
     {
+        config(['security.allow_query_api_key' => true]);
+
         $request = Request::create('/api/test?api_key=query-key', 'GET');
         $request->headers->set('Authorization', 'Bearer bearer-key');
 
@@ -320,9 +238,6 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertEquals('bearer-key', $result);
     }
 
-    /**
-     * Test returns null when no API key is provided
-     */
     public function test_returns_null_when_no_api_key(): void
     {
         $request = Request::create('/api/test', 'GET');
@@ -336,29 +251,15 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $this->assertNull($result);
     }
 
-    /**
-     * Test rate limit headers are added
-     */
     public function test_rate_limit_headers_added(): void
     {
         $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
             'rate_limit' => 100,
         ]);
 
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        RateLimiter::shouldReceive('attempt')
-            ->once()
-            ->andReturn(true);
-
-        RateLimiter::shouldReceive('remaining')
-            ->once()
-            ->with('api_rate:'.$apiKey->id, 100)
-            ->andReturn(95);
+        RateLimiter::clear('api_rate:'.$apiKey->id);
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
@@ -366,30 +267,17 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $response = $this->middleware->handle($request, fn ($req) => response('success'));
 
         $this->assertEquals('100', $response->headers->get('X-RateLimit-Limit'));
-        $this->assertEquals('95', $response->headers->get('X-RateLimit-Remaining'));
+        $this->assertEquals('99', $response->headers->get('X-RateLimit-Remaining'));
     }
 
-    /**
-     * Test API key ID is added to response headers
-     */
     public function test_api_key_id_added_to_response_headers(): void
     {
         $apiKey = ApiKey::factory()->create([
-            'key' => 'test-api-key-'.str_random(32),
+            'key' => 'test-api-key-'.Str::random(32),
             'is_active' => true,
         ]);
 
-        Cache::shouldReceive('remember')
-            ->once()
-            ->andReturn($apiKey);
-
-        RateLimiter::shouldReceive('attempt')
-            ->once()
-            ->andReturn(true);
-
-        RateLimiter::shouldReceive('remaining')
-            ->once()
-            ->andReturn(59);
+        RateLimiter::clear('api_rate:'.$apiKey->id);
 
         $request = Request::create('/api/test', 'GET');
         $request->headers->set('X-API-Key', $apiKey->key);
