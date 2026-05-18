@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Concerns\ExtractsApiKeyFromRequest;
 use App\Models\ApiKey;
 use Closure;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuthentication
 {
+    use ExtractsApiKeyFromRequest;
+
     /**
      * Handle an incoming request.
      */
@@ -21,7 +24,7 @@ class ApiAuthentication
         if (! $apiKey) {
             return response()->json([
                 'error' => 'API key required',
-                'message' => 'Please provide an API key via X-API-Key header or api_key parameter',
+                'message' => 'Please provide an API key via X-API-Key header or Authorization Bearer token',
             ], 401);
         }
 
@@ -90,24 +93,6 @@ class ApiAuthentication
      */
     protected function extractApiKey(Request $request): ?string
     {
-        // Check header first
-        if ($request->hasHeader('X-API-Key')) {
-            return $request->header('X-API-Key');
-        }
-
-        // Check Authorization header
-        if ($request->hasHeader('Authorization')) {
-            $auth = $request->header('Authorization');
-            if (str_starts_with($auth, 'Bearer ')) {
-                return substr($auth, 7);
-            }
-        }
-
-        // Check query parameter
-        if ($request->has('api_key')) {
-            return $request->input('api_key');
-        }
-
-        return null;
+        return $this->extractApiKeyFromRequest($request);
     }
 }

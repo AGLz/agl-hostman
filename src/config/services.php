@@ -77,4 +77,9 @@ return [
         ],
     ],
 
+    'hostman' => [
+        'api_key' => env('API_KEY'),
+        'api_keys' => env('API_KEYS'),
+    ],
+
 ];

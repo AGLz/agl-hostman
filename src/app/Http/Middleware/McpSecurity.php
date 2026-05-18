@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Http\Concerns\ExtractsApiKeyFromRequest;
 use App\Models\SecurityAuditLog;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -19,6 +21,8 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
  */
 class McpSecurity
 {
+    use ExtractsApiKeyFromRequest;
+
     /**
      * Handle an incoming request to MCP server.
      *
@@ -216,7 +220,7 @@ class McpSecurity
 
         $maxAttempts = config('mcp.rate_limiting.max_attempts') ?? ($roleLimits[$role] ?? 60);
         $decayMinutes = config('mcp.rate_limiting.decay_minutes', 1);
-        $key = 'mcp:rbac:'.$role.':'.$request->ip();
+        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($key);
@@ -232,7 +236,7 @@ class McpSecurity
                 ]
             );
 
-            abort(429, 'Too many requests. Try again in '.$seconds.' seconds.');
+            abort(429, 'Too many requests. Try again in ' . $seconds . ' seconds.');
         }
 
         RateLimiter::hit($key, $decayMinutes * 60);
@@ -258,7 +262,7 @@ class McpSecurity
             'viewer' => 100,
         ];
         $maxAttempts = config('mcp.rate_limiting.max_attempts') ?? ($roleLimits[$role] ?? 60);
-        $key = 'mcp:rbac:'.$role.':'.$request->ip();
+        $key = 'mcp:rbac:' . $role . ':' . $request->ip();
 
         $response->headers->set('X-RateLimit-Limit', (string) $maxAttempts);
         $response->headers->set('X-RateLimit-Remaining', (string) max(0, $maxAttempts - RateLimiter::attempts($key)));
@@ -298,40 +302,14 @@ class McpSecurity
      */
     protected function extractApiKey(Request $request): ?string
     {
-        // Check X-API-Key header
-        if ($request->hasHeader('X-API-Key')) {
-            return $request->header('X-API-Key');
-        }
-
-        // Check Authorization header
-        if ($request->hasHeader('Authorization')) {
-            $auth = $request->header('Authorization');
-            if (str_starts_with($auth, 'Bearer ')) {
-                return substr($auth, 7);
-            }
-        }
-
-        if (config('mcp.allow_query_api_key', false) && $request->has('api_key')) {
-            return $request->input('api_key');
-        }
-
-        return null;
+        return $this->extractApiKeyFromRequest($request);
     }
 
     /**
-     * Check if IP is in range (supports CIDR notation).
+     * Check if IP is in range (IPv4/IPv6, CIDR or exact match).
      */
     protected function ipInRange(string $ip, string $range): bool
     {
-        if (str_contains($range, '/')) {
-            [$subnet, $bits] = explode('/', $range);
-            $ipLong = ip2long($ip);
-            $subnetLong = ip2long($subnet);
-            $mask = -1 << (32 - $bits);
-
-            return ($ipLong & $mask) === ($subnetLong & $mask);
-        }
-
-        return $ip === $range;
+        return IpUtils::checkIp($ip, $range);
     }
 }

@@ -13,11 +13,6 @@ return [
     |
     */
 
-    /*
-    | Query-string API keys leak via logs and Referer — disabled by default outside local.
-    */
-    'allow_query_api_key' => env('MCP_ALLOW_QUERY_API_KEY', env('APP_ENV') === 'local'),
-
     'api_keys' => [
         // Laravel Boost MCP Server
         'laravel_boost' => env('MCP_LARAVEL_BOOST_KEY'),

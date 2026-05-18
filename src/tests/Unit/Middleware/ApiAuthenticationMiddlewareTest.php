@@ -255,8 +255,10 @@ class ApiAuthenticationMiddlewareTest extends TestCase
     /**
      * Test extracting API key from query parameter
      */
-    public function test_extract_api_key_from_query_parameter(): void
+    public function test_extract_api_key_from_query_parameter_when_allowed(): void
     {
+        config(['security.allow_query_api_key' => true]);
+
         $request = Request::create('/api/test?api_key=test-query-key', 'GET');
 
         $reflection = new \ReflectionClass($this->middleware);
@@ -266,6 +268,21 @@ class ApiAuthenticationMiddlewareTest extends TestCase
         $result = $method->invoke($this->middleware, $request);
 
         $this->assertEquals('test-query-key', $result);
+    }
+
+    public function test_extract_api_key_ignores_query_when_disabled(): void
+    {
+        config(['security.allow_query_api_key' => false]);
+
+        $request = Request::create('/api/test?api_key=test-query-key', 'GET');
+
+        $reflection = new \ReflectionClass($this->middleware);
+        $method = $reflection->getMethod('extractApiKey');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->middleware, $request);
+
+        $this->assertNull($result);
     }
 
     /**

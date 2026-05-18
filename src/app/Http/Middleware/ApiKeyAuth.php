@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
+use App\Http\Concerns\ExtractsApiKeyFromRequest;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -9,23 +12,22 @@ use Illuminate\Support\Facades\Log;
 
 class ApiKeyAuth
 {
+    use ExtractsApiKeyFromRequest;
+
     /**
      * Handle an incoming request.
      *
-     * Validates API key from:
-     * - X-API-Key header
-     * - api_key query parameter
-     * - Authorization: Bearer <api_key>
+     * Validates API key from X-API-Key or Authorization: Bearer (query only if ALLOW_QUERY_API_KEY).
      */
     public function handle(Request $request, Closure $next)
     {
-        $apiKey = $this->extractApiKey($request);
+        $apiKey = $this->extractApiKeyFromRequest($request);
 
         if (! $apiKey) {
             return response()->json([
                 'success' => false,
                 'error' => 'API key required',
-                'message' => 'Provide API key via X-API-Key header, api_key query param, or Authorization Bearer token.',
+                'message' => 'Provide API key via X-API-Key header or Authorization Bearer token.',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -47,53 +49,28 @@ class ApiKeyAuth
     }
 
     /**
-     * Extract API key from various sources.
-     */
-    private function extractApiKey(Request $request): ?string
-    {
-        // Check header first
-        if ($request->hasHeader('X-API-Key')) {
-            return $request->header('X-API-Key');
-        }
-
-        // Check query parameter
-        if ($request->has('api_key')) {
-            return $request->input('api_key');
-        }
-
-        // Check Authorization Bearer
-        $authHeader = $request->header('Authorization');
-        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
-            return substr($authHeader, 7);
-        }
-
-        return null;
-    }
-
-    /**
      * Get valid API keys from config/env.
+     *
+     * @return list<string>
      */
     private function getValidKeys(): array
     {
         $keys = [];
 
-        // Primary key from env
-        $primaryKey = env('API_KEY');
-        if ($primaryKey) {
+        $primaryKey = config('services.hostman.api_key');
+        if (is_string($primaryKey) && $primaryKey !== '') {
             $keys[] = $primaryKey;
         }
 
-        // Additional keys from env (comma-separated)
-        $additionalKeys = env('API_KEYS');
-        if ($additionalKeys) {
+        $additionalKeys = config('services.hostman.api_keys');
+        if (is_string($additionalKeys) && $additionalKeys !== '') {
             $keys = array_merge($keys, array_map('trim', explode(',', $additionalKeys)));
         }
 
-        // Development mode: allow 'dev' key
         if (app()->environment('local')) {
             $keys[] = 'dev';
         }
 
-        return array_filter($keys);
+        return array_values(array_filter($keys));
     }
 }
