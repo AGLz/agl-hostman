@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Secret;
+use App\Models\SecretVersion;
 use App\Models\SecurityAuditLog;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Cache;
@@ -64,12 +66,21 @@ class SecretsManagementService
      * @param  string  $key  Secret identifier (e.g., "database.primary.password")
      * @param  string  $value  Secret value to store
      * @param  array  $metadata  Optional metadata (description, tags, rotation schedule)
+     * @param  bool  $archiveOnOverwrite  Archive existing value when overwriting (false during rotate())
      */
-    public function store(string $key, string $value, array $metadata = []): bool
+    public function store(string $key, string $value, array $metadata = [], bool $archiveOnOverwrite = true): bool
     {
         try {
             // Encrypt the secret value
             $encrypted = $this->encrypter->encrypt($value);
+
+            // If key already exists and overwrite-archival is enabled, archive the old value
+            if ($archiveOnOverwrite && $this->existsInStorage($key)) {
+                $existing = $this->fetchFromStorage($key);
+                if ($existing !== null) {
+                    $this->archiveOldValue($key, $existing['value'], 'manual');
+                }
+            }
 
             // Store in cache with encryption
             $cacheKey = $this->getCacheKey($key);
@@ -82,8 +93,7 @@ class SecretsManagementService
 
             Cache::put($cacheKey, $secretData, self::CACHE_TTL);
 
-            // For persistent storage, you would also store in database
-            // or external secret manager like HashiCorp Vault
+            // Persist to PostgreSQL
             $this->persistToStorage($key, $secretData);
 
             // Log the event (without the secret value)
@@ -232,12 +242,12 @@ class SecretsManagementService
             $result = $this->store($key, $newValue, [
                 'rotated_at' => now()->toIso8601String(),
                 'previous_version' => $this->currentVersion - 1,
-            ]);
+            ], archiveOnOverwrite: false);
 
             if ($result && $revokeOld && $oldValue) {
-                // In a real implementation, you'd store the old value
-                // in a separate location for grace period
-                $this->archiveOldValue($key, $oldValue);
+                // Encrypt the old plaintext and archive for grace period
+                $encryptedOld = $this->encrypter->encrypt($oldValue);
+                $this->archiveOldValue($key, $encryptedOld, 'rotation');
             }
 
             SecurityAuditLog::log(
@@ -461,63 +471,108 @@ class SecretsManagementService
     }
 
     /**
-     * Persist secret to storage (database or external).
+     * Public proxy for backfill command: persist a raw cache-entry array directly.
+     * The array must have the same shape that store() writes to cache.
+     *
+     * @internal Only intended for use by the secrets:backfill-from-cache command.
+     */
+    public function persistCacheEntry(string $key, array $data): void
+    {
+        $this->persistToStorage($key, $data);
+    }
+
+    /**
+     * Persist secret to PostgreSQL (upsert).
+     *
+     * Called write-through: cache is already warm when this runs.
      */
     protected function persistToStorage(string $key, array $data): void
     {
-        // In production, this would store to:
-        // - Database table for secrets
-        // - HashiCorp Vault
-        // - AWS Secrets Manager
-        // - Azure Key Vault
-
-        // For now, we rely on cache
-        // TODO: Implement persistent storage
+        Secret::updateOrCreate(
+            ['key' => $key],
+            [
+                'encrypted_value' => $data['value'],
+                'metadata'        => $data['metadata'] ?? [],
+                'version'         => $data['version'] ?? 1,
+                'is_active'       => true,
+                'deleted_at'      => null,
+            ]
+        );
     }
 
     /**
-     * Fetch secret from storage.
+     * Fetch secret from PostgreSQL (read-through fallback when cache misses).
+     *
+     * @return array{value: string, version: int, metadata: array, created_at: string}|null
      */
     protected function fetchFromStorage(string $key): ?array
     {
-        // TODO: Implement persistent storage fetch
-        return null;
+        $secret = Secret::active()->byKey($key)->first();
+
+        if ($secret === null) {
+            return null;
+        }
+
+        return [
+            'value'      => $secret->encrypted_value,
+            'version'    => $secret->version,
+            'metadata'   => $secret->metadata ?? [],
+            'created_at' => $secret->created_at->toIso8601String(),
+        ];
     }
 
     /**
-     * Check if secret exists in storage.
+     * Check if an active secret exists in PostgreSQL.
      */
     protected function existsInStorage(string $key): bool
     {
-        // TODO: Implement persistent storage check
-        return false;
+        return Secret::active()->byKey($key)->exists();
     }
 
     /**
-     * Delete secret from storage.
+     * Soft-delete the secret from PostgreSQL (preserves row for audit).
      */
     protected function deleteFromStorage(string $key): void
     {
-        // TODO: Implement persistent storage delete
+        Secret::active()->byKey($key)->delete();
     }
 
     /**
-     * Archive old secret value.
+     * Archive an old encrypted value into secret_versions for grace period.
+     *
+     * @param  string  $key         Secret key
+     * @param  string  $oldEncrypted  Already-encrypted value to archive
+     * @param  string  $reason      Why this version is being archived ("rotation", "manual", etc.)
      */
-    protected function archiveOldValue(string $key, string $oldValue): void
+    protected function archiveOldValue(string $key, string $oldEncrypted, string $reason = 'rotation'): void
     {
-        // TODO: Implement old value archival for grace period
+        $secret = Secret::withTrashed()->byKey($key)->first();
+
+        if ($secret === null) {
+            return;
+        }
+
+        SecretVersion::create([
+            'secret_id'       => $secret->id,
+            'encrypted_value' => $oldEncrypted,
+            'version'         => $secret->version,
+            'archived_reason' => $reason,
+            'archived_at'     => now(),
+            'expires_at'      => now()->addDays(30),
+        ]);
     }
 
     /**
-     * Get all secret keys.
+     * Get all active secret keys from PostgreSQL.
      *
      * @return array<string>
      */
-    protected function getAllKeys(): array
+    public function getAllKeys(): array
     {
-        // TODO: Implement key listing from storage
-        return [];
+        return Secret::active()
+            ->orderBy('key')
+            ->pluck('key')
+            ->all();
     }
 
     /**
