@@ -10,9 +10,9 @@ updates:
       timezone: "America/Sao_Paulo"
     open-pull-requests-limit: 10
     reviewers:
-      - "your-github-username"  # Replace with actual reviewer
+      - "aguileraz"
     assignees:
-      - "your-github-username"  # Replace with actual assignee
+      - "aguileraz"
     labels:
       - "dependencies"
       - "security"
@@ -50,7 +50,7 @@ updates:
       time: "03:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "your-github-username"
+      - "aguileraz"
     labels:
       - "dependencies"
       - "docker"
@@ -67,7 +67,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "your-github-username"
+      - "aguileraz"
     labels:
       - "dependencies"
       - "github-actions"
@@ -83,7 +83,6 @@ updates:
 # - Follow the schedule for non-security updates
 
 # To enable:
-# 1. Replace "your-github-username" with actual GitHub usernames
-# 2. Ensure GitHub Advanced Security is enabled (for private repos)
-# 3. Configure branch protection rules for develop/main
-# 4. Set up CODEOWNERS file for automatic review assignment
+# 1. Ensure GitHub Advanced Security is enabled (for private repos)
+# 2. Configure branch protection rules for develop/main
+# 3. Set up CODEOWNERS file for automatic review assignment

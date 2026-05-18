@@ -14,7 +14,7 @@
         "laravel/horizon": "^5.39",
         "laravel/reverb": "^1.6",
         "laravel/sanctum": "^4.2",
-        "laravel/socialite": "*",
+        "laravel/socialite": "^5.0",
         "laravel/telescope": "^5.15",
         "laravel/tinker": "^2.10.1",
         "predis/predis": "^3.2",
@@ -22,15 +22,16 @@
         "workos/workos-php": "^4.27"
     },
     "require-dev": {
-        "laravel/boost": "*",
+        "larastan/larastan": "^3.0",
+        "laravel/boost": "^1.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "*",
+        "pestphp/pest": "^3.0",
         "pestphp/pest-plugin-arch": "^3.1",
-        "pestphp/pest-plugin-laravel": "*",
+        "pestphp/pest-plugin-laravel": "^3.0",
         "phpunit/phpunit": "^11.5.3"
     },
     "autoload": {
