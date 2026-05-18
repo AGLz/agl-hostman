@@ -6,10 +6,10 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
+        channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
         then: function () {
             // Reason: rotas rbac-test expõem helpers sem auth adequada — só em ambiente local.
@@ -42,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'mcp.rbac' => \App\Http\Middleware\McpRbac::class,
             // API Key Authentication (for OpenClaw/Jarvis integration)
             'api.key' => \App\Http\Middleware\ApiKeyAuth::class,
+            'api.authentication' => \App\Http\Middleware\ApiAuthentication::class,
         ]);
 
         // Apply security and performance middleware to API routes

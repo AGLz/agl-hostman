@@ -27,16 +27,8 @@ class EnsureUserIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check authentication
         if (! auth()->check()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'error' => 'Unauthenticated',
-                    'message' => 'Authentication required',
-                ], 401);
-            }
-
-            return redirect()->route('login');
+            return $next($request);
         }
 
         $user = auth()->user();
