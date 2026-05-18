@@ -53,6 +53,11 @@ class DokployDeployment extends Model
         return $query->where('status', 'failed');
     }
 
+    public function scopeRollback($query)
+    {
+        return $query->where('status', 'rollback');
+    }
+
     public function scopeInProgress($query)
     {
         return $query->whereIn('status', ['pending', 'building', 'deploying']);

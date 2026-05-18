@@ -120,10 +120,22 @@ class DeploymentWorkflowService
 
                 // Rollback if configured
                 if (config('deployment.rollback_on_failure', true)) {
-                    Log::warning('Attempting automatic rollback', [
+                    Log::warning('Attempting automatic rollback after QA failure', [
                         'deployment_id' => $deployment->id,
                     ]);
-                    // TODO: Implement rollback logic
+                    try {
+                        $rollbackResult = $this->rollback(
+                            (string) $deployment->id,
+                            'Automatic rollback after QA deployment failure'
+                        );
+                        Log::info('QA automatic rollback succeeded', $rollbackResult);
+                    } catch (Exception $rollbackEx) {
+                        Log::error('QA automatic rollback also failed — manual intervention required', [
+                            'original_error' => $e->getMessage(),
+                            'rollback_error' => $rollbackEx->getMessage(),
+                            'deployment_id' => $deployment->id,
+                        ]);
+                    }
                 }
 
                 throw $e;
@@ -759,21 +771,33 @@ class DeploymentWorkflowService
     }
 
     /**
-     * Rollback UAT deployment
+     * Rollback a deployment to the previous successful version.
      *
-     * @return array Rollback result
+     * Finds the most recent successful deployment for the same application,
+     * re-deploys it via Dokploy, and records a 'rollback' deployment entry.
+     *
+     * Limitations:
+     *   - Does NOT revert database migrations. Rollback reverts the image only.
+     *   - Production rollbacks require manual approval (call this method after confirming).
+     *   - Harbor retention must keep at least the last N images (recommended: 10+).
+     *
+     * @param  string  $deploymentId  ID of the failed deployment to roll back from
+     * @param  string|null  $reason  Human-readable reason for the rollback (for audit log)
+     * @return array{success: bool, rollback_deployment_id?: int, rolled_back_to_deployment?: int, rolled_back_to_tag?: string|null, rolled_back_to_commit?: string|null, error?: string}
      */
-    public function rollbackUAT(string $deploymentId): array
+    public function rollback(string $deploymentId, ?string $reason = null): array
     {
         try {
             $deployment = DokployDeployment::findOrFail($deploymentId);
 
-            Log::info('Rolling back UAT deployment', [
+            Log::warning('Rollback initiated', [
                 'deployment_id' => $deploymentId,
+                'application_id' => $deployment->application_id,
+                'reason' => $reason,
             ]);
 
-            // Find previous successful deployment
-            $previousDeployment = DokployDeployment::where('environment_id', $deployment->environment_id)
+            // 1. Find the most recent successful deployment for the same application
+            $previousDeployment = DokployDeployment::where('application_id', $deployment->application_id)
                 ->where('status', 'success')
                 ->where('id', '!=', $deployment->id)
                 ->orderBy('completed_at', 'desc')
@@ -783,27 +807,74 @@ class DeploymentWorkflowService
                 throw new Exception('No previous successful deployment found for rollback');
             }
 
-            // Redeploy previous version
+            // 2. Warn (but allow) if rollback spans more than 5 deployments
+            $deploymentsBetween = DokployDeployment::where('application_id', $deployment->application_id)
+                ->where('id', '>', $previousDeployment->id)
+                ->where('id', '<=', $deployment->id)
+                ->count();
+
+            if ($deploymentsBetween > config('deployment.max_rollback_span', 5)) {
+                Log::warning('Rollback spans more than allowed deployments — proceeding anyway', [
+                    'deployment_id' => $deploymentId,
+                    'rollback_to' => $previousDeployment->id,
+                    'span' => $deploymentsBetween,
+                    'max_allowed' => config('deployment.max_rollback_span', 5),
+                ]);
+            }
+
+            // 3. Re-deploy the previous version via Dokploy.
+            // The Dokploy application ID is stored in dokploy_applications.dokploy_id.
+            $rollbackLabel = $previousDeployment->tag ?? $previousDeployment->commit_hash ?? "deployment#{$previousDeployment->id}";
+            $dokployApplicationId = $previousDeployment->application->dokploy_id
+                ?? (string) $previousDeployment->application_id;
+
             $this->dokployService->deployApplication(
-                $previousDeployment->dokploy_application_id,
-                "Rollback to {$previousDeployment->git_commit}",
-                "Automatic rollback from failed deployment {$deployment->id}"
+                $dokployApplicationId,
+                "Rollback to {$rollbackLabel}",
+                $reason ?? "Rollback from failed deployment {$deployment->id}"
             );
 
-            Log::info('UAT rollback completed', [
+            // 4. Record the rollback as a new deployment entry for audit trail
+            $rollbackDeployment = DokployDeployment::create([
+                'application_id' => $deployment->application_id,
+                'status' => 'rollback',
+                'title' => "Rollback to {$rollbackLabel}",
+                'description' => $reason,
+                'commit_hash' => $previousDeployment->commit_hash,
+                'branch' => $previousDeployment->branch,
+                'tag' => $previousDeployment->tag,
+                'triggered_by' => 'rollback',
+                'metadata' => [
+                    'rollback_from_deployment_id' => $deployment->id,
+                    'rollback_to_deployment_id' => $previousDeployment->id,
+                    'original_tag' => $previousDeployment->tag,
+                    'original_commit' => $previousDeployment->commit_hash,
+                    'span_deployments' => $deploymentsBetween,
+                ],
+                'started_at' => now(),
+                'completed_at' => now(),
+            ]);
+
+            Log::info('Rollback completed successfully', [
+                'rollback_deployment_id' => $rollbackDeployment->id,
+                'rolled_back_from' => $deployment->id,
                 'rolled_back_to' => $previousDeployment->id,
-                'commit' => $previousDeployment->git_commit,
+                'tag' => $previousDeployment->tag,
+                'commit' => $previousDeployment->commit_hash,
             ]);
 
             return [
                 'success' => true,
+                'rollback_deployment_id' => $rollbackDeployment->id,
                 'rolled_back_to_deployment' => $previousDeployment->id,
-                'rolled_back_to_commit' => $previousDeployment->git_commit,
+                'rolled_back_to_tag' => $previousDeployment->tag,
+                'rolled_back_to_commit' => $previousDeployment->commit_hash,
             ];
 
         } catch (Exception $e) {
-            Log::error('UAT rollback failed', [
+            Log::error('Rollback failed', [
                 'deployment_id' => $deploymentId,
+                'reason' => $reason,
                 'error' => $e->getMessage(),
             ]);
 
@@ -812,5 +883,15 @@ class DeploymentWorkflowService
                 'error' => $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Rollback UAT deployment (delegates to generic rollback).
+     *
+     * @return array Rollback result
+     */
+    public function rollbackUAT(string $deploymentId): array
+    {
+        return $this->rollback($deploymentId, 'Automatic rollback from failed UAT deployment');
     }
 }

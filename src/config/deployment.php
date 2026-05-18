@@ -24,6 +24,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Rollback Configuration
+    |--------------------------------------------------------------------------
+    |
+    | rollback_on_failure: Automatically roll back when a QA/UAT deployment fails.
+    | rollback_enabled:    Master switch. Set to false to disable all automatic rollbacks.
+    | max_rollback_span:   Log a warning (but still proceed) when rolling back across
+    |                      more than this many deployments.
+    |
+    | NOTE: Rollback DOES NOT revert database migrations. If a deployment included
+    | schema changes, the rolled-back image will run against the new schema.
+    | Ensure migrations are backwards-compatible before deploying.
+    |
+    */
+    'rollback_on_failure' => env('DEPLOYMENT_ROLLBACK_ON_FAILURE', true),
+    'rollback_enabled' => env('DOKPLOY_ROLLBACK_ENABLED', true),
+    'max_rollback_span' => env('DOKPLOY_MAX_ROLLBACK_SPAN', 5),
+
+    /*
+    |--------------------------------------------------------------------------
     | Notification Configuration
     |--------------------------------------------------------------------------
     */
