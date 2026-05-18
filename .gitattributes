@@ -1,2 +1,8 @@
-# Scripts shell: sempre LF (evitar shebang quebrado em Linux)
+# Fins de linha: LF no repositório (evita ruído CRLF em mounts NFS/SMB)
 *.sh text eol=lf
+*.bash text eol=lf
+scripts/** text eol=lf
+.claude/helpers/** text eol=lf
+.agent/**/scripts/** text eol=lf
+.agents/**/scripts/** text eol=lf
+tests/**/*.sh text eol=lf
