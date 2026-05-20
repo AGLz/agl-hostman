@@ -1,0 +1,25 @@
+# Rotinas AGLz — merge em /workspace/config/routines.yaml no CT242
+# Scripts em ADWs/routines/custom/ (deploy via deploy-adw-routines-ct242.sh)
+
+daily:
+  - name: Goals Tasks Sync
+    script: goals_tasks_sync.py
+    time: "06:15"
+    enabled: true
+
+  - name: Atualização de MRR
+    script: mrr_update.py
+    time: "06:00"
+    enabled: true
+
+  - name: Dashboard Consolidado
+    script: dashboard_consolidated.py
+    time: "21:30"
+    enabled: true
+
+weekly:
+  - name: Weekly Review
+    script: weekly_review.py
+    day: friday
+    time: "08:00"
+    enabled: true

@@ -1,0 +1,91 @@
+# GStack — Jarvis O (OpenClaw) no CT191 agl-gstack (AGLSRV1)
+# Papel AGLz AI Agency: Assistente Executivo (equivalente plano CT-203)
+
+agent:
+  name: "Jarvis O"
+  codename: "OpenClaw"
+  role: "CEO/COO"
+  ct_id: "CT-191"
+  ip: "192.168.0.191"
+  version: "1.0.0-aglz"
+
+  persona:
+    base: "satya_nadella_tim_cook"
+    traits:
+      - "transformative_leadership"
+      - "operational_excellence"
+      - "empathy_driven"
+      - "growth_mindset"
+
+browser:
+  engine: "chromium"
+  headless: true
+  viewport:
+    width: 1920
+    height: 1080
+  launch_options:
+    args:
+      - "--no-sandbox"
+      - "--disable-setuid-sandbox"
+      - "--disable-dev-shm-usage"
+      - "--disable-gpu"
+  pool:
+    min_pages: 1
+    max_pages: 5
+    timeout: 30000
+
+server:
+  port_range:
+    min: 10000
+    max: 60000
+  idle_timeout: 1800000
+  state_file: ".gstack/browse.json"
+
+a2a:
+  enabled: true
+  port: 8080
+  protocol: "http"
+  peers:
+    - id: "jarvis-h"
+      name: "Jarvis H (Hermes)"
+      endpoint: "http://192.168.0.188:8080"
+      role: "cpo_cro"
+      ct_id: "CT-188"
+    - id: "evonexus"
+      name: "EvoNexus (AGLz hub)"
+      endpoint: "http://192.168.0.189:8080"
+      role: "agency_dashboard"
+      ct_id: "CT-189"
+
+openclaw:
+  gateway_port: 28789
+  litellm_base_url: "http://192.168.0.186:4000"
+  workspace: "/opt/agl-openclaw/workspace"
+  config_dir: "/opt/agl-openclaw/config"
+
+skills:
+  enabled:
+    - browse
+    - qa
+    - ship
+    - investigate
+    - checkpoint
+  config:
+    browse:
+      default_viewport: "1920x1080"
+      screenshot_dir: "/var/lib/gstack/screenshots"
+
+logging:
+  level: "info"
+  format: "json"
+  output: "file"
+  file: "/var/log/gstack/browser.log"
+  max_size: "100MB"
+  max_files: 10
+
+paths:
+  home: "/opt/gstack"
+  config: "/etc/gstack"
+  data: "/var/lib/gstack"
+  logs: "/var/log/gstack"
+  temp: "/tmp/gstack"

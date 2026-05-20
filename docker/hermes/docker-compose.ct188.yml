@@ -1,0 +1,45 @@
+# Hermes Agent dedicado — CT188 (LXC agl-hermes) em AGLSRV1
+# Gateway OpenAI-compatible + dados persistentes em ./data → /opt/data
+# Doc: https://hermes-agent.nousresearch.com/docs/user-guide/docker
+#
+# Uso (no CT188, /opt/agl-hermes):
+#   docker compose -f docker-compose.ct188.yml up -d
+
+services:
+  hermes-gateway:
+    image: ${HERMES_IMAGE:-nousresearch/hermes-agent:latest}
+    restart: unless-stopped
+    environment:
+      TZ: ${HERMES_TZ:-UTC}
+      HERMES_DASHBOARD: ${HERMES_DASHBOARD:-0}
+      API_SERVER_ENABLED: ${API_SERVER_ENABLED:-true}
+      API_SERVER_HOST: ${API_SERVER_HOST:-0.0.0.0}
+      API_SERVER_KEY: ${API_SERVER_KEY:-}
+    volumes:
+      - ${HERMES_DATA_DIR:-./data}:/opt/data
+    ports:
+      - ${HERMES_GATEWAY_PORT:-8642}:8642
+    command:
+      - gateway
+      - run
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8642/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  hermes-dashboard:
+    profiles: ["dashboard"]
+    image: ${HERMES_IMAGE:-nousresearch/hermes-agent:latest}
+    restart: unless-stopped
+    environment:
+      TZ: ${HERMES_TZ:-UTC}
+      HERMES_DASHBOARD: "1"
+    volumes:
+      - ${HERMES_DATA_DIR:-./data}:/opt/data
+    ports:
+      - ${HERMES_DASHBOARD_PORT:-9119}:9119
+    depends_on:
+      hermes-gateway:
+        condition: service_started
