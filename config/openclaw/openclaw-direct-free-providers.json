@@ -80,7 +80,7 @@
         ]
       },
       "dashscope": {
-        "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+        "baseUrl": "http://localhost:4000",
         "api": "openai-completions",
         "apiKey": "${DASHSCOPE_API_KEY}",
         "models": [

@@ -16,7 +16,7 @@ ENV_PATH = Path("/workspace/config/.env")
 PROV_PATH = Path("/workspace/config/providers.json")
 
 # Alias LiteLLM AGL — omissão em .env: estável no terminal (API Anthropic + Read/tools; ver docstring).
-DEFAULT_ANTHROPIC_MODEL = "qwen3.5-plus"
+DEFAULT_ANTHROPIC_MODEL = "glm-4.7-flash"
 
 
 def normalize_anthropic_base_url(url: str) -> str:

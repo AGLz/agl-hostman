@@ -1,4 +1,6 @@
-# Ollama na AGLSRV1 deve correr APENAS no CT200 (nome: ollama), com GPU pass-through.
+# Ollama na AGLSRV1: serviço em VM110 (agl-ollama), GPU passthrough exclusivo.
+# CT200 (LXC) descontinuado — ver docs/AGL-OLLAMA-VM110.md.
+# Limites: scripts/aglsrv1/vm110-ollama-override.conf.
 # Não instalar nem ativar ollama.service no host Proxmox (evita duplicar RAM/GPU e portas).
 #
 # Dentro do CT200, o unit vem de `curl -fsSL https://ollama.com/install.sh | sh` (ou pacote).

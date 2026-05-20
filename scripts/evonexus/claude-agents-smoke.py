@@ -5,10 +5,10 @@ Correr dentro de evonexus-dashboard, cwd /workspace.
 
 Uso:
   python3 claude-agents-smoke.py [modelo] [agente ...]
-  EVONEXUS_SMOKE_MODELS="glm-5,qwen3.5-plus" EVONEXUS_SMOKE_AGENTS="jarvis,atlas-project" \\
+  EVONEXUS_SMOKE_MODELS="glm-5,glm-4.7-flash" EVONEXUS_SMOKE_AGENTS="jarvis,atlas-project" \\
     EVONEXUS_SMOKE_PROMPT="..." python3 claude-agents-smoke.py
 
-Se EVONEXUS_SMOKE_MODELS estiver definido, lista separada por vírgula; senão argv[1] ou qwen3.5-plus.
+Se EVONEXUS_SMOKE_MODELS estiver definido, lista separada por vírgula; senão argv[1] ou glm-4.7-flash.
 Se EVONEXUS_SMOKE_AGENTS estiver definido, vírgulas; senão argv[2:] ou default atlas-project,hawk-debugger,jarvis.
 """
 from __future__ import annotations
@@ -45,9 +45,9 @@ def main() -> None:
     prompt = (os.environ.get("EVONEXUS_SMOKE_PROMPT") or "").strip() or DEFAULT_PROMPT
     models = _split_csv("EVONEXUS_SMOKE_MODELS")
     if not models:
-        models = [sys.argv[1]] if len(sys.argv) > 1 else ["qwen3.5-plus"]
+        models = [sys.argv[1]] if len(sys.argv) > 1 else ["glm-4.7-flash"]
     if not models:
-        models = ["qwen3.5-plus"]
+        models = ["glm-4.7-flash"]
     agents = _split_csv("EVONEXUS_SMOKE_AGENTS")
     if not agents:
         agents = list(sys.argv[2:]) if len(sys.argv) > 2 else list(DEFAULT_AGENTS)

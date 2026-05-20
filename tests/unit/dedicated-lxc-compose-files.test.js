@@ -12,10 +12,16 @@ const path = require('node:path');
 const ROOT = path.join(__dirname, '../..');
 const COMPOSE_LITELLM = path.join(ROOT, 'docker/litellm/docker-compose.ct186.yml');
 const COMPOSE_OPENCLAW = path.join(ROOT, 'docker/openclaw/docker-compose.ct187.yml');
+const COMPOSE_HERMES = path.join(ROOT, 'docker/hermes/docker-compose.ct188.yml');
+const PCT_CREATE_HERMES = path.join(ROOT, 'scripts/proxmox/pct-create-agl-hermes-evonexus-openhuman.sh');
+const PCT_CREATE_GSTACK = path.join(ROOT, 'scripts/proxmox/pct-create-ct191-agl-gstack.sh');
 
 test('dedicated LXC: ficheiros compose existem', () => {
   assert.ok(fs.existsSync(COMPOSE_LITELLM), 'docker-compose.ct186.yml');
   assert.ok(fs.existsSync(COMPOSE_OPENCLAW), 'docker-compose.ct187.yml');
+  assert.ok(fs.existsSync(COMPOSE_HERMES), 'docker-compose.ct188.yml');
+  assert.ok(fs.existsSync(PCT_CREATE_HERMES), 'pct-create-agl-hermes-evonexus-openhuman.sh');
+  assert.ok(fs.existsSync(PCT_CREATE_GSTACK), 'pct-create-ct191-agl-gstack.sh');
 });
 
 test('dedicated LXC: CT187 OpenClaw sem rede litellm external', () => {

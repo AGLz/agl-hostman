@@ -1,10 +1,13 @@
-# Ollama: o serviço corre em CT200 (AGLSRV1), não no CT179.
+# Ollama: serviço em VM110 agl-ollama (AGLSRV1), não CT200 (descontinuado).
 # api_base neste ficheiro: LAN 192.168.0.200:11434; fora da LAN usar Tailscale (ver docs/ollama-api-guide.md, config-remote.yaml).
-# Ollama CT200: um único modelo local `qwen3:4b` (agl-primary + aliases ollama-qwen3-4b). Limites: scripts/aglsrv1/ct200-ollama-override.conf.
+# Ollama VM110: um único modelo local `qwen3:4b` (agl-primary + aliases ollama-qwen3-4b). Limites: scripts/aglsrv1/vm110-ollama-override.conf.
 #
 # Z.AI (docs.z.ai): três bases úteis — (1) OpenAI-compat aggregado `https://api.z.ai/api/openai/v1` (entradas zai/glm-* abaixo);
 # (2) PaaS geral `https://api.z.ai/api/paas/v4`; (3) GLM Coding Plan `https://api.z.ai/api/coding/paas/v4` (subscrição Coding; política de uso
 # limita a ferramentas oficiais). Modelo de teste explícito: `zai-coding-glm-4.7`.
+#
+# DashScope (Alibaba Cloud): DESACTIVADO 2026-05 (fatura 5k+; ~99% era qwen3-coder-plus).
+# Alias qwen-coder / qwen/qwen-coder → DeepSeek V3.2 (NÃO chamar DashScope). Outros qwen* → Z.AI/Ollama/OpenRouter.
 cache_params:
   host: 192.168.0.137
   password: os.environ/REDIS_PASSWORD
@@ -21,186 +24,191 @@ litellm_settings:
   - glm:
     - kimi
     - kimi-128k
-    - qwen3.5-plus
-    - qwen3-max
+    - deepseek
+    - glm-flash
   - glm-5:
     - kimi
     - kimi-128k
-    - qwen3.5-plus
-    - qwen3-max
+    - deepseek
+    - glm-flash
   - glm-5-turbo:
     - kimi
     - kimi-128k
-    - qwen3.5-plus
-    - qwen3-max
+    - deepseek
+    - glm-flash
   - glm-flash:
     - kimi
     - deepseek
-    - qwen3.5-plus
+    - ollama-qwen3-4b
     - gemini
   - deepseek:
     - kimi
-    - qwen3.5-plus
+    - glm-flash
     - glm
-    - qwen3-max
+    - or-nemotron-super-free
   - claude-opus:
     - glm
     - deepseek
-    - qwen3.5-plus
+    - glm-flash
   - claude-opus-4-7:
     - glm
     - deepseek
-    - qwen3.5-plus
+    - glm-flash
   - claude-opus-4-6:
     - glm
     - deepseek
-    - qwen3.5-plus
+    - glm-flash
   - claude-sonnet:
     - glm
     - deepseek
-    - qwen3.5-plus
-    - qwen3-max
+    - glm-flash
+    - or-nemotron-super-free
   - claude-sonnet-4-6:
     - glm
     - deepseek
-    - qwen3.5-plus
-    - qwen3-max
+    - glm-flash
+    - or-nemotron-super-free
   - claude-sonnet-4-5-20250929:
     - glm
     - deepseek
-    - qwen3.5-plus
-    - qwen3-max
+    - glm-flash
+    - or-nemotron-super-free
   - qwen3.5-plus:
-    - kimi
-    - glm
+    - glm-flash
     - deepseek
+    - kimi
     - gemini
+  - qwen-coder:
+    - glm-flash
+    - deepseek
+    - ollama-qwen3-4b
+    - or-nemotron-super-free
   fallbacks:
   - agl-primary:
     - glm-4.7-flash
-    - qwen-coder
+    - glm-flash
     - ollama-qwen3-4b
     - or-nemotron-super-free
   - openai/ollama-qwen3-4b:
     - glm-4.7-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
   - ollama-qwen3-4b:
     - glm-4.7-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
   - claude-opus:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - claude-opus-4-7:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - claude-opus-4-6:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - claude-sonnet:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - claude-sonnet-4-6:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - claude-sonnet-4-5-20250929:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - claude-haiku:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - claude-haiku-4-5-20251001:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - zai/glm-4.5-flash:
-    - qwen-coder
-    - qwen3.5-plus
+    - glm-flash
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - zai/glm-4.7-flash:
-    - qwen-coder
-    - qwen3.5-plus
+    - glm-flash
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - zai/glm-5:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - zai/glm-4.7:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - glm-4.5-flash:
-    - qwen-coder
-    - qwen3.5-plus
+    - glm-flash
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - glm-4.7-flash:
-    - qwen-coder
-    - qwen3.5-plus
+    - glm-flash
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - kimi/moonshot-v1-128k:
-    - qwen3.5-plus
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
   - moonshot-v1-128k:
-    - qwen3.5-plus
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
   - glm:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - glm-5:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - glm-5-turbo:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - glm-flash:
-    - qwen-coder
-    - qwen3.5-plus
+    - glm-flash
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - glm-air:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
   - cursor-composer:
     - cursor-glm-5
     - cursor-deepseek
     - glm-flash
-    - qwen-coder
+    - glm-flash
   - cursor-composer-2-fast:
     - cursor-glm-5
     - cursor-deepseek
     - glm-flash
-    - qwen-coder
+    - glm-flash
   - cursor-claude-sonnet:
     - cursor-glm-5
     - cursor-deepseek
@@ -214,153 +222,153 @@ litellm_settings:
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - deepseek:
-    - qwen-coder
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - r1:
     - deepseek
-    - qwen-coder
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
   - kimi:
-    - qwen3.5-plus
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - kimi-128k:
-    - qwen3.5-plus
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
   - gpt:
-    - qwen-coder
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-4o:
-    - qwen-coder
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-4o-mini:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-5-mini:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-5-nano:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - gpt-5.4-nano:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - openai/gpt-5.4-nano:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - gpt-5.5:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-5.4:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-5.4-mini:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - deepseek-4:
-    - qwen-coder
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - gemini:
-    - qwen-coder
+    - glm-flash
     - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gemini-lite:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - qwen3.5:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - qwen3.5-plus:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - qwen3-max:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - qwen-plus:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - qwen-coder:
     - glm-flash
-    - qwen3.5-plus
+    - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - qwen-turbo:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
   - or-nemotron-super-free:
     - or-minimax-m2.5-free
     - or-llama-3.3-70b-free
     - glm-flash
-    - qwen-coder
+    - glm-flash
   - or-minimax-m2.5-free:
     - or-llama-3.3-70b-free
     - or-gemma-3-4b-free
     - glm-flash
-    - qwen-coder
+    - glm-flash
   - or-llama-3.3-70b-free:
     - or-gemma-3-4b-free
     - or-gemma-3-12b-free
     - glm-flash
-    - qwen-coder
+    - glm-flash
   - or-gemma-3-4b-free:
     - glm-flash
-    - qwen-turbo
+    - glm-flash
     - or-llama-3.3-70b-free
   - or-gemma-3-12b-free:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-llama-3.3-70b-free
   - or-gemma-3-27b-free:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
   - or-mistral-small-free:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-llama-3.3-70b-free
   - or-hermes-free:
     - glm-flash
-    - qwen-coder
+    - glm-flash
     - or-nemotron-super-free
   - openrouter/openrouter/free:
     - zai/glm-4.7-flash
@@ -413,7 +421,7 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Primário AGL — Qwen3 4B local via Ollama no CT200 (AGLSRV1, 192.168.0.200:11434)
+    note: Primário AGL — Qwen3 4B local via Ollama na VM110 agl-ollama (AGLSRV1, 192.168.0.200:11434)
     output_cost_per_token: 0
   model_name: agl-primary
 - litellm_params:
@@ -1035,93 +1043,108 @@ model_list:
     output_cost_per_token: 4.0e-07
   model_name: gemini-2.0
 - litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen-turbo
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
     timeout: 30
   model_info:
     access: direct
     context_window: 131072
     free_tier: true
     max_tokens: 8192
+    note: Alias qwen-turbo — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
   model_name: qwen-turbo
 - litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3.5-plus-2026-02-15
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
     timeout: 30
   model_info:
     access: direct
-    context_window: 1048576
-    free_tier: true
-    input_cost_per_token: 2.6e-07
-    max_tokens: 131072
-    output_cost_per_token: 1.56e-06
-  model_name: qwen-plus
-- litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3-max-2026-01-23
-    timeout: 30
-  model_info:
-    access: direct
-    context_window: 262144
-    input_cost_per_token: 1.2e-06
-    max_tokens: 131072
-    output_cost_per_token: 5.0e-06
-  model_name: qwen-max
-- litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3-coder-plus
-    timeout: 30
-  model_info:
-    access: direct
-    context_window: 1048576
-    free_tier: true
-    input_cost_per_token: 3.0e-07
-    max_tokens: 131072
-    output_cost_per_token: 1.5e-06
-  model_name: qwen-coder
-- litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3.5-plus-2026-02-15
-    timeout: 30
-  model_info:
-    access: direct
-    context_window: 1048576
-    max_tokens: 131072
-  model_name: qwen3.5
-- litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3.5-plus-2026-02-15
-    timeout: 30
-  model_info:
-    access: direct
-    context_window: 1048576
-    max_tokens: 131072
-  model_name: qwen3.5-plus
-- litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3.5-flash
-    timeout: 30
-  model_info:
     context_window: 131072
     free_tier: true
     max_tokens: 8192
-  model_name: qwen3.5-flash
+    note: Alias qwen-plus — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+  model_name: qwen-plus
 - litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3-max-2026-01-23
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
     timeout: 30
   model_info:
     access: direct
-    context_window: 262144
-    max_tokens: 131072
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Alias qwen-max — backend Z.AI GLM-4.7-Flash
+  model_name: qwen-max
+- litellm_params:
+    api_key: os.environ/DEEPSEEK_API_KEY
+    model: deepseek/deepseek-chat
+    timeout: 90
+  model_info:
+    access: direct
+    context_window: 131072
+    max_tokens: 8192
+    note: Ex-DashScope qwen-coder (qwen3-coder-plus) → DeepSeek V3.2 — evitar faturação Alibaba
+  model_name: qwen-coder
+- litellm_params:
+    api_key: os.environ/DEEPSEEK_API_KEY
+    model: deepseek/deepseek-chat
+    timeout: 90
+  model_info:
+    access: direct
+    context_window: 131072
+    max_tokens: 8192
+    note: Pedidos openai/qwen3-coder-plus → DeepSeek (slug legado DashScope)
+  model_name: openai/qwen3-coder-plus
+- litellm_params:
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
+    timeout: 30
+  model_info:
+    access: direct
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Alias qwen3.5 — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+  model_name: qwen3.5
+- litellm_params:
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
+    timeout: 30
+  model_info:
+    access: direct
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Alias qwen3.5-plus — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+  model_name: qwen3.5-plus
+- litellm_params:
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
+    timeout: 30
+  model_info:
+    access: direct
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Alias qwen3.5-flash — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+  model_name: qwen3.5-flash
+- litellm_params:
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
+    timeout: 30
+  model_info:
+    access: direct
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Alias qwen3-max — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
   model_name: qwen3-max
 - litellm_params:
     api_key: os.environ/GROQ_API_KEY
@@ -1281,37 +1304,38 @@ model_list:
     max_tokens: 8192
   model_name: or-nemotron-super-free
 - litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3-coder-plus
-    timeout: 30
+    api_key: os.environ/DEEPSEEK_API_KEY
+    model: deepseek/deepseek-chat
+    timeout: 90
   model_info:
     access: direct
-    context_window: 1048576
-    free_tier: true
-    max_tokens: 131072
+    context_window: 131072
+    max_tokens: 8192
+    note: Ex-DashScope qwen/qwen-coder → DeepSeek V3.2
   model_name: qwen/qwen-coder
 - litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen3.5-plus-2026-02-15
-    timeout: 30
-  model_info:
-    access: direct
-    context_window: 1048576
-    free_tier: true
-    max_tokens: 131072
-  model_name: qwen/qwen3.5-plus
-- litellm_params:
-    api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-    api_key: os.environ/DASHSCOPE_API_KEY
-    model: openai/qwen-turbo
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
     timeout: 30
   model_info:
     access: direct
     context_window: 131072
     free_tier: true
     max_tokens: 8192
+    note: Alias qwen/qwen3.5-plus — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+  model_name: qwen/qwen3.5-plus
+- litellm_params:
+    api_base: https://api.z.ai/api/openai/v1
+    api_key: os.environ/ZAI_API_KEY
+    model: openai/glm-4.7-flash
+    timeout: 30
+  model_info:
+    access: direct
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Alias qwen/qwen-turbo — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
   model_name: qwen/qwen-turbo
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY

@@ -39,16 +39,16 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "dashscope/qwen3.5-flash",
+        "primary": "openai/glm-4.7-flash",
         "fallbacks": [
-          "dashscope/qwen-coder",
           "openrouter/z-ai/glm-4.5-air:free",
           "openrouter/deepseek/deepseek-chat",
-          "openrouter/meta-llama/llama-3.3-70b-instruct:free"
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          "openai/ollama-qwen3-4b"
         ]
       },
       "imageModel": {
-        "primary": "dashscope/qwen3.5-flash",
+        "primary": "openrouter/z-ai/glm-4.5-air:free",
         "fallbacks": [
           "openrouter/deepseek/deepseek-chat",
           "openrouter/meta-llama/llama-3.3-70b-instruct:free"

@@ -9,12 +9,11 @@
 # REMOVIDO: subscriptao direta Z.AI — todos os modelos Z.AI removidos
 # MANIDO: openrouter/z-ai/glm-4.5-air:free (OpenRouter free tier, nao Z.AI direto)
 #
-# CONFIGURAO FREE TIER (fgsrv06, remote)
-# - qwen3.5-flash (DashScope Singapore) — NEW DEFAULT (MoE 35B-A3B, 1M ctx)
-# - qwen-flash — ultra-cheap general purpose
-# - qwen-coder, qwq-plus (DashScope Singapore)
-# - OpenRouter :free: - Modelos gratuitos
-# - glm-flash via OpenRouter free tier (openrouter/z-ai/glm-4.5-air:free)
+# CONFIGURACAO CUSTO (fgsrv06, remote) — 2026-05
+# - DashScope: DESACTIVADO (~99% fatura era qwen3-coder-plus)
+# - qwen-coder → DeepSeek; agl-primary → Ollama CT200
+# - Demais qwen*: OpenRouter glm-4.5-air:free
+# - OpenRouter :free: modelos gratuitos
 
 model_list:
   # ============================================================
@@ -24,9 +23,8 @@ model_list:
   # === Alias primario AGL = qwen3.5-flash — NEW DEFAULT ===
   - model_name: "agl-primary"
     litellm_params:
-      model: "openai/qwen3.5-flash-2026-02-23"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+      model: "ollama/qwen3:4b"
+      api_base: "http://100.116.57.111:11434"
       timeout: 120
       stream: true
     model_info:
@@ -36,7 +34,7 @@ model_list:
       context_window: 1048576
       access: direct
       free_tier: true
-      note: "NEW DEFAULT AGL — MoE 35B-A3B, 1M ctx (remote/fgsrv06)"
+      note: "Primario AGL — Ollama qwen3:4b CT200 (sem DashScope)"
 
   # === Anthropic Claude (conta PRO) ===
   # Opus 4.6 (Feb 2026): 1M context beta, Agent Teams, state-of-the-art coding
@@ -401,7 +399,7 @@ model_list:
       context_window: 1048576
       access: direct
 
-  # === Qwen via DashScope (ACESSO DIRETO - FREE TIER em Singapore) ===
+  # === Qwen aliases — sem DashScope; qwen-coder → DeepSeek ===
   # Qwen3.5-Flash: MoE 35B-A3B, 1M ctx, $0.10/$0.50 per M — NEW DEFAULT
   # Qwen-Flash: ultra-cheap, $0.07/$0.35 per M
   # Qwen3-Coder-Flash: faster/cheaper coding variant
@@ -416,9 +414,8 @@ model_list:
   # qwen3.5-flash — NEW DEFAULT (MoE 35B-A3B, 1M ctx, $0.10/$0.50 per M)
   - model_name: "qwen3.5-flash"
     litellm_params:
-      model: "openai/qwen3.5-flash-2026-02-23"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
       timeout: 60
     model_info:
       max_tokens: 65536
@@ -432,9 +429,8 @@ model_list:
   # qwen-flash — ultra-cheap general purpose
   - model_name: "qwen-flash"
     litellm_params:
-      model: "openai/qwen-flash-2025-07-28"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
       timeout: 60
     model_info:
       max_tokens: 65536
@@ -447,9 +443,8 @@ model_list:
   # qwen3-coder-flash — faster coding model
   - model_name: "qwen3-coder-flash"
     litellm_params:
-      model: "openai/qwen3-coder-flash-2025-07-28"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
       timeout: 60
     model_info:
       max_tokens: 65536
@@ -462,10 +457,9 @@ model_list:
   # qwq-plus — reasoning/thinking model
   - model_name: "qwq-plus"
     litellm_params:
-      model: "openai/qwq-plus-latest"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 90
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 65536
       input_cost_per_token: 0.0000002
@@ -476,10 +470,9 @@ model_list:
 
   - model_name: "qwen-turbo"
     litellm_params:
-      model: "openai/qwen-turbo"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 8192
       context_window: 131072
@@ -488,10 +481,9 @@ model_list:
 
   - model_name: "qwen-plus"
     litellm_params:
-      model: "openai/qwen3.5-plus-2026-02-15"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 131072
       input_cost_per_token: 0.00000026  # $0.26/1M
@@ -502,10 +494,9 @@ model_list:
 
   - model_name: "qwen-max"
     litellm_params:
-      model: "openai/qwen3-max-2026-01-23"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 131072
       input_cost_per_token: 0.0000012  # $1.2/1M
@@ -515,25 +506,22 @@ model_list:
 
   - model_name: "qwen-coder"
     litellm_params:
-      model: "openai/qwen3-coder-plus"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "deepseek/deepseek-chat"
+      api_key: os.environ/DEEPSEEK_API_KEY
+      timeout: 90
     model_info:
-      max_tokens: 131072
-      input_cost_per_token: 0.0000003  # $0.30/1M
-      output_cost_per_token: 0.0000015  # $1.5/1M
-      context_window: 1048576
+      max_tokens: 8192
+      context_window: 203000
       access: direct
-      free_tier: true
+      note: Ex-DashScope — Z.AI Coding Plan (sem DASHSCOPE_API_KEY)
+      note: Ex-DashScope qwen-coder → DeepSeek V3.2
 
   # Aliases para compatibilidade
   - model_name: "qwen3.5"
     litellm_params:
-      model: "openai/qwen3.5-plus-2026-02-15"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 131072
       context_window: 1048576
@@ -541,10 +529,9 @@ model_list:
 
   - model_name: "qwen3.5-plus"
     litellm_params:
-      model: "openai/qwen3.5-plus-2026-02-15"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 131072
       context_window: 1048576
@@ -552,10 +539,9 @@ model_list:
 
   - model_name: "qwen3-max"
     litellm_params:
-      model: "openai/qwen3-max-2026-01-23"
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-      timeout: 30
+      model: "openrouter/z-ai/glm-4.5-air:free"
+      api_key: os.environ/OPENROUTER_API_KEY
+      timeout: 60
     model_info:
       max_tokens: 131072
       context_window: 262144
@@ -741,67 +727,61 @@ litellm_settings:
   # ============================================================
   # Latencia referencia: qwen3.5-flash ~0.6s, qwen-flash ~0.5s, qwen-coder ~0.9s, deepseek ~1.4s
   fallbacks:
-    - agl-primary: [qwen3.5-flash, qwen-flash, ollama-qwen3-4b, qwen-coder, deepseek, gpt-4o]
-    - openai/ollama-qwen3-4b: [qwen3.5-flash, qwen-flash, qwen-coder, deepseek, gpt-4o]
-    - ollama-qwen3-4b: [qwen3.5-flash, qwen-flash, qwen-coder, deepseek, gpt-4o]
+    - agl-primary: [or-glm-air-free, ollama-qwen3-4b, deepseek, openrouter-free]
+    - openai/ollama-qwen3-4b: [or-glm-air-free, deepseek, openrouter-free]
+    - ollama-qwen3-4b: [or-glm-air-free, deepseek, openrouter-free]
 
-    # === Claude fallbacks (qwen3.5-flash first, qwen-coder for code) ===
-    - claude-opus: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-opus-4-7: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-opus-4-6: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-sonnet: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-sonnet-4-6: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-sonnet-4-5-20250929: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-haiku: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - claude-haiku-4-5-20251001: [qwen3.5-flash, qwen-coder, deepseek, gemini]
+    - claude-opus: [or-glm-air-free, deepseek, gemini]
+    - claude-opus-4-7: [or-glm-air-free, deepseek, gemini]
+    - claude-opus-4-6: [or-glm-air-free, deepseek, gemini]
+    - claude-sonnet: [or-glm-air-free, deepseek, gemini]
+    - claude-sonnet-4-6: [or-glm-air-free, deepseek, gemini]
+    - claude-sonnet-4-5-20250929: [or-glm-air-free, deepseek, gemini]
+    - claude-haiku: [or-glm-air-free, deepseek, gemini]
+    - claude-haiku-4-5-20251001: [or-glm-air-free, deepseek, gemini]
 
-    # OpenClaw: modelos kimi/moonshot — qwen models first
-    - kimi/moonshot-v1-128k: [qwen3.5-flash, qwen-coder, deepseek, kimi]
-    - moonshot-v1-128k: [qwen3.5-flash, qwen-coder, deepseek, kimi]
+    - kimi/moonshot-v1-128k: [or-glm-air-free, deepseek, kimi]
+    - moonshot-v1-128k: [or-glm-air-free, deepseek, kimi]
 
-    # === DeepSeek fallbacks (qwen-coder for code first) ===
-    - deepseek: [qwen-coder, qwen3.5-flash, kimi, gemini, gpt-4o]
-    - r1: [qwq-plus, qwen-coder, deepseek, qwen3.5-flash, kimi, gpt-4o]
+    - deepseek: [or-glm-air-free, ollama-qwen3-4b, gemini, gpt-4o]
+    - r1: [deepseek, or-glm-air-free, kimi, gpt-4o]
 
-    # === Kimi fallbacks (qwen3.5-flash default) ===
-    - kimi: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - kimi-128k: [qwen3.5-flash, qwen-coder, deepseek, kimi]
+    - kimi: [or-glm-air-free, deepseek, gemini]
+    - kimi-128k: [or-glm-air-free, deepseek, kimi]
 
-    # === GPT fallbacks (qwen3.5-flash default) ===
-    - gpt: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - gpt-4o: [qwen3.5-flash, qwen-coder, deepseek, gemini]
+    - gpt: [or-glm-air-free, deepseek, gemini]
+    - gpt-4o: [or-glm-air-free, deepseek, gemini]
 
-    # === Gemini fallbacks (qwen3.5-flash default) ===
-    - gemini: [qwen3.5-flash, qwen-coder, deepseek, kimi]
+    - gemini: [or-glm-air-free, deepseek, kimi]
 
-    # === Qwen (DashScope) - qwen3.5-flash/qwen-coder cross-fallbacks ===
-    - qwen3.5: [qwen3.5-flash, qwen-coder, deepseek, gemini, gpt-4o]
-    - qwen3.5-plus: [qwen-coder, qwen3.5-flash, deepseek, gemini, gpt-4o]
-    - qwen3.5-flash: [qwen-flash, qwen-coder, deepseek, gemini, gpt-4o]
-    - qwen3-max: [qwen3.5-flash, qwen-coder, deepseek, gemini, gpt-4o]
-    - qwen-plus: [qwen3.5-flash, qwen-coder, deepseek, gemini, gpt-4o]
-    - qwen-coder: [qwen3.5-flash, qwen3.5-plus, deepseek, gemini, gpt-4o]
-    - qwen-flash: [qwen3.5-flash, qwen-coder, deepseek, gemini]
-    - qwen3-coder-flash: [qwen-coder, qwen3.5-flash, deepseek, gemini]
-    - qwq-plus: [qwen3.5-flash, qwen-coder, deepseek, gemini]
+    - qwen3.5: [or-glm-air-free, deepseek, gemini, gpt-4o]
+    - qwen3.5-plus: [or-glm-air-free, deepseek, gemini, gpt-4o]
+    - qwen3.5-flash: [or-glm-air-free, deepseek, gemini, gpt-4o]
+    - qwen3-max: [or-glm-air-free, deepseek, gemini, gpt-4o]
+    - qwen-plus: [or-glm-air-free, deepseek, gemini, gpt-4o]
+    - qwen-coder: [or-glm-air-free, deepseek, gemini, gpt-4o]
+    - qwen-flash: [or-glm-air-free, deepseek, gemini]
+    - qwen3-coder-flash: [deepseek, or-glm-air-free, gemini]
+    - qwq-plus: [or-glm-air-free, deepseek, gemini]
 
-    - openrouter/openrouter/free: [qwen3.5-flash, qwen-coder, deepseek, gpt-4o]
-    - openrouter-free: [qwen3.5-flash, qwen-coder, deepseek, gpt-4o]
+    - openrouter/openrouter/free: [or-glm-air-free, deepseek, gpt-4o]
+    - openrouter-free: [or-glm-air-free, deepseek, gpt-4o]
 
   # Fallback por contexto excedido (qwen3.5-flash/qwen-coder first)
   context_window_fallbacks:
-    - deepseek: [qwen3.5-flash, qwen-coder, kimi, qwen3.5-plus, qwen3-max]
-    - claude-opus: [qwen3.5-flash, qwen-coder, qwen-plus, deepseek, qwen3.5-plus]
-    - claude-opus-4-7: [qwen3.5-flash, qwen-coder, qwen-plus, deepseek, qwen3.5-plus]
-    - claude-opus-4-6: [qwen3.5-flash, qwen-coder, qwen-plus, deepseek, qwen3.5-plus]
-    - claude-sonnet: [qwen3.5-flash, qwen-coder, qwen-plus, deepseek, qwen3.5-plus, qwen3-max]
-    - claude-sonnet-4-6: [qwen3.5-flash, qwen-coder, qwen-plus, deepseek, qwen3.5-plus, qwen3-max]
-    - claude-sonnet-4-5-20250929: [qwen3.5-flash, qwen-coder, qwen-plus, deepseek, qwen3.5-plus, qwen3-max]
-    - qwen3.5-plus: [qwen-coder, qwen3.5-flash, kimi, deepseek, gemini]
-    - qwen3.5-flash: [qwen-flash, qwen-coder, kimi, deepseek, qwen3.5-plus]
-    - qwen-plus: [qwen3.5-flash, qwen-coder, kimi, deepseek]
-    - qwen-coder: [qwen3.5-flash, qwen3.5-plus, kimi, deepseek]
-    - qwq-plus: [qwen3.5-flash, qwen-coder, kimi, deepseek]
+    - deepseek: [or-glm-air-free, ollama-qwen3-4b, kimi]
+    - claude-opus: [or-glm-air-free, deepseek, gemini]
+    - claude-opus-4-7: [or-glm-air-free, deepseek, gemini]
+    - claude-opus-4-6: [or-glm-air-free, deepseek, gemini]
+    - claude-sonnet: [or-glm-air-free, deepseek, gemini]
+    - claude-sonnet-4-6: [or-glm-air-free, deepseek, gemini]
+    - claude-sonnet-4-5-20250929: [or-glm-air-free, deepseek, gemini]
+    - qwen3.5-plus: [or-glm-air-free, deepseek, kimi, gemini]
+    - qwen3.5-flash: [or-glm-air-free, deepseek, kimi]
+    - qwen-plus: [or-glm-air-free, deepseek, kimi]
+    - qwen-coder: [or-glm-air-free, deepseek, kimi]
+    - qwq-plus: [or-glm-air-free, deepseek, kimi]
+
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY

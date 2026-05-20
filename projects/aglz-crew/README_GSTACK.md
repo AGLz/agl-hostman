@@ -26,7 +26,7 @@ GStack é um sistema de automação de browser headless de alta performance com:
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `install-gstack-aglz.sh` | Script de instalação para CT-203 e CT-204 |
+| `install-gstack-aglz.sh` | Script de instalação para CT-203/204 (plano) ou **CT191/188** (AGLSRV1) |
 
 ### 3. Configurações
 
@@ -114,7 +114,19 @@ $gb a2a broadcast "qa check all systems"
 
 ## Instalação
 
-### Em CT-203 (Jarvis O)
+### Em CT191 (Jarvis O — AGLSRV1, canónico)
+
+Ver [`docs/AGL-GSTACK-CT191-DEDICATED-LXC.md`](../../docs/AGL-GSTACK-CT191-DEDICATED-LXC.md) e `bootstrap-ct191-openclaw-gstack.sh` (OpenClaw + GStack).
+
+```bash
+ssh root@192.168.0.191
+cd /opt/agl-hostman/projects/aglz-crew
+./install-gstack-aglz.sh jarvis-o 191
+# Config: gstack/config/jarvis-o-ct191.yaml → /etc/gstack/jarvis-o.yaml
+```
+
+### Em CT-203 (Jarvis O — plano legado)
+
 ```bash
 ssh root@192.168.0.203
 cd /opt

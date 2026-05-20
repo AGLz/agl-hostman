@@ -7,7 +7,7 @@
 #
 # Variáveis opcionais (override):
 #   CT_ID=242 DASHBOARD_CT=evonexus-dashboard
-#   EVONEXUS_SMOKE_MODELS="qwen3.5-plus,gpt-5.5"   # omissão = só qwen3.5-plus (default EvoNexus)
+#   EVONEXUS_SMOKE_MODELS="glm-4.7-flash,gpt-5.5"   # omissão = glm-4.7-flash (default EvoNexus)
 #   EVONEXUS_SMOKE_AGENTS="jarvis,atlas-project,hawk-debugger"
 #   EVONEXUS_SMOKE_PROMPT="informe sobre o avanço dos projetos"
 
@@ -20,7 +20,7 @@ SCRIPT_SRC="${ROOT}/scripts/evonexus/claude-agents-smoke.py"
 SCRIPT_CT="/root/claude-agents-smoke.py"
 SCRIPT_DOCKER="/tmp/claude-agents-smoke.py"
 
-: "${EVONEXUS_SMOKE_MODELS:=qwen3.5-plus}"
+: "${EVONEXUS_SMOKE_MODELS:=glm-4.7-flash}"
 : "${EVONEXUS_SMOKE_AGENTS:=jarvis,atlas-project,hawk-debugger}"
 : "${EVONEXUS_SMOKE_PROMPT:=informe sobre o avanço dos projetos}"
 

@@ -40,6 +40,29 @@
 - **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
 - **Ollama Models (CT200)**: modelo local servido pelo LiteLLM como **`ollama/qwen3:4b`** (aliases `agl-primary`, `ollama-qwen3-4b`); detalhe em [`docs/ct200-model-performance.md`](ct200-model-performance.md)
 
+### Agentes dedicados (CT188–190, AGLSRV1)
+
+| VMID | Hostname | IP LAN | Função | Runbook |
+|------|----------|--------|--------|---------|
+| **188** | agl-hermes | `192.168.0.188` | Hermes Agent (Docker `/opt/agl-hermes`, gateway `:8642`) | [`HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md`](HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md) |
+| **189** | agl-evonexus | `192.168.0.189` | EvoNexus hub (Docker `/opt/evonexus`; cutover desde CT242) | idem + `scripts/evonexus/` |
+| **190** | agl-openhuman | `192.168.0.190` | OpenHuman (install `/opt/openhuman`; UI/desktop) | idem |
+| **191** | agl-gstack | `192.168.0.191` | **Jarvis O** — OpenClaw + GStack (AGLz AI Agency) | [`AGL-GSTACK-CT191-DEDICATED-LXC.md`](AGL-GSTACK-CT191-DEDICATED-LXC.md) |
+
+**Nota:** usar IP **estático** `.188–.191` — DHCP pode colidir (ex. `.187` com OpenClaw). Gateway LLM: **CT186** `http://192.168.0.186:4000`. **CT191** ≠ **CT187** (produção vs. agência GStack).
+
+**Perfil LXC (CT179):** `mp0`–`mp9` (`/mnt/overpower`, `/mnt/shares`, `/mnt/power`, `/mnt/storage`, …), `lxc.mount.entry` `/dev/net/tun`, cgroup `10:200` + `226:*`, **`unprivileged: 1`** (não privileged). Aplicar/reaplicar: `scripts/proxmox/pct-apply-agldv03-lxc-profile.sh --with-apparmor 188 189 190 191`.
+
+**Tailscale (CT188–191):** `tailscaled` + `/dev/net/tun` OK; estado **NeedsLogin** até `tailscale up`. No AGLSRV1:
+
+```bash
+printf '%s' 'tskey-auth-…' > /root/.tailscale-authkey && chmod 600 /root/.tailscale-authkey
+bash scripts/proxmox/pct-tailscale-up-agency-cts.sh
+# Verificar prep: bash scripts/proxmox/pct-tailscale-verify-agency-cts.sh
+```
+
+CT186/187 já na tailnet (`aglsrv1-litellm` `100.125.249.8`, `aglsrv1-openclaw` `100.123.184.125`) — não repetir join sem necessidade.
+
 ### Daily Memory System (agl-hostman)
 
 - **Dashboard**: /daily-memory
@@ -516,10 +539,14 @@ Endpoint = 186.202.57.120:51823
 ### LXC Container Requirements
 
 ```ini
-# Required in /etc/pve/lxc/XXX.conf
-features: keyctl=1,nesting=1
+# Perfil agldv03 (CT179) — também CT188–191 após pct-apply-agldv03-lxc-profile.sh
+features: keyctl=1,nesting=1,fuse=1,mknod=1
+unprivileged: 1
+lxc.cgroup2.devices.allow: c 226:* rwm
 lxc.cgroup2.devices.allow: c 10:200 rwm
 lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
+lxc.mount.entry: /proc/sys/net/ipv4/ip_unprivileged_port_start proc/sys/net/ipv4/ip_unprivileged_port_start none bind,create=file,ro 0 0
+# Docker-in-LXC (CT186/187/188–191): lxc.apparmor.profile: unconfined
 ```
 
 ### WireGuard Performance Best Practices

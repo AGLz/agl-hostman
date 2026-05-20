@@ -79,6 +79,8 @@ ssh root@192.168.0.245 'qm agent 104 ping'
 
 Se `qm agent 104 ping` retornar sem erro, a comunicação está OK.
 
+**VirtIO ISO (2026-05-20):** no AGLSRV1, ISO actual **`virtio-win-0.1.285.iso`** (754M) em `overpower:iso`, ligado à VM104 em **`ide2`** (substitui `virtio-win-0.1.229.iso`). Script: `scripts/proxmox/vm104-apply-latest-virtio-iso.sh`. Com o agent parado, instalar via RDP: `virtio-win-gt-x64.msi` ou `guest-agent\qemu-ga-x86_64.msi` no CD virtio; depois `qm agent 104 ping`.
+
 ## Estado Atual
 
 | Componente | Status | Versão |

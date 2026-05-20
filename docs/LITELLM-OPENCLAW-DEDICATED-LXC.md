@@ -181,6 +181,8 @@ O script faz `pct push` para o CT, actualiza `TELEGRAM_BOT_TOKEN` em `/opt/agl-o
 
 Parar **outros** gateways/scripts que ainda usem o **mesmo** token, senão mantém-se conflito à escala do Telegram (dois consumidores por token).
 
+**CT191 (GStack):** após `pct-sync-openclaw-187-to-191.sh`, o Telegram vem activo por defeito — desactivar com `scripts/proxmox/pct191-disable-telegram-duplicate.sh --restart` (só **CT187** faz poll do bot de produção).
+
 CLI OpenClaw (opcional, perfil `cli`):
 
 ```bash

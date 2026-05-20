@@ -45,6 +45,24 @@ Ficheiros montados por volume em `docker-compose.hub.yml` no serviço **dashboar
 
 Fonte canónica no repo: `scripts/evonexus/overlays/` e `scripts/evonexus/sync-providers-anthropic-from-env.py`.
 
+## Rotinas ADW AGLz (reports + sync + scheduler)
+
+Upstream **evo-nexus** não inclui `dashboard_consolidated.py` nem `mrr_update.py` — foram criados em `scripts/evonexus/adw-routines/custom/`:
+
+| Script | Função |
+|--------|--------|
+| `dashboard_consolidated.py` | Skill `prod-dashboard` + sync `TASKS.md` + Telegram |
+| `mrr_update.py` | Snapshot `growth_metrics` + métricas MRR + Telegram |
+| `goals_tasks_sync.py` | `evonexus.db` → `TASKS.md` + `PROJECT_PLAN.md` (2 paths cada) |
+| `memory_sync.py` (overlay) | Pré-sync DB → docs, depois consolidação `memory/` |
+| `weekly_review.py` | Wrapper para `ADWs/routines/weekly_review.py` |
+
+`good_morning.py` (substitui o core): sync DB + briefing com snapshot EvoNexus (não depende só de Todoist).
+
+**Provider no scheduler:** `patch-adw-runner-provider-env.py` alarga `_ALLOWED_ENV_VARS` e faz o runner ADW usar o provider **anthropic** (LiteLLM) quando `ANTHROPIC_BASE_URL` está definido — independente de `active_provider: litellm` no UI.
+
+**Deploy CT242:** `scripts/evonexus/deploy-adw-routines-ct242.sh` (correr no **host Proxmox** com `pct`; staging em `/opt/evonexus` + `tar` para o CT). Rotinas correm com `uv run python3` dentro do contentor.
+
 ## Agente Jarvis no menu `/agents`
 
 O endpoint `/api/agents` lista apenas ficheiros **`/workspace/.claude/agents/*.md`**. Memória em `agent-memory/jarvis/` **não** cria entrada no menu — é necessário **`jarvis.md`** nessa pasta.

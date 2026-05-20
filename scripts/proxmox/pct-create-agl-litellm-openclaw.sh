@@ -12,7 +12,7 @@ set -euo pipefail
 : "${CT_OPENCLAW_VMID:=187}"
 : "${PROXMOX_BRIDGE:=vmbr0}"
 : "${PROXMOX_ROOTFS_STORAGE:=local-lvm}"
-: "${PROXMOX_TEMPLATE:=local:vztmpl/debian-12-standard_amd64.tar.zst}"
+: "${PROXMOX_TEMPLATE:=local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst}"
 : "${CT_MEMORY_MB:=8192}"
 : "${CT_SWAP_MB:=1024}"
 : "${CT_CORES:=4}"

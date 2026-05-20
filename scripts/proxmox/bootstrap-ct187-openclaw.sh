@@ -58,8 +58,12 @@ if [[ ! -f /opt/agl-openclaw/.env ]]; then
 fi
 
 echo "=== Subir OpenClaw (só gateway; perfil cli opcional) ==="
-docker compose -f /opt/agl-openclaw/docker-compose.yml pull
-docker compose -f /opt/agl-openclaw/docker-compose.yml up -d
+if docker image inspect "${OPENCLAW_IMAGE:-agl-openclaw:ops}" >/dev/null 2>&1; then
+  docker compose -f /opt/agl-openclaw/docker-compose.yml up -d
+else
+  docker compose -f /opt/agl-openclaw/docker-compose.yml pull
+  docker compose -f /opt/agl-openclaw/docker-compose.yml up -d
+fi
 
 set -a
 # shellcheck source=/dev/null

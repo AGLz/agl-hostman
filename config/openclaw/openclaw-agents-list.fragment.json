@@ -13,12 +13,11 @@
         "id": "infra",
         "workspace": "~/.openclaw/workspace-infra",
         "model": {
-          "primary": "dashscope/qwen-coder",
+          "primary": "openai/glm-4.7-flash",
           "fallbacks": [
-            "dashscope/qwen3.5-flash",
-            "dashscope/qwen-plus",
             "openrouter/z-ai/glm-4.5-air:free",
-            "deepseek"
+            "deepseek",
+            "openai/ollama-qwen3-4b"
           ]
         },
         "groupChat": {
@@ -29,12 +28,12 @@
         "id": "storage",
         "workspace": "~/.openclaw/workspace-storage",
         "model": {
-          "primary": "dashscope/qwen-coder",
+          "primary": "openai/glm-4.7-flash",
           "fallbacks": [
-            "dashscope/qwen3.5-flash",
-            "dashscope/qwen-plus",
+            "openrouter/z-ai/glm-4.5-air:free",
             "deepseek",
-            "gemini-lite"
+            "gemini-lite",
+            "openai/ollama-qwen3-4b"
           ]
         },
         "groupChat": {
@@ -45,8 +44,8 @@
         "id": "harbor",
         "workspace": "~/.openclaw/workspace-harbor",
         "model": {
-          "primary": "dashscope/qwen-coder",
-          "fallbacks": ["dashscope/qwen3.5-flash", "dashscope/qwen-plus", "deepseek"]
+          "primary": "openai/glm-4.7-flash",
+          "fallbacks": ["openrouter/z-ai/glm-4.5-air:free", "deepseek", "openai/ollama-qwen3-4b"]
         },
         "groupChat": {
           "mentionPatterns": ["@harbor", "\\bregistry\\b", "\\bharbor\\b"]
@@ -56,8 +55,8 @@
         "id": "net",
         "workspace": "~/.openclaw/workspace-net",
         "model": {
-          "primary": "dashscope/qwen-coder",
-          "fallbacks": ["dashscope/qwen3.5-flash", "dashscope/qwen-plus", "deepseek", "gemini-lite"]
+          "primary": "openai/glm-4.7-flash",
+          "fallbacks": ["openrouter/z-ai/glm-4.5-air:free", "deepseek", "gemini-lite", "openai/ollama-qwen3-4b"]
         },
         "groupChat": {
           "mentionPatterns": ["@net", "\\bwg\\b", "\\btailscale\\b"]

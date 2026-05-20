@@ -10,14 +10,27 @@
 
 set -euo pipefail
 
-: "${TAILSCALE_AUTHKEY:?Defina TAILSCALE_AUTHKEY (chave auth reutilizável Tailscale).}"
+AUTHKEY_FILE="${TAILSCALE_AUTHKEY_FILE:-/root/.tailscale-authkey}"
+if [[ -z "${TAILSCALE_AUTHKEY:-}" && -f "${AUTHKEY_FILE}" ]]; then
+  TAILSCALE_AUTHKEY="$(tr -d '\r\n' < "${AUTHKEY_FILE}")"
+  export TAILSCALE_AUTHKEY
+fi
+
+: "${TAILSCALE_AUTHKEY:?Defina TAILSCALE_AUTHKEY ou crie ${AUTHKEY_FILE} no AGLSRV1.}"
 
 command -v pct >/dev/null || {
   echo "ERRO: pct não encontrado — executar no Proxmox AGLSRV1." >&2
   exit 1
 }
 
-for entry in "186:agl-litellm-ct186" "187:agl-openclaw-ct187"; do
+# CT188–191: adicionar quando TAILSCALE_AUTHKEY estiver definida (mesmo script).
+for entry in \
+  "186:agl-litellm-ct186" \
+  "187:agl-openclaw-ct187" \
+  "188:agl-hermes-ct188" \
+  "189:agl-evonexus-ct189" \
+  "190:agl-openhuman-ct190" \
+  "191:agl-gstack-ct191"; do
   vmid="${entry%%:*}"
   host="${entry##*:}"
   echo "=== tailscale up CT${vmid} (${host}) ==="

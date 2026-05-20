@@ -18,4 +18,7 @@
 .models.providers.qwen.baseUrl = "http://localhost:4000" |
 .models.providers.qwen.apiKey = "sk-litellm-default" |
 .models.providers.openrouter.baseUrl = "http://localhost:4000" |
-.models.providers.openrouter.apiKey = "sk-litellm-default"
+.models.providers.openrouter.apiKey = "sk-litellm-default" |
+.models.providers.dashscope.baseUrl = "http://localhost:4000" |
+.models.providers.dashscope.apiKey = "sk-litellm-default" |
+.models.providers.dashscope.api = "openai-completions"

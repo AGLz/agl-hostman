@@ -9,23 +9,23 @@
 # GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
 
 model_list:
-  # Composer Fast → qwen3.5-flash (DashScope) — default AGL
+  # Composer Fast → Z.AI GLM-4.7-Flash (sem DashScope; alinhado a config.yaml)
   - model_name: cursor-composer
     litellm_params:
-      model: openai/qwen3.5-flash-2026-02-23
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+      model: openai/glm-4.7-flash
+      api_key: os.environ/ZAI_API_KEY
+      api_base: https://api.z.ai/api/openai/v1
     model_info:
-      description: "Proxy Composer Fast (qwen3.5-flash — default AGL)"
+      description: "Proxy Composer Fast (Z.AI GLM-4.7-Flash — DashScope só qwen-coder)"
       max_tokens: 65536
 
   - model_name: cursor-composer-2-fast
     litellm_params:
-      model: openai/qwen3.5-flash-2026-02-23
-      api_key: os.environ/DASHSCOPE_API_KEY
-      api_base: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+      model: openai/glm-4.7-flash
+      api_key: os.environ/ZAI_API_KEY
+      api_base: https://api.z.ai/api/openai/v1
     model_info:
-      description: "Alias cursor-composer-2-fast (qwen3.5-flash — default AGL)"
+      description: "Alias cursor-composer-2-fast (Z.AI GLM-4.7-Flash)"
       max_tokens: 65536
 
   - model_name: cursor-claude-sonnet
@@ -65,7 +65,7 @@ model_list:
       description: "DeepSeek V3.2 - Excellent for code"
       max_tokens: 8192
 
-# Fallbacks for Cursor Agent (qwen-plus/qwen-coder first)
+# Fallbacks for Cursor Agent (sem DashScope exceto pedido explícito a qwen-coder no proxy principal)
 fallbacks:
   - model_name: cursor-claude-sonnet
     fallbacks: [cursor-composer, cursor-deepseek, cursor-glm-5]
