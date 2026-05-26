@@ -1,0 +1,8 @@
+# Fragmento AGLz — merge em config.yaml de cada profile Hermes (quartet CT188)
+quick_commands:
+  start:
+    type: alias
+    target: /help
+  iniciar:
+    type: alias
+    target: /help

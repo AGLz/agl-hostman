@@ -9,7 +9,7 @@ const CONFIG = path.join(__dirname, '../../config/litellm/config.yaml');
 const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.yaml');
 
 const LAN_OLLAMA = '192.168.0.200:11434';
-const TS_OLLAMA = '100.116.57.111:11434';
+const TS_OLLAMA = '100.74.118.51:11434';
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -35,7 +35,7 @@ function escapeForRegex(ipHost) {
   return ipHost.replaceAll('.', '\\.');
 }
 
-test('LiteLLM local: Ollama CT200 via LAN — só qwen3:4b', () => {
+test('LiteLLM local: Ollama VM110 via Tailscale — só qwen3:4b', () => {
   const yaml = fs.readFileSync(CONFIG, 'utf8');
   assertOllamaCt200QwenOnly(yaml, 'config.yaml');
   assert.match(
@@ -45,13 +45,13 @@ test('LiteLLM local: Ollama CT200 via LAN — só qwen3:4b', () => {
   );
   assert.match(
     yaml,
-    new RegExp(escapeForRegex(LAN_OLLAMA), 'g'),
-    'config.yaml: api_base LAN',
+    new RegExp(escapeForRegex(TS_OLLAMA), 'g'),
+    'config.yaml: api_base Tailscale',
   );
   assert.doesNotMatch(
     yaml,
-    new RegExp(escapeForRegex(TS_OLLAMA)),
-    'config.yaml: não deve usar Tailscale para Ollama',
+    new RegExp(escapeForRegex(LAN_OLLAMA)),
+    'config.yaml: não deve usar LAN para Ollama (LiteLLM CT186)',
   );
 });
 

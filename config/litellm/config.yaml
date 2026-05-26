@@ -1,10 +1,13 @@
-# Ollama: serviço em VM110 agl-ollama (AGLSRV1), não CT200 (descontinuado).
-# api_base neste ficheiro: LAN 192.168.0.200:11434; fora da LAN usar Tailscale (ver docs/ollama-api-guide.md, config-remote.yaml).
+# Ollama: VM110 agl-ollama (AGLSRV1). LiteLLM CT186 usa Tailscale (não LAN 192.168.0.200).
+# Activo: aglsrv1-ollama 100.74.118.51:11434 | VM110 GPU (offline): aglsrv1-ollama-gpu 100.116.57.111
 # Ollama VM110: um único modelo local `qwen3:4b` (agl-primary + aliases ollama-qwen3-4b). Limites: scripts/aglsrv1/vm110-ollama-override.conf.
 #
 # Z.AI (docs.z.ai): três bases úteis — (1) OpenAI-compat aggregado `https://api.z.ai/api/openai/v1` (entradas zai/glm-* abaixo);
 # (2) PaaS geral `https://api.z.ai/api/paas/v4`; (3) GLM Coding Plan `https://api.z.ai/api/coding/paas/v4` (subscrição Coding; política de uso
 # limita a ferramentas oficiais). Modelo de teste explícito: `zai-coding-glm-4.7`.
+# Claude Code via LiteLLM: usar `zai-glm-5` / `zai-glm-flash` (Anthropic-compat `https://api.z.ai/api/anthropic`) — o OpenAI-compat devolve 404 para GLM.
+# GLM-4.7-Flash / glm-flash: usar Z.AI Anthropic-compat (`api.z.ai/api/anthropic`) — OpenAI-compat e PaaS v4 devolvem 404/rate-limit/ content vazio.
+# Hermes CT188: Jarvis `gpt-5.5` → Z.AI glm-5 (OpenAI quota esgotada); agentes `glm-4.7-flash` → anthropic/glm-4.7-flash.
 #
 # DashScope (Alibaba Cloud): DESACTIVADO 2026-05 (fatura 5k+; ~99% era qwen3-coder-plus).
 # Alias qwen-coder / qwen/qwen-coder → DeepSeek V3.2 (NÃO chamar DashScope). Outros qwen* → Z.AI/Ollama/OpenRouter.
@@ -20,6 +23,7 @@ general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
 litellm_settings:
   allowed_fails: 2
+  callbacks: custom_callbacks.agl_glm_flash_params.proxy_handler_instance
   context_window_fallbacks:
   - glm:
     - kimi
@@ -41,6 +45,16 @@ litellm_settings:
     - deepseek
     - ollama-qwen3-4b
     - gemini
+  - glm-4.7-flash:
+    - zai-glm-flash
+    - glm-flash
+    - deepseek
+    - kimi
+  - zai/glm-4.7-flash:
+    - zai-glm-flash
+    - glm-flash
+    - deepseek
+    - kimi
   - deepseek:
     - kimi
     - glm-flash
@@ -85,6 +99,8 @@ litellm_settings:
     - or-nemotron-super-free
   fallbacks:
   - agl-primary:
+    - zai-glm-flash
+    - zai-glm-5
     - glm-4.7-flash
     - glm-flash
     - ollama-qwen3-4b
@@ -143,10 +159,16 @@ litellm_settings:
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - zai/glm-4.7-flash:
+    - zai-glm-flash
     - glm-flash
+    - zai-glm-5
+    - deepseek
+  - glm-4.7-flash:
+    - zai/glm-4.7-flash
+    - zai-glm-flash
     - glm-flash
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - zai-glm-5
+    - deepseek
   - zai/glm-5:
     - glm-flash
     - glm-flash
@@ -158,11 +180,6 @@ litellm_settings:
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - glm-4.5-flash:
-    - glm-flash
-    - glm-flash
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
-  - glm-4.7-flash:
     - glm-flash
     - glm-flash
     - or-nemotron-super-free
@@ -276,8 +293,8 @@ litellm_settings:
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - gpt-5.5:
-    - glm-flash
-    - glm-flash
+    - zai-glm-flash
+    - zai-glm-5
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-5.4:
@@ -411,7 +428,7 @@ model_list:
     tpm: 100000
   model_name: infra-agent
 - litellm_params:
-    api_base: http://192.168.0.200:11434
+    api_base: http://100.74.118.51:11434
     model: ollama/qwen3:4b
     stream: true
     timeout: 120
@@ -421,13 +438,14 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Primário AGL — Qwen3 4B local via Ollama na VM110 agl-ollama (AGLSRV1, 192.168.0.200:11434)
+    note: Primário AGL — Qwen3 4B local via Ollama (Tailscale aglsrv1-ollama 100.74.118.51:11434)
     output_cost_per_token: 0
   model_name: agl-primary
 - litellm_params:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -549,6 +567,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -558,10 +577,11 @@ model_list:
     output_cost_per_token: 2.2e-06
   model_name: glm-4.7
 - litellm_params:
-    api_base: https://api.z.ai/api/openai/v1
+    api_base: https://api.z.ai/api/anthropic
     api_key: os.environ/ZAI_API_KEY
-    model: openai/glm-4.7-flash
-    timeout: 30
+    model: anthropic/glm-4.5-air
+    max_tokens: 512
+    timeout: 60
   model_info:
     access: direct
     context_window: 131072
@@ -569,6 +589,7 @@ model_list:
     input_cost_per_token: 0
     max_tokens: 8192
     output_cost_per_token: 0
+    note: Z.AI Anthropic-compat — fallback rápido (alias glm-flash)
   model_name: glm-flash
 - litellm_params:
     api_key: os.environ/ZAI_API_KEY
@@ -613,15 +634,17 @@ model_list:
     max_tokens: 8192
   model_name: zai/glm-4.5-flash
 - litellm_params:
-    api_base: https://api.z.ai/api/openai/v1
+    api_base: https://api.z.ai/api/anthropic
     api_key: os.environ/ZAI_API_KEY
-    model: openai/glm-4.7-flash
+    model: anthropic/glm-4.7-flash
+    max_tokens: 512
     timeout: 90
   model_info:
     access: direct
     context_window: 131072
     free_tier: true
     max_tokens: 8192
+    note: Z.AI Anthropic-compat glm-4.7-flash (Hermes agentes)
   model_name: zai/glm-4.7-flash
 - litellm_params:
     api_base: https://api.z.ai/api/openai/v1
@@ -635,16 +658,41 @@ model_list:
     max_tokens: 8192
   model_name: glm-4.5-flash
 - litellm_params:
-    api_base: https://api.z.ai/api/openai/v1
+    api_base: https://api.z.ai/api/anthropic
     api_key: os.environ/ZAI_API_KEY
-    model: openai/glm-4.7-flash
+    model: anthropic/glm-4.7-flash
+    max_tokens: 512
     timeout: 90
   model_info:
     access: direct
     context_window: 131072
     free_tier: true
     max_tokens: 8192
+    note: Z.AI Anthropic-compat glm-4.7-flash (Hermes agentes)
   model_name: glm-4.7-flash
+- litellm_params:
+    api_base: https://api.z.ai/api/anthropic
+    api_key: os.environ/ZAI_API_KEY
+    model: anthropic/glm-5
+    timeout: 60
+  model_info:
+    access: direct
+    context_window: 200000
+    max_tokens: 8192
+    note: Z.AI Anthropic-compat — Claude Code via LiteLLM /v1/messages
+  model_name: zai-glm-5
+- litellm_params:
+    api_base: https://api.z.ai/api/anthropic
+    api_key: os.environ/ZAI_API_KEY
+    model: anthropic/glm-4.5-air
+    timeout: 60
+  model_info:
+    access: direct
+    context_window: 131072
+    free_tier: true
+    max_tokens: 8192
+    note: Z.AI Anthropic-compat fast — Claude Code via LiteLLM
+  model_name: zai-glm-flash
 - litellm_params:
     api_base: https://api.z.ai/api/coding/paas/v4
     api_key: os.environ/ZAI_API_KEY
@@ -828,6 +876,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -843,6 +892,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -919,13 +969,17 @@ model_list:
   model_name: gpt-5.4-nano
 
 - litellm_params:
-    api_key: os.environ/OPENAI_API_KEY
-    model: openai/gpt-5.5
+    api_base: https://api.z.ai/api/anthropic
+    api_key: os.environ/ZAI_API_KEY
+    model: anthropic/glm-5
+    max_tokens: 1024
+    timeout: 90
   model_info:
     access: direct
-    context_window: 1000000
-    description: OpenAI GPT-5.5 (frontier)
+    context_window: 200000
+    description: Jarvis CEO — alias gpt-5.5 via Z.AI glm-5 (OpenAI quota esgotada)
     max_tokens: 16384
+    note: Mantém model_name gpt-5.5 para Hermes; backend Z.AI Anthropic glm-5
   model_name: gpt-5.5
 
 - litellm_params:
@@ -1046,6 +1100,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1058,6 +1113,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1070,6 +1126,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1102,6 +1159,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1114,6 +1172,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1126,6 +1185,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1138,6 +1198,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1197,7 +1258,7 @@ model_list:
     max_tokens: 65536
   model_name: groq-gpt-oss-120b-k2
 - litellm_params:
-    api_base: http://192.168.0.200:11434
+    api_base: http://100.74.118.51:11434
     model: ollama/qwen3:4b
     stream: true
     timeout: 120
@@ -1209,7 +1270,7 @@ model_list:
     note: Alias LiteLLM — mesmo backend que agl-primary (ollama/qwen3:4b)
   model_name: ollama-qwen3-4b
 - litellm_params:
-    api_base: http://192.168.0.200:11434
+    api_base: http://100.74.118.51:11434
     model: ollama/qwen3:4b
     stream: true
     timeout: 120
@@ -1317,6 +1378,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct
@@ -1329,6 +1391,7 @@ model_list:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY
     model: openai/glm-4.7-flash
+    max_tokens: 1024
     timeout: 30
   model_info:
     access: direct

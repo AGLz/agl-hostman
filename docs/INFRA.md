@@ -47,7 +47,8 @@
 | **188** | agl-hermes | `192.168.0.188` | Hermes Agent (Docker `/opt/agl-hermes`, gateway `:8642`) | [`HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md`](HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md) |
 | **189** | agl-evonexus | `192.168.0.189` | EvoNexus hub (Docker `/opt/evonexus`; cutover desde CT242) | idem + `scripts/evonexus/` |
 | **190** | agl-openhuman | `192.168.0.190` | OpenHuman (install `/opt/openhuman`; UI/desktop) | idem |
-| **191** | agl-gstack | `192.168.0.191` | **Jarvis O** — OpenClaw + GStack (AGLz AI Agency) | [`AGL-GSTACK-CT191-DEDICATED-LXC.md`](AGL-GSTACK-CT191-DEDICATED-LXC.md) |
+| **191** | agl-gstack | `192.168.0.191` | **Jarvis O** — OpenClaw + GStack (legado agência; ver [`AGLZ-HERMES-ONLY-AGENCY.md`](AGLZ-HERMES-ONLY-AGENCY.md)) | [`AGL-GSTACK-CT191-DEDICATED-LXC.md`](AGL-GSTACK-CT191-DEDICATED-LXC.md) |
+| **192** | agl-honcho | `192.168.0.192` | Honcho self-hosted (memória AGLz Agency) | [`HONCHO-CT192-DEDICATED-LXC.md`](HONCHO-CT192-DEDICATED-LXC.md) |
 
 **Nota:** usar IP **estático** `.188–.191` — DHCP pode colidir (ex. `.187` com OpenClaw). Gateway LLM: **CT186** `http://192.168.0.186:4000`. **CT191** ≠ **CT187** (produção vs. agência GStack).
 
@@ -610,8 +611,8 @@ traceroute 10.6.0.5
 | local-zfs | 1.7TB | ZFS | Pool | - | ✅ |
 | fgsrv5-wg | 77GB | NFS | 10.6.0.11:/ | /mnt/pve/fgsrv5-wg | ✅ |
 | fgsrv6-wg | 197GB | NFS | 10.6.0.5:/ | /mnt/pve/fgsrv6-wg | ✅ |
-| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | /mnt/pve/ct111-shares | ✅ |
-| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | /mnt/pve/ct111-sistema | ✅ |
+| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | /mnt/pve/ct111-shares | ⚠️ CT111 offline bloqueia `pvedaemon` — ver [AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md](AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md) |
+| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | /mnt/pve/ct111-sistema | ⚠️ idem |
 | aglsrv6-bb | 954GB | SSHFS | 10.6.0.12:/mnt/pve/bb | /mnt/pve/aglsrv6-bb | ✅ |
 | aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | ✅ |
 | aglsrv6-pbs | 1.2TB | PBS | - | - | ✅ |

@@ -5,11 +5,16 @@
 # Uso (no CT187, directório com compose + .env + config/ + workspace/):
 #   docker compose -f docker-compose.ct187.yml up -d
 #
-# Imagem: OPENCLAW_IMAGE=ghcr.io/openclaw/openclaw:latest (recomendado) ou build local.
+# Imagem: agl-openclaw:ops (build Dockerfile.ct187 = Dockerfile.ops). Ver docker/openclaw/README.md.
+# Não usar ghcr.io/openclaw/openclaw:latest com jobs SSH activos (falta openssh-client).
 
 services:
   openclaw-gateway:
-    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    image: ${OPENCLAW_IMAGE:-agl-openclaw:ops}
+    build:
+      context: .
+      dockerfile: Dockerfile.ct187
+      network: host
     environment:
       HOME: /home/node
       TERM: xterm-256color
@@ -35,6 +40,7 @@ services:
     volumes:
       - ${OPENCLAW_CONFIG_DIR:-./config}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-./workspace}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_SSH_DIR:-./docker-ssh-node}:/home/node/.ssh:ro
     ports:
       - ${OPENCLAW_GATEWAY_PORT:-28789}:18789
       - ${OPENCLAW_BRIDGE_PORT:-28790}:18790
@@ -62,7 +68,7 @@ services:
       - default
 
   openclaw-cli:
-    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    image: ${OPENCLAW_IMAGE:-agl-openclaw:ops}
     network_mode: service:openclaw-gateway
     cap_drop:
       - NET_RAW
@@ -86,6 +92,7 @@ services:
     volumes:
       - ${OPENCLAW_CONFIG_DIR:-./config}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-./workspace}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_SSH_DIR:-./docker-ssh-node}:/home/node/.ssh:ro
     stdin_open: true
     tty: true
     init: true

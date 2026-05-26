@@ -27,8 +27,11 @@ fi
 install -d -m 0755 /opt/agl-openclaw/config /opt/agl-openclaw/workspace
 cd /opt/agl-openclaw
 
-echo "=== Copiar compose ==="
+echo "=== Copiar compose + Dockerfile (openssh-client) ==="
 install -m 0644 "${AGL_HOSTMAN}/docker/openclaw/docker-compose.ct187.yml" /opt/agl-openclaw/docker-compose.yml
+install -m 0644 "${AGL_HOSTMAN}/docker/openclaw/Dockerfile.ct187" /opt/agl-openclaw/Dockerfile.ct187
+install -m 0644 "${AGL_HOSTMAN}/docker/openclaw/Dockerfile.ct187" /opt/agl-openclaw/Dockerfile.ops
+install -d -m 0700 /opt/agl-openclaw/docker-ssh-node
 
 if [[ ! -f /opt/agl-openclaw/config/openclaw.json ]]; then
   if [[ -f "${AGL_HOSTMAN}/../openclaw-repo/config/openclaw.json" ]]; then
@@ -57,13 +60,14 @@ if [[ ! -f /opt/agl-openclaw/.env ]]; then
   exit 1
 fi
 
-echo "=== Subir OpenClaw (só gateway; perfil cli opcional) ==="
-if docker image inspect "${OPENCLAW_IMAGE:-agl-openclaw:ops}" >/dev/null 2>&1; then
-  docker compose -f /opt/agl-openclaw/docker-compose.yml up -d
-else
-  docker compose -f /opt/agl-openclaw/docker-compose.yml pull
-  docker compose -f /opt/agl-openclaw/docker-compose.yml up -d
+echo "=== Imagem OpenClaw (agl-openclaw:ops com openssh-client) ==="
+cd /opt/agl-openclaw
+if [[ -f Dockerfile.ct187 ]]; then
+  docker compose -f docker-compose.yml build openclaw-gateway
 fi
+
+echo "=== Subir OpenClaw (só gateway; perfil cli opcional) ==="
+docker compose -f /opt/agl-openclaw/docker-compose.yml up -d --build
 
 set -a
 # shellcheck source=/dev/null

@@ -7,6 +7,6 @@ CURL_AUTH=()
 [[ -n "$K" ]] && CURL_AUTH=(-H "Authorization: Bearer ${K}")
 echo -n "readiness: "
 curl -sS -o /dev/null -w '%{http_code}\n' --max-time 15 http://127.0.0.1:4000/health/readiness
-BODY=$(jq -nc '{model:"zai/glm-4.7-flash",messages:[{role:"user",content:"ping"}],max_tokens:8}')
+BODY=$(jq -nc '{model:"zai/glm-4.7-flash",messages:[{role:"user",content:"ping"}],max_tokens:512}')
 curl -sS --max-time 35 "${CURL_AUTH[@]}" -H "Content-Type: application/json" \
   http://127.0.0.1:4000/v1/chat/completions -d "$BODY" | jq '{model_used:.model,content:(.choices[0].message.content//null),err:(.error.message//null)}'

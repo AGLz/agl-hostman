@@ -37,8 +37,10 @@ services:
       - DATABASE_URL=postgresql://litellm:litellm_db_pass@litellm-db:5432/litellm
       # Allow health and models endpoints without auth (monitoring interno)
       - LITELLM_ALLOWED_ROUTES=/health,/health/readiness,/v1/models
+      - BACKGROUND_HEALTH_CHECK_MAX_TOKENS_REASONING=512
     volumes:
       - ../../config/litellm/config.yaml:/app/config.yaml:ro
+      - ../../config/litellm/custom_callbacks:/app/custom_callbacks:ro
     # Healthcheck: imagem LiteLLM não tem curl/wget — usa Python
     # /health/readiness não exige auth (endpoint público)
     healthcheck:

@@ -1,0 +1,54 @@
+# LiteLLM em /opt/litellm (agldv03, agldv04, agldv12)
+services:
+  litellm-db:
+    image: postgres:16-alpine
+    container_name: litellm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: litellm_db_pass
+      POSTGRES_DB: litellm
+    volumes:
+      - litellm-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - litellm-net
+
+  litellm-proxy:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm-proxy
+    restart: unless-stopped
+    depends_on:
+      litellm-db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - CONFIG_FILE_PATH=/app/config.yaml
+      - DATABASE_URL=postgresql://litellm:litellm_db_pass@litellm-db:5432/litellm
+      - LITELLM_ALLOWED_ROUTES=/health,/health/readiness,/v1/models
+      - BACKGROUND_HEALTH_CHECK_MAX_TOKENS_REASONING=512
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./custom_callbacks:/app/custom_callbacks:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/readiness', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - litellm-net
+
+volumes:
+  litellm-db-data:
+
+networks:
+  litellm-net:
+    driver: bridge

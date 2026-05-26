@@ -24,7 +24,7 @@ model_list:
   - model_name: "agl-primary"
     litellm_params:
       model: "ollama/qwen3:4b"
-      api_base: "http://100.116.57.111:11434"
+      api_base: "http://100.74.118.51:11434"
       timeout: 120
       stream: true
     model_info:
@@ -631,14 +631,14 @@ model_list:
       free_tier: true
 
   # ============================================================
-  # OLLAMA — CT200 AGLSRV1 (Tailscale 100.116.57.111; LAN 192.168.0.200 em config.yaml)
+  # OLLAMA — aglsrv1-ollama Tailscale 100.74.118.51 (LAN 192.168.0.200 só na mesma rede)
   # Apenas qwen3:4b local (alinhado a config.yaml principal).
   # ============================================================
 
   - model_name: "ollama-qwen3-4b"
     litellm_params:
       model: "ollama/qwen3:4b"
-      api_base: "http://100.116.57.111:11434"
+      api_base: "http://100.74.118.51:11434"
       timeout: 120
       stream: true
     model_info:
@@ -650,7 +650,7 @@ model_list:
   - model_name: "openai/ollama-qwen3-4b"
     litellm_params:
       model: "ollama/qwen3:4b"
-      api_base: "http://100.116.57.111:11434"
+      api_base: "http://100.74.118.51:11434"
       timeout: 120
       stream: true
     model_info:

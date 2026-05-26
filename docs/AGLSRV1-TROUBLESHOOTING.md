@@ -1,6 +1,6 @@
 # AGLSRV1 Troubleshooting Playbook
 
-> **Última atualização**: 2026-04-06
+> **Última atualização**: 2026-05-25
 > **Host**: aglsrv1 | **Tailscale**: `100.107.113.33` | **LAN**: `192.168.0.245`
 
 ## TL;DR — Runbook de Emergência
@@ -83,6 +83,40 @@ A ISO do Sergei Strelec (`WinPE11_10_8_Sergei_Strelec_x86_x64_2024.08.21_English
 qm set 104 --ide0 none,media=cdrom
 ```
 
+### 5. WebUI — login bloqueado (SSH OK) — NFS CT111
+
+**Frequência**: Quando CT111 (`10.6.0.20` WG) está offline  
+**Impacto**: Login WebUI impossível; VMs/CTs continuam a correr  
+**Incidente documentado**: [`AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md`](AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md)
+
+**Sintoma**: página `https://192.168.0.245:8006` carrega; login falha com HTTP 500 ou timeout. SSH com `root` funciona.
+
+**Causa**: `pvedaemon worker` em estado **`D`**, bloqueado em NFS `hard` para `/mnt/pve/ct111-shares` e `/mnt/pve/ct111-sistema` (`10.6.0.20` inacessível). Também `pvestatd` pode ficar preso.
+
+**Detecção**:
+
+```bash
+ssh root@100.107.113.33 '
+  ps aux | awk "\$8 ~ /D/ && /pve(daemon|statd)/ {print}"
+  ping -c 2 -W 2 10.6.0.20
+  grep access/ticket /var/log/pveproxy/access.log | tail -5
+'
+```
+
+**Fix imediato** (sem reboot do host):
+
+```bash
+ssh root@100.107.113.33 '
+  systemctl restart pvedaemon pveproxy
+  umount -l /mnt/pve/ct111-shares /mnt/pve/ct111-sistema 2>/dev/null
+  systemctl restart pvestatd
+'
+```
+
+**Login WebUI**: utilizador `root`, realm **Linux PAM standard authentication** (não «Proxmox VE authentication server»).
+
+**Prevenção**: repor CT111 no AGLSRV6 ou desactivar storage `ct111-*` no Proxmox enquanto o peer WG estiver down.
+
 ---
 
 ## Estado Atual do Host (2026-04-06)
@@ -140,6 +174,7 @@ qm set 104 --cores 8
 
 ## Referências
 
+- `docs/AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md` — Incidente WebUI + NFS CT111 (2026-05-25)
 - `docs/AGLWK45-SETUP.md` — Setup completo da VM104
 - `docs/aglsrv1-key-findings.md` — Diagnósticos históricos
 - `docs/WINDOWS11-PROXMOX-OPTIMIZATION.md` — Otimizações Windows 11 no Proxmox

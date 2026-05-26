@@ -1,0 +1,117 @@
+# AGLz — Hermes multi-agent (CT188)
+# LiteLLM: http://100.125.249.8:4000 (Tailscale aglsrv1-litellm)
+# Honcho: http://100.x.x.x:8000 (CT192 agl-honcho — Tailscale após deploy)
+
+# Política de custo: só jarvis usa gpt-5.5; restantes modelos baratos LiteLLM.
+
+default_agent: jarvis
+
+agents:
+  jarvis:
+    home_dir: profiles/jarvis
+    model: gpt-5.5
+    provider: custom
+  elon:
+    home_dir: profiles/elon
+    model: glm-4.7-flash
+    provider: custom
+  satya:
+    home_dir: profiles/satya
+    model: qwen-coder
+    provider: custom
+  werner:
+    home_dir: profiles/werner
+    model: qwen-coder
+    provider: custom
+
+routes:
+  - match:
+      platform: telegram
+      account: default
+    agent: jarvis
+  - match:
+      platform: telegram
+      account: elon
+    agent: elon
+  - match:
+      platform: telegram
+      account: satya
+    agent: satya
+  - match:
+      platform: telegram
+      account: werner
+    agent: werner
+
+model:
+  provider: custom
+  default: glm-4.7-flash
+  fallback: glm-4.7-flash
+  base_url: http://100.125.249.8:4000
+
+delegation:
+  provider: custom
+  model: qwen-coder
+  base_url: http://100.125.249.8:4000
+  max_iterations: 50
+  max_concurrent_children: 3
+
+auxiliary:
+  compression:
+    provider: custom
+    model: zai-glm-flash
+    base_url: http://100.125.249.8:4000
+  vision:
+    provider: custom
+    model: zai-glm-flash
+    base_url: http://100.125.249.8:4000
+  web_extract:
+    provider: custom
+    model: zai-glm-flash
+    base_url: http://100.125.249.8:4000
+  title_generation:
+    provider: custom
+    model: zai-glm-flash
+    base_url: http://100.125.249.8:4000
+  approval:
+    provider: custom
+    model: zai-glm-flash
+    base_url: http://100.125.249.8:4000
+
+fallback_model:
+  provider: custom
+  model: glm-4.7-flash
+  base_url: http://100.125.249.8:4000
+
+compression:
+  enabled: true
+  threshold: 0.50
+  target_ratio: 0.20
+  protect_last_n: 20
+
+honcho:
+  enabled: true
+  recallMode: hybrid
+  writeFrequency: async
+  sessionStrategy: per-directory
+  dialecticReasoningLevel: low
+  dialecticDynamic: true
+
+toolsets:
+  - hermes-cli
+  - terminal
+  - file
+  - web
+
+# Linear MCP — substitui Archon para tasks
+# OAuth: https://mcp.linear.app/mcp (ver docs/LINEAR-MCP-INTEGRATION.md)
+# mcp_servers:
+#   linear:
+#     transport: http
+#     url: https://mcp.linear.app/mcp
+
+# llm-wiki — substitui Archon RAG; mount CT188: LLM_WIKI_DIR → /opt/llm-wiki
+# Query: ler /opt/llm-wiki/wiki/index.md; ver docs/LLM-WIKI-AGENCY-INTEGRATION.md
+# mcp_servers:
+#   llm-wiki-fs:
+#     command: npx
+#     args: ["-y", "@modelcontextprotocol/server-filesystem", "/opt/llm-wiki/wiki", "/opt/llm-wiki/raw"]

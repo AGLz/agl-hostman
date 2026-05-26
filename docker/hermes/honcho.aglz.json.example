@@ -1,0 +1,17 @@
+{
+  "baseUrl": "http://100.124.98.54:8000",
+  "hosts": {
+    "hermes": {
+      "enabled": true,
+      "workspace": "aglz-agency",
+      "peerName": "sr-big",
+      "aiPeer": "jarvis",
+      "recallMode": "hybrid",
+      "writeFrequency": "async",
+      "sessionStrategy": "per-directory",
+      "dialecticReasoningLevel": "low"
+    }
+  },
+  "_note_profiles": "Por agente Hermes: aiPeer = jarvis | elon | satya | werner (mesmo workspace aglz-agency)",
+  "_note_url": "CT192 Tailscale aglsrv1-honcho (100.124.98.54) — override via HONCHO_BASE_URL no configure script"
+}

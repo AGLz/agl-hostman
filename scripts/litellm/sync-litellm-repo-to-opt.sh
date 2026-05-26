@@ -40,8 +40,10 @@ done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SRC="$REPO_ROOT/config/litellm/config.yaml"
+CALLBACKS_SRC="$REPO_ROOT/config/litellm/custom_callbacks"
 DEST_DIR="/opt/litellm"
 DEST="$DEST_DIR/config.yaml"
+DEST_CALLBACKS="$DEST_DIR/custom_callbacks"
 
 if [[ ! -f "$SRC" ]]; then
   echo "Erro: $SRC não encontrado"
@@ -75,13 +77,25 @@ fi
 
 echo "  OK: $DEST actualizado"
 
+if [[ -d "$CALLBACKS_SRC" ]]; then
+  mkdir -p "$DEST_CALLBACKS"
+  /bin/cp -rf "$CALLBACKS_SRC/." "$DEST_CALLBACKS/"
+  echo "  OK: $DEST_CALLBACKS actualizado"
+fi
+
+COMPOSE_OPT="$REPO_ROOT/docker/litellm/docker-compose.opt-litellm.yml"
+if [[ -f "$COMPOSE_OPT" ]]; then
+  /bin/cp -f "$COMPOSE_OPT" "$DEST_DIR/docker-compose.yml"
+  echo "  OK: docker-compose.yml (opt-litellm)"
+fi
+
 if [[ "$NO_RESTART" == true ]]; then
-  echo "  --no-restart: cópia concluída; reinicia quando quiseres: cd $DEST_DIR && docker compose restart litellm-proxy"
+  echo "  --no-restart: cópia concluída; reinicia quando quiseres: cd $DEST_DIR && docker compose up -d litellm-proxy"
   exit 0
 fi
 
 if docker compose version >/dev/null 2>&1; then
-  (cd "$DEST_DIR" && docker compose restart litellm-proxy)
+  (cd "$DEST_DIR" && docker compose up -d litellm-proxy)
 else
   echo "Aviso: docker compose indisponível — reinicia manualmente: cd $DEST_DIR && docker compose restart litellm-proxy"
   exit 0

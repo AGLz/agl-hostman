@@ -51,8 +51,10 @@ services:
     environment:
       - CONFIG_FILE_PATH=/app/config.yaml
       - DATABASE_URL=postgresql://litellm:litellm_db_pass@litellm-db:5432/litellm
+      - BACKGROUND_HEALTH_CHECK_MAX_TOKENS_REASONING=512
     volumes:
       - ./config.yaml:/app/config.yaml:ro
+      - ./custom_callbacks:/app/custom_callbacks:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/readiness', timeout=5)"]
       interval: 30s

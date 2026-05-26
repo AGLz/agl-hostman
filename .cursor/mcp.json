@@ -3,20 +3,32 @@
     "laravel-boost": {
       "type": "stdio",
       "command": "php",
-      "args": ["artisan", "boost:mcp"],
+      "args": [
+        "artisan",
+        "boost:mcp"
+      ],
       "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src",
-      "env": { "COMPOSER_ALLOW_SUPERUSER": "1" }
+      "env": {
+        "COMPOSER_ALLOW_SUPERUSER": "1"
+      }
     },
     "shadcn": {
       "type": "stdio",
       "command": "npx",
-      "args": ["shadcn@latest", "mcp"],
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ],
       "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman/src"
     },
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@playwright/mcp@latest"],
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.69",
+        "--extension"
+      ],
       "cwd": "/mnt/overpower/apps/dev/agl/agl-hostman",
       "env": {
         "NODE_ENV": "development",
@@ -36,24 +48,36 @@
     "github": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github@2025.4.8"
+      ],
       "description": "GitHub repository operations, PRs, issues"
     },
     "context7": {
       "type": "sse",
       "url": "https://mcp.context7.com/mcp",
-      "description": "Library documentation search"
+      "description": "Library documentation search",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@2.1.4"
+      ]
     },
     "docker": {
       "type": "stdio",
       "command": "npx",
-      "args": ["docker-mcp"],
+      "args": [
+        "docker-mcp"
+      ],
       "description": "Docker container and image management"
     },
     "filesystem": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem"],
+      "args": [
+        "@modelcontextprotocol/server-filesystem"
+      ],
       "description": "Filesystem access with configurable allowed dirs"
     },
     "proxmox": {
@@ -69,19 +93,26 @@
     "cloudflare-dns": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@cloudflare/mcp-server-cloudflare"],
+      "args": [
+        "@cloudflare/mcp-server-cloudflare"
+      ],
       "description": "Cloudflare DNS and zone management"
     },
     "sqlite": {
       "type": "stdio",
       "command": "npx",
-      "args": ["mcp-server-sqlite-npx"],
+      "args": [
+        "mcp-server-sqlite-npx"
+      ],
       "description": "SQLite database access"
     },
     "memory": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-memory"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2026.1.26"
+      ],
       "description": "Knowledge graph memory system"
     },
     "web-reader": {
@@ -97,14 +128,19 @@
     "zai-mcp-server": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@z_ai/mcp-server"],
+      "args": [
+        "@z_ai/mcp-server"
+      ],
       "description": "Z.AI media services"
     },
     "exa": {
-      "type": "stdio",
+      "type": "http",
       "command": "npx",
-      "args": ["exa-mcp-server"],
-      "description": "Exa web search"
+      "args": [
+        "exa-mcp-server"
+      ],
+      "description": "Exa web search",
+      "url": "https://mcp.exa.ai/mcp"
     },
     "zread": {
       "type": "sse",
@@ -114,32 +150,49 @@
     "harbor": {
       "type": "stdio",
       "command": "npx",
-      "args": ["mcp-harbor"],
+      "args": [
+        "mcp-harbor"
+      ],
       "description": "Harbor container registry"
     },
     "dokploy": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@ahdev/dokploy-mcp"],
+      "args": [
+        "@ahdev/dokploy-mcp"
+      ],
       "description": "Dokploy deployment management"
     },
     "claude-flow": {
       "type": "stdio",
       "command": "npx",
-      "args": ["claude-flow@alpha"],
+      "args": [
+        "claude-flow@alpha"
+      ],
       "description": "Claude Flow multi-agent orchestration"
     },
     "ruv-swarm": {
       "type": "stdio",
       "command": "npx",
-      "args": ["ruv-swarm@latest"],
+      "args": [
+        "ruv-swarm@latest"
+      ],
       "description": "Ruv swarm coordination"
     },
     "flow-nexus": {
       "type": "stdio",
       "command": "npx",
-      "args": ["flow-nexus@latest"],
+      "args": [
+        "flow-nexus@latest"
+      ],
       "description": "Flow Nexus orchestration platform"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@2025.12.18"
+      ]
     }
   }
 }

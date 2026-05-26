@@ -104,6 +104,18 @@
 - **Test Coverage**: Comprehensive test factories added
 - **Integrations**: N8N, AI (OpenAI/Claude/Ollama), Harbor, Dokploy, Horizon, GitHub Actions
 
+## 📋 Backlog — Six Repos multi-agente (2026-05-25)
+
+Plano: [`ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`](../../../ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md)  
+Second brain: `/mnt/overpower/apps/dev/agl/llm-wiki`
+
+- [x] **TASK-AGENT-SIX-REPOS-0**: Scripts `sync-six-repos.sh` + `verify-six-repos.sh` (2026-05-25)
+- [x] **TASK-AGENT-SIX-REPOS-1**: Obsidian-CLI-skill no vault llm-wiki (Claude + Cursor + Codex + Verdent) (2026-05-25)
+- [x] **TASK-AGENT-SIX-REPOS-2**: Instalar ECC (everything-claude-code) cross-harness + dedup skills (2026-05-25)
+- [x] **TASK-AGENT-SIX-REPOS-3**: Consolidar superpowers gaps (sync cursor/codex/verdent) (2026-05-25)
+- [x] **TASK-AGENT-SIX-REPOS-4**: open-design (frontend) + ingest wiki páginas restantes (2026-05-25)
+- [x] **TASK-AGENT-SIX-REPOS-5**: Propagação aglwk45 / CT188 + smoke Hermes + Obsidian CLI no host dev (2026-05-25 — agldv03+CT188 OK; wk45 manual RDP)
+
 ## 🚀 Definition of Done
 1. Código implementado e testado
 2. Documentação atualizada

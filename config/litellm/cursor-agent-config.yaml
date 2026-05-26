@@ -12,18 +12,16 @@ model_list:
   # Composer Fast → Z.AI GLM-4.7-Flash (sem DashScope; alinhado a config.yaml)
   - model_name: cursor-composer
     litellm_params:
-      model: openai/glm-4.7-flash
+      model: zai/glm-4.7-flash
       api_key: os.environ/ZAI_API_KEY
-      api_base: https://api.z.ai/api/openai/v1
     model_info:
       description: "Proxy Composer Fast (Z.AI GLM-4.7-Flash — DashScope só qwen-coder)"
       max_tokens: 65536
 
   - model_name: cursor-composer-2-fast
     litellm_params:
-      model: openai/glm-4.7-flash
+      model: zai/glm-4.7-flash
       api_key: os.environ/ZAI_API_KEY
-      api_base: https://api.z.ai/api/openai/v1
     model_info:
       description: "Alias cursor-composer-2-fast (Z.AI GLM-4.7-Flash)"
       max_tokens: 65536

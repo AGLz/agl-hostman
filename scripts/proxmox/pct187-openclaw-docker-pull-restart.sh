@@ -22,10 +22,16 @@ test -f docker-compose.yml || {
   echo "ERRO: falta /opt/agl-openclaw/docker-compose.yml" >&2
   exit 1
 }
-echo "=== docker compose pull ==="
-docker compose -f docker-compose.yml pull
-echo "=== docker compose up -d ==="
-docker compose -f docker-compose.yml up -d
+if [[ -f Dockerfile.ct187 ]] || [[ -f Dockerfile.ops ]]; then
+  echo "=== docker compose build (agl-openclaw:ops + openssh-client) ==="
+  docker compose -f docker-compose.yml build openclaw-gateway
+  docker compose -f docker-compose.yml up -d
+else
+  echo "=== docker compose pull ==="
+  docker compose -f docker-compose.yml pull
+  echo "=== docker compose up -d ==="
+  docker compose -f docker-compose.yml up -d
+fi
 echo "OK: stack actualizada. Imagens:"
 docker compose -f docker-compose.yml images
 REMOTE

@@ -2,7 +2,27 @@
 
 **Date**: 2025-10-21 23:00
 **Diagnostician**: Service Diagnostics Agent (Hive-Mind)
-**Updated**: 2026-04-06 — Incidente VM104 + meshagent memory leak
+**Updated**: 2026-05-25 — Incidente WebUI Proxmox bloqueada por NFS CT111
+
+---
+
+## Incidente 2026-05-25 — WebUI Proxmox: login bloqueado (SSH OK)
+
+**Sintoma**: Impossível logar em `https://192.168.0.245:8006`; SSH com `root` OK. Página de login carrega; submit falha (HTTP 596 → depois 500).
+
+**Causa raiz**: Três `pvedaemon worker` em estado **`D`** (desde 20/May), bloqueados em NFS **`hard`** para `10.6.0.20` (`ct111-shares`, `ct111-sistema`). CT111 offline na mesh WG → I/O hang → autenticação WebUI nunca completa. `pvestatd` também preso.
+
+**Resolução** (sem reboot do host):
+
+```bash
+systemctl restart pvedaemon pveproxy
+umount -l /mnt/pve/ct111-shares /mnt/pve/ct111-sistema
+systemctl restart pvestatd
+```
+
+**Nota**: Reset de password (`pveum passwd root@pam`) não resolveu — não era problema de credencial. Realm correcto: **Linux PAM standard authentication**.
+
+**Doc completa**: [`docs/AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md`](AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md)
 
 ---
 

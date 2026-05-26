@@ -1,0 +1,27 @@
+# Imagem OpenClaw AGL (CT187) — alinhada com Dockerfile.ops em produção.
+# Pacotes para cron Jarvis: ssh aglsrv1/ct186/ct187, ping, jq, git, rsync.
+# Tag recomendada: agl-openclaw:ops
+#
+# Opcional: binário estático docker em docker-build-assets/docker (ver README).
+FROM ghcr.io/openclaw/openclaw:latest
+
+USER root
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    openssh-client \
+    git \
+    jq \
+    python3 \
+    rsync \
+    netcat-openbsd \
+    iputils-ping \
+    dnsutils \
+    ca-certificates \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# Descomentar se existir docker-build-assets/docker (cliente estático; não obrigatório para health scripts).
+# COPY docker-build-assets/docker /usr/local/bin/docker
+# RUN chmod 0755 /usr/local/bin/docker
+
+USER node

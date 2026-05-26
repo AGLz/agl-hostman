@@ -131,6 +131,29 @@ curl -sS http://127.0.0.1:28789/healthz
 
 Se a imagem for local (ex. `openclaw:infra`), fazer `docker save` no host de build e `docker load` no CT187 antes do `compose pull`.
 
+### Telegram: `STORAGE_HEALTH_ISSUES` / `SSH AGLSRV1: FAIL` (falso positivo)
+
+Os cron jobs `storage-health-check` e `critical-services-monitor` (cada **10 min**) correm **dentro** do contentor gateway e usam `ssh` para `aglsrv1`, `ct186` e `ct187` (chaves em `/home/node/.ssh/`). A imagem upstream `ghcr.io/openclaw/openclaw:latest` **não inclui** `openssh-client` → erro típico: `ssh: not found` e falhas em cascata (`CT187 docker system df failed`, etc.).
+
+**Serviços reais** (LiteLLM CT186, gateway CT187) podem estar saudáveis; o alerta é de **ferramenta em falta no contentor**, não de infraestrutura.
+
+**Correcção permanente (repo):** imagem **`agl-openclaw:ops`** (`docker/openclaw/Dockerfile.ct187`, alias `Dockerfile.ops`). Em `.env`: `OPENCLAW_IMAGE=agl-openclaw:ops` — **não** `ghcr.io/openclaw/openclaw:latest`. Ver `docker/openclaw/README.md`.
+
+```bash
+# No AGLSRV1, a partir do agl-hostman:
+bash scripts/proxmox/pct187-sync-openclaw-stack-from-repo.sh
+
+# Ou manualmente no CT187:
+cd /opt/agl-openclaw
+docker compose build openclaw-gateway
+docker compose up -d
+docker exec agl-openclaw-openclaw-gateway-1 /home/node/.openclaw/workspace/scripts/critical-services-monitor.sh
+```
+
+**Correcção rápida (não persiste após recreate):** `docker exec -u root agl-openclaw-openclaw-gateway-1 apt-get update && apt-get install -y openssh-client`
+
+**Nota:** `192.168.0.187` pode não responder a ping desde outros CTs (firewall); usar Tailscale `100.123.184.125` ou healthz no próprio CT187.
+
 ### Telegram 409 (`getUpdates` conflict)
 
 Só pode haver **um** long-poll `getUpdates` por **token** de bot.
@@ -215,7 +238,8 @@ docker compose --profile cli run --rm openclaw-cli cron list
 | `scripts/proxmox/pct-tailscale-up-litellm-openclaw.sh` | `tailscale up` com `TAILSCALE_AUTHKEY` nos CT186/187 |
 | `scripts/proxmox/pct187-rotate-telegram-bot-token.sh` | Novo token Telegram (ficheiro + `pct push`) no CT187 |
 | `scripts/proxmox/pct187-restore-telegram-env-from-backup.sh` | Repor `.env` no CT187 a partir de `.env.bak.telegram.*` |
-| `scripts/proxmox/pct187-openclaw-docker-pull-restart.sh` | `docker compose pull` + `up -d` no CT187 (actualizar imagem OpenClaw) |
+| `scripts/proxmox/pct187-openclaw-docker-pull-restart.sh` | `docker compose build` ou `pull` + `up -d` no CT187 |
+| `scripts/proxmox/pct187-sync-openclaw-stack-from-repo.sh` | Sincroniza compose/Dockerfile do repo + corrige `.env` (`agl-openclaw:ops`) |
 
 ### Actualizar imagem OpenClaw no CT187
 
