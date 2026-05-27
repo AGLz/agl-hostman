@@ -74,6 +74,33 @@ agl-hostman/
 
 A raiz reúne também compose, configs e ferramentas auxiliares; **novos ficheiros** devem ir para `docs/`, `scripts/`, `config/` ou para o módulo adequado em `src/`, não como ficheiros soltos sem propósito.
 
+
+## AGLz Agency (Hermes Quarteto)
+
+4 agentes Hermes em Docker no CT188:
+- Jarvis (CEO) @hermes_jarvis_h_bot
+- Elon (CPO/CRO) @hermes_jarvis_h_elon_bot  
+- Satya (COO) @hermes_jarvis_h_satya_bot
+- Werner (VP Infra) @hermes_jarvis_h_werner_bot
+
+Stack: LiteLLM CT186 (gpt-5.5), Honcho CT192 (memória), Linear (backlog), llm-wiki (KB)
+Deploy: docker/hermes/docker-compose.aglz-quartet.ct188.yml
+Profiles: /opt/agl-hermes/profiles/{name}/ → /opt/data
+
+## AGLz Agency (Hermes Quarteto)
+
+A AGLz Agency opera com **4 agentes Hermes** em containers Docker no CT188 (agl-hermes):
+
+- **Jarvis** (CEO) — visão, prioridades, delegação — @hermes_jarvis_h_bot
+- **Elon** (CPO/CRO) — produto, pesquisa, specs — @hermes_jarvis_h_elon_bot
+- **Satya** (COO) — execução, código, deployment — @hermes_jarvis_h_satya_bot
+- **Werner** (VP Infra) — Proxmox, rede, LiteLLM — @hermes_jarvis_h_werner_bot
+
+**Stack**: Hermes Agent via LiteLLM CT186 (gpt-5.5), Honcho CT192 (memória durável), Linear (backlog), llm-wiki (KB curado).
+**Deploy**: `docker/hermes/docker-compose.aglz-quartet.ct188.yml`
+**Profiles**: `/opt/agl-hermes/profiles/{jarvis,elon,satya,werner}/` montado como `/opt/data`
+
+
 ## LiteLLM e Cursor
 
 Configuração principal: **`config/litellm/config.yaml`** (e **`config-remote.yaml`** onde aplicável).  
@@ -86,4 +113,4 @@ Os nomes **`cursor-composer`** / **`cursor-composer-2-fast`** usam **`gpt-5.4-mi
 
 ---
 
-*Última atualização do README: 2026-03-19.*
+*Última atualização do README: 2026-05-27.*
