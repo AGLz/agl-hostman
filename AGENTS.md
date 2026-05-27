@@ -39,6 +39,18 @@ Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan
 | `.cursor/rules/` | Regras Cursor (Laravel Boost, guia primário PT) |
 | `/mnt/overpower/apps/dev/agl/agl-hostman` (agldv03) | Clone do mesmo repo via NFS overpower (espelho de `U:\…` na wk45) |
 
+## Six Repos (skills multi-harness)
+
+Plano e scripts: [`ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`](ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md) · integração llm-wiki: [`docs/LLM-WIKI-AGENCY-INTEGRATION.md`](docs/LLM-WIKI-AGENCY-INTEGRATION.md).
+
+```bash
+bash scripts/skills/sync-six-repos.sh --repo all
+bash scripts/skills/verify-six-repos.sh
+bash scripts/skills/propagate-six-repos.sh --host all   # agldv03, ct188, aglwk45
+```
+
+**Obsidian CLI:** activar no Obsidian Desktop 1.12+; sem CLI no PATH, `verify-six-repos.sh` reporta WARN (skills já instaladas).
+
 **Nota:** A raiz contém muitos artefactos de projeto (compose, config, Python pontual). **Não** adicionar ficheiros soltos sem propósito; preferir `docs/`, `scripts/`, `config/` ou o módulo `src/` adequado.
 
 ## Coordenação de agentes

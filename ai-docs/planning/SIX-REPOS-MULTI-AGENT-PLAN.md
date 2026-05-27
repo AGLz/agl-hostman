@@ -4,7 +4,7 @@
 > **Second brain:** [`/mnt/overpower/apps/dev/agl/llm-wiki`](https://github.com/AGLz/llm-wiki) (vault Obsidian)  
 > **Orquestração infra:** `agl-hostman`  
 > **Data:** 2026-05-25  
-> **Estado baseline (agldv03):** superpowers + ruflo parcial; resto em falta
+> **Estado:** Fases 0–6 concluídas (2026-05-26); pendente opcional: Obsidian CLI activo no desktop para smoke E2E
 
 ---
 
@@ -254,7 +254,7 @@ obsidian orphans
 | Verdent workstations | P2 | Sync `~/.verdent/skills/` |
 | Warp | P3 | Workflows only |
 
-**Script alvo:** `scripts/skills/propagate-six-repos.sh --host agldv03|aglwk45|ct188`
+**Script alvo:** `scripts/skills/propagate-six-repos.sh --host agldv03|aglwk45|ct188` · wk45: `propagate-six-repos-wk45-qemu.sh`
 
 ---
 
@@ -372,16 +372,17 @@ Criar `~/.warp/workflows/agl-llm-wiki.yaml`:
 
 ## 9. Critérios de aceitação (Definition of Done)
 
-- [ ] **6/6 repos** documentados em `llm-wiki/wiki/` com entrada no `index.md`
-- [ ] **Claude Code:** superpowers + ECC + obsidian-cli + karpathy activos
-- [ ] **Cursor:** `~/.cursor/skills/` com obsidian-cli (+ open-design se Fase 4)
-- [ ] **Codex:** `~/.codex/skills/` existe com superpowers + obsidian-cli mínimo
-- [ ] **Verdent:** obsidian-cli + karpathy em `~/.verdent/skills/`
-- [ ] **llm-wiki:** smoke Obsidian CLI (search + daily append) no vault
-- [ ] **agl-hostman:** `verify-six-repos.sh` exit 0
-- [ ] **Hermes CT188:** mount wiki OK; agentes citam páginas dos 6 repos
-- [ ] **Warp:** workflow documentado (opcional)
-- [ ] **Antigravity:** decisão explícita (skip ou sickn33 separado) registada em wiki
+- [x] **6/6 repos** documentados em `llm-wiki/wiki/` com entrada no `index.md`
+- [x] **Claude Code:** superpowers + ECC + obsidian-cli + karpathy activos
+- [x] **Cursor:** `~/.cursor/skills/` com obsidian-cli + open-design (`od-*`)
+- [x] **Codex:** `~/.codex/skills/` com superpowers + obsidian-cli mínimo
+- [x] **Verdent:** obsidian-cli + karpathy em `~/.verdent/skills/`
+- [ ] **llm-wiki:** smoke Obsidian CLI (search + daily append) no vault — pendente CLI no PATH
+- [x] **agl-hostman:** `verify-six-repos.sh` exit 0
+- [x] **Hermes CT188:** mount wiki OK; smoke 6 páginas (`smoke-hermes-six-repos.sh`)
+- [x] **aglwk45:** skills via `propagate-six-repos-wk45-qemu.sh` (FAIL=0 no guest)
+- [x] **Warp:** workflow documentado (`docs/warp-workflows/agl-llm-wiki.example.yaml`)
+- [x] **Antigravity:** decisão explícita — repo separado; ver `ANTIGRAVITY_SKILLS_INTEGRATION.md` (fora dos 6 repos)
 
 ---
 

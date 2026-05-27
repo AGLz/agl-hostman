@@ -114,7 +114,8 @@ Second brain: `/mnt/overpower/apps/dev/agl/llm-wiki`
 - [x] **TASK-AGENT-SIX-REPOS-2**: Instalar ECC (everything-claude-code) cross-harness + dedup skills (2026-05-25)
 - [x] **TASK-AGENT-SIX-REPOS-3**: Consolidar superpowers gaps (sync cursor/codex/verdent) (2026-05-25)
 - [x] **TASK-AGENT-SIX-REPOS-4**: open-design (frontend) + ingest wiki páginas restantes (2026-05-25)
-- [x] **TASK-AGENT-SIX-REPOS-5**: Propagação aglwk45 / CT188 + smoke Hermes + Obsidian CLI no host dev (2026-05-25 — agldv03+CT188 OK; wk45 manual RDP)
+- [x] **TASK-AGENT-SIX-REPOS-5**: Propagação aglwk45 / CT188 + smoke Hermes + Obsidian CLI no host dev (2026-05-25 — agldv03+CT188 OK; **aglwk45 OK via AGLSRV1 `qm guest exec` VM104**, `FAIL=0 WARN=7`, skills obsidian/superpowers/open-design em Administrator)
+- [x] **TASK-AGENT-SIX-REPOS-6**: Fase 6 — verify global + docs (`LLM-WIKI-AGENCY`, `AGENTS.md`, wiki log/index, Warp example) (2026-05-26)
 
 ## 🚀 Definition of Done
 1. Código implementado e testado

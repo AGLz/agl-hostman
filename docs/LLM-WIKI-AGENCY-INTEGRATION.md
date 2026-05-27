@@ -107,14 +107,34 @@ Plano canónico: [`ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`](../ai-docs/p
 
 | Host | O quê |
 |------|--------|
-| **agldv03** | `scripts/skills/sync-six-repos.sh --repo all` — skills nos harnesses locais |
+| **agldv03** | `bash scripts/skills/sync-six-repos.sh --repo all` + `verify-six-repos.sh` |
 | **CT188 Hermes** | Só **leitura** llm-wiki (`/opt/agl-llm-wiki` → `/opt/llm-wiki`); **não** instalar superpowers no contentor |
-| **aglwk45** | `scripts/skills/propagate-six-repos.ps1` (Windows + Git Bash) |
+| **aglwk45 (VM104)** | `git pull` no NFS (`/mnt/overpower/.../agl-hostman`) + `bash scripts/skills/propagate-sync-agl-hostman-wk45-qemu.sh` (robocopy `Z:` → `C:\Users\Administrator\apps\dev\agl\agl-hostman`) |
 
 ```bash
+# Dev (NFS agldv03 / host actual)
+bash scripts/skills/sync-six-repos.sh --repo all
+bash scripts/skills/verify-six-repos.sh
+
+# Multi-host
+bash scripts/skills/propagate-six-repos.sh --host agldv03
 bash scripts/skills/propagate-six-repos.sh --host ct188
-bash scripts/proxmox/smoke-hermes-aglz-quartet.sh   # smoke completo agência
+bash scripts/skills/propagate-six-repos.sh --host aglwk45
+
+# Hermes smoke (6 páginas wiki + mount Jarvis)
+bash scripts/skills/smoke-hermes-six-repos.sh
+
+# aglwk45 sem RDP (SSH AGLSRV1 → qm guest exec 104)
+git -C /mnt/overpower/apps/dev/agl/agl-hostman pull --ff-only   # NFS partilhado com Z:\ na VM
+bash scripts/skills/propagate-sync-agl-hostman-wk45-qemu.sh
+bash scripts/skills/propagate-six-repos-wk45-qemu.sh
+ssh root@100.107.113.33 'qm guest exec 104 -- powershell -NoProfile -Command "Get-Content C:/Users/Administrator/wk45-six-repos-result.txt -Tail 20"'
+
+# Fallback manual Windows (RDP + Git Bash)
+powershell -ExecutionPolicy Bypass -File scripts/skills/propagate-six-repos.ps1
 ```
+
+**Verificação aglwk45 (2026-05-26):** guest sync+verify `FAIL=0`; skills em `C:\Users\Administrator\.cursor\skills\` (obsidian-cli, od-design-md, using-superpowers). WARN: obsidian CLI no PATH; clone hostman no guest pode estar desactualizado (sem `karpathy-skills.mdc` no repo local).
 
 Critério Hermes: Jarvis lê `wiki/index.md` e as 6 páginas dos repos (Superpowers, ECC, Ruflo, Open Design, Obsidian CLI, Karpathy).
 

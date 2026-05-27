@@ -1,0 +1,15 @@
+# Exemplo Warp workflow — copiar para ~/.warp/workflows/agl-llm-wiki.yaml
+# Six Repos / llm-wiki ops (Fase 6 — opcional)
+name: agl-llm-wiki
+description: Vault llm-wiki + smoke Six Repos
+commands:
+  - name: Abrir vault
+    command: cd /mnt/overpower/apps/dev/agl/llm-wiki && pwd && head -5 wiki/index.md
+  - name: Verify Six Repos (host dev)
+    command: cd /mnt/overpower/apps/dev/agl/agl-hostman && bash scripts/skills/verify-six-repos.sh
+  - name: Sync Six Repos (dry-run)
+    command: cd /mnt/overpower/apps/dev/agl/agl-hostman && bash scripts/skills/sync-six-repos.sh --repo all --dry-run
+  - name: Smoke Hermes CT188
+    command: cd /mnt/overpower/apps/dev/agl/agl-hostman && bash scripts/skills/smoke-hermes-six-repos.sh
+  - name: Propagar aglwk45 (qemu guest)
+    command: cd /mnt/overpower/apps/dev/agl/agl-hostman && bash scripts/skills/propagate-six-repos-wk45-qemu.sh
