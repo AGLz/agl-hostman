@@ -105,16 +105,44 @@ const handlers = {
   },
 
   'pre-bash': () => {
-    // Basic command safety check
-    const cmd = prompt.toLowerCase();
+    // PreToolUse: stdout must be valid JSON or empty (Cursor/Claude Code)
+    let cmd = prompt;
+    try {
+      const chunks = [];
+      if (process.stdin.isTTY === false) {
+        // sync read not available; use env from hook payload
+      }
+      const raw = process.env.CLAUDE_TOOL_INPUT || process.env.TOOL_INPUT || '';
+      if (raw) {
+        const data = JSON.parse(raw);
+        cmd = data.command || data.tool_input?.command || cmd;
+      }
+    } catch {
+      // keep prompt fallback
+    }
+    const lower = String(cmd).toLowerCase();
     const dangerous = ['rm -rf /', 'format c:', 'del /s /q c:\\', ':(){:|:&};:'];
     for (const d of dangerous) {
-      if (cmd.includes(d)) {
-        console.error(`[BLOCKED] Dangerous command detected: ${d}`);
-        process.exit(1);
+      if (lower.includes(d)) {
+        const out = {
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'deny',
+            permissionDecisionReason: `Dangerous command blocked: ${d}`,
+          },
+        };
+        process.stdout.write(JSON.stringify(out));
+        process.exit(0);
       }
     }
-    console.log('[OK] Command validated');
+    const allow = {
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'allow',
+        permissionDecisionReason: 'Command validated',
+      },
+    };
+    process.stdout.write(JSON.stringify(allow));
   },
 
   'post-edit': () => {
