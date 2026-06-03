@@ -27,7 +27,7 @@ for c in "${CONTAINERS[@]}"; do
   pct exec "$CTID" -- docker cp "${STAGING}/memory_sync.py" "${c}:/workspace/ADWs/routines/memory_sync.py"
   pct exec "$CTID" -- docker cp /opt/evonexus/patch-adw-runner-provider-env.py "${c}:/tmp/patch-adw-runner-provider-env.py"
   pct exec "$CTID" -- docker exec "$c" python3 /tmp/patch-adw-runner-provider-env.py /workspace/ADWs/runner.py
-  pct exec "$CTID" -- docker exec -w /workspace "$c" uv run python3 -c "from runner import _get_provider_config; print(_get_provider_config()[0], sorted(_get_provider_config()[1].keys()))"
+  pct exec "$CTID" -- docker exec -w /workspace/ADWs "$c" uv run python3 -c "from runner import _get_provider_config; print(_get_provider_config()[0], sorted(_get_provider_config()[1].keys()))"
   pct exec "$CTID" -- docker cp /opt/evonexus/sync-providers-anthropic-from-env.py "${c}:/tmp/sync-providers-anthropic-from-env.py"
   pct exec "$CTID" -- docker exec -w /workspace "$c" python3 /tmp/sync-providers-anthropic-from-env.py
 done

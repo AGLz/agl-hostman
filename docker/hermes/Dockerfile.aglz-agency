@@ -16,42 +16,48 @@ ENV PATH="/opt/hermes/.venv/bin:/usr/local/bin:${PATH}"
 # ── OS: diagnóstico rede, Proxmox remoto (SSH), scripts agl-hostman ─────────
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        git \
-        openssh-client \
-        jq \
-        iputils-ping \
-        dnsutils \
-        iproute2 \
-        netcat-openbsd \
-        nfs-common \
-        wireguard-tools \
-        rsync \
-        wget \
-        sqlite3 \
-        postgresql-client \
-        redis-tools \
-        python3-yaml \
-        procps \
+    ca-certificates \
+    curl \
+    git \
+    openssh-client \
+    jq \
+    iputils-ping \
+    dnsutils \
+    iproute2 \
+    netcat-openbsd \
+    nfs-common \
+    wireguard-tools \
+    rsync \
+    wget \
+    sqlite3 \
+    postgresql-client \
+    redis-tools \
+    python3-yaml \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # yq — editar/validar YAML (config Hermes, LiteLLM, compose)
 ARG YQ_VERSION=4.44.3
 RUN curl -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" \
-        -o /usr/local/bin/yq \
+    -o /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
 # ── Python (venv Hermes): evitar lazy-install frágil sem pip/DNS ─────────────
 RUN uv pip install \
-        'python-telegram-bot[webhooks]==22.6' \
-        'honcho-ai==2.0.1'
+    'python-telegram-bot[webhooks]==22.6' \
+    'honcho-ai==2.0.1' \
+    'langfuse>=3.0.0'
 
 # ── Linear CLI (Jarvis/Satya — backlog; LINEAR_API_KEY no .env do profile) ───
 RUN npm install -g @0xbigboss/linear-cli@0.2.11
 
-# GID docker no CT188 = 996 (group_add no compose reforça no runtime)
-RUN getent group docker >/dev/null 2>&1 || groupadd -g 996 docker; \
-    usermod -aG docker hermes
+# LXC unprivileged (CT188): suplementar GID docker quebra s6-applyuidgid — sem socket no compose.
+RUN set -eux; \
+    if getent group docker >/dev/null 2>&1; then \
+    gpasswd -d hermes docker 2>/dev/null || deluser hermes docker 2>/dev/null || true; \
+    sed -i '/^docker:/d' /etc/group; \
+    sed -i '/,docker$/d; s/^docker:[^:]*:[^:]*://' /etc/gshadow 2>/dev/null || true; \
+    fi; \
+    id hermes
 
 USER hermes

@@ -1,0 +1,77 @@
+# Fragmento AGLz — optimizações Hermes (OnlyTerp/hermes-optimization-guide)
+# Merge em config.yaml de cada profile via configure-ct188-hermes-quartet.sh
+# Ref: https://github.com/OnlyTerp/hermes-optimization-guide
+
+toolsets:
+  - hermes-cli
+  - terminal
+  - file
+  - web
+  - skills
+  - memory
+
+compression:
+  enabled: true
+  threshold: 0.80
+  target_ratio: 0.20
+  protect_last_n: 20
+  protect_first_n: 3
+  hygiene_hard_message_limit: 400
+
+context:
+  engine: compressor
+
+prompt_caching:
+  cache_ttl: 1h
+
+display:
+  show_cost: true
+  show_reasoning: false
+  streaming: true
+  interim_assistant_messages: true
+
+human_delay:
+  mode: "off"
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  flush_min_turns: 20
+  nudge_interval: 20
+  memory_char_limit: 2750
+  user_char_limit: 2750
+
+delegation:
+  max_concurrent_children: 3
+  max_spawn_depth: 1
+  orchestrator_enabled: true
+  subagent_auto_approve: false
+  inherit_mcp_toolsets: true
+  default_toolsets:
+    - terminal
+    - file
+    - web
+
+approvals:
+  mode: auto
+  cron_mode: deny
+  destructive_slash_confirm: true
+  mcp_reload_confirm: true
+  timeout: 300
+
+security:
+  redact_secrets: true
+  tirith_enabled: true
+  tirith_fail_open: true
+
+skills:
+  creation_nudge_interval: 15
+  guard_agent_created: true
+
+cron:
+  wrap_response: true
+
+logging:
+  level: INFO
+  max_size_mb: 5
+  backup_count: 3

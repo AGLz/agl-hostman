@@ -13,6 +13,3 @@ Route::prefix('openclaw')->group(function () {
     Route::get('/tasks', [OpenClawController::class, 'tasks'])->name('api.openclaw.tasks');
     Route::post('/execute', [OpenClawController::class, 'execute'])->name('api.openclaw.execute');
 });
-
-Route::get('/agents', [OpenClawController::class, 'agentList'])->name('api.agents.index');
-Route::get('/tasks/summary', [OpenClawController::class, 'taskSummary'])->name('api.tasks.summary');

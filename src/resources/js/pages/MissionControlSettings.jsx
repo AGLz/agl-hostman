@@ -22,29 +22,18 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    fetchHermesScheduledTasks,
+    fetchHermesStatus,
+    fetchHermesUiLinks,
+    formatCheckedAt,
+} from '@/lib/hermes';
 
-
-const INTEGRATIONS = [
-    { name: 'LiteLLM Gateway', icon: Zap, status: 'healthy', url: 'http://100.125.249.8:4000', lastCheck: '30s ago' },
-    { name: 'OpenClaw Gateway', icon: Brain, status: 'healthy', url: 'http://100.123.184.125:28789', lastCheck: '1m ago' },
-    { name: 'n8n Workflow', icon: RefreshCw, status: 'healthy', url: 'http://192.168.0.202:5678', lastCheck: '2m ago' },
-    { name: 'Proxmox API', icon: Server, status: 'healthy', url: 'https://192.168.0.245:8006', lastCheck: '5m ago' },
-    { name: 'DashScope (Qwen)', icon: Globe, status: 'healthy', url: 'https://dashscope-intl.aliyuncs.com', lastCheck: '10m ago' },
-    { name: 'Tailscale', icon: Shield, status: 'healthy', url: 'https://login.tailscale.com', lastCheck: '15m ago' },
-    { name: 'Cloudflare Tunnel', icon: Globe, status: 'healthy', url: 'https://dash.cloudflare.com', lastCheck: '20m ago' },
-    { name: 'Redis Cache', icon: Database, status: 'healthy', url: '192.168.0.137:6379', lastCheck: '1m ago' },
-    { name: 'PostgreSQL', icon: Database, status: 'healthy', url: '192.168.0.149:5432', lastCheck: '1m ago' },
-];
-
-const CRON_JOBS = [
-    { name: 'websites-monitor', interval: '15m', status: 'failed', lastRun: '5m ago', description: 'Monitor website availability' },
-    { name: 'critical-services-monitor', interval: '5m', status: 'failed', lastRun: '2m ago', description: 'Monitor critical services health' },
-    { name: 'storage-health-check', interval: '60m', status: 'failed', lastRun: '15m ago', description: 'Check storage health across hosts' },
-    { name: 'host-health-check', interval: '30m', status: 'failed', lastRun: '10m ago', description: 'Ping infrastructure hosts' },
-    { name: 'ai-stack-health', interval: '60m', status: 'lost', lastRun: '1h ago', description: 'Monitor AI/ML services' },
-    { name: 'morning-briefing', interval: '480m', status: 'failed', lastRun: '2h ago', description: 'Daily morning briefing' },
-    { name: 'daily-maintenance', interval: '1440m', status: 'failed', lastRun: '1d ago', description: 'Daily maintenance tasks' },
-    { name: 'daily-backup', interval: '1440m', status: 'succeeded', lastRun: '1d ago', description: 'Daily backup of configs' },
+const STATIC_INTEGRATIONS = [
+    { name: 'LiteLLM Gateway', icon: Zap, status: 'healthy', url: 'http://100.125.249.8:4000', lastCheck: '—' },
+    { name: 'n8n Workflow', icon: RefreshCw, status: 'healthy', url: 'http://192.168.0.202:5678', lastCheck: '—' },
+    { name: 'Proxmox API', icon: Server, status: 'healthy', url: 'https://192.168.0.245:8006', lastCheck: '—' },
+    { name: 'Tailscale', icon: Shield, status: 'healthy', url: 'https://login.tailscale.com', lastCheck: '—' },
 ];
 
 function IntegrationCard({ integration }) {
@@ -112,8 +101,77 @@ function CronJobRow({ job }) {
 }
 
 export default function MissionControlSettings() {
-    const [integrations, setIntegrations] = useState(INTEGRATIONS);
-    const [cronJobs, setCronJobs] = useState(CRON_JOBS);
+    const [integrations, setIntegrations] = useState(STATIC_INTEGRATIONS);
+    const [cronJobs, setCronJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [checkedAt, setCheckedAt] = useState(null);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const [status, links, scheduled] = await Promise.all([
+                fetchHermesStatus(),
+                fetchHermesUiLinks(),
+                fetchHermesScheduledTasks(),
+            ]);
+
+            const hermesHealthy = status.status === 'online';
+            const minionsHealthy = !status.minions_health?.error;
+
+            const hermesIntegrations = [
+                {
+                    name: 'Hermes API (CT188)',
+                    icon: Brain,
+                    status: hermesHealthy ? 'healthy' : 'error',
+                    url: status.base_url || links.api_url,
+                    lastCheck: formatCheckedAt(status.checked_at),
+                },
+                {
+                    name: 'Minions Kanban',
+                    icon: Activity,
+                    status: minionsHealthy ? 'healthy' : 'warning',
+                    url: links.minions_url,
+                    lastCheck: formatCheckedAt(status.checked_at),
+                },
+                {
+                    name: 'Claw3D Studio',
+                    icon: Globe,
+                    status: links.studio_url ? 'healthy' : 'warning',
+                    url: links.studio_url || '—',
+                    lastCheck: formatCheckedAt(status.checked_at),
+                },
+                {
+                    name: 'Hermes Dashboard',
+                    icon: Server,
+                    status: links.dashboard_url ? 'healthy' : 'warning',
+                    url: links.dashboard_url || '—',
+                    lastCheck: formatCheckedAt(status.checked_at),
+                },
+            ];
+
+            setIntegrations([...hermesIntegrations, ...STATIC_INTEGRATIONS]);
+            setCheckedAt(status.checked_at);
+
+            const tasks = scheduled.tasks || scheduled.scheduledTasks || [];
+            setCronJobs(
+                tasks.map((task) => ({
+                    name: task.name || task.id || 'scheduled-task',
+                    interval: task.schedule || task.interval || task.cron || '—',
+                    status: task.enabled === false ? 'lost' : (task.lastStatus || task.status || 'running'),
+                    lastRun: task.lastRun || task.last_run || '—',
+                    description: task.description || task.prompt?.slice(0, 80) || 'Hermes scheduled task',
+                }))
+            );
+        } catch (error) {
+            console.error('Failed to load Hermes settings', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     const healthyCount = integrations.filter(i => i.status === 'healthy').length;
     const cronStatusCounts = {
@@ -128,7 +186,7 @@ export default function MissionControlSettings() {
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-white">Settings</h1>
-                    <p className="text-sm text-white/40 mt-1">Cron jobs, integrations, and agent configuration</p>
+                    <p className="text-sm text-white/40 mt-1">Integrações Hermes CT188, cron Minions e configuração de agentes</p>
                 </div>
 
                 {/* Integration Status */}
@@ -141,11 +199,18 @@ export default function MissionControlSettings() {
                                     Integration Status
                                 </CardTitle>
                                 <CardDescription className="text-white/40">
-                                    {healthyCount}/{integrations.length} services healthy
+                                    {healthyCount}/{integrations.length} serviços healthy
+                                    {checkedAt ? ` · ${formatCheckedAt(checkedAt)}` : ''}
                                 </CardDescription>
                             </div>
-                            <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-white/60">
-                                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-white/5 border-white/10 text-white/60"
+                                onClick={loadData}
+                                disabled={loading}
+                            >
+                                <RefreshCw className={cn('w-3.5 h-3.5 mr-1.5', loading && 'animate-spin')} />
                                 Refresh All
                             </Button>
                         </div>
@@ -166,10 +231,12 @@ export default function MissionControlSettings() {
                             <div>
                                 <CardTitle className="text-sm text-white/80 flex items-center gap-2">
                                     <Clock className="w-4 h-4 text-green-400" />
-                                    Cron Job Manager
+                                    Cron Minions (Hermes)
                                 </CardTitle>
                                 <CardDescription className="text-white/40">
-                                    {cronStatusCounts.succeeded} succeeded, {cronStatusCounts.failed} failed, {cronStatusCounts.lost} lost
+                                    {cronJobs.length === 0
+                                        ? 'Nenhuma tarefa agendada ou Minions indisponível'
+                                        : `${cronStatusCounts.succeeded} ok, ${cronStatusCounts.failed} falhou, ${cronStatusCounts.lost} inactivas`}
                                 </CardDescription>
                             </div>
                             <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-white/60">
@@ -180,9 +247,11 @@ export default function MissionControlSettings() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">
-                            {cronJobs.map(job => (
-                                <CronJobRow key={job.name} job={job} />
-                            ))}
+                            {cronJobs.length === 0 ? (
+                                <p className="text-sm text-white/30 py-4 text-center">Sem cron jobs do Minions</p>
+                            ) : (
+                                cronJobs.map((job) => <CronJobRow key={job.name} job={job} />)
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -192,10 +261,10 @@ export default function MissionControlSettings() {
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm text-white/80 flex items-center gap-2">
                             <Brain className="w-4 h-4 text-purple-400" />
-                            Agent Configuration
+                            Agent Configuration (Hermes Quartet)
                         </CardTitle>
                         <CardDescription className="text-white/40">
-                            OpenClaw agent settings and model routing
+                            CT188 Jarvis · Elon · Satya · Werner via API :8642
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -203,8 +272,8 @@ export default function MissionControlSettings() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="p-4 rounded-lg bg-white/[0.03] border border-white/5">
                                     <p className="text-xs text-white/40 mb-1">Default Model</p>
-                                    <p className="text-sm font-medium text-white/80">openai/jarvis-thinking</p>
-                                    <p className="text-[10px] text-white/30 mt-1">CT186 LiteLLM - reasoning enabled</p>
+                                    <p className="text-sm font-medium text-white/80">hermes-agent</p>
+                                    <p className="text-[10px] text-white/30 mt-1">CT188 API — quartet personas</p>
                                 </div>
                                 <div className="p-4 rounded-lg bg-white/[0.03] border border-white/5">
                                     <p className="text-xs text-white/40 mb-1">Coding Model</p>

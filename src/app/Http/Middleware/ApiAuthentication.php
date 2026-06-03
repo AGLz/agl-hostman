@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Concerns\ExtractsApiKeyFromRequest;
 use App\Models\ApiKey;
+use App\Services\AuthMd\AuthMdDiscoveryService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -22,10 +23,10 @@ class ApiAuthentication
         $apiKey = $this->extractApiKey($request);
 
         if (! $apiKey) {
-            return response()->json([
-                'error' => 'API key required',
-                'message' => 'Please provide an API key via X-API-Key header or Authorization Bearer token',
-            ], 401);
+            return $this->unauthorizedResponse(
+                'API key required',
+                'Please provide an API key via X-API-Key header or Authorization Bearer token',
+            );
         }
 
         // Check cache first
@@ -35,19 +36,19 @@ class ApiAuthentication
         });
 
         if (! $apiKeyModel || ! $apiKeyModel->is_active) {
-            return response()->json([
-                'error' => 'Invalid API key',
-                'message' => 'The provided API key is invalid or inactive',
-            ], 401);
+            return $this->unauthorizedResponse(
+                'Invalid API key',
+                'The provided API key is invalid or inactive',
+            );
         }
 
         if ($apiKeyModel->isExpired()) {
             Cache::forget($cacheKey);
 
-            return response()->json([
-                'error' => 'API key expired',
-                'message' => 'Your API key has expired. Please renew it.',
-            ], 401);
+            return $this->unauthorizedResponse(
+                'API key expired',
+                'Your API key has expired. Please renew it.',
+            );
         }
 
         // Check permissions
@@ -93,5 +94,20 @@ class ApiAuthentication
     protected function extractApiKey(Request $request): ?string
     {
         return $this->extractApiKeyFromRequest($request);
+    }
+
+    protected function unauthorizedResponse(string $error, string $message): Response
+    {
+        $response = response()->json([
+            'error' => $error,
+            'message' => $message,
+        ], 401);
+
+        $discovery = app(AuthMdDiscoveryService::class);
+        if ($discovery->isEnabled()) {
+            $response->headers->set('WWW-Authenticate', $discovery->wwwAuthenticateHeader());
+        }
+
+        return $response;
     }
 }

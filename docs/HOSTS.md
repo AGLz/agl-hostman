@@ -1,6 +1,6 @@
 # Proxmox Hosts Detailed Configuration
 
-> **Last Updated**: 2025-11-08 | **Version**: 1.1.0
+> **Last Updated**: 2026-05-28 | **Version**: 1.2.0
 > **Reference**: Complete host configurations, resources, and network details
 
 ---
@@ -10,7 +10,7 @@
 | Host | Type | Location | Status | Proxmox | Containers | Networks |
 |------|------|----------|--------|---------|------------|----------|
 | **AGLSRV1** | Production | AGLHQ | ✅ Active | 8.4.14 | 68 (42 running) | LAN + WG + TS |
-| **AGLSRV3** | Standby | AGLHQ | ✅ Active | 8.4.0 | 1 | 10.6.0.24 |
+| **AGLSRV3** | Remote | AGLFG | ✅ Active | 8.4.14 | 2 CTs | LAN + WG + TS |
 | **AGLSRV5** | Remote | AGLFG | ✅ Active | 8.4.14 | 8 (7 running) | LAN + WG + TS |
 | **AGLSRV6** | Remote | AGLALD | ✅ Active | TBD | 11 containers | WG + TS |
 | **AGLSRV6B** | Dead | AGLALD | ❌ Dead | - | CT172 offline | ❌ None |
@@ -76,118 +76,101 @@ ssh root@10.6.0.10
 ## 🖥️ AGLSRV3 (Proxmox VE Host)
 
 **Hostname**: aglsrv3
-**Type**: Proxmox VE 8.4.0 (pve-manager 8.4.14) on Debian 12.9 (bookworm)
-**Physical Location**: **AGLHQ** (Headquarters - same location as AGLSRV1)
-**Status**: ✅ **Active** - Fully configured and integrated into mesh
+**Type**: Proxmox VE 8.4.14 (pve-manager 8.4.14) on Debian 12 (bookworm)
+**Physical Location**: **AGLFG** (site remoto — segmento `192.168.15.0/24`, **não** co-localizado com AGLSRV1/AGLHQ)
+**Status**: ✅ **Active**
 
 ### Network Configuration
 
 | Network | Address | Interface | Status | Purpose |
 |---------|---------|-----------|--------|---------|
-| Local LAN | 192.168.0.247/24 | vmbr0 | ✅ Active | Local access |
-| WireGuard | 10.6.0.24/24 | wg0 | ✅ Port 51824 | Mesh connectivity (14-24ms to hub) |
-| Tailscale | 100.123.5.81 | tailscale0 | ✅ Active | Backup access |
+| Local LAN | 192.168.15.247/24 | vmbr0 | ✅ Active | LAN principal (site remoto) |
+| WireGuard | 10.6.0.24/24 | wg0 | ✅ Port 51824 | Mesh connectivity |
+| Tailscale | 100.123.5.81 | tailscale0 | ✅ Active | Acesso remoto (host) |
 
-**Additional Bridges**:
-- vmbr1: 172.2.2.247/24 (internal)
-- vmbr2: 10.253.0.247/24 (isolated)
-- vmbr3: 192.168.100.247/24 (management)
+**Additional Bridges** (vmbr0–vmbr3):
+
+| Bridge | Subnet | Notas |
+|--------|--------|--------|
+| vmbr1 | 192.168.30.247/24 | OVS |
+| vmbr2 | 192.168.80.247/24 | OVS |
+| vmbr3 | 192.168.1.247/24 | VLAN-aware |
+
+> **Nota histórica:** documentação anterior referia `192.168.0.247/24` (AGLHQ). O host está operacional em **`192.168.15.247/24`** — mesma faixa LAN que AGLSRV5 (AGLFG), **sem rota directa** para Pi-hole AGLHQ `192.168.0.102`.
+
+### DNS (host Proxmox)
+
+```text
+nameserver 192.168.15.102   # CT117 pihole3 (Pi-hole local)
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+search aglz.io
+```
+
+- Tailscale no host: `CorpDNS: false` (`tailscale set --accept-dns=false`) — evita MagicDNS sobrescrever `/etc/resolv.conf`.
 
 ### Hardware Specifications
 
 - **CPU**: Intel Xeon E5-2690 v3 @ 2.60GHz (12 cores, 24 threads)
-- **RAM**: 16GB (14GB used, 87.5% utilization)
+- **RAM**: 16GB
 - **Kernel**: 6.8.12-15-pve (x86_64)
 
 ### Storage Configuration
 
-| Storage | Size | Type | Source | Status |
-|---------|------|------|--------|--------|
-| local | 96GB | Directory | Local disk | ✅ 79% used |
-| local-lvm | 0 | LVM-Thin | Not configured | ⚠️ Unused |
-| CT178-NAS | 27TB | **NFS** | 192.168.0.178 | ✅ **NFSv3** |
+| Storage | Size | Type | Status |
+|---------|------|------|--------|
+| local | ~96GB | Directory | ✅ ~30% used |
+| local-lvm | ~330GB thin | LVM-Thin | ✅ CTs/VMs (sdf SSD sistema) |
+| *(planeado)* | 4×1TB + 1×2TB HDD | ZFS | Auditoria 2026-05-30 — ver mapa |
 
-**NFS Mounts from 192.168.0.178** (CT178 - aglfs1 on AGLSRV1):
-- **overpower**: 192.168.0.178:/mnt/overpower → /mnt/pve/overpower (9.8TB, 92% used)
-- **power**: 192.168.0.178:/mnt/power → /mnt/pve/power (7.2TB, 97% used)
-- **storage**: 192.168.0.178:/mnt/storage → /mnt/pve/storage (10TB)
-- **spark**: 192.168.0.178:/mnt/spark → /mnt/pve/spark (32GB, 7% used)
-- **Total**: ~27TB available via NFS (NFSv3, async, soft mounts)
+**Mapa completo de discos** (SMART, partições, wipe/ZFS, by-id): [`docs/AGLSRV3-DISKS.md`](AGLSRV3-DISKS.md).
 
-**NFS Performance**:
-- Protocol: NFSv3 with TCP
-- Options: `vers=3,soft,async` for optimal performance
-- Write speed: ~11.7 MB/s (tested)
-- Read/write buffers: 1MB (rsize=1048576, wsize=1048576)
+NFS remoto para CT178 (AGLSRV1) documentado historicamente; confirmar mounts activos com `pvesm status` no host.
 
 ### Containers & VMs
 
-**Containers**: 1 running
-- CT106 (cloudflared) - Running (Replaces CT104)
+**Containers**:
 
-**Virtual Machines**: 5 total (1 running, 4 stopped)
-- VM100 (AGLHQ10) - **Running** - Windows VM
-- VM102 - Stopped
-- VM103 - Stopped
-- VM104 - Stopped
-- VM105 - Stopped
+| VMID | Name | LAN | Tailscale | Notas |
+|------|------|-----|-----------|--------|
+| **117** | **pihole3** | **192.168.15.102/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28); DHCP desactivado |
+| 106 | cloudflared3 | — | — | Running |
+| 104 | cloudflared | — | — | Stopped (lock mounted) |
+
+**Virtual Machines**: VM101–108 (Windows / Truenas / OPNsense — maior parte stopped)
+
+**Clone Pi-hole (2026-05-28):** `vzdump 102` no AGLSRV1 → `rsync` via Tailscale → `pct restore 117` no AGLSRV3 (`--ignore-unpack-errors`, rootfs 12G). Runbook: [`docs/AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md). Script Tailscale: `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh`.
 
 ### WireGuard Configuration
 
-**Interface Details**:
-```
-Address: 10.6.0.24/24
-ListenPort: 51824
-PublicKey: ZG8Qrn4QiV56l/v/anXtREB1/g7tD6NuDxR47sjHcVA=
-PresharedKey: (configured)
-MTU: 1420
-```
-
-**Peer** (FGSRV6 Hub):
-```
-PublicKey: Dj8XsoPeDlgnqA4Ox++yDy+t4xGxYtEevxQh513fSA8=
-Endpoint: 186.202.57.120:51823
-AllowedIPs: 10.6.0.0/24
-PersistentKeepalive: 25s
-```
-
-**Performance**:
-- Latency to hub (10.6.0.5): 14-24ms
-- Latency to AGLSRV1 (10.6.0.10): 25-37ms
-- Handshake: Active and healthy
+**Interface**: `10.6.0.24/24`, ListenPort `51824`, hub FGSRV6 `186.202.57.120:51823`.
 
 ### Connection Commands
 
 ```bash
 # Via Tailscale (PREFERRED - from anywhere)
 ssh root@100.123.5.81
-ssh aglsrv3  # SSH config alias
+ssh aglsrv3
 
-# Via LAN (from same location)
-ssh root@192.168.0.247
-ssh AGLSRV3  # SSH config alias
+# Via LAN (site AGLFG / 192.168.15.x)
+ssh root@192.168.15.247
 
-# Via WireGuard (fallback - legacy)
+# Via WireGuard (fallback)
 ssh root@10.6.0.24
-ssh aglsrv3-wg  # SSH config alias (fallback)
 
-# Proxmox Web Interface
-https://192.168.0.247:8006  # LAN access
+# Proxmox Web UI
+https://192.168.15.247:8006   # LAN
+https://100.123.5.81:8006     # Tailscale (se firewall permitir)
+
+# Pi-hole Web UI (CT117)
+http://192.168.15.102/admin
 ```
 
 ### Notes
 
-- ✅ Located at AGLHQ headquarters with AGLSRV1, AGLHQ11, and AGLFA02
-- ✅ Same local network (192.168.0.0/24) as AGLSRV1
-- ✅ Successfully integrated into WireGuard mesh (10.6.0.24)
-- ✅ All network access methods verified and working
-- ⚠️ IP conflict resolved: Changed from 192.168.0.111 to 192.168.0.247
-- 💾 Large NAS storage available (27TB from CT178/aglfs1 on AGLSRV1)
-- 🔒 SSH key authentication configured for all access methods
-- 🚀 **Storage upgraded**: Converted from CIFS to NFS (2025-11-17) for better performance
-  - NFSv3 with async, soft mounts
-  - 4 NFS exports configured: overpower, power, storage, spark
-  - Old CIFS mounts will be auto-removed on next reboot
+- Site físico **diferente** de AGLSRV1 (AGLHQ `192.168.0.0/24`); DNS local via **CT117** (não usar `192.168.0.102` directamente).
+- CT117: reset Tailscale obrigatório após clone (`aglsrv3-pihole`); nunca reutilizar identidade `aglsrv1-pihole` (`100.114.66.80`).
+- WireGuard legado dentro do CT117 (clone) deve permanecer **desactivado** (`wg-quick@wg0`).
 
 ---
 

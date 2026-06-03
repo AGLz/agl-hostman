@@ -19,6 +19,7 @@ Contexto **TurboFlow / Ruflo** pode coexistir com **Cursor** (regras em `.cursor
 | OpenClaw gateway (produção AGLSRV1) | **CT187** (Docker `/opt/agl-openclaw`); LiteLLM **CT186** (`http://192.168.0.186:4000` na LAN). Runbook [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](docs/LITELLM-OPENCLAW-DEDICATED-LXC.md), [`docs/OPENCLAW.md`](docs/OPENCLAW.md). Propagação legada VM104: `propagate-openclaw-from-agldv03.sh` / `propagate-openclaw-to-aglwk45-qemu.sh`. Monitorização: [`ops/runbooks/jarvis-operations.md`](ops/runbooks/jarvis-operations.md) e `cutoverDedicatedLxc` em `config/monitoring/jarvis-openclaw-http-endpoints.example.json`. |
 | Testes Node (raiz) | `tests/api/`, `tests/unit/`, `tests/integration/` — `npm test` |
 | Infra docs | `docs/INFRA.md`, `docs/README.md` |
+| Stack media *arr (AGLSRV1) | [`docs/MEDIA-ARR-STACK-AGL.md`](docs/MEDIA-ARR-STACK-AGL.md) (baseline + roadmap); downloads congelados → [`docs/MEDIA-ARR-MAINTENANCE.md`](docs/MEDIA-ARR-MAINTENANCE.md), `scripts/media/` |
 | Beads / bd | `.beads/`; fluxo em `AGENTS.md` |
 | **agl-hostman no agldv03 (CT179)** | `/mnt/overpower/apps/dev/agl/agl-hostman` (NFS overpower; alinhar com U:\… na wk45) |
 

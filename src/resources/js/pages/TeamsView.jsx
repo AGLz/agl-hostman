@@ -24,7 +24,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { chatWithOpenClawAgent, fetchOpenClawStatus, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
+import { chatWithHermesAgent, fetchHermesStatus, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/hermes';
+import { useSearchParams } from 'react-router-dom';
 
 // Organization structure data
 const ORG_STRUCTURE = {
@@ -46,7 +47,7 @@ const ORG_STRUCTURE = {
             type: 'department',
             icon: Brain,
             children: [
-                { name: 'OpenClaw Agents', type: 'team', members: ['main', 'security', 'release-manager'], status: 'active' },
+                { name: 'Hermes Quartet', type: 'team', members: ['jarvis', 'elon', 'satya', 'werner'], status: 'active' },
                 { name: 'Scrum Agents', type: 'team', members: ['scr-agl-hostman', 'scr-api8', 'scr-api9', 'scr-crowbar'], status: 'active' },
             ],
         },
@@ -155,7 +156,7 @@ function AgentChatPanel({ agentId, agent, onClose }) {
         setSending(true);
 
         try {
-            const response = await chatWithOpenClawAgent(agentId, text, messages);
+            const response = await chatWithHermesAgent(agentId, text, messages);
             setMessages([
                 ...nextMessages,
                 {
@@ -186,7 +187,7 @@ function AgentChatPanel({ agentId, agent, onClose }) {
 
                 <div className="h-72 overflow-y-auto rounded-lg bg-black/20 border border-white/5 p-3 space-y-2">
                     {messages.length === 0 ? (
-                        <p className="text-sm text-white/30">Direct test chat with this OpenClaw agent.</p>
+                        <p className="text-sm text-white/30">Chat de teste com agente Hermes.</p>
                     ) : messages.map((message, index) => (
                         <div
                             key={index}
@@ -288,7 +289,7 @@ function AgentCard({ agentId, agent, onChat }) {
     );
 }
 
-function OpenClawStatus() {
+function HermesQuartetStatus() {
     const [agents, setAgents] = useState(EMPTY_AGENTS);
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -298,7 +299,7 @@ function OpenClawStatus() {
     const [error, setError] = useState(null);
 
     const loadStatus = async () => {
-        const data = await fetchOpenClawStatus();
+        const data = await fetchHermesStatus();
         if (data.agents) {
             const nextAgents = Array.isArray(data.agents)
                 ? Object.fromEntries(data.agents.map(agent => [agent.id, agent]))
@@ -386,7 +387,7 @@ function OpenClawStatus() {
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h3 className="text-lg font-semibold text-white">OpenClaw Agents</h3>
+                        <h3 className="text-lg font-semibold text-white">Hermes Quartet</h3>
                         <p className="text-xs text-white/30">{gateway} · {source}</p>
                     </div>
                     <Button
@@ -430,12 +431,17 @@ function OpenClawStatus() {
 
 export default function TeamsView() {
     const [selectedNode, setSelectedNode] = useState(null);
-    const [activeTab, setActiveTab] = useState('org'); // 'org' or 'openclaw'
+    const [searchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(() => {
+        if (searchParams.get('tab') === 'hermes') return 'hermes';
+        if (typeof window !== 'undefined' && window.location.pathname.includes('openclaw')) return 'hermes';
+        return 'org';
+    });
     const [agents, setAgents] = useState(EMPTY_AGENTS);
 
     useEffect(() => {
         const loadAgents = async () => {
-            const data = await fetchOpenClawStatus();
+            const data = await fetchHermesStatus();
             if (!data.agents) return;
 
             setAgents(Array.isArray(data.agents)
@@ -454,7 +460,7 @@ export default function TeamsView() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Teams & Agents</h1>
-                    <p className="text-sm text-white/40 mt-1">Organization hierarchy and OpenClaw agents</p>
+                    <p className="text-sm text-white/40 mt-1">Hierarquia AGL e quartet Hermes (CT188)</p>
                 </div>
                 <div className="flex gap-2">
                     <Button
@@ -471,17 +477,17 @@ export default function TeamsView() {
                         Organization
                     </Button>
                     <Button
-                        variant={activeTab === 'openclaw' ? 'default' : 'outline'}
+                        variant={activeTab === 'hermes' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setActiveTab('openclaw')}
+                        onClick={() => setActiveTab('hermes')}
                         className={cn(
-                            activeTab === 'openclaw' 
+                            activeTab === 'hermes' 
                                 ? "bg-white/10 text-white" 
                                 : "bg-white/5 border-white/10 text-white/60"
                         )}
                     >
                         <Brain className="w-4 h-4 mr-1.5" />
-                        OpenClaw
+                        Hermes
                     </Button>
                 </div>
             </div>
@@ -550,7 +556,7 @@ export default function TeamsView() {
                     </Card>
                 </div>
             ) : (
-                <OpenClawStatus />
+                <HermesQuartetStatus />
             )}
         </div>
     );

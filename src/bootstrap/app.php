@@ -20,6 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             Route::middleware('web')
                 ->group(base_path('routes/location-test.php'));
+
+            // auth.md: rotas na raiz (sem prefixo /api) — POST JSON sem CSRF de sessão web
+            Route::middleware([
+                \App\Http\Middleware\SecurityHeaders::class,
+                \App\Http\Middleware\RateLimiting::class,
+            ])->group(base_path('routes/auth-md.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -48,6 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Apply security and performance middleware to API routes
         $middleware->api(prepend: [
             \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\AuthenticateAuthMdApiKey::class,
             \App\Http\Middleware\RateLimiting::class,
             \App\Http\Middleware\CacheApiResponse::class,
             \App\Http\Middleware\PerformanceMiddleware::class,
@@ -55,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             \App\Http\Middleware\EnsureUserIsActive::class,
+            \App\Http\Middleware\AuthMdUnauthorizedHint::class,
         ]);
 
         // Apply security middleware to web routes
@@ -68,5 +76,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $e, \Illuminate\Http\Request $request) {
+            if ($response->getStatusCode() !== 401 || ! $request->is('api/*')) {
+                return $response;
+            }
+
+            $discovery = app(\App\Services\AuthMd\AuthMdDiscoveryService::class);
+            if ($discovery->isEnabled() && ! $response->headers->has('WWW-Authenticate')) {
+                $response->headers->set('WWW-Authenticate', $discovery->wwwAuthenticateHeader());
+            }
+
+            return $response;
+        });
     })->create();

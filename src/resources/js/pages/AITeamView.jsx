@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { chatWithOpenClawAgent, fetchOpenClawAgents, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
+import { chatWithHermesAgent, fetchHermesAgents, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/hermes';
 
 
 const agentGroups = [
@@ -157,7 +157,7 @@ function AgentDetailModal({ agent, onClose }) {
         setSending(true);
 
         try {
-            const response = await chatWithOpenClawAgent(agent.id, text, messages);
+            const response = await chatWithHermesAgent(agent.id, text, messages);
             setMessages([
                 ...nextMessages,
                 {
@@ -227,7 +227,7 @@ function AgentDetailModal({ agent, onClose }) {
                 <div className="mt-4 border-t border-white/5 pt-4">
                     <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
                         {messages.length === 0 ? (
-                            <p className="text-xs text-white/30">Direct test chat with this OpenClaw agent.</p>
+                            <p className="text-xs text-white/30">Chat de teste com agente Hermes (Jarvis API).</p>
                         ) : messages.map((message, index) => (
                             <div
                                 key={index}
@@ -284,7 +284,7 @@ export default function AITeamView() {
         setExpandedGroups(initial);
 
         const loadAgents = async () => {
-            const data = await fetchOpenClawAgents();
+            const data = await fetchHermesAgents();
             const mapped = data.map(a => ({
                 ...a,
                 description: agentRoles[a.id]?.description || a.description || 'AI specialist agent',

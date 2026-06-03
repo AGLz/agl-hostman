@@ -1,0 +1,18 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY claw3d-adapter/package.json ./
+RUN npm install --omit=dev
+
+COPY claw3d-adapter/hermes-gateway-adapter.js ./
+
+ENV HERMES_API_URL=http://hermes-jarvis:8642 \
+    HERMES_ADAPTER_PORT=18789 \
+    HERMES_ADAPTER_HOST=0.0.0.0 \
+    HERMES_MODEL=hermes-agent \
+    HERMES_AGENT_NAME=Jarvis
+
+EXPOSE 18789
+
+CMD ["node", "hermes-gateway-adapter.js"]

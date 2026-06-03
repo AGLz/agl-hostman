@@ -37,7 +37,7 @@ The infrastructure is distributed across **4 physical locations**, each with its
 | Host/Device | Type | Status | Networks (Priority Order) |
 |-------------|------|--------|---------------------------|
 | **AGLSRV1** | Proxmox VE Host | ✅ Active | TS (100.107.113.33), LAN (192.168.0.245), WG (10.6.0.10) |
-| **AGLSRV3** | Proxmox VE Host | ✅ Active | TS (100.123.5.81), LAN (192.168.0.247), WG (10.6.0.24) |
+| **AGLSRV3** | Proxmox VE Host | ✅ Active | TS (100.123.5.81), LAN (192.168.15.247), WG (10.6.0.24) |
 | **AGLHQ11** | Physical Machine | ✅ Active | TS (100.75.205.122), LAN |
 | **AGLFA02** | Physical Machine | ✅ Active | LAN (NAS device, separate from CT178 file server) |
 
@@ -51,18 +51,18 @@ The infrastructure is distributed across **4 physical locations**, each with its
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 - Media: CT113 (plex), CT121-124 (arr stack)
 
-**AGLSRV3 (Secondary Production Host)**:
-- 1 container + 5 VMs (1 running, 5 stopped)
-- Hardware: Intel Xeon E5-2690 v3 (12 cores, 24 threads @ 2.60GHz), 16GB RAM
-- Storage: 96GB local + 27TB NAS (CT178/aglfs1 via CIFS from AGLSRV1)
-- Services: CT104 (cloudflared), VM100 (AGLHQ10 - Windows VM running)
-- Network: 4 bridges (vmbr0-3) with multiple network segments
+**AGLSRV3 (Remote Site — AGLFG LAN segment)**:
+- **Localização física:** site remoto (segmento `192.168.15.0/24`, **não** AGLHQ)
+- CT117 (pihole3) + CT106 (cloudflared3); VMs Windows/Truenas (maioria stopped)
+- Hardware: Intel Xeon E5-2690 v3, 16GB RAM
+- Storage: `local` + `local-lvm` (~330GB thin)
+- DNS local: **CT117** @ `192.168.15.102` (clone Pi-hole AGLSRV1 CT102, 2026-05-28)
+- Host DNS: Pi-hole local → `1.1.1.1` / `8.8.8.8`; Tailscale `accept-dns=false`
 
 ### Infrastructure Role
 - **AGLSRV1**: Primary production environment, main development containers, AI/ML infrastructure, central DNS and monitoring, file server (CT178/aglfs1 with 27TB storage)
-- **AGLSRV3**: Secondary production host consuming storage from AGLSRV1's CT178, Windows VM hosting, standby capacity
-- Co-located on same LAN (192.168.0.0/24) for high-speed inter-host communication
-- Both hosts integrated into WireGuard mesh for remote access
+- **AGLSRV3**: Remote Proxmox (AGLFG LAN); DNS autónomo via CT117; sem rota LAN para `192.168.0.102` (AGLHQ)
+- AGLSRV1 ↔ AGLSRV3: conectividade via **Tailscale** e **WireGuard** (não LAN partilhada)
 
 ---
 

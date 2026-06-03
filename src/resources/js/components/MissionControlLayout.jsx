@@ -54,10 +54,10 @@ const navSections = [
     {
         label: 'Mission Control',
         items: [
-            { name: 'Tasks Board', href: '/mission-control/tasks', icon: Kanban },
+            { name: 'Minions Kanban', href: '/mission-control/minions', icon: Kanban },
+            { name: 'Claw3D Studio', href: '/mission-control/studio', icon: Brain },
             { name: 'AI Team', href: '/mission-control/team', icon: Users },
             { name: 'Teams', href: '/mission-control/teams', icon: Building2 },
-            { name: 'OpenClaw', href: '/mission-control/openclaw', icon: Brain },
             { name: 'Memory', href: '/mission-control/memory', icon: Database },
             { name: 'Calendar', href: '/mission-control/calendar', icon: Calendar },
             { name: 'Contacts', href: '/mission-control/contacts', icon: BookOpen },

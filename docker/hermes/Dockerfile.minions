@@ -1,0 +1,36 @@
+# Minions — Mission Control Kanban para Hermes (Agent-3-7/minions)
+# Partilha dados de sessão Jarvis via HERMES_HOME=/opt/data
+#
+# Build (CT188 /opt/agl-hermes):
+#   docker compose -f docker-compose.aglz-quartet.ct188.yml build hermes-minions
+
+FROM nousresearch/hermes-agent:latest
+
+USER root
+
+ENV VIRTUAL_ENV=/opt/hermes/.venv
+ENV PATH="/opt/hermes/.venv/bin:/usr/local/bin:${PATH}"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates wget \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs curl \
+    && npm install -g minionsai@0.1.17 \
+    && apt-get purge -y curl \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* /root/.npm
+
+ENV HERMES_AGENT_DIR=/opt/hermes \
+    HERMES_PYTHON=/opt/hermes/.venv/bin/python3 \
+    HERMES_HOME=/opt/data \
+    MINIONS_HOME=/opt/minions \
+    PORT=6969 \
+    NODE_ENV=production
+
+RUN mkdir -p /opt/minions/data /opt/minions/workspace /opt/minions/logs /opt/minions/skills
+
+EXPOSE 6969
+
+# Imagem base Hermes usa s6 — só queremos o servidor Minions
+ENTRYPOINT []
+CMD ["minions"]

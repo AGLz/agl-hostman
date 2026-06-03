@@ -1,6 +1,6 @@
 # Container Inventory
 
-> **Last Updated**: 2025-11-08 | **Version**: 1.0.0
+> **Last Updated**: 2026-05-28 | **Version**: 1.3.0
 > **Reference**: Complete inventory of containers across all Proxmox hosts
 
 ---
@@ -10,6 +10,7 @@
 | Host | Total CTs | Running | Stopped | Key Services |
 |------|-----------|---------|---------|--------------|
 | **AGLSRV1** | 70 | 44 | 26 | Development, AI, DNS, Monitoring, Database |
+| **AGLSRV3** | 2+ | 2 | 1+ | DNS (Pi-hole clone), Cloudflare |
 | **AGLSRV5** | 8 | 7 | 1 | Media, File Server, Cloudflare |
 | **AGLSRV6** | 11 | - | - | NFS, Development, PBS |
 
@@ -46,11 +47,26 @@
 
 | ID | Name | Purpose | Status |
 |----|------|---------|--------|
-| CT113 | plex | Media Server | ✅ |
-| CT121 | sonarr | TV Shows | ✅ |
-| CT122 | radarr | Movies | ✅ |
-| CT123 | prowlarr | Indexer Manager | ✅ |
-| CT124 | jellyfin | Media Server | ✅ |
+| CT113 | plexmediaserver | Media Server (Plex) | ✅ |
+| CT121 | qbittorrent | Torrent client | ✅ |
+| CT122 | jackett | Indexer (legado) | ✅ |
+| CT123 | radarr | Movies | ✅ |
+| CT124 | sonarr | TV Shows | ✅ |
+| CT172 | prowlarr | Indexer Manager | ✅ |
+
+Ver [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md) para o stack completo (Overseerr, Bazarr, SABnzbd, Autobrr, etc.).
+
+---
+
+## 🖥️ AGLSRV3 Containers (site AGLFG — LAN 192.168.15.0/24)
+
+| ID | Name | Purpose | Status | Networks | Notes |
+|----|------|---------|--------|----------|-------|
+| **117** | **pihole3** | **DNS (Pi-hole)** | ✅ | LAN **192.168.15.102**, TS **`aglsrv3-pihole`** (NeedsLogin) | Clone vzdump AGLSRV1 CT102 (2026-05-28); ver [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) |
+| 106 | cloudflared3 | Cloudflare Tunnel | ✅ | — | Running |
+| 104 | cloudflared | Cloudflare Tunnel | ⏸️ | — | Stopped |
+
+**Host DNS:** `192.168.15.102` (CT117) → `1.1.1.1` / `8.8.8.8` — ver `HOSTS.md`.
 
 ---
 
@@ -88,11 +104,12 @@
 
 ---
 
-**Document Version**: 1.2.0
-**Last Updated**: 2026-01-04
+**Document Version**: 1.3.0
+**Last Updated**: 2026-05-28
 **Maintainer**: Claude Code (agl-hostman project)
 
 **Recent Changes:**
+- ✅ AGLSRV3 CT117 `pihole3` — clone Pi-hole cross-site (2026-05-28)
 - ✅ Added CT184 (supabase) - Self-hosted Supabase with 13 containers
 - ✅ CT183 (archon) - Fully operational with MCP connected to CT184
 - ✅ Integration complete: Archon MCP + Supabase self-hosted

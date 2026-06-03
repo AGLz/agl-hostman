@@ -54,15 +54,47 @@
 
 **Perfil LXC (CT179):** `mp0`–`mp9` (`/mnt/overpower`, `/mnt/shares`, `/mnt/power`, `/mnt/storage`, …), `lxc.mount.entry` `/dev/net/tun`, cgroup `10:200` + `226:*`, **`unprivileged: 1`** (não privileged). Aplicar/reaplicar: `scripts/proxmox/pct-apply-agldv03-lxc-profile.sh --with-apparmor 188 189 190 191`.
 
-**Tailscale (CT188–191):** `tailscaled` + `/dev/net/tun` OK; estado **NeedsLogin** até `tailscale up`. No AGLSRV1:
+**Tailscale (CT188–191):** CTs na **LAN AGLSR1** — usar **`--accept-routes=false`** para não desviar `192.168.0.0/24` para `tailscale0` (table 52). Sem isto, serviços LAN (Pi-hole `.102`, LiteLLM `.186`, Honcho `.192`) ficam inacessíveis embora a tailnet funcione. Ver [`troubleshooting/CT181-DNS-ROUTING-FIX.md`](troubleshooting/CT181-DNS-ROUTING-FIX.md), [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md) (CT117).
+
+**Join inicial** (AGLSRV1):
 
 ```bash
 printf '%s' 'tskey-auth-…' > /root/.tailscale-authkey && chmod 600 /root/.tailscale-authkey
 bash scripts/proxmox/pct-tailscale-up-agency-cts.sh
+bash scripts/proxmox/pct-install-agl-lan-routes.sh    # systemd agl-lan-routes.service
 # Verificar prep: bash scripts/proxmox/pct-tailscale-verify-agency-cts.sh
 ```
 
-CT186/187 já na tailnet (`aglsrv1-litellm` `100.125.249.8`, `aglsrv1-openclaw` `100.123.184.125`) — não repetir join sem necessidade.
+Parâmetros canónicos (`tailscale up`):
+
+```bash
+tailscale up \
+  --auth-key=tskey-auth-… \
+  --hostname=agl-hermes-ct188 \
+  --accept-dns=false \
+  --accept-routes=false \
+  --ssh \
+  --accept-risk=lose-ssh   # só se SSH ao Proxmox for via Tailscale
+```
+
+**Correcção imediata** (sem rejoin): `tailscale set --accept-routes=false` dentro do CT.
+
+**Verificação:**
+
+```bash
+tailscale debug prefs | grep RouteAll          # deve ser false
+ip route show table 52 | grep 192.168           # não deve haver 192.168.0.0/24 via tailscale0
+curl -sf http://192.168.0.186:4000/health/liveliness
+```
+
+| CT | Hostname TS | IP Tailscale (ref.) |
+|----|-------------|---------------------|
+| 188 | agl-hermes-ct188 | `100.81.225.22` |
+| 189 | agl-evonexus-ct189 | ver `tailscale ip -4` |
+| 190 | agl-openhuman-ct190 | ver `tailscale ip -4` |
+| 191 | agl-gstack-ct191 | ver `tailscale ip -4` |
+
+CT186/187 já na tailnet (`aglsrv1-litellm` `100.125.249.8`, `aglsrv1-openclaw` `100.123.184.125`) — **também** `--accept-routes=false` na LAN; não repetir join sem necessidade.
 
 ### Daily Memory System (agl-hostman)
 
@@ -188,7 +220,10 @@ arp -a | grep 1c:2a:a3:1e:86:77
 |---|---|---|---|---|
 | 100.124.53.91 | aglsrv6c | linux | Active | AGLSRV6C extension node |
 | 100.76.201.83 | aglsrv6d | linux | Active | AGLSRV6D extension node |
-| 100.123.5.81 | aglsrv3 | linux | Offline 12d | Standalone Proxmox host |
+| 100.123.5.81 | aglsrv3 | linux | Active | Proxmox host AGLFG (`192.168.15.247`) |
+| *(pendente)* | aglsrv3-pihole | linux | **NeedsLogin** | CT117 Pi-hole @ LAN `192.168.15.102` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) + `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh` |
+
+> **AGLSRV3 DNS (2026-05-28):** Pi-hole local clonado de AGLSRV1 CT102. Host `resolv.conf` → `192.168.15.102`. Tailscale do CT117 requer auth key ou login na URL (`tailscale up` no CT117).
 
 ### FGSRV Group (7 hosts)
 
@@ -366,7 +401,7 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 
 **EvoNexus — root, DSP e modelo por defeito:** o bridge original não aplicava `global_settings.dangerouslySkipPermissions` e **nunca** passava `--dangerously-skip-permissions` como root. Overlay **`scripts/evonexus/overlays/claude-bridge.js`** lê o `providers.json`, combina com `IS_SANDBOX=1` no compose do dashboard e repassa `IS_SANDBOX` ao PTY; injeta `--model` a partir de `ANTHROPIC_MODEL` (sync: **`scripts/evonexus/sync-providers-anthropic-from-env.py`**, omissão **`qwen3.5-plus`** quando `.env` não define modelo). Índice: **`scripts/evonexus/overlays/README-evonexus-overlays.md`**.
 
-**EvoNexus — backup antes de reiniciar o CT242:** no CT, pasta `/root/backups/evonexus-jarvis-<data>-<hora>/` com `opt-evonexus.tgz`, `vol-evonexus_*.tgz` (todos os volumes) e `inventory-claude-config.txt`; arquivo único `evonexus-jarvis-*-FULL.tgz` em `/root/backups/`. Cópia espelhada no **FGSRV7** em `/root/backups-ct242-evonexus/` (`pct pull`). Dentro da pasta há **`RESTORE.md`** com passos de restauro (Jarvis vive em `agent_memory` + ficheiros sob `.claude/` no volume de config/workspace — ver inventário).
+**EvoNexus — backup antes de reiniciar o CT242:** no CT, pasta `/root/backups/evonexus-jarvis-<data>-<hora>/` com `opt-evonexus.tgz`, `vol-evonexus_*.tgz` (todos os volumes) e `inventory-claude-config.txt`; arquivo único `evonexus-jarvis-*-FULL.tgz` em `/root/backups/`. Cópia espelhada no **FGSRV7** em `/root/backups-ct242-evonexus/` (`pct pull`). Dentro da pasta há **`RESTORE.md`** com passos de restauro (Jarvis vive em `agent_memory` + ficheiros sob `.claude/` no volume de config/workspace — ver inventário). **Restauro completo CT242 (disco perdido):** `scripts/proxmox/RESTORE-CT242-EVONEXUS.md` + sync **CT189 → CT242** via `scripts/proxmox/pct-sync-evonexus-189-to-242.sh` (fgsrv7).
 
 **MySQL HA Replication**:
 
@@ -849,6 +884,8 @@ zpool status -v local-zfs
 | 170 | homarr | 192.168.0.170 | Dashboard |
 | 171 | overseerr | 192.168.0.171 | Media requests |
 | 172 | prowlarr | 192.168.0.172 | Indexer manager |
+
+**Stack *arr (operação):** [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md). **Grabs activos, downloads parados** (2026-05-29) — [`MEDIA-ARR-MAINTENANCE.md`](MEDIA-ARR-MAINTENANCE.md), `scripts/media/arr-freeze-downloads.sh`.
 
 #### Development & DevOps
 

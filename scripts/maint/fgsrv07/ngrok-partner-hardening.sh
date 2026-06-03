@@ -3,7 +3,7 @@
 # Executar no host FGSRV7 como root.
 #
 # NOTA: remote_addr só funciona com TCP addresses reservadas no dashboard ngrok.
-# mysql7 reservado: 1.tcp.sa.ngrok.io:22485 → 192.168.70.135:3306
+# mysql7 reservado: 1.tcp.sa.ngrok.io:22485 → 192.168.70.235:3306 (CT235; doc antigo .135)
 # fg-legacy-ssh reservado: 1.tcp.sa.ngrok.io:22488 → 192.168.70.243:22
 # Sem reserva, NÃO reiniciar ngrok à toa — portas públicas podem mudar.
 set -euo pipefail
@@ -71,7 +71,7 @@ fail(){ log "FAIL: $*"; failures=$((failures+1)); }
 ok(){ log "OK: $*"; }
 
 systemctl is-active --quiet ngrok-fg-partner || fail "ngrok-fg-partner down"
-for t in 192.168.70.135:3306 192.168.70.243:22; do
+for t in 192.168.70.235:3306 192.168.70.243:22; do
   h=${t%%:*}; p=${t##*:}
   nc -z -w3 "$h" "$p" >/dev/null 2>&1 && ok "upstream $t" || fail "upstream $t"
 done

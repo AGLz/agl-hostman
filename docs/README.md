@@ -12,6 +12,8 @@
 - **[RULES.md](./RULES.md)** - Coding standards
 - **[QUICK-START.md](./QUICK-START.md)** - Quick reference
 - **[DOKPLOY.md](./DOKPLOY.md)** - Deployment platform
+- **[MEDIA-ARR-STACK-AGL.md](./MEDIA-ARR-STACK-AGL.md)** - Radarr/Sonarr/Prowlarr (como estava, plano, roadmap)
+- **[MEDIA-ARR-MAINTENANCE.md](./MEDIA-ARR-MAINTENANCE.md)** - Modo pausa sem downloads (storage)
 
 ## 📁 Organized Folders
 

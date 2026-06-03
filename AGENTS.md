@@ -33,7 +33,7 @@ Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan
 | `config/litellm/` | Modelos, proxy OpenAI/Anthropic, rota `/cursor` para IDE |
 | `docker/` | Stacks (ex.: LiteLLM, monitoring) |
 | `docs/` | INFRA, troubleshooting, integrações |
-| `scripts/` | Automação (backup, litellm, openclaw, etc.) |
+| `scripts/` | Automação (backup, litellm, agency, etc.) |
 | `tests/api`, `tests/unit`, `tests/integration/` | Testes Node |
 | `ai-docs/`, `agent-os/` | Planeamento e specs quando existirem |
 | `.cursor/rules/` | Regras Cursor (Laravel Boost, guia primário PT) |
@@ -68,7 +68,7 @@ bash scripts/skills/propagate-six-repos.sh --host all   # agldv03, ct188, aglwk4
 
 ### Skills (Claude Flow / Cursor)
 
-Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de swarm, SPARC, auditoria de segurança, infra AGL (`agl-infra`), OpenClaw em contexto AGL (`openclaw-agl` — ver `CLAUDE.md`).
+Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de swarm, SPARC, auditoria de segurança, infra AGL (`agl-infra`), AGLz Agency em contexto AGL (`aglz-agency` — ver `CLAUDE.md`, `docs/AGLZ-AGENCY-HERMES-2026-05.md`).
 
 ### Papéis típicos
 
@@ -137,16 +137,28 @@ Resumo — detalhe em `docs/INFRA.md`:
 | CT locked | `pct unlock <vmid>` antes de `pct start` |
 | Pi-hole CT102 | `pct unlock 102 && pct start 102` |
 | Cloudflared CT117 | `pct exec 117 -- systemctl restart cloudflared` |
-| OpenClaw aglwk45 | VM104 — via AGLSRV1 / scripts em `scripts/verify-openclaw-*` |
+| AGLz Agency CT188 | Hermes quarteto — via AGLSRV1 `pct exec 188` |
 
-### OpenClaw (referência rápida)
+### AGLz Agency — Hermes Quarteto (Maio 2026)
 
-| Host | Tailscale / verificação |
-|------|-------------------------|
-| agldv03 | `100.94.221.87` — gateway OpenClaw ativo (fonte) |
-| agldv12 | `100.71.217.115` — **OpenClaw desligado** (clone do CT dev; evitar bots duplicados) |
-| fgsrv06 | `100.83.51.9` |
-| aglwk45 | VM104 no AGLSRV1 — LAN `192.168.0.33`, Tailscale `100.117.146.21` |
+4 agentes Hermes em Docker no CT188 (agl-hermes), imagem custom `Dockerfile.aglz-agency`:
+
+| Agente | Papel | Bot Telegram | Profile |
+|--------|-------|-------------|---------|
+| Jarvis | CEO | @hermes_jarvis_h_bot | /opt/agl-hermes/profiles/jarvis/ |
+| Elon | CPO/CRO | @hermes_jarvis_h_elon_bot | /opt/agl-hermes/profiles/elon/ |
+| Satya | COO | @hermes_jarvis_h_satya_bot | /opt/agl-hermes/profiles/satya/ |
+| Werner | VP Infra | @hermes_jarvis_h_werner_bot | /opt/agl-hermes/profiles/werner/ |
+
+**Stack**: LiteLLM CT186 (`100.125.249.8`, gpt-5.5) · Honcho CT192 (workspace `aglz-agency`, memória durável) · Linear (teams AGLDV/CBDEV/AGLZ, backlog) · llm-wiki (KB curado, montado ro nos containers)
+
+**Rede**: Tailscale (inter-hosts) + Docker bridge (inter-containers)
+
+**Cron jobs**: Werner health check 9h · Satya work 11h · Elon work 10h · repo scan semanal
+
+**Acesso host CT188**: `ssh root@100.107.113.33 'pct exec 188 -- <cmd>'`
+
+**Deploy**: `docker/hermes/docker-compose.aglz-quartet.ct188.yml`
 
 ### AGLSRV1 Troubleshooting (2026-04-06)
 

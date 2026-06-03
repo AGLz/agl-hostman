@@ -1,0 +1,8 @@
+{
+  "name": "agl-hermes-claw3d-adapter",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

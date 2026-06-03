@@ -2,26 +2,26 @@
 # LiteLLM: http://100.125.249.8:4000 (Tailscale aglsrv1-litellm)
 # Honcho: http://100.x.x.x:8000 (CT192 agl-honcho — Tailscale após deploy)
 
-# Política de custo: só jarvis usa gpt-5.5; restantes modelos baratos LiteLLM.
+# Política de custo (2026-05-30): OpenAI quota esgotada até ~2026-06-01 — quartet groq-llama-31-8b + fallback or-nemotron + aux zai-glm-flash.
 
 default_agent: jarvis
 
 agents:
   jarvis:
     home_dir: profiles/jarvis
-    model: gpt-5.5
+    model: groq-llama-31-8b
     provider: custom
   elon:
     home_dir: profiles/elon
-    model: glm-4.7-flash
+    model: groq-llama-31-8b
     provider: custom
   satya:
     home_dir: profiles/satya
-    model: qwen-coder
+    model: groq-llama-31-8b
     provider: custom
   werner:
     home_dir: profiles/werner
-    model: qwen-coder
+    model: groq-llama-31-8b
     provider: custom
 
 routes:
@@ -44,13 +44,13 @@ routes:
 
 model:
   provider: custom
-  default: glm-4.7-flash
-  fallback: glm-4.7-flash
+  default: groq-llama-31-8b
+  fallback: or-nemotron-super-free
   base_url: http://100.125.249.8:4000
 
 delegation:
   provider: custom
-  model: qwen-coder
+  model: zai-glm-flash
   base_url: http://100.125.249.8:4000
   max_iterations: 50
   max_concurrent_children: 3
@@ -79,7 +79,7 @@ auxiliary:
 
 fallback_model:
   provider: custom
-  model: glm-4.7-flash
+  model: or-nemotron-super-free
   base_url: http://100.125.249.8:4000
 
 compression:

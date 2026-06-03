@@ -37,16 +37,22 @@ for entry in \
     continue
   fi
   echo "=== tailscale up CT${vmid} (${host}) ==="
+  # CTs na LAN AGLSR1: accept-routes=false evita table 52 desviar 192.168.0.0/24 → tailscale0
+  # (ver docs/troubleshooting/CT181-DNS-ROUTING-FIX.md, docs/CT178-TAILSCALE-SETUP.md)
   pct exec "${vmid}" -- tailscale up \
     --auth-key="${TAILSCALE_AUTHKEY}" \
     --hostname="${host}" \
     --accept-dns=false \
+    --accept-routes=false \
     --ssh \
-    --accept-routes \
     --accept-risk=lose-ssh
   pct exec "${vmid}" -- tailscale status --peers=false
   pct exec "${vmid}" -- tailscale ip -4 || true
   echo ""
 done
 
+echo ""
+echo "Instalar rotas LAN (table 52) nos CTs que acabaram de fazer join:"
+echo "  bash scripts/proxmox/pct-install-agl-lan-routes.sh"
+echo ""
 echo "OK. Verificar ACLs/tags no admin Tailscale."

@@ -10,10 +10,12 @@
 
 | Codename | Nome | Papel | Modelo principal | Telegram |
 |----------|------|-------|------------------|----------|
-| `jarvis` | **Jarvis** | **CEO** — visão, prioridades, delegação | `gpt-5.5` | Bot 1 |
-| `elon` | **Elon** | **CPO/CRO** — produto, pesquisa, inovação | `glm-4.7-flash` | Bot 2 |
-| `satya` | **Satya** | **COO** — execução, código, entrega | `qwen-coder` | Bot 3 |
-| `werner` | **Werner** | **VP Infra** — AGL Infra, Proxmox, rede, plataforma | `qwen-coder` | Bot 4 |
+| `jarvis` | **Jarvis** | **CEO** — visão, prioridades, delegação | `groq-llama-31-8b` *(até quota OpenAI 2026-06-01 → `gpt-5-mini`)* | Bot 1 |
+| `elon` | **Elon** | **CPO/CRO** — produto, pesquisa, inovação | `groq-llama-31-8b` | Bot 2 |
+| `satya` | **Satya** | **COO** — execução, código, entrega | `groq-llama-31-8b` | Bot 3 |
+| `werner` | **Werner** | **VP Infra** — AGL Infra, Proxmox, rede, plataforma | `groq-llama-31-8b` | Bot 4 |
+
+**Fallback LiteLLM:** `or-nemotron-super-free` · **Aux (compressão/visão):** `zai-glm-flash` (Z.AI Anthropic `glm-4.5-flash`).
 
 Cada agente: profile isolado (`SOUL.md`, skills, memória Honcho peer distinto).
 
@@ -34,7 +36,7 @@ Hermes **0.14.x** não suporta multi-bot num único gateway ([PR #25660](https:/
        ▼
 ┌────────────────────────────────────────────────────────┐
 │ CT188  /opt/agl-hermes                                 │
-│  agl-hermes-jarvis  :8642  (API + Telegram)            │
+│  agl-hermes-jarvis  :8642  (API + Telegram + hermes-desktop) │
 │  agl-hermes-elon     (Telegram only)                   │
 │  agl-hermes-satya    (Telegram only)                   │
 │  agl-hermes-werner   (Telegram only)                   │
@@ -157,12 +159,12 @@ Workspace **`aglz-agency`** · AI peers: `jarvis`, `elon`, `satya`, `werner` · 
 
 ## Model routing (custo)
 
-> **Regra:** apenas **Jarvis (CEO)** usa **`gpt-5.5`**. Todos os outros agentes e defaults do gateway usam aliases baratos.
+> **Regra:** **Jarvis (CEO)** usa **`gpt-5-mini`** (OpenAI, mais barato que `gpt-5.5`). Outros agentes e defaults usam aliases baratos.
 
 | Agente / camada | Alias LiteLLM |
 |-----------------|---------------|
-| **Jarvis (CEO)** | `gpt-5.5` |
-| Elon (CPO/CRO) | `glm-4.7-flash` |
+| **Jarvis (CEO)** | `gpt-5-mini` |
+| Elon (CPO/CRO) | `glm-4.7-flash` (LiteLLM → `gpt-5-nano`) |
 | Satya / Werner (código, infra) | `qwen-coder` |
 | Default gateway (não-Jarvis) | `glm-4.7-flash` |
 | Auxiliares (compressão, web) | `gemini-lite`, `glm-4.7-flash` |
@@ -192,7 +194,7 @@ Workspace **`aglz-agency`** · AI peers: `jarvis`, `elon`, `satya`, `werner` · 
 ## Ordem de implementação
 
 1. **CT188 quartet** — tokens → `configure-ct188-hermes-quartet.sh` → `smoke-hermes-aglz-quartet.sh` → Telegram: `/start` ou `/help` (alias) ou mensagem sem `/`
-2. **DNS CT188** — Pi-hole `192.168.0.102` ✅ · rota `ct188-pihole-lan-route.sh`
+2. **DNS / LAN CT188–191** — Pi-hole `192.168.0.102` · `agl-lan-routes.sh` + `pct-install-agl-lan-routes.sh` (`--accept-routes=false`)
 3. **CT192 Honcho** — Tailscale `100.124.98.54` ✅ · `honcho.json` quartet
 4. **llm-wiki** — NFS `/mnt/overpower/apps/dev/agl/llm-wiki` → `/opt/agl-llm-wiki` ✅ · `ensure-llm-wiki-ct188.sh`
 5. **Linear** — `LINEAR_API_KEY` + OAuth MCP (`/mcp`); project *AGLz Agency*

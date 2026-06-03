@@ -10,6 +10,8 @@ import MemoryView from './pages/MemoryView';
 import CalendarView from './pages/CalendarView';
 import ContactsView from './pages/ContactsView';
 import MissionControlSettings from './pages/MissionControlSettings';
+import MissionControlStudio from './pages/MissionControlStudio';
+import MissionControlMinions from './pages/MissionControlMinions';
 import DokployDashboard from './pages/DokployDashboard';
 import InfrastructureDashboard from './pages/InfrastructureDashboard';
 import MetricsDashboard from './pages/MetricsDashboard';
@@ -32,6 +34,8 @@ function App() {
                     <Routes>
                         {/* Mission Control - Main pages */}
                         <Route path="/mission-control" element={<MissionControlDashboard />} />
+                        <Route path="/mission-control/minions" element={<MissionControlMinions />} />
+                        <Route path="/mission-control/studio" element={<MissionControlStudio />} />
                         <Route path="/mission-control/tasks" element={<TasksBoard />} />
                         <Route path="/mission-control/team" element={<AITeamView />} />
                         <Route path="/mission-control/teams" element={<TeamsView />} />

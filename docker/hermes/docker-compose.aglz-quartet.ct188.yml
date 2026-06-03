@@ -52,14 +52,17 @@ x-hermes-gateway: &hermes-gateway
 
   restart: unless-stopped
 
+  # LXC unprivileged (CT188): s6-applyuidgid falha com UID 10000+supp groups — correr como root.
+  user: "0:0"
+
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
   dns:
     - ${PIHOLE_DNS:-192.168.0.102}
 
-  # CT188: docker GID 996 — permite `docker ps` no host via socket montado
-
-  group_add:
-
-    - "${DOCKER_GID:-996}"
+  # docker.sock + group_add desactivados em CT188 unprivileged (s6 supplementary groups).
+  # Para DooD: HERMES_DOCKER_SOCK=1 e LXC privileged ou host com group_add suportado.
 
   environment: &hermes-env
 
@@ -83,8 +86,6 @@ x-hermes-volumes: &hermes-volumes
 
   - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
 
-  - /run/docker.sock:/run/docker.sock
-
   - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
 
@@ -97,9 +98,16 @@ services:
 
     container_name: agl-hermes-jarvis
 
+    env_file:
+      - ${JARVIS_DATA_DIR:-./data}/.env
+
     environment:
 
       <<: *hermes-env
+
+      HERMES_DASHBOARD: ${HERMES_DASHBOARD_JARVIS:-1}
+
+      HERMES_DASHBOARD_INSECURE: ${HERMES_DASHBOARD_INSECURE_JARVIS:-1}
 
       API_SERVER_ENABLED: ${API_SERVER_ENABLED:-true}
 
@@ -117,8 +125,6 @@ services:
 
       - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
 
-      - /run/docker.sock:/run/docker.sock
-
       - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
     ports:
@@ -129,6 +135,10 @@ services:
 
     healthcheck: *hermes-health-api
 
+    networks:
+      - default
+      - langfuse
+
 
 
   hermes-elon:
@@ -136,6 +146,9 @@ services:
     <<: *hermes-gateway
 
     container_name: agl-hermes-elon
+
+    env_file:
+      - ${ELON_DATA_DIR:-./profiles/elon}/.env
 
     volumes:
 
@@ -147,11 +160,13 @@ services:
 
       - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
 
-      - /run/docker.sock:/run/docker.sock
-
       - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
     healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
 
 
 
@@ -160,6 +175,9 @@ services:
     <<: *hermes-gateway
 
     container_name: agl-hermes-satya
+
+    env_file:
+      - ${SATYA_DATA_DIR:-./profiles/satya}/.env
 
     volumes:
 
@@ -171,11 +189,13 @@ services:
 
       - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
 
-      - /run/docker.sock:/run/docker.sock
-
       - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
     healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
 
 
 
@@ -184,6 +204,9 @@ services:
     <<: *hermes-gateway
 
     container_name: agl-hermes-werner
+
+    env_file:
+      - ${WERNER_DATA_DIR:-./profiles/werner}/.env
 
     volumes:
 
@@ -195,10 +218,110 @@ services:
 
       - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
 
-      - /run/docker.sock:/run/docker.sock
-
       - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
     healthcheck: *hermes-health-process
 
+    networks:
+      - default
+      - langfuse
+
+  # Claw3D / hermes-desktop Office — WebSocket adapter (OpenClaw protocol → Hermes HTTP :8642)
+  hermes-claw3d-adapter:
+    build:
+      context: .
+      dockerfile: Dockerfile.claw3d-adapter
+    image: ${HERMES_CLAW3D_ADAPTER_IMAGE:-agl-hermes-claw3d-adapter:latest}
+    container_name: agl-hermes-claw3d-adapter
+    restart: unless-stopped
+    environment:
+      HERMES_API_URL: http://hermes-jarvis:8642
+      HERMES_API_KEY: ${API_SERVER_KEY:-}
+      HERMES_ADAPTER_PORT: ${HERMES_ADAPTER_PORT:-18789}
+      HERMES_ADAPTER_HOST: ${HERMES_ADAPTER_HOST:-0.0.0.0}
+      HERMES_MODEL: ${HERMES_CLAW3D_MODEL:-hermes-agent}
+      HERMES_AGENT_NAME: ${HERMES_CLAW3D_AGENT_NAME:-Jarvis}
+    ports:
+      - ${HERMES_CLAW3D_ADAPTER_PORT:-18789}:18789
+    depends_on:
+      hermes-jarvis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "const http=require('http');http.get('http://127.0.0.1:18789',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # Minions — Mission Control Kanban (https://github.com/Agent-3-7/minions)
+  hermes-minions:
+    build:
+      context: .
+      dockerfile: Dockerfile.minions
+    image: ${HERMES_MINIONS_IMAGE:-agl-hermes-minions:latest}
+    container_name: agl-hermes-minions
+    restart: unless-stopped
+    user: "0:0"
+    entrypoint: ["minions"]
+    environment:
+      HERMES_AGENT_DIR: /opt/hermes
+      HERMES_PYTHON: /opt/hermes/.venv/bin/python3
+      HERMES_HOME: /opt/data
+      MINIONS_HOME: /opt/minions
+      PORT: ${HERMES_MINIONS_PORT:-6969}
+      HERMES_AGENT_RUN_LIMIT: ${HERMES_MINIONS_RUN_LIMIT:-6}
+    volumes:
+      - ${JARVIS_DATA_DIR:-./data}:/opt/data
+      - ${MINIONS_DATA_DIR:-./minions}:/opt/minions
+    ports:
+      - ${HERMES_MINIONS_PORT:-6969}:6969
+    depends_on:
+      hermes-jarvis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- http://127.0.0.1:6969/ >/dev/null 2>&1 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # Claw3D Studio — hermes-office (browser 3D office UI)
+  hermes-claw3d-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile.claw3d-studio
+      args:
+        HERMES_STUDIO_GATEWAY_URL: ${HERMES_STUDIO_GATEWAY_URL:-ws://127.0.0.1:18789}
+    image: ${HERMES_CLAW3D_STUDIO_IMAGE:-agl-hermes-claw3d-studio:latest}
+    container_name: agl-hermes-claw3d-studio
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      CLAW3D_GATEWAY_URL: ${HERMES_STUDIO_GATEWAY_URL:-ws://host.docker.internal:18789}
+      CLAW3D_GATEWAY_ADAPTER_TYPE: hermes
+      STUDIO_ACCESS_TOKEN: ${HERMES_STUDIO_ACCESS_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - ${HERMES_STUDIO_HOST_PORT:-3003}:3000
+    depends_on:
+      hermes-claw3d-adapter:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- --header="Cookie: studio_access=$$STUDIO_ACCESS_TOKEN" http://127.0.0.1:3000/ >/dev/null 2>&1 || wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1']
+      interval: 45s
+      timeout: 15s
+      retries: 5
+      start_period: 180s
+
+
+networks:
+  langfuse:
+    external: true
+    name: agl-langfuse_default
 

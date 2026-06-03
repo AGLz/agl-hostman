@@ -15,15 +15,15 @@ LITELLM_TS="http://100.125.249.8:4000"
 HONCHO_BASE_URL="${HONCHO_BASE_URL:-http://100.124.98.54:8000}"
 ALLOWED_USERS="${TELEGRAM_ALLOWED_USERS:-1272190248}"
 
+# OpenAI quota CT186 esgotada até ~2026-06-01 — Groq primário; ver config/litellm/config.yaml
 declare -A AGENT_MODEL=(
-  [jarvis]=gpt-5.5
-  [elon]=glm-4.7-flash
-  # qwen-coder no LiteLLM CT186 cai em nemotron free → content vazio com tools Hermes
-  [satya]=glm-4.7-flash
-  [werner]=glm-4.7-flash
+  [jarvis]=groq-llama-31-8b
+  [elon]=groq-llama-31-8b
+  [satya]=groq-llama-31-8b
+  [werner]=groq-llama-31-8b
 )
 
-FALLBACK_MODEL="${HERMES_FALLBACK_MODEL:-glm-4.7-flash}"
+FALLBACK_MODEL="${HERMES_FALLBACK_MODEL:-or-nemotron-super-free}"
 AUXILIARY_MODEL="${HERMES_AUXILIARY_MODEL:-zai-glm-flash}"
 
 test -d "${AGL_HOSTMAN}" || { echo "ERRO: ${AGL_HOSTMAN} inexistente" >&2; exit 1; }
@@ -128,13 +128,13 @@ for cp in cfg.get("custom_providers") or []:
         if api_key and not cp.get("api_key"):
             cp["api_key"] = api_key
 
-for section in ("delegation", "compression"):
-    block = cfg.get(section)
-    if isinstance(block, dict):
-        if block.get("provider") == "custom" or block.get("model"):
-            block["base_url"] = litellm.rstrip("/")
-            if api_key and not block.get("api_key"):
-                block["api_key"] = api_key
+deleg = cfg.get("delegation")
+if isinstance(deleg, dict):
+    deleg["provider"] = "custom"
+    deleg["model"] = auxiliary_model
+    deleg["base_url"] = litellm.rstrip("/")
+    if api_key:
+        deleg["api_key"] = api_key
 
 aux = cfg.get("auxiliary")
 if isinstance(aux, dict):
@@ -155,8 +155,11 @@ Path(path).write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=Tru
 print(f"OK config {path} model={model} fallback={fallback_model} auxiliary={auxiliary_model}")
 PY
 
-  if [[ -f "${AGL_HOSTMAN}/docker/hermes/config.aglz-quartet-snippet.yaml" ]]; then
-    python3 - "${pdir}/config.yaml" "${AGL_HOSTMAN}/docker/hermes/config.aglz-quartet-snippet.yaml" <<'PY'
+  merge_snippet() {
+    local snippet_path="$1"
+    local label="$2"
+    [[ -f "${snippet_path}" ]] || return 0
+    python3 - "${pdir}/config.yaml" "${snippet_path}" <<'PY'
 import sys
 from pathlib import Path
 import yaml
@@ -164,13 +167,79 @@ import yaml
 cfg_path, snippet_path = sys.argv[1:3]
 cfg = yaml.safe_load(Path(cfg_path).read_text()) or {}
 frag = yaml.safe_load(Path(snippet_path).read_text()) or {}
-qc = frag.get("quick_commands") or {}
-if qc:
-    merged = dict(cfg.get("quick_commands") or {})
-    merged.update(qc)
-    cfg["quick_commands"] = merged
+
+def deep_merge(base, patch):
+    for key, val in patch.items():
+        if isinstance(val, dict) and isinstance(base.get(key), dict):
+            deep_merge(base[key], val)
+        else:
+            base[key] = val
+
+deep_merge(cfg, frag)
+Path(cfg_path).write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
+print("OK merge", snippet_path)
+PY
+  }
+
+  merge_snippet "${AGL_HOSTMAN}/docker/hermes/config.aglz-quartet-snippet.yaml" "quartet"
+  merge_snippet "${AGL_HOSTMAN}/docker/hermes/config.aglz-optimization-snippet.yaml" "optimization"
+
+  python3 - "${pdir}/config.yaml" <<'PY'
+import sys
+from pathlib import Path
+import yaml
+
+path = sys.argv[1]
+cfg = yaml.safe_load(Path(path).read_text()) or {}
+plugins = cfg.setdefault("plugins", {})
+enabled = plugins.setdefault("enabled", [])
+if not isinstance(enabled, list):
+    enabled = []
+    plugins["enabled"] = enabled
+needle = "observability/langfuse"
+if needle not in enabled:
+    enabled.append(needle)
+Path(path).write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
+print("OK langfuse plugin listed", path)
+PY
+
+  if [[ -f /root/.aglz-langfuse.env ]]; then
+    # shellcheck disable=SC1091
+    source /root/.aglz-langfuse.env
+    if [[ -n "${HERMES_LANGFUSE_PUBLIC_KEY:-}" ]] && [[ -n "${HERMES_LANGFUSE_SECRET_KEY:-}" ]]; then
+      for lf_var in HERMES_LANGFUSE_PUBLIC_KEY HERMES_LANGFUSE_SECRET_KEY HERMES_LANGFUSE_BASE_URL HERMES_LANGFUSE_ENV; do
+        [[ -n "${!lf_var:-}" ]] || continue
+        grep -q "^${lf_var}=" "${pdir}/.env" 2>/dev/null && \
+          sed -i "s|^${lf_var}=.*|${lf_var}=${!lf_var}|" "${pdir}/.env" || \
+          echo "${lf_var}=${!lf_var}" >>"${pdir}/.env"
+      done
+      grep -q '^HERMES_LANGFUSE_BASE_URL=' "${pdir}/.env" || \
+        echo "HERMES_LANGFUSE_BASE_URL=http://langfuse-web:3000" >>"${pdir}/.env"
+      grep -q '^HERMES_LANGFUSE_ENV=' "${pdir}/.env" || \
+        echo "HERMES_LANGFUSE_ENV=production" >>"${pdir}/.env"
+    fi
+  fi
+
+  if [[ -f "${pdir}/honcho.json" ]]; then
+    python3 - "${pdir}/config.yaml" "${pdir}/honcho.json" <<'PY'
+import json, sys
+from pathlib import Path
+import yaml
+
+cfg_path, honcho_path = sys.argv[1:3]
+cfg = yaml.safe_load(Path(cfg_path).read_text()) or {}
+data = json.loads(Path(honcho_path).read_text())
+h = (data.get("hosts") or {}).get("hermes") or {}
+if h:
+    cfg["honcho"] = {
+        "enabled": h.get("enabled", True),
+        "recallMode": h.get("recallMode", "hybrid"),
+        "writeFrequency": h.get("writeFrequency", "async"),
+        "sessionStrategy": h.get("sessionStrategy", "per-directory"),
+        "dialecticReasoningLevel": h.get("dialecticReasoningLevel", "low"),
+    }
     Path(cfg_path).write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
-    print("OK quick_commands", sorted(qc.keys()))
+    print("OK honcho config.yaml")
 PY
   fi
 
@@ -212,6 +281,10 @@ PY
 for agent in jarvis elon satya werner; do
   seed_profile "${agent}"
 done
+
+if [[ -x "${AGL_HOSTMAN}/scripts/proxmox/install-hermes-optimization-skills.sh" ]]; then
+  bash "${AGL_HOSTMAN}/scripts/proxmox/install-hermes-optimization-skills.sh" "${HERMES_ROOT}"
+fi
 
 WIKI_DIR="/opt/agl-llm-wiki"
 bash "${AGL_HOSTMAN}/scripts/proxmox/ensure-llm-wiki-ct188.sh" || true
@@ -282,26 +355,26 @@ search localdomain
 nameserver 192.168.0.102
 RESOLV
 
-# Tailscale table 52 captura 192.168.0.0/24 — Pi-hole tem de ir por eth0 local
-if [[ -f "${AGL_HOSTMAN}/scripts/proxmox/ct188-pihole-lan-route.sh" ]]; then
-  bash "${AGL_HOSTMAN}/scripts/proxmox/ct188-pihole-lan-route.sh"
-  install -m 0755 "${AGL_HOSTMAN}/scripts/proxmox/ct188-pihole-lan-route.sh" /usr/local/sbin/agl-pihole-lan-route.sh
-  cat >/etc/systemd/system/agl-pihole-lan-route.service <<'UNIT'
+# Tailscale table 52: LAN local via eth0 (accept-routes=false + fallback rotas)
+if [[ -f "${AGL_HOSTMAN}/scripts/proxmox/agl-lan-routes.sh" ]]; then
+  bash "${AGL_HOSTMAN}/scripts/proxmox/agl-lan-routes.sh"
+  install -m 0755 "${AGL_HOSTMAN}/scripts/proxmox/agl-lan-routes.sh" /usr/local/sbin/agl-lan-routes.sh
+  cat >/etc/systemd/system/agl-lan-routes.service <<'UNIT'
 [Unit]
-Description=AGL CT188 Pi-hole LAN route (bypass Tailscale table 52)
+Description=AGL LAN routes (Tailscale table 52 → eth0)
 After=tailscaled.service network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/local/sbin/agl-pihole-lan-route.sh
+ExecStart=/usr/local/sbin/agl-lan-routes.sh
 
 [Install]
 WantedBy=multi-user.target
 UNIT
   systemctl daemon-reload
-  systemctl enable --now agl-pihole-lan-route.service
+  systemctl enable --now agl-lan-routes.service
 fi
 
 cd "${HERMES_ROOT}"

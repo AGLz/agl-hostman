@@ -92,7 +92,7 @@ systemctl status pve-cluster
 
 | Host | Status | Notes |
 |------|--------|-------|
-| **AGLSRV3** | ⚠️ Offline | Pending power-on and analysis |
+| **AGLSRV3** | ✅ Active | AGLFG LAN `192.168.15.247`; CT117 Pi-hole clone — ver `HOSTS.md`, `AGLSRV3-PIHOLE-CLONE.md` |
 | **AGLSRV6B** | ❌ DEAD | RAID card failure, replaced by AGLSRV6C |
 
 ---

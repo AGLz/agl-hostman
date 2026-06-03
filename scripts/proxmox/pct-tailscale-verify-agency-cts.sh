@@ -42,7 +42,9 @@ for vmid in 188 189 190 191; do
 done
 
 if [[ "${FAIL}" -eq 0 ]]; then
-  echo "Preparação OK. Próximo: TAILSCALE_AUTHKEY ou /root/.tailscale-authkey → pct-tailscale-up-agency-cts.sh"
+  echo "Preparação OK. Próximo:"
+  echo "  TAILSCALE_AUTHKEY ou /root/.tailscale-authkey → pct-tailscale-up-agency-cts.sh"
+  echo "  bash scripts/proxmox/pct-install-agl-lan-routes.sh"
 else
   echo "Corrigir erros antes de tailscale up (bootstrap-ct-lxc-base-docker.sh, pct-apply-agldv03-lxc-profile.sh)."
   exit 1

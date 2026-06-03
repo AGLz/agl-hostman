@@ -30,7 +30,7 @@ else
   ok "ngrok-fg-partner active"
 fi
 
-for target in "192.168.70.135:3306" "192.168.70.243:22"; do
+for target in "192.168.70.235:3306" "192.168.70.243:22"; do
   host="${target%%:*}"
   port="${target##*:}"
   if pct exec "${CT_VMID}" -- bash -c "nc -z -w3 ${host} ${port}" >/dev/null 2>&1; then

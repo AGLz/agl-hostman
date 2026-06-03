@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('returns live OpenClaw status and flat agent list', function () {
+it('returns live OpenClaw status', function () {
     Http::fake([
         'http://100.123.184.125:28789/healthz' => Http::response([
             'ok' => true,
@@ -29,16 +29,9 @@ it('returns live OpenClaw status and flat agent list', function () {
         ->assertJsonPath('status', 'online')
         ->assertJsonPath('gateway', 'running')
         ->assertJsonPath('base_url', 'http://100.123.184.125:28789');
-
-    $this->getJson('/api/agents')
-        ->assertOk()
-        ->assertJsonFragment([
-            'id' => 'main',
-            'status' => 'active',
-        ]);
 });
 
-it('returns categorized agent dashboard metadata', function () {
+it('returns categorized OpenClaw agent dashboard metadata', function () {
     Http::fake([
         'http://100.123.184.125:28789/healthz' => Http::response([
             'ok' => true,
@@ -61,24 +54,6 @@ it('returns categorized agent dashboard metadata', function () {
             'agents' => [
                 '*' => ['id', 'name', 'role', 'group', 'status', 'sessions', 'currentTask', 'lastActive'],
             ],
-            'checked_at',
-        ]);
-});
-
-it('returns task summary payload for dashboard polling', function () {
-    Http::fake([
-        'http://100.123.184.125:28789/healthz' => Http::response(['ok' => true]),
-    ]);
-
-    $this->getJson('/api/tasks/summary')
-        ->assertOk()
-        ->assertJsonStructure([
-            'total',
-            'active',
-            'queued',
-            'failed',
-            'completed',
-            'recent',
             'checked_at',
         ]);
 });
@@ -118,7 +93,7 @@ it('proxies direct chat to the selected OpenClaw agent', function () {
         ->assertJsonPath('agent', 'main')
         ->assertJsonPath('message', 'pong');
 
-    Http::assertSent(fn ($request) => $request->hasHeader('x-openclaw-agent-id', 'main')
+    Http::assertSent(fn($request) => $request->hasHeader('x-openclaw-agent-id', 'main')
         && $request['model'] === 'openclaw/main'
         && count($request['messages']) === 3
         && $request['messages'][2]['content'] === 'ping');

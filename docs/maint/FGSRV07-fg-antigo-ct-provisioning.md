@@ -78,10 +78,36 @@ Validar dentro dos CTs (`nproc`, `htop`). Ajustar `CORES=…` no script se neces
 
 SO template: preferir base onde **`php5.6-fpm`** esteja disponível via mesmos mecanismos que FGSRV04 (sury/Ondřej); ver checkpoint **`FGSRV04-php-runtime-fg-antigo-checkpoint.md`**.
 
+### Pós-criação / recriação do CT (timezone + pt-BR)
+
+Templates Ubuntu/Debian novos vêm em **UTC** e **`en_US`**. Após **clone**, **restore** ou **CT novo**, correr no **host FGSRV7** (root, a partir do `agl-hostman`):
+
+```bash
+# Timezone America/Sao_Paulo (GMT-3) + pt-BR no CT243 + timezone no CT235
+bash scripts/maint/fgsrv07/pct-bootstrap-fg-stack-locale.sh
+
+# Só um CT:
+bash scripts/maint/fgsrv07/pct-bootstrap-fg-stack-locale.sh --ct 243
+bash scripts/maint/fgsrv07/pct-bootstrap-fg-stack-locale.sh --ct 235
+```
+
+| Script | Onde | Função |
+|--------|------|--------|
+| `pct-bootstrap-fg-stack-locale.sh` | Host Proxmox | `pct push` + executa bootstrap nos CT243/235 |
+| `ct243-post-create-bootstrap.sh` | Dentro CT243 | `-03` + `language-pack-pt` + PHP `date.timezone` / FPM `env[LANG]` |
+| `ct235-post-create-bootstrap.sh` | Dentro CT235 | Apenas `-03` (MariaDB) |
+| `lib/ct-set-timezone-sao-paulo.sh` | Biblioteca | Symlink `zoneinfo` (evita falha `timedatectl` em LXC) |
+| `pct-configure-ct243-lxc-tailscale.sh` | Host | `/dev/net/tun` em `/etc/pve/lxc/243.conf` |
+| `ct243-tailscale-up.sh` | Dentro CT243 | `tailscale up` (hostname `fg-legacy`, tag `servers`) |
+| `pct-bump-fg-stack-cores.sh` | Host | `pct set 243/235 -cores 4` |
+
+**Ordem sugerida após recriar CT243:** (1) rede/IP Proxmox → (2) `pct-bootstrap-fg-stack-locale.sh --ct 243` → (3) stack nginx/php + rsync app → (4) `pct-configure-ct243-lxc-tailscale.sh` → (5) `ct243-tailscale-up.sh` no CT.
+
 ---
 
 ## 2. Pacotes / stack (checklist)
 
+- **Locale / relógio:** `locales`, `language-pack-pt`, `language-pack-pt-base`; timezone **`America/Sao_Paulo`**; PHP **`date.timezone`** e FPM **`env[LANG]=pt_BR.UTF-8`** — automatizado por `pct-bootstrap-fg-stack-locale.sh` (ver secção anterior).
 - **Base:** `nginx`, **PHP 5.6 FPM** + módulos conforme checkpoint (mysqli, gd, curl, mbstring, soap, zip, imap, intl, mysql legacy se inevitável, etc.).
 - **Cliente DB:** `mysql-client` / MariaDB client para testes de conectividade.
 - **Ferramentas:** `rsync`, `openssh-server`, `curl`, `ca-certificates`, `vim`/`nano`, `htop`, `logrotate`.
@@ -346,4 +372,4 @@ Se a página é servida por **HTTPS** (ex.: tunnel Cloudflare) e os `<script>` a
 - `docs/maint/FG-ANTIGO-GIT-E-FLUXO.md` (§2.1 rsync; §2.2 Git `AGLz/fg-legacy`)
 - `docs/INFRA.md` — FGSRV07, CT235, CT170
 
-**Última atualização:** 2026-04-29 (§console: footer `noConflict`/`$`, `getthedate`/`#clock`, Maps `loading=async`, Vue min, `pisca_alerta`/popup; jQuery `document.write` + disco CT243 + CF/adblock; §7+ anteriores)
+**Última atualização:** 2026-05-28 (scripts `pct-bootstrap-fg-stack-locale.sh`, locale pt-BR + GMT-3 pós-recriação CT243/235)

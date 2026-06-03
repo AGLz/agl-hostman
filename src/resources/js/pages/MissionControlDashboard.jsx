@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { fetchMissionControlSnapshot, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/openclaw';
+import { fetchMissionControlSnapshot, formatAgentLastActive, formatCheckedAt, POLL_INTERVAL_MS } from '@/lib/hermes';
 
 
 const container = {
@@ -193,12 +193,12 @@ export default function MissionControlDashboard() {
     const fetchMissionControlData = async () => {
         setRefreshing(true);
         try {
-            const { agents: agentsData, tasks, openclaw } = await fetchMissionControlSnapshot();
+            const { agents: agentsData, tasks, hermes } = await fetchMissionControlSnapshot();
             const activeAgents = agentsData.filter(a => a.status === 'active').length;
             const errors = (tasks.failed || 0) + agentsData.filter(a => a.status === 'error').length;
 
             setAgents(agentsData);
-            setGatewayStatus(openclaw.status);
+            setGatewayStatus(hermes.status);
             setMetrics({
                 activeTasks: tasks.active || 0,
                 totalTasks: tasks.total || 0,
@@ -208,19 +208,19 @@ export default function MissionControlDashboard() {
             });
             setActivities([
                 {
-                    agent: 'openclaw',
-                    action: `Gateway ${openclaw.gateway} at ${openclaw.base_url}`,
-                    status: openclaw.status === 'online' ? 'active' : 'error',
-                    time: formatCheckedAt(openclaw.checked_at),
+                    agent: 'hermes',
+                    action: `Gateway ${hermes.gateway} at ${hermes.base_url}`,
+                    status: hermes.status === 'online' ? 'active' : 'error',
+                    time: formatCheckedAt(hermes.checked_at),
                 },
                 ...agentsData.slice(0, 8).map(agent => ({
                     agent: agent.id,
                     action: agent.currentTask || `${agent.role} ${agent.status}`,
                     status: agent.status,
-                    time: formatAgentLastActive(agent.lastActive) || formatCheckedAt(openclaw.checked_at),
+                    time: formatAgentLastActive(agent.lastActive) || formatCheckedAt(hermes.checked_at),
                 })),
             ]);
-            setLastUpdate(openclaw.checked_at || new Date().toISOString());
+            setLastUpdate(hermes.checked_at || new Date().toISOString());
         } catch (err) {
             console.error('Failed to fetch mission control data:', err);
         } finally {
@@ -288,7 +288,7 @@ export default function MissionControlDashboard() {
                         icon={Server}
                         trend={gatewayStatus === 'online' ? 'live' : 'check'}
                         color={gatewayStatus === 'online' ? "bg-green-500/10" : "bg-red-500/10"}
-                        subtitle="CT187 OpenClaw"
+                        subtitle="CT188 Hermes Quartet"
                     />
                 </motion.div>
 

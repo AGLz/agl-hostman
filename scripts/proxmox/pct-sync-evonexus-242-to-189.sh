@@ -2,6 +2,9 @@
 # Copia stack EvoNexus do CT242 (fgsrv7) para CT189 (AGLSRV1): /opt/evonexus + volumes Docker.
 # Executar no AGLSRV1 como root.
 #
+# Inverso (189 → 242): scripts/proxmox/pct-sync-evonexus-189-to-242.sh (fgsrv7)
+# Runbook restauro CT242: scripts/proxmox/RESTORE-CT242-EVONEXUS.md
+#
 # Uso: bash scripts/proxmox/pct-sync-evonexus-242-to-189.sh
 
 set -euo pipefail

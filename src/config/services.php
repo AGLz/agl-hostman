@@ -41,6 +41,7 @@ return [
         'redirect_uri' => env('WORKOS_REDIRECT_URI', 'http://localhost:8080/auth/workos/callback'),
         'webhook_secret' => env('WORKOS_WEBHOOK_SECRET'),
         'environment' => env('WORKOS_ENVIRONMENT', 'sandbox'),
+        'enabled' => filled(env('WORKOS_API_KEY')) && filled(env('WORKOS_CLIENT_ID')),
     ],
 
     'n8n' => [
