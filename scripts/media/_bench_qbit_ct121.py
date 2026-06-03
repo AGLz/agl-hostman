@@ -28,9 +28,11 @@ def main() -> None:
     def post(path: str, data: dict | None = None, raw: bytes | None = None, headers: dict | None = None):
         url = f"http://{HOST}:{PORT}/api/v2{path}"
         if raw is not None:
-            req = urllib.request.Request(url, data=raw, method="POST", headers=headers or {})
+            req = urllib.request.Request(
+                url, data=raw, method="POST", headers=headers or {})
         else:
-            req = urllib.request.Request(url, data=urllib.parse.urlencode(data or {}).encode(), method="POST")
+            req = urllib.request.Request(url, data=urllib.parse.urlencode(
+                data or {}).encode(), method="POST")
         return opener.open(req, timeout=120)
 
     def torrent_by_hash():
@@ -108,7 +110,8 @@ def main() -> None:
         print(last)
 
         if state == "missingFiles":
-            post("/torrents/setLocation", {"hashes": INFO_HASH, "location": BENCH_DIR})
+            post("/torrents/setLocation",
+                 {"hashes": INFO_HASH, "location": BENCH_DIR})
             post("/torrents/recheck", {"hashes": INFO_HASH})
             post("/torrents/resume", {"hashes": INFO_HASH})
             print("retry missingFiles: relocate+recheck")

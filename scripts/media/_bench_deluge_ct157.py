@@ -37,7 +37,8 @@ def _fail(failure):
 
 
 def _done():
-    elapsed = (time.time() - download_start) if download_start else (time.time() - bench_start)
+    elapsed = (
+        time.time() - download_start) if download_start else (time.time() - bench_start)
     avg_bps = 0
     iso = f"{OUT}/{TNAME}"
     if elapsed > 0:
@@ -80,7 +81,8 @@ def _poll(tid):
             if download_start is None:
                 download_start = time.time()
             peak_rate = max(peak_rate, rate)
-        print(f"state={state} progress={prog:.4f} rate_MiBs={rate / 1048576:.2f}")
+        print(
+            f"state={state} progress={prog:.4f} rate_MiBs={rate / 1048576:.2f}")
         if prog >= 0.995:
             iso = f"{OUT}/{TNAME}"
             if os.path.isfile(iso):

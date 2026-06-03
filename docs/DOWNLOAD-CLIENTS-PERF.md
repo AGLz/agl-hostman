@@ -33,18 +33,31 @@ bash scripts/media/download-clients-perf-benchmark-qbit-deluge.sh --skip-optimiz
 
 Torrent **~1 GiB** alternativo (quando mirror responder): Arch Linux — `https://archlinux.org/download/` ou `archlinux-x86_64.iso.torrent` nos mirrors oficiais.
 
-## Resultados (2026-06-03, pós-limpeza CT121 + `--skip-optimize`)
+## Resultados (2026-06-03, download fresco Debian netinst)
 
-Torrent: Debian 13.5.0 amd64 netinst (~755 MiB). **Sem alterações ao pool `overpower`**. CT121 com sessão vazia ([`QBIT-ARCHIVE-SPLIT.md`](QBIT-ARCHIVE-SPLIT.md) → arquivo no **CT221**).
+Torrent: Debian 13.5.0 amd64 netinst (~755 MiB). **Sem alterações ao pool `overpower`**. CT121 sessão limpa ([`QBIT-ARCHIVE-SPLIT.md`](QBIT-ARCHIVE-SPLIT.md)).
 
-| Cliente | CT | Tempo | Velocidade (pico / média) | Notas |
-|---------|-----|-------|---------------------------|-------|
+Comando: `bash scripts/media/download-clients-perf-benchmark-qbit-deluge.sh --skip-optimize`
+
+| Cliente | CT | Tempo total | Pico | Média (download) | Notas |
+|---------|-----|-------------|------|------------------|-------|
+| **qBittorrent** | 121 | **67 s** | **22,33 MiB/s** | **12,56 MiB/s** | `bench-qbit` apagado antes do teste (`_bench_qbit_ct121.py`) |
+| **Deluge** | 157 | **32 s** | **25,54 MiB/s** | ver script corrigido | `max_download_speed: -1`; **2 vCPU**; nesta corrida pico &gt; qBit |
+
+Relatório: `/tmp/agl-download-perf-20260603-114607.txt` (AGLSRV1).
+
+**Conclusão provisória:** ~22–25 MiB/s **não é só Deluge** — qBit no mesmo torrent ficou na mesma ordem (pico ~22 MiB/s). O teste de **1 s no qBit** era falso positivo (ISO já completo). **aria2 ~58 MiB/s** (corrida anterior) aponta para tuning libtorrent / conexões ou carga do host, não um cap exclusivo do Deluge.
+
+### Corrida anterior (pré-download-fresco)
+
+| Cliente | CT | Tempo | Velocidade | Notas |
+|---------|-----|-------|------------|-------|
 | **aria2** | 165 | **16 s** | **~58 MiB/s** | OK |
-| **qBittorrent** | 121 | **1 s** | instantâneo (`uploading` 100%) | WebUI **0 s**; ISO já em `bench-qbit` ou rede local — API `info_hash` ~instantânea |
-| **Deluge** | 157 | **73 s** | **~22 MiB/s** (pico) | OK; progresso 0–1 corrigido no script |
-| **SABnzbd** | 141 | *falhou* | — | `sab_test_1000MB` **Failed**: *Cancelado, não é possível concluir* — re-testar com Usenet/fila limpa |
+| **qBittorrent** | 121 | **1 s** | falso positivo | ISO já em `bench-qbit` |
+| **Deluge** | 157 | **73 s** | **~22 MiB/s** (pico) | OK |
+| **SABnzbd** | 141 | *falhou* | — | NZB teste cancelado |
 
-Relatório remoto: `/tmp/agl-download-perf-20260603-113624.txt` (AGLSRV1).
+Relatório: `/tmp/agl-download-perf-20260603-113624.txt` (AGLSRV1).
 
 ### Histórico (pré-limpeza CT121)
 
