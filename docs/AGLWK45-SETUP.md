@@ -4,7 +4,8 @@
 > **Proxmox ID**: 104 (aglsrv1)
 > **IP Tailscale**: 100.117.146.21
 > **IP LAN**: 192.168.0.33
-> **Última atualização**: 2026-04-06
+> **Última atualização**: 2026-06-06
+> **LiteLLM canónico**: CT186 — `http://100.125.249.8:4000` (Tailscale) · `http://192.168.0.186:4000` (LAN). **Não** usar `100.94.221.87:4000` (agldv03 descontinuado).
 
 ## Incidente 2026-04-06 — RDP Inacessível + CPU 2122%
 
@@ -40,9 +41,43 @@ ssh root@100.107.113.33 'ps aux | grep meshagent | grep -v grep | awk "{if (\$6 
 ssh root@100.107.113.33 'free -h && uptime'
 ```
 
-**Config atual da VM104**: 24 cores, 32GB RAM (`balloon: 16384`), `cache=directsync`, `aio=threads`.
+**Config atual da VM104**: 24 cores, 32GB RAM (`balloon: 12288`), `numa: 1` (socket 1), NVMe passthrough — ver secção [NUMA, QPI e NVMe](#numa-qpi-e-nvme-2026-06-06).
 
 **Nota importante**: O host AGLSRV1 tem 125GB RAM e 24 cores. Com 30+ instâncias de meshagent + múltiplas VMs, a memória esgota rapidamente. **Se o RDP falhar novamente, verificar primeiro os meshagents no host.**
+
+## NUMA, QPI e NVMe (2026-06-06)
+
+Documentação completa: [`docs/AGLSRV1-NUMA-QPI-OPTIMIZATION.md`](AGLSRV1-NUMA-QPI-OPTIMIZATION.md).
+
+**Contexto**: `rasdaemon` no AGLSRV1 regista ~1 erro QPI/s (`Corrected_error`, CRC no link entre sockets). VM104 e os 2 NVMe físicos estão no **socket 1** (NUMA node 1).
+
+### Discos
+
+| scsi | Dispositivo | Notas |
+|------|-------------|--------|
+| scsi0 | `local-zfs:vm-104-disk-1` (720G, boot C:) | ZFS; `cache=directsync`, `aio=threads` |
+| scsi1 | NE-1TB NVMe (`81:00.0`) | Passthrough; `cache=none`, `aio=native`, `iothread=1` |
+| scsi2 | X16 Plus 2TB NVMe (`82:00.0`) | Passthrough; idem |
+
+### NUMA (socket 1)
+
+Aplicado em 2026-06-06:
+
+```
+numa: 1
+numa0: cpus=0-23,hostnodes=1,memory=32768,policy=bind
+affinity: 14-27,42-55
+```
+
+Reboot da VM necessário para activar. Monitorizar QPI e estabilidade Windows 3–7 dias.
+
+```bash
+ssh root@100.107.113.33 'qm config 104 | grep -E "numa|affinity|scsi"'
+ssh root@100.107.113.33 'qm reboot 104'
+ssh root@100.107.113.33 'ras-mc-ctl --errors | tail -10'
+```
+
+**Migrate C: → X16**: pendente até backups dos NVMe; ver doc NUMA/QPI.
 
 ## Modelo Padrão: GLM-5
 
@@ -160,9 +195,9 @@ Abra o PowerShell como Administrador e execute:
 
 ```powershell
 # Criar variáveis de ambiente do usuário
-[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "http://100.94.221.87:4000", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "http://100.125.249.8:4000", "User")
 [Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "sk-litellm-default", "User")
-[Environment]::SetEnvironmentVariable("LITELLM_GATEWAY_URL", "http://100.94.221.87:4000", "User")
+[Environment]::SetEnvironmentVariable("LITELLM_GATEWAY_URL", "http://100.125.249.8:4000", "User")
 [Environment]::SetEnvironmentVariable("LITELLM_MASTER_KEY", "sk-litellm-default", "User")
 
 # API Keys para OpenClaw (providers diretos)
@@ -196,9 +231,9 @@ Crie/edite o arquivo `~/.bashrc` no Git Bash:
 # ~/.bashrc - Git Bash no Windows
 
 # === Claude Code + LiteLLM Gateway ===
-export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
 export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
-export LITELLM_GATEWAY_URL="http://100.94.221.87:4000"
+export LITELLM_GATEWAY_URL="http://100.125.249.8:4000"
 export LITELLM_MASTER_KEY="sk-litellm-default"
 
 # === API Keys (OpenClaw) ===
@@ -218,7 +253,7 @@ export DEEPSEEK_URL="https://api.deepseek.com/anthropic"
 
 # === Funções úteis ===
 cclitellm() {
-    export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+    export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
     export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
     echo "Claude Code usando LiteLLM Gateway (agldv03)"
 }
@@ -232,7 +267,7 @@ ccdirect() {
 # Testar conexão com LiteLLM
 testlitellm() {
     curl -s -H "Authorization: Bearer sk-litellm-default" \
-         http://100.94.221.87:4000/v1/models | jq -r '.data[].id' | head -10
+         http://100.125.249.8:4000/v1/models | jq -r '.data[].id' | head -10
 }
 ```
 
@@ -251,9 +286,9 @@ Se você usa WSL com zsh, adicione ao `~/.zshrc`:
 # ~/.zshrc - WSL no Windows
 
 # === Claude Code + LiteLLM Gateway ===
-export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
 export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
-export LITELLM_GATEWAY_URL="http://100.94.221.87:4000"
+export LITELLM_GATEWAY_URL="http://100.125.249.8:4000"
 export LITELLM_MASTER_KEY="sk-litellm-default"
 
 # === API Keys (OpenClaw + LiteLLM) ===
@@ -271,13 +306,13 @@ export DASHSCOPE_API_KEY="sk-48f612bb16634018a21eec165e13f78a"
 
 # === Funções úteis ===
 cclitellm() {
-    export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+    export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
     export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
     echo "Claude Code usando LiteLLM Gateway (agldv03)"
 }
 
 ccglm5() {
-    export ANTHROPIC_BASE_URL="http://100.94.221.87:4000"
+    export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
     export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
     echo "Claude Code usando GLM-5 via LiteLLM"
 }
@@ -498,16 +533,16 @@ No Git Bash:
 
 ```bash
 # Testar conexão com LiteLLM do agldv03
-curl -s http://100.94.221.87:4000/health
+curl -s http://100.125.249.8:4000/health
 
 # Listar modelos disponíveis
 curl -s -H "Authorization: Bearer sk-litellm-default" \
-     http://100.94.221.87:4000/v1/models | jq -r '.data[].id'
+     http://100.125.249.8:4000/v1/models | jq -r '.data[].id'
 
 # Testar um modelo
 curl -s -H "Authorization: Bearer sk-litellm-default" \
      -H "Content-Type: application/json" \
-     http://100.94.221.87:4000/v1/chat/completions \
+     http://100.125.249.8:4000/v1/chat/completions \
      -d '{"model": "glm-5", "messages": [{"role": "user", "content": "Diga ola"}], "max_tokens": 20}'
 ```
 
@@ -521,7 +556,7 @@ cclitellm
 
 # Verificar se está usando o gateway
 echo $ANTHROPIC_BASE_URL
-# Deve mostrar: http://100.94.221.87:4000
+# Deve mostrar: http://100.125.249.8:4000
 
 # Testar claude-code
 claude --version
@@ -565,7 +600,7 @@ tailscale up
 
 ### Erro: "Authentication Error" / `token_not_found_in_db` (LiteLLM proxy)
 
-O **LiteLLM** no agldv03 usa o valor real de **`LITELLM_MASTER_KEY`** em `/opt/litellm/.env`. Se for **diferente** de `sk-litellm-default`, **todos** os clientes (OpenClaw `models.providers.*.apiKey`, `ANTHROPIC_AUTH_TOKEN`, `curl`) devem usar **essa** chave — caso contrário verás 401 e mensagens com `LiteLLM_VerificationTokenTable`.
+O **LiteLLM** no **CT186** usa o valor real de **`LITELLM_MASTER_KEY`** em `/opt/agl-litellm/.env`. Se for **diferente** de `sk-litellm-default`, **todos** os clientes (OpenClaw `models.providers.*.apiKey`, `ANTHROPIC_AUTH_TOKEN`, `curl`) devem usar **essa** chave — caso contrário verás 401 e mensagens com `LiteLLM_VerificationTokenTable`.
 
 **Correção rápida (Git Bash na wk45)** — sincroniza `openclaw.json` e aponta o proxy para o agldv03:
 
@@ -591,11 +626,11 @@ Variáveis úteis:
 |----------|-------------|
 | `AGLSRV1_HOST` | SSH ao Proxmox (default `root@100.107.113.33`) |
 | `AGLWK45_VMID` | VMID (default `104`) |
-| `LITELLM_GATEWAY_SSH` | Host com `/opt/litellm/.env` (default `root@100.94.221.87`) — o script obtém a chave **aqui** antes do SSH ao Proxmox |
+| `LITELLM_GATEWAY_SSH` | Host CT186 com `/opt/agl-litellm/.env` (via Proxmox: `pct exec 186`) — o script obtém a chave **aqui** |
 | `LITELLM_MASTER_KEY` | Opcional: se já definida, não faz SSH ao agldv03 |
-| `LITELLM_PROXY_BASE_URL` | Default `http://100.94.221.87:4000` |
+| `LITELLM_PROXY_BASE_URL` | Default `http://100.125.249.8:4000` |
 
-**Importante**: o LiteLLM em produção usa `LITELLM_MASTER_KEY` **real** (ex. em `/opt/litellm/.env`). `sk-litellm-default` no `openclaw.json` provoca **401** em todos os modelos. O script de deploy obtém a chave por SSH ao agldv03 **na máquina onde corres o bash** (não no Proxmox).
+**Importante**: o LiteLLM em produção (CT186) usa `LITELLM_MASTER_KEY` **real** (ex. em `/opt/agl-litellm/.env`). `sk-litellm-default` no `openclaw.json` provoca **401** em todos os modelos.
 
 O fluxo copia `vm104_guest_wk45_litellm_sync.py` e `wk45-sync-openclaw-litellm.cjs` para o Proxmox, corre `qm guest exec` na VM104, grava `litellm-gateway.env`, aplica o merge no `openclaw.json` com **Node** (sem `jq` no Windows) e tenta `openclaw gateway restart` se existir no PATH (falha do restart não invalida o merge). O exit code do passo reflete só o **Node**; esperado: `OK wk45-sync-openclaw-litellm` na saída.
 
@@ -603,9 +638,9 @@ Opcional: copiar `config/openclaw/wk45-litellm-gateway.env.example` → `~/.open
 
 ```bash
 # Obter a chave no gateway (agldv03) e testar
-ssh root@100.94.221.87 'grep ^LITELLM_MASTER_KEY= /opt/litellm/.env'
+ssh root@100.107.113.33 'pct exec 186 -- grep ^LITELLM_MASTER_KEY= /opt/agl-litellm/.env'
 export LITELLM_MASTER_KEY='(colar o valor)'
-curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://100.94.221.87:4000/v1/models
+curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://100.125.249.8:4000/v1/models
 # Esperado: 200
 ```
 
@@ -651,12 +686,12 @@ npm update -g openclaw
 
 ### Verificar logs do LiteLLM (no agldv03)
 ```bash
-ssh root@agldv03 "docker logs litellm-proxy --tail 50"
+ssh root@100.107.113.33 'pct exec 186 -- docker logs litellm-proxy --tail 50'
 ```
 
 ### Reiniciar LiteLLM (no agldv03)
 ```bash
-ssh root@agldv03 "docker restart litellm-proxy"
+ssh root@100.107.113.33 'pct exec 186 -- docker restart litellm-proxy'
 ```
 
 ---

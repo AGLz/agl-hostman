@@ -181,6 +181,8 @@ qm stop 104 && sleep 3 && qm start 104
 
 **Detalhe completo**: `docs/AGLWK45-SETUP.md`, `docs/aglsrv1-key-findings.md`
 
+**NUMA / QPI / NVMe VM104 (2026-06-06)**: erros QPI ~1/s (`rasdaemon`); VM104 `numa: 1` + NVMe passthrough no socket 1 — [`docs/AGLSRV1-NUMA-QPI-OPTIMIZATION.md`](docs/AGLSRV1-NUMA-QPI-OPTIMIZATION.md)
+
 ## LiteLLM + Cursor (Composer)
 
 O modelo **Composer 2** na Cursor é proprietário; no proxy, **`cursor-composer`** / **`cursor-composer-2-fast`** usam **`gpt-5.4-mini`**; aliases **`openai/gpt-5.3-chat-latest`** (e `gpt-5.3-instant`) apontam para o mesmo backend (ver `config/litellm/config.yaml`). Documentação: **`docs/CURSOR-LITELLM-INTEGRATION.md`**.

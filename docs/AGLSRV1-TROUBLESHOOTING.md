@@ -1,6 +1,6 @@
 # AGLSRV1 Troubleshooting Playbook
 
-> **Última atualização**: 2026-05-25
+> **Última atualização**: 2026-06-06
 > **Host**: aglsrv1 | **Tailscale**: `100.107.113.33` | **LAN**: `192.168.0.245`
 
 ## TL;DR — Runbook de Emergência
@@ -83,7 +83,31 @@ A ISO do Sergei Strelec (`WinPE11_10_8_Sergei_Strelec_x86_x64_2024.08.21_English
 qm set 104 --ide0 none,media=cdrom
 ```
 
-### 5. WebUI — login bloqueado (SSH OK) — NFS CT111
+### 5. Erros QPI (rasdaemon) — link entre sockets
+
+**Frequência**: Contínua (~1 `Corrected_error`/s observado em 2026-06-06)  
+**Impacto**: Latência e overhead cross-socket; pode agravar instabilidade sob carga mista  
+**Doc completa**: [`AGLSRV1-NUMA-QPI-OPTIMIZATION.md`](AGLSRV1-NUMA-QPI-OPTIMIZATION.md)
+
+**Sintoma**: `ras-mc-ctl --errors` mostra repetidamente:
+
+`Rx detected CRC error - successful LLR without Phy re-init` (bank 5, QPI)
+
+**Detecção**:
+
+```bash
+ssh root@100.107.113.33 'ras-mc-ctl --summary; ras-mc-ctl --errors | tail -15'
+```
+
+**Mitigação em curso**:
+
+- VM104 com `numa: 1` + `affinity` no socket dos NVMe
+- Plano de redistribuição gradual de VMs/CTs entre NUMA nodes
+- Próxima janela: reboot host (microcode), revisão BIOS (C2 OK; Spread Spectrum / C6 / QPI power)
+
+**Parar migrate / escalar** se aparecer `Uncorrected_error` ou instabilidade severa na VM104.
+
+### 6. WebUI — login bloqueado (SSH OK) — NFS CT111
 
 **Frequência**: Quando CT111 (`10.6.0.20` WG) está offline  
 **Impacto**: Login WebUI impossível; VMs/CTs continuam a correr  
@@ -146,14 +170,20 @@ ssh root@100.107.113.33 '
 cores: 24
 sockets: 1
 memory: 32768
-balloon: 16384
+balloon: 12288
+numa: 1
+numa0: cpus=0-23,hostnodes=1,memory=32768,policy=bind
+affinity: 14-27,42-55
 cpu: host,hidden=1,flags=+pcid;+spec-ctrl;+hv-evmcs;+aes
 scsi0: local-zfs, aio=threads, cache=directsync, iothread=1, size=720G
+scsi1/scsi2: NVMe passthrough (NE-1TB, X16 2TB) — cache=none, aio=native, iothread=1
 net0: virtio, bridge=vmbr0, queues=16
 vga: virtio
 agent: 1
 ostype: win11
 ```
+
+Ver também: [`AGLSRV1-NUMA-QPI-OPTIMIZATION.md`](AGLSRV1-NUMA-QPI-OPTIMIZATION.md)
 
 **Nota**: 24 cores é excessivo para Windows 11 workstation. Se CPU spikes forem frequentes, reduzir para 8-12 cores:
 ```bash
@@ -175,6 +205,7 @@ qm set 104 --cores 8
 ## Referências
 
 - `docs/AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md` — Incidente WebUI + NFS CT111 (2026-05-25)
+- `docs/AGLSRV1-NUMA-QPI-OPTIMIZATION.md` — QPI, microcode, RAM, NUMA VM104
 - `docs/AGLWK45-SETUP.md` — Setup completo da VM104
 - `docs/aglsrv1-key-findings.md` — Diagnósticos históricos
 - `docs/WINDOWS11-PROXMOX-OPTIMIZATION.md` — Otimizações Windows 11 no Proxmox

@@ -2,7 +2,23 @@
 
 **Date**: 2025-10-21 23:00
 **Diagnostician**: Service Diagnostics Agent (Hive-Mind)
-**Updated**: 2026-05-25 — Incidente WebUI Proxmox bloqueada por NFS CT111
+**Updated**: 2026-06-06 — Erros QPI (rasdaemon), NUMA VM104, NVMe passthrough
+
+---
+
+## Descoberta 2026-06-06 — Erros QPI + optimização NUMA VM104
+
+**Sintoma**: `rasdaemon` regista erros QPI contínuos (~1/s): `Rx detected CRC error - successful LLR without Phy re-init` (`Corrected_error`, bank 5). Sem erros ECC de RAM ou PCIe AER.
+
+**Hardware**: X99-F8D PLUS, 2× E5-2680 v4, RAM ECC 3200 MT/s configurada a **2400** (máximo oficial do CPU). BIOS C-state **C2**. Undervolt N/A (v4).
+
+**Acções**:
+
+1. `intel-microcode` 3.20251111.1~deb13u1 instalado — **reboot host** pendente para carregar revisão nova
+2. VM104: 2 NVMe passthrough (NE-1TB, X16 2TB) no socket 1; `numa: 1` + `policy=bind` + `affinity` aplicados
+3. Plano gradual de redistribuição VMs/CTs entre sockets
+
+**Doc**: [`docs/AGLSRV1-NUMA-QPI-OPTIMIZATION.md`](AGLSRV1-NUMA-QPI-OPTIMIZATION.md)
 
 ---
 
