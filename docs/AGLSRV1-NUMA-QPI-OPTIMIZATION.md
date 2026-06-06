@@ -230,6 +230,37 @@ pct reboot <vmid>
 
 ---
 
+## Monitorização diária (Hermes Werner / CT188)
+
+Relatório automático para **Telegram** (`1272190248`) via bot **@hermes_jarvis_h_werner_bot**:
+
+| Item | Valor |
+|------|--------|
+| Script | `scripts/monitoring/aglsrv1-qpi-numa-daily.sh` |
+| Deploy | `scripts/proxmox/deploy-hermes-werner-aglsrv1-monitor-ct188.sh` |
+| Cron Hermes | `aglsrv1-qpi-numa-daily` — `0 8 * * *` (08:00) |
+| Modo | `--no-agent` (stdout → Telegram, sem LLM) |
+
+**Instalar / actualizar (CT188):**
+
+```bash
+ssh root@100.107.113.33 'pct exec 188 -- bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/proxmox/deploy-hermes-werner-aglsrv1-monitor-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman --test-run'
+```
+
+**Executar manualmente (envia Telegram):**
+
+```bash
+ssh root@100.107.113.33 'pct exec 188 -- docker exec -e HERMES_HOME=/opt/data agl-hermes-werner /opt/hermes/.venv/bin/hermes cron run aglsrv1-qpi-numa-daily'
+```
+
+**Teste local (sem SSH):**
+
+```bash
+bash scripts/monitoring/aglsrv1-qpi-numa-daily.sh --dry-run
+```
+
+---
+
 ## Referências
 
 - [`docs/AGLWK45-SETUP.md`](AGLWK45-SETUP.md) — Setup VM104, emergência RDP
