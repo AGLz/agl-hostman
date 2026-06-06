@@ -232,14 +232,34 @@ pct reboot <vmid>
 
 ## Monitorização diária (Hermes Werner / CT188)
 
-Relatório automático para **Telegram** (`1272190248`) via bot **@hermes_jarvis_h_werner_bot**:
+Watchdog **só envia Telegram quando há falha** (stdout vazio = silêncio). Bot **@hermes_jarvis_h_werner_bot** → `1272190248`.
 
 | Item | Valor |
 |------|--------|
 | Script | `scripts/monitoring/aglsrv1-qpi-numa-daily.sh` |
 | Deploy | `scripts/proxmox/deploy-hermes-werner-aglsrv1-monitor-ct188.sh` |
 | Cron Hermes | `aglsrv1-qpi-numa-daily` — `0 8 * * *` (08:00) |
-| Modo | `--no-agent` (stdout → Telegram, sem LLM) |
+| Modo | `--no-agent` (stdout → Telegram apenas se alerta) |
+
+### Condições de alerta
+
+| Check | Limite default |
+|-------|----------------|
+| VM104 não `running` | — |
+| Guest Agent DOWN | — |
+| Ping LAN `192.168.0.33` FAIL | — |
+| `numa` ≠ 1 | — |
+| QPI `Uncorrected_error` | ≥ 1 |
+| ECC RAM / PCIe AER (ras) | qualquer erro |
+| CPU KVM VM104 | > 1000% |
+| Load 1m | > 48 (24 cores × 2) |
+| RAM avail | < 10 Gi |
+| Swap usado | > 60% |
+| meshagent leak | RSS > 1 Gi por processo |
+
+**Não alerta:** erros QPI CRC **corrigidos** (~1/s baseline).
+
+Variáveis: `VM_CPU_ALERT_PCT`, `LOAD_ALERT_MULT`, `MEM_AVAIL_MIN_GB`, `SWAP_USED_PCT_MAX`, `MESHAGENT_LEAK_RSS_KB`.
 
 **Instalar / actualizar (CT188):**
 
