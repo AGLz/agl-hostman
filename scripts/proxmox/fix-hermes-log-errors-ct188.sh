@@ -37,14 +37,30 @@ else
   echo "WARN: script apply-langfuse inexistente em ${SCRIPTS}" >&2
 fi
 
-echo "=== 3/4 Reparar venv jarvis (fastapi/dashboard) ==="
+echo "=== 3/5 Sincronizar compose + activar dashboard jarvis ==="
+COMPOSE_SRC="${AGL_HOSTMAN}/docker/hermes/docker-compose.aglz-quartet.ct188.yml"
+ENV_FILE="${HERMES_ROOT:-/opt/agl-hermes}/.env"
+if [[ -f "${COMPOSE_SRC}" ]]; then
+  install -m 0644 "${COMPOSE_SRC}" "${HERMES_ROOT}/docker-compose.aglz-quartet.yml"
+  touch "${ENV_FILE}"
+  grep -q '^HERMES_DASHBOARD_JARVIS=' "${ENV_FILE}" \
+    && sed -i 's/^HERMES_DASHBOARD_JARVIS=.*/HERMES_DASHBOARD_JARVIS=1/' "${ENV_FILE}" \
+    || echo 'HERMES_DASHBOARD_JARVIS=1' >>"${ENV_FILE}"
+  grep -q '^HERMES_DASHBOARD_INSECURE_JARVIS=' "${ENV_FILE}" \
+    || echo 'HERMES_DASHBOARD_INSECURE_JARVIS=1' >>"${ENV_FILE}"
+  echo "OK compose + HERMES_DASHBOARD_JARVIS=1"
+else
+  echo "WARN: compose src em falta — dashboard pode ficar HERMES_DASHBOARD=0" >&2
+fi
+
+echo "=== 4/5 Reparar venv jarvis (fastapi/dashboard) ==="
 if [[ -f "${SCRIPTS}/repair-hermes-jarvis-venv-ct188.sh" ]]; then
   bash "${SCRIPTS}/repair-hermes-jarvis-venv-ct188.sh"
 else
   echo "WARN: repair venv script em falta" >&2
 fi
 
-echo "=== 4/4 Verificar rede Langfuse ==="
+echo "=== 5/5 Verificar rede Langfuse ==="
 if docker inspect agl-hermes-jarvis --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' | grep -q agl-langfuse; then
   echo "OK jarvis na rede agl-langfuse"
 else

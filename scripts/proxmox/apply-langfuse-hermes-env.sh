@@ -88,6 +88,11 @@ for agent in jarvis elon satya werner; do
   echo "OK langfuse env ${agent}"
 done
 
+COMPOSE_SRC="${AGL_HOSTMAN}/docker/hermes/docker-compose.aglz-quartet.ct188.yml"
+if [[ -f "${COMPOSE_SRC}" ]]; then
+  install -m 0644 "${COMPOSE_SRC}" "${HERMES_ROOT}/docker-compose.aglz-quartet.yml"
+fi
+
 cd "${HERMES_ROOT}"
 docker compose -f docker-compose.aglz-quartet.yml up -d --force-recreate
 
