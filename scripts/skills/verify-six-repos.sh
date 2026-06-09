@@ -155,6 +155,42 @@ else
 fi
 
 echo ""
+echo "-- 7. content-skills (humanizer, fact-check, prompt-improver) --"
+if [[ -f "$HOSTMAN_ROOT/.cursor/content-skills-sync-state.json" ]]; then
+  pass "content-skills sync state (.cursor/content-skills-sync-state.json)"
+else
+  warn "content-skills sync state em falta (correr sync-six-repos --repo content-skills)"
+fi
+check_skill "humanizer (hostman-cursor)" "$HOSTMAN_ROOT/.cursor/skills/humanizer"
+check_skill "fact-check (hostman-cursor)" "$HOSTMAN_ROOT/.cursor/skills/fact-check"
+check_skill "prompt-improver (hostman-cursor)" "$HOSTMAN_ROOT/.cursor/skills/prompt-improver"
+if [[ -f "$HOME/.claude/skills/humanizer/SKILL.md" ]]; then
+  pass "humanizer (claude global)"
+else
+  warn "humanizer (claude global) — opcional; correr sync-six-repos --repo content-skills"
+fi
+if [[ -f "$HOME/.claude/skills/fact-check/SKILL.md" ]]; then
+  pass "fact-check (claude global)"
+else
+  warn "fact-check (claude global) — opcional; correr sync-six-repos --repo content-skills"
+fi
+if [[ -f "$HOME/.claude/skills/prompt-improver/SKILL.md" ]]; then
+  pass "prompt-improver (claude global)"
+else
+  warn "prompt-improver (claude global) — opcional; correr sync-six-repos --repo content-skills"
+fi
+if [[ -f "$HOSTMAN_ROOT/.cursor/skills/fact-check/educational-tips.md" ]]; then
+  pass "fact-check educational-tips.md (hostman-cursor)"
+else
+  warn "fact-check educational-tips.md em falta no project .cursor/skills"
+fi
+if [[ -d "$HOSTMAN_ROOT/.cursor/skills/prompt-improver/references" ]]; then
+  pass "prompt-improver references/ (hostman-cursor)"
+else
+  warn "prompt-improver references/ em falta — skill parcial"
+fi
+
+echo ""
 if [[ "$SKIP_LLM_WIKI" != "1" ]]; then
   echo "-- llm-wiki vault --"
   if [[ -f "$LLM_WIKI_DIR/wiki/index.md" ]]; then

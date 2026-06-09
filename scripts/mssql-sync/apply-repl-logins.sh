@@ -15,14 +15,15 @@ fi
 
 SQL_TEMPLATE="${SCRIPT_DIR}/create-repl-logins.sql"
 SQL_TMP="$(mktemp)"
-sed "s/\$(MSSQL_REPL_PASSWORD)/${MSSQL_REPL_PASSWORD//\//\\/}/g" "${SQL_TEMPLATE}" > "${SQL_TMP}"
+export MSSQL_REPL_PASSWORD
+envsubst '${MSSQL_REPL_PASSWORD}' < "${SQL_TEMPLATE}" > "${SQL_TMP}"
 
 echo "=== CT610 ==="
-pct610_exec "bash -c '/opt/mssql-tools18/bin/sqlcmd -S localhost -U ${MSSQL_CT610_SA_USER} -P \"${MSSQL_CT610_SA_PASSWORD}\" -C -i -'" < "${SQL_TMP}"
+ct610_sqlcmd_stdin localhost < "${SQL_TMP}"
 
 if [[ -n "${MSSQL_VM620_SA_PASSWORD:-}" ]]; then
   echo "=== VM620 ==="
-  pct610_exec "bash -c '/opt/mssql-tools18/bin/sqlcmd -S ${MSSQL_VM620_HOST} -U ${MSSQL_VM620_SA_USER} -P \"${MSSQL_VM620_SA_PASSWORD}\" -C -i -'" < "${SQL_TMP}" || echo "WARN: falhou no VM620"
+  ct610_sqlcmd_stdin "${MSSQL_VM620_HOST}" "${MSSQL_VM620_SA_USER}" "${MSSQL_VM620_SA_PASSWORD}" < "${SQL_TMP}" || echo "WARN: falhou no VM620"
 else
   echo "SKIP VM620: MSSQL_VM620_SA_PASSWORD não definido"
 fi

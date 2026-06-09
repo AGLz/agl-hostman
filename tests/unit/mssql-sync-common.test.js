@@ -37,6 +37,20 @@ test('mssql-sync common carrega credenciais ald-sys8', () => {
   assert.match(content, /DB_PASSWORD_SYS/);
 });
 
+test('mssql-sync sqlcmd usa SQLCMDPASSWORD em vez de -P', () => {
+  const common = fs.readFileSync(
+    path.join(ROOT, 'scripts/mssql-sync/_mssql-sync-common.sh'),
+    'utf8',
+  );
+  const apply = fs.readFileSync(
+    path.join(ROOT, 'scripts/mssql-sync/apply-repl-logins.sh'),
+    'utf8',
+  );
+  assert.match(common, /SQLCMDPASSWORD/);
+  assert.doesNotMatch(common, /-P \"/);
+  assert.match(apply, /envsubst/);
+});
+
 test('mssql-sync env example documenta VM620 SA distinto', () => {
   const content = fs.readFileSync(
     path.join(ROOT, 'config/mssql-sync/mssql-sync.env.example'),

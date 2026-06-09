@@ -49,5 +49,13 @@ ct610_sqlcmd() {
   local server="${1:-localhost}"
   shift
   local query="$*"
-  pct610_exec "bash -c '/opt/mssql-tools18/bin/sqlcmd -S ${server} -U ${MSSQL_CT610_SA_USER} -P \"${MSSQL_CT610_SA_PASSWORD}\" -C -Q \"${query}\" -W'"
+  # Reason: SQLCMDPASSWORD evita expor a password em -P (visível em ps aux)
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${MSSQL_CT610_SA_PASSWORD}\" /opt/mssql-tools18/bin/sqlcmd -S ${server} -U ${MSSQL_CT610_SA_USER} -C -Q \"${query}\" -W'"
+}
+
+ct610_sqlcmd_stdin() {
+  local server="${1:-localhost}"
+  local user="${2:-${MSSQL_CT610_SA_USER}}"
+  local password="${3:-${MSSQL_CT610_SA_PASSWORD}}"
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${password}\" /opt/mssql-tools18/bin/sqlcmd -S ${server} -U ${user} -C -i -'"
 }

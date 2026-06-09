@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sincroniza os 6 repos do plano Six Repos para harnesses AGL.
+# Sincroniza os 6 repos do plano Six Repos + content-skills (humanizer, fact-check, prompt-improver).
 # Plano: ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md
 set -euo pipefail
 
@@ -31,7 +31,7 @@ Sincroniza repos GitHub (plano Six Repos) para harnesses locais.
 Options:
   --dry-run              Mostrar acções sem executar
   --method copy|symlink  Método para skills (default: copy)
-  --repo <name|all>      obsidian|superpowers|ecc|ruflo|open-design|karpathy|all
+  --repo <name|all>      obsidian|superpowers|ecc|ruflo|open-design|karpathy|content-skills|humanizer|fact-check|prompt-improver|all
   --harness <csv|all>    claude,cursor,codex,verdent,llm-wiki,hostman (default: all)
   -h, --help
 
@@ -39,6 +39,8 @@ Exemplos:
   $(basename "$0") --dry-run
   $(basename "$0") --repo obsidian --harness claude,cursor,codex,verdent
   $(basename "$0") --repo obsidian --method symlink --harness llm-wiki
+  $(basename "$0") --repo content-skills --harness cursor,hostman-cursor
+  $(basename "$0") --repo humanizer --dry-run
 USAGE
 }
 
@@ -57,6 +59,7 @@ harness_root() {
     verdent) printf '%s' "$HOME/.verdent/skills" ;;
     llm-wiki) printf '%s' "$LLM_WIKI_DIR/.claude/skills" ;;
     hostman) printf '%s' "$HOSTMAN_ROOT/.claude/skills" ;;
+    hostman-cursor) printf '%s' "$HOSTMAN_ROOT/.cursor/skills" ;;
     *) printf '%s' "" ;;
   esac
 }
@@ -76,6 +79,8 @@ copy_dir_sync() {
     rsync -a --delete \
       --exclude '.git' \
       --exclude '.DS_Store' \
+      --exclude '*.zip' \
+      --exclude '*.skill' \
       "$source_dir/" "$dest_dir/"
   else
     rm -rf "$dest_dir"
@@ -151,6 +156,17 @@ resolve_harness_list() {
   else
     printf '%s' "$HARNESS"
   fi
+}
+
+resolve_content_harness_list() {
+  local base
+  base="$(resolve_harness_list)"
+  if [[ "$HARNESS" == "all" || "$HARNESS" == *hostman* || "$HARNESS" == *cursor* ]]; then
+    if [[ "$base" != *hostman-cursor* ]]; then
+      base="${base},hostman-cursor"
+    fi
+  fi
+  printf '%s' "$base"
 }
 
 harness_selected() {
@@ -402,6 +418,97 @@ sync_karpathy() {
   fi
 }
 
+sync_content_skill_entry() {
+  local skill_name="$1"
+  local source_dir="$2"
+  local harness_csv
+  harness_csv="$(resolve_content_harness_list)"
+  sync_skill_dir "$source_dir" "$skill_name" "$harness_csv"
+}
+
+sync_content_skills() {
+  local which="${1:-all}"
+  log_info "=== content-skills (humanizer, fact-check, prompt-improver) ==="
+  local harness_csv
+  harness_csv="$(resolve_content_harness_list)"
+  local -a synced=()
+
+  if [[ "$which" == "all" || "$which" == "humanizer" ]]; then
+    local humanizer_dir="$TEMP_BASE/humanizer"
+    clone_repo "https://github.com/blader/humanizer.git" "$humanizer_dir"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] sync humanizer -> $harness_csv"
+    else
+      sync_content_skill_entry "humanizer" "$humanizer_dir"
+    fi
+    synced+=("humanizer")
+  fi
+
+  if [[ "$which" == "all" || "$which" == "fact-check" ]]; then
+    local fact_check_dir="$TEMP_BASE/fact-check-skill"
+    clone_repo "https://github.com/petar-nauka/fact-check-skill.git" "$fact_check_dir"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] sync fact-check -> $harness_csv"
+    else
+      sync_content_skill_entry "fact-check" "$fact_check_dir"
+    fi
+    synced+=("fact-check")
+  fi
+
+  if [[ "$which" == "all" || "$which" == "prompt-improver" ]]; then
+    local prompt_repo="$TEMP_BASE/claude-code-prompt-improver"
+    clone_repo "https://github.com/severity1/claude-code-prompt-improver.git" "$prompt_repo"
+    local prompt_skill="$prompt_repo/skills/prompt-improver"
+    if [[ "$DRY_RUN" -eq 0 && ! -f "$prompt_skill/SKILL.md" ]]; then
+      echo "SKILL.md em falta: $prompt_skill" >&2
+      return 1
+    fi
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] sync prompt-improver -> $harness_csv"
+    else
+      sync_content_skill_entry "prompt-improver" "$prompt_skill"
+    fi
+    synced+=("prompt-improver")
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "  [dry-run] escrever $HOSTMAN_ROOT/.cursor/content-skills-sync-state.json (${#synced[@]} skills)"
+    if [[ " ${synced[*]} " == *" prompt-improver "* ]]; then
+      log_warn "prompt-improver: hooks Claude Code ignorados — só SKILL.md + references/"
+    fi
+    return 0
+  fi
+
+  if [[ ${#synced[@]} -eq 0 ]]; then
+    log_warn "Nenhuma content-skill sincronizada — rever --repo"
+    return 0
+  fi
+
+  local skills_json=""
+  for name in "${synced[@]}"; do
+    if [[ -n "$skills_json" ]]; then
+      skills_json+=","
+    fi
+    skills_json+="\"$name\""
+  done
+  mkdir -p "$HOSTMAN_ROOT/.cursor"
+  cat >"$HOSTMAN_ROOT/.cursor/content-skills-sync-state.json" <<JSON
+{
+  "repos": {
+    "humanizer": "blader/humanizer",
+    "fact-check": "petar-nauka/fact-check-skill",
+    "prompt-improver": "severity1/claude-code-prompt-improver (skills/prompt-improver only)"
+  },
+  "synced_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "skills": [$skills_json]
+}
+JSON
+  log_ok "content-skills: ${#synced[@]} skills + estado em $HOSTMAN_ROOT/.cursor/content-skills-sync-state.json"
+  if [[ " ${synced[*]} " == *" prompt-improver "* ]]; then
+    log_warn "prompt-improver: hooks Claude Code ignorados — só SKILL.md + references/"
+  fi
+}
+
 cleanup() {
   if [[ -d "$TEMP_BASE" && "$DRY_RUN" -eq 0 ]]; then
     rm -rf "$TEMP_BASE"
@@ -431,11 +538,27 @@ should_run() {
   [[ "$REPOS" == "all" || "$REPOS" == "$1" ]]
 }
 
+should_run_content() {
+  [[ "$REPOS" == "all" || "$REPOS" == "content-skills" || "$REPOS" == "$1" ]]
+}
+
 should_run obsidian && sync_obsidian
 should_run superpowers && sync_superpowers
 should_run ecc && sync_ecc
 should_run ruflo && sync_ruflo
 should_run open-design && sync_open_design
 should_run karpathy && sync_karpathy
+
+if should_run_content humanizer && should_run_content fact-check && should_run_content prompt-improver; then
+  if [[ "$REPOS" == "content-skills" || "$REPOS" == "all" ]]; then
+    sync_content_skills all
+  fi
+elif should_run_content humanizer; then
+  sync_content_skills humanizer
+elif should_run_content fact-check; then
+  sync_content_skills fact-check
+elif should_run_content prompt-improver; then
+  sync_content_skills prompt-improver
+fi
 
 log_ok "sync-six-repos concluído (dry_run=$DRY_RUN repo=$REPOS)"

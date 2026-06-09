@@ -49,6 +49,10 @@ done
 if [[ "${DRY_RUN}" != true && "${APPLY}" != true ]]; then
   usage
 fi
+if [[ -n "${ONLY}" && ! "${ONLY}" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+  echo "ERRO: --only aceita apenas IDs numéricos separados por vírgula" >&2
+  exit 1
+fi
 
 HOST_KEY="$(echo "${HOST}" | tr '[:lower:]' '[:upper:]')"
 RENAMES_VAR="RENAMES_${HOST_KEY}"
@@ -118,6 +122,10 @@ migrate_lxc() {
   if [[ "${was_running}" == true ]]; then
     log "Arrancar CT${new_id}..."
     pct start "${new_id}"
+    sleep 3
+    if ! pct status "${new_id}" 2>/dev/null | grep -q running; then
+      log "WARN: CT${new_id} não está running após start — verificar manualmente"
+    fi
   fi
 
   log "OK CT${old_id} → CT${new_id}"
@@ -200,6 +208,10 @@ migrate_vm() {
   if [[ "${was_running}" == true ]]; then
     log "Arrancar VM${new_id}..."
     qm start "${new_id}"
+    sleep 5
+    if ! qm status "${new_id}" 2>/dev/null | grep -q running; then
+      log "WARN: VM${new_id} não está running após start — verificar manualmente"
+    fi
   fi
 
   log "OK VM${old_id} → VM${new_id}"

@@ -3,7 +3,7 @@
 
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'repl_mssql')
 BEGIN
-    CREATE LOGIN [repl_mssql] WITH PASSWORD = N'$(MSSQL_REPL_PASSWORD)', CHECK_POLICY = OFF;
+    CREATE LOGIN [repl_mssql] WITH PASSWORD = N'${MSSQL_REPL_PASSWORD}', CHECK_POLICY = OFF;
 END
 GO
 

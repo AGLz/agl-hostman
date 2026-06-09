@@ -8,17 +8,15 @@ const path = require('node:path');
 const CONFIG = path.join(__dirname, '../../config/litellm/config.yaml');
 const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.yaml');
 
-const LAN_OLLAMA = '192.168.0.200:11434';
-const TS_OLLAMA = '100.74.118.51:11434';
+const VM310_TS_OLLAMA = '100.86.209.11:11434';
+const LEGACY_CT200_LAN = '192.168.0.200:11434';
+const LEGACY_VM110_TS = '100.74.118.51:11434';
 
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeForRegex(ipHost) {
+  return ipHost.replaceAll('.', '\\.');
 }
 
-function assertOllamaCt200QwenOnly(yaml, label) {
-  assert.match(yaml, /ollama-qwen3-4b/, label);
-  assert.match(yaml, /ollama\/qwen3:4b/, label);
-  assert.match(yaml, /openai\/ollama-qwen3-4b/, label);
+function assertNoOllamaCloudAliases(yaml, label) {
   assert.doesNotMatch(yaml, /ollama\/nemotron-3-nano/, label);
   assert.doesNotMatch(yaml, /ollama-nemotron-3-nano-4b/, label);
   assert.doesNotMatch(yaml, /:cloud/, label);
@@ -31,42 +29,49 @@ function assertOllamaCt200QwenOnly(yaml, label) {
   assert.doesNotMatch(yaml, /ollama-gpt-oss-20b-cloud/, label);
 }
 
-function escapeForRegex(ipHost) {
-  return ipHost.replaceAll('.', '\\.');
-}
-
-test('LiteLLM local: Ollama VM110 via Tailscale — só qwen3:4b', () => {
+test('LiteLLM local: agl-primary via Ollama VM310 Tailscale (qwen3:8b)', () => {
   const yaml = fs.readFileSync(CONFIG, 'utf8');
-  assertOllamaCt200QwenOnly(yaml, 'config.yaml');
+
+  assertNoOllamaCloudAliases(yaml, 'config.yaml');
   assert.match(
     yaml,
-    /model:\s*ollama\/qwen3:4b[\s\S]*?model_name:\s*agl-primary/,
-    'config.yaml: agl-primary usa ollama/qwen3:4b',
+    /model:\s*ollama\/qwen3:8b[\s\S]*?model_name:\s*agl-primary/,
+    'config.yaml: agl-primary usa ollama/qwen3:8b VM310',
   );
   assert.match(
     yaml,
-    new RegExp(escapeForRegex(TS_OLLAMA), 'g'),
-    'config.yaml: api_base Tailscale',
+    new RegExp(escapeForRegex(VM310_TS_OLLAMA), 'g'),
+    'config.yaml: api_base Tailscale VM310',
   );
   assert.doesNotMatch(
     yaml,
-    new RegExp(escapeForRegex(LAN_OLLAMA)),
-    'config.yaml: não deve usar LAN para Ollama (LiteLLM CT186)',
+    new RegExp(escapeForRegex(LEGACY_CT200_LAN)),
+    'config.yaml: não deve usar LAN CT200 legado',
+  );
+  assert.doesNotMatch(
+    yaml,
+    new RegExp(escapeForRegex(LEGACY_VM110_TS)),
+    'config.yaml: não deve usar Tailscale VM110 legado',
   );
 });
 
-test('LiteLLM remote: Ollama CT200 via Tailscale — só qwen3:4b', () => {
+test('LiteLLM remote: agl-primary Groq e aliases ollama legados sem Ollama real', () => {
   const yaml = fs.readFileSync(CONFIG_REMOTE, 'utf8');
-  assertOllamaCt200QwenOnly(yaml, 'config-remote.yaml');
-  assert.match(yaml, /model_name:\s*"ollama-qwen3-4b"/, 'config-remote.yaml: alias ollama-qwen3-4b');
+
+  assertNoOllamaCloudAliases(yaml, 'config-remote.yaml');
   assert.match(
     yaml,
-    new RegExp(escapeForRegex(TS_OLLAMA), 'g'),
-    'config-remote.yaml: api_base Tailscale',
+    /model_name:\s*"agl-primary"[\s\S]*?model:\s*"groq\/llama-3\.1-8b-instant"/,
+    'config-remote.yaml: agl-primary aponta para Groq (VM110 suspenso)',
+  );
+  assert.match(
+    yaml,
+    /model_name:\s*"ollama-qwen3-4b"[\s\S]*?model:\s*"groq\/llama-3\.1-8b-instant"/,
+    'config-remote.yaml: alias legado ollama-qwen3-4b → Groq',
   );
   assert.doesNotMatch(
     yaml,
-    new RegExp(escapeForRegex(LAN_OLLAMA)),
-    'config-remote.yaml: não deve usar LAN para Ollama',
+    /api_base:\s*"?http:\/\/100\.(74|86)\./,
+    'config-remote.yaml: sem api_base Ollama Tailscale',
   );
 });

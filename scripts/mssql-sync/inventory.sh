@@ -16,7 +16,7 @@ ct610_sqlcmd localhost "SELECT name, recovery_model_desc, state_desc FROM sys.da
 echo ""
 echo "=== VM620 (${MSSQL_VM620_HOST}) ==="
 if [[ -n "${MSSQL_VM620_SA_PASSWORD:-}" ]]; then
-  pct610_exec "bash -c '/opt/mssql-tools18/bin/sqlcmd -S ${MSSQL_VM620_HOST} -U ${MSSQL_VM620_SA_USER} -P \"${MSSQL_VM620_SA_PASSWORD}\" -C -Q \"SELECT @@VERSION; SELECT name FROM sys.databases WHERE database_id>4 ORDER BY name\" -W -l 10'" || true
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${MSSQL_VM620_SA_PASSWORD}\" /opt/mssql-tools18/bin/sqlcmd -S ${MSSQL_VM620_HOST} -U ${MSSQL_VM620_SA_USER} -C -Q \"SELECT @@VERSION; SELECT name FROM sys.databases WHERE database_id>4 ORDER BY name\" -W -l 10'" || true
 else
   echo "SKIP: MSSQL_VM620_SA_PASSWORD não definido em mssql-sync.env"
 fi
