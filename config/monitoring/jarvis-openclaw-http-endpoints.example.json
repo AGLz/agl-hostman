@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-05-13",
-  "description": "Referência canónica para HTTP checks: **LiteLLM CT186** + **OpenClaw CT187** em AGLSRV1 (LXC dedicados). Jobs desde agldv03 ou outro host na LAN 192.168.0.0/24. Entrada litellm-agldv03 = legado CT179 (stack Docker parada após cutover 2026-05); preferir cutoverDedicatedLxc (litellm-ct186-lan, openclaw-ct187-lan). Ver docs/LITELLM-OPENCLAW-DEDICATED-LXC.md e docs/INFRA.md.",
+  "updated": "2026-06-05",
+  "description": "Referência canónica para HTTP checks: **LiteLLM CT186** + **OpenClaw CT187** em AGLSRV1 (LXC dedicados). Jobs desde agldv03 ou outro host na LAN 192.168.0.0/24. Entrada litellm-agldv03 = **descontinuada** (CT179 sem stack desde 2026-06-05); usar cutoverDedicatedLxc (litellm-ct186-lan, openclaw-ct187-lan). Ver docs/LITELLM-OPENCLAW-DEDICATED-LXC.md e docs/INFRA.md.",
   "antiFlapping": {
     "consecutiveFailuresBeforeAlert": 3,
     "minMinutesBetweenRepeatTelegram": 60,
@@ -30,7 +30,7 @@
       "hostRole": "CT179 agldv03",
       "primary": "http://100.94.221.87:4000/health/readiness",
       "fallbacks": ["http://192.168.0.179:4000/health/readiness"],
-      "notes": "LEGADO CT179: stack parada após cutover 2026-05. Não usar como canónico. Preferir cutoverDedicatedLxc → litellm-ct186-lan (http://192.168.0.186:4000/health/readiness). Mantido só para transição ou comparação."
+      "notes": "DESCONTINUADO CT179 (2026-06-05): stack removida; porta 4000 inactiva. Usar cutoverDedicatedLxc → litellm-ct186-lan (http://192.168.0.186:4000/health/readiness) ou TS http://100.125.249.8:4000/health/readiness."
     }
   ],
   "cutoverDedicatedLxc": {

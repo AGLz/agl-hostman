@@ -1,57 +1,63 @@
-# Proxmox Kernel Downgrade Issue Report
+# AGLSRV1 — Incidente kernel 6.2.16 e ZFS rpool
 
-## Current Situation
-- **Time**: 2025-09-26 13:18
-- **Issue**: Server not accessible after reboot with kernel 6.2.16-5-pve
-- **Last Known State**: Kernel 6.14.8-2-pve was running
-- **Action Taken**: Configured boot to use kernel 6.2.16-5-pve and rebooted
+## Resumo
 
-## Troubleshooting Steps Attempted
-1. Installed kernel 6.2.16-5-pve successfully
-2. Pinned kernel using: `proxmox-boot-tool kernel pin 6.2.16-5-pve`
-3. Refreshed boot configuration: `proxmox-boot-tool refresh`
-4. Initiated reboot at approximately 13:13
-5. Server has been offline for 5+ minutes
+| Campo | Valor |
+|-------|--------|
+| Data | 2026-06-04 |
+| Acção incorrecta | `proxmox-boot-tool kernel pin 6.2.16-5-pve` + reboot |
+| Sintoma | Host não arranca; ZFS `rpool` — *unsupported feature* `vdev_zaps_v2` |
+| Causa raiz | Kernel 6.2 traz ZFS/OpenZFS demasiado antigo para o pool criado/atualizado em kernels 6.11+ |
+| Recuperação | Boot manual em `6.14.8-2-pve` ou `6.11.0-2-pve`; repinar kernel |
 
-## Possible Issues
-1. Kernel 6.2.16-5-pve may be incompatible with server hardware
-2. Boot process may be stuck waiting for console input
-3. Network configuration may have changed after reboot
-4. Kernel may be too old for current Proxmox configuration
+## Contexto
 
-## Recovery Options
+Tentativa de contornar erro QEMU `pci_irq_handler` no passthrough GTX 1650 → VM110.  
+Downgrade para 6.2.16 **não** resolve passthrough e **quebra** o import do `rpool`.
 
-### Option 1: Physical/Console Access
-- Access server via physical console or IPMI/iDRAC
-- Select kernel 6.14.8-2-pve from boot menu
-- Remove kernel pin: `proxmox-boot-tool kernel unpin`
+## Recuperação (consola / IPMI / menu GRUB)
 
-### Option 2: Alternative Kernel Version
-If server comes back online, try a different kernel:
+1. No GRUB: **Advanced options for Proxmox VE** → `6.14.8-2-pve` (ou `6.11.0-2-pve`)
+2. Após login como root:
+
 ```bash
-# Check available kernels
-apt-cache search pve-kernel | grep "6\.[58]"
-
-# Try kernel 6.5 or 6.8 series instead
-apt-get install pve-kernel-6.5.13-6-pve
-proxmox-boot-tool kernel pin 6.5.13-6-pve
+proxmox-boot-tool kernel pin 6.14.8-2-pve
 proxmox-boot-tool refresh
+cat /etc/kernel/proxmox-boot-pin   # deve mostrar 6.14.8-2-pve
+zpool status rpool
+reboot   # opcional — confirmar arranque automático OK
 ```
 
-### Option 3: NVIDIA Driver Alternative
-Instead of downgrading kernel, try:
-1. Keep kernel 6.14.8-2-pve
-2. Build NVIDIA driver from source
-3. Or use nouveau driver temporarily
-4. Or wait for NVIDIA driver update
+3. Opcional — remover kernel perigoso do menu (não obrigatório se pin estiver correcto):
 
-## Files Created Before Issue
-- `/root/prepare-nvidia.sh` - Script to install NVIDIA drivers after reboot
-- `/root/proxmox-optimization/` - Complete optimization suite
-- Container 200 configured for Ollama
+```bash
+# apt remove proxmox-kernel-6.2  # só se instalado como metapackage separado
+```
 
-## Next Steps
-1. Wait for potential delayed boot (up to 10 minutes)
-2. Try alternate IP addresses if DHCP changed
-3. Request physical/console access if needed
-4. Consider alternative approaches to GPU passthrough
+## Estado correcto pós-recuperação
+
+- Kernel activo: `6.14.8-2-pve` (ou `6.11.0-2-pve`)
+- Pin: **nunca** `6.2.16-5-pve`
+- GPU host: `vfio-pci` em `05:00.0` + `05:00.1`
+- VM110: Ollama CPU (`vga: virtio`, sem `hostpci`) até passthrough estável
+
+## GPU passthrough — resolução (2026-06-05)
+
+| Problema | Solução |
+|----------|---------|
+| `pci_irq_handler` no 2.º `qm start` | Hook `post-stop` com reenumeração PCI + `bind_vfio` |
+| `Key was rejected by service` (nvidia) | `efidisk0` com `pre-enrolled-keys=0` |
+| GPU stuck D3cold / not ready after reset | Reboot host; **não** usar `disable_idle_d3=1` |
+| Passthrough falha após `pci remove` | Reboot host obrigatório se `05:00` não reaparece |
+
+Alternativas válidas (sem downgrade de kernel):
+
+1. Manter kernel ≥ 6.11 (actual: `6.8.12-1-pve`)
+2. Hook `/var/lib/vz/snippets/vm110-gpu-hook.sh`
+3. Config: `0000:05:00.0,pcie=1,rombar=0` + `vga: virtio`
+4. `pcie_aspm=off` em `/etc/kernel/cmdline`
+
+## Lição
+
+**Pools ZFS em Proxmox 9 / kernel 6.11+ não são bootáveis em kernels 6.2.**  
+Qualquer pin de kernel deve ser **≥** versão em que o pool foi criado ou last upgraded.

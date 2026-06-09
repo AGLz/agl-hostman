@@ -1,0 +1,23 @@
+# SymmetricDS — piloto sync VM620 ↔ CT610
+# Deploy: scripts/mssql-sync/deploy-symmetricds.sh
+services:
+  symmetricds:
+    image: jumpmind/symmetricds:3.15
+    container_name: symmetricds-mssql6
+    restart: unless-stopped
+    ports:
+      - "${SYMMETRICDS_HTTP_PORT:-31415}:31415"
+    volumes:
+      - symmetricds_data:/opt/symmetricds/security
+      - ./engines:/opt/symmetricds/engines
+    environment:
+      - SYM_AUTO_REGISTER=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:31415/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  symmetricds_data:

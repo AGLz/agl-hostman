@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Copia stack EvoNexus do CT189 (AGLSRV1) para CT242 (fgsrv7): /opt/evonexus + volumes Docker.
-# Executar no host Proxmox fgsrv7 como root (pct local para 242; SSH para AGLSRV1/189).
+# Copia stack EvoNexus do CT189 (AGLSRV1) para CT548 evonexus (fgsrv7; antes CT242).
+# Executar no host Proxmox fgsrv7 como root (pct local para 548; SSH para AGLSRV1/189).
 #
 # Pré-requisitos:
-#   - CT242 a correr com Ubuntu + Docker (ver bootstrap-ct242-evonexus.sh)
+#   - CT548 a correr com Ubuntu + Docker (ver bootstrap-ct242-evonexus.sh)
 #   - SSH BatchMode root@AGLSRV1 → pct exec 189
 #   - CT189 com stack EvoNexus em /opt/evonexus e volumes evonexus_evonexus_*
 #
@@ -13,13 +13,13 @@
 #   SYNC_VOLUMES_ONLY=1 bash ...      # só volumes Docker
 #   SYNC_COMPOSE_UP=1 bash ...        # docker compose up -d após import
 #
-# Pós-sync (CT242): ver scripts/proxmox/RESTORE-CT242-EVONEXUS.md
+# Pós-sync (CT548): ver scripts/proxmox/RESTORE-CT242-EVONEXUS.md
 
 set -euo pipefail
 
 AGLSRV1="${AGLSRV1:-root@100.107.113.33}"
 CT_SOURCE="${CT_SOURCE:-189}"
-CT_TARGET="${CT_TARGET:-242}"
+CT_TARGET="${CT_TARGET:-548}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/evonexus/docker-compose.hub.yml}"
 
 TMP="/tmp/evonexus-ct189-opt-$$.tgz"

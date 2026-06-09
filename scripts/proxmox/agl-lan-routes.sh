@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # CTs AGL na LAN local (188–191, etc.): garantir tráfego 192.168.0.0/24 via eth0.
 #
+# Documentação: docs/troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md
 # Problema: com tailscale --accept-routes=true, peers (ex. man6d) injectam
 #   192.168.0.0/24 dev tailscale0 na table 52 → LAN local inacessível.
 # Solução primária: accept-routes=false (ver docs/troubleshooting/CT181-DNS-ROUTING-FIX.md)
@@ -39,5 +40,11 @@ fi
 
 for ip in "${extra[@]}"; do
   [[ -n "${ip}" ]] || continue
+  # Se o IP já é alcançável noutra interface (ex. eth2 em 192.168.1.0/24), não forçar eth0 na table 52.
+  main_dev="$(ip -4 route get "${ip}" 2>/dev/null | awk '/ dev / { for (i = 1; i <= NF; i++) if ($i == "dev") { print $(i + 1); exit } }')"
+  if [[ -n "${main_dev}" && "${main_dev}" != "${LAN_IF}" ]]; then
+    ip route del "${ip}" table 52 2>/dev/null || true
+    continue
+  fi
   ip route replace "${ip}" dev "${LAN_IF}" table 52 2>/dev/null || true
 done

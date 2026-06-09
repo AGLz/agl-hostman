@@ -1,6 +1,7 @@
 # Cursor Agent Composer 2 Fast + LiteLLM Integration
 
-> **Last Updated**: 2026-03-25
+> **Last Updated**: 2026-06-05
+> **Gateway canónico**: CT186 — Tailscale `http://100.125.249.8:4000` · LAN `http://192.168.0.186:4000`
 > **Status**: Beta - Agent mode has known limitations
 
 ## Visão Geral
@@ -30,10 +31,16 @@ Cursor Agent envia formato **Responses API** ao invés de **Chat Completions** p
 3. Inserir URL do proxy com sufixo `/cursor`:
 
 ```
-http://100.94.221.87:4000/cursor
+http://100.125.249.8:4000/cursor
 ```
 
-Para acesso local:
+LAN (desde rede AGL):
+
+```
+http://192.168.0.186:4000/cursor
+```
+
+Para acesso local (só se LiteLLM correr no mesmo host):
 ```
 http://localhost:4000/cursor
 ```

@@ -2,6 +2,7 @@
 #
 # Correção Tailscale SSH para aglsrv6c (man6c)
 # Host Proxmox separado - 100.124.53.91
+# Preferir: scripts/proxmox/tailscale-align-proxmox-host.sh (ver docs/troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md)
 # Este script deve ser executado LOCALMENTE no host aglsrv6c
 #
 # Como executar no host:
@@ -59,7 +60,7 @@ tailscale down 2>/dev/null || true
 sleep 2
 echo "Reconectando com todas as flags..."
 echo "  Isso pode levar alguns segundos..."
-tailscale up --ssh --accept-routes --accept-risk=lose-ssh --hostname=aglsrv6c 2>/dev/null || tailscale up --ssh --accept-routes --accept-risk=lose-ssh --hostname=aglsrv6c --reset
+tailscale up --ssh --accept-dns=false --accept-routes=false --accept-risk=lose-ssh --hostname=aglsrv6c 2>/dev/null || tailscale up --ssh --accept-dns=false --accept-routes=false --accept-risk=lose-ssh --hostname=aglsrv6c --reset
 sleep 4
 
 # Passo 3: Verificar resultado

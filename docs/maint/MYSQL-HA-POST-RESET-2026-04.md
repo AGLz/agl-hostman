@@ -44,7 +44,7 @@ Objectivo: clientes na VLAN `172.2.2.0/24` acederem ao MariaDB na porta **3306**
 | Destino | **CT235** — LAN `192.168.70.135:3306`, Tailscale `100.83.7.16`. |
 | Import | Dump remoto → MariaDB 10.11 no CT235 (~129 tabelas); utilizador **`root@192.168.70.%`** para clientes na LAN `192.168.70.0/24` (ajustar GRANTs conforme política). |
 | Réplica | CT135 realinhada com `repl`; GTID master verificado após operações de conta LAN. |
-| App legacy | **CT243** (`fg-legacy`) — `www5.falg.com.br`: HTTP origem `192.168.70.243:80` (Nginx); público via túnel Cloudflare (CT170) conforme doc de provisioning FGSRV07. |
+| App legacy | **CT549** (`fg-legacy`; ex.243) — `www5.falg.com.br`: HTTP `192.168.70.243:80`; túnel Cloudflare **CT570** (ex.170) |
 | Config PHP actualizada | `arcabouco/constantes.php` → `MYSQL_HOST` **192.168.70.135**; `system/model.php` (PDO); `BB01/db.php` (`$hostname`). |
 
 **Nota:** SSH directo a FGSRV03 por Tailscale (`100.67.99.115`) pode falhar por timeout em alguns caminhos; não bloqueou a migração quando o dump/cliente usava IP público aplicável.

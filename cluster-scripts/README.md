@@ -1,7 +1,8 @@
 # Scripts de Implementação - Cluster Proxmox
 
-> **Data**: 2025-11-08
-> **Status**: Prontos para execução
+> **Data**: 2025-11-08 · **Revisão scripts**: 2026-06-03  
+> **Status**: Revisar scripts antes de executar (links vmbr2 + check versão PVE)  
+> **Plano**: [`docs/PROXMOX-CLUSTER-PLAN.md`](../docs/PROXMOX-CLUSTER-PLAN.md) **v2.0**  
 > **Cluster**: agl-cluster (AGLSRV6 + AGLSRV6C + AGLSRV6D + QDevice)
 
 ---
@@ -117,7 +118,7 @@ chmod +x *.sh
 └─────────────────────────────────────────┘
 
 Quorum: 2/4 votes (configuração flexível)
-Network: WireGuard Mesh (10.6.0.0/24)
+Network: **192.168.1.0/24 (vmbr2)** primário man6↔man6c; WG 10.6.0.0/24 backup
 
 Cenários de operação:
   ✅ AGLSRV6 + QDevice = 2/4 (OK)

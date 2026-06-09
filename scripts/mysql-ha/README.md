@@ -10,7 +10,7 @@ Automatic MySQL failover with Cloudflare Tunnel DNS integration.
 ┌─────────────────────────────────────────────────────────────────┐
 │                        FGSRV7 (100.109.181.93 Tailscale)         │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │ CT170 (cloudflared7) - Tunnel: fgsrv7                    │    │
+│  │ CT570 (cloudflared7; ex.170) - Tunnel: fgsrv7              │    │
 │  │ Tunnel ID: 513cec7b-754d-4dd8-a69d-d15942180fe4         │    │
 │  │ Ingress (exemplo; confirmar config.yml actual):         │    │
 │  │   mysql-slave.* / tcp → CT235:3306                       │    │
@@ -72,8 +72,8 @@ O script no repositório assume **slave no FGSRV7** a monitorizar o master noutr
 ### Tunnels:
 | Name | ID | Location |
 |------|-----|----------|
-| aglsrv5 | 02d57187-83ba-4042-a5cc-8bb752a6b65a | CT130 (AGLSRV5) |
-| fgsrv7 | 513cec7b-754d-4dd8-a69d-d15942180fe4 | CT170 (FGSRV7) |
+| fgsrv7 | 513cec7b-754d-4dd8-a69d-d15942180fe4 | CT570 (FGSRV7; ex.170) |
+| aglsrv5 | 02d57187-83ba-4042-a5cc-8bb752a6b65a | CT530 (AGLSRV5; ex.130) |
 
 ## Failover Script
 

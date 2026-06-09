@@ -8,11 +8,9 @@
 # =============================================================================
 set -euo pipefail
 
-declare -A HOSTS
-HOSTS[agldv03]="100.94.221.87"
-HOSTS[agldv04]="100.113.9.98"
-HOSTS[agldv12]="100.71.217.115"
-HOSTS[fgsrv06]="100.83.51.9"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=_litellm-sync-common.sh
+source "${SCRIPT_DIR}/_litellm-sync-common.sh"
 
 # Modelos: pagos + gratuitos (qwen, glm-air, glm-flash)
 MODELS_FULL="glm-flash glm deepseek claude-haiku gemini-2.0 qwen-turbo qwen-plus glm-air qwen3.5-plus"
@@ -24,13 +22,13 @@ echo "=== Benchmark multi-model em todos os hosts ==="
 echo "Modelos: $MODELS"
 echo ""
 
-for host in agldv03 agldv04 agldv12 fgsrv06; do
-  ip="${HOSTS[$host]}"
+for host in ct186 agldv04 agldv12 fgsrv06; do
+  ip="${LITELLM_HOST_IPS[$host]}"
+  env_dir="$(litellm_remote_dir "$host")"
   echo "--- $host ($ip) ---"
 
-  # Para cada host: testa cada modelo, mede tempo, ordena
-  ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${ip}" bash -s -- $MODELS <<'REMOTE'
-    KEY=$(grep "^LITELLM_MASTER_KEY=" /opt/litellm/.env 2>/dev/null | cut -d= -f2-)
+  ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${ip}" "ENV_DIR=${env_dir} bash -s" -- $MODELS <<'REMOTE'
+    KEY=$(grep "^LITELLM_MASTER_KEY=" "${ENV_DIR}/.env" 2>/dev/null | cut -d= -f2-)
     KEY="${KEY:-sk-litellm-default}"
     tmp=$(mktemp)
     for m in "$@"; do

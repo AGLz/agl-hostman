@@ -15,16 +15,16 @@ LITELLM_TS="http://100.125.249.8:4000"
 HONCHO_BASE_URL="${HONCHO_BASE_URL:-http://100.124.98.54:8000}"
 ALLOWED_USERS="${TELEGRAM_ALLOWED_USERS:-1272190248}"
 
-# OpenAI quota CT186 esgotada até ~2026-06-01 — Groq primário; ver config/litellm/config.yaml
+# Política 2026-06: Ollama GPU → Z.AI → OpenAI → Anthropic (LiteLLM CT186)
 declare -A AGENT_MODEL=(
-  [jarvis]=groq-llama-31-8b
-  [elon]=groq-llama-31-8b
-  [satya]=groq-llama-31-8b
-  [werner]=groq-llama-31-8b
+  [jarvis]=zai-glm-5
+  [elon]=zai-coding-glm-4.7
+  [satya]=zai-coding-glm-4.7
+  [werner]=zai-coding-glm-4.7
 )
 
-FALLBACK_MODEL="${HERMES_FALLBACK_MODEL:-or-nemotron-super-free}"
-AUXILIARY_MODEL="${HERMES_AUXILIARY_MODEL:-zai-glm-flash}"
+FALLBACK_MODEL="${HERMES_FALLBACK_MODEL:-agl-primary}"
+AUXILIARY_MODEL="${HERMES_AUXILIARY_MODEL:-glm-5}"
 
 test -d "${AGL_HOSTMAN}" || { echo "ERRO: ${AGL_HOSTMAN} inexistente" >&2; exit 1; }
 test -f "${TOKENS_FILE}" || { echo "ERRO: tokens ${TOKENS_FILE} inexistente" >&2; exit 1; }

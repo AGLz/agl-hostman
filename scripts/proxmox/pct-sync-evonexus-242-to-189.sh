@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copia stack EvoNexus do CT242 (fgsrv7) para CT189 (AGLSRV1): /opt/evonexus + volumes Docker.
+# Copia stack EvoNexus do CT548 (fgsrv7; antes CT242) para CT189 (AGLSRV1).
 # Executar no AGLSRV1 como root.
 #
 # Inverso (189 → 242): scripts/proxmox/pct-sync-evonexus-189-to-242.sh (fgsrv7)
@@ -10,6 +10,7 @@
 set -euo pipefail
 
 FGSRV7="${FGSRV7:-root@100.109.181.93}"
+CT_SOURCE="${CT_SOURCE:-548}"
 TMP="/tmp/evonexus-ct242-opt-$$.tgz"
 VOL_TMP="/tmp/evonexus-ct242-vols-$$.tgz"
 
@@ -18,8 +19,8 @@ command -v pct >/dev/null || { echo "ERRO: pct — correr no Proxmox AGLSRV1" >&
 cleanup() { rm -f "${TMP}" "${VOL_TMP}" 2>/dev/null || true; }
 trap cleanup EXIT
 
-echo "=== [1/3] Export /opt/evonexus (CT242) ==="
-if ! ssh -o BatchMode=yes "${FGSRV7}" "pct exec 242 -- tar czf - -C /opt evonexus" >"${TMP}"; then
+echo "=== [1/3] Export /opt/evonexus (CT${CT_SOURCE}) ==="
+if ! ssh -o BatchMode=yes "${FGSRV7}" "pct exec ${CT_SOURCE} -- tar czf - -C /opt evonexus" >"${TMP}"; then
   echo "ERRO: export /opt/evonexus falhou" >&2
   exit 1
 fi
@@ -31,8 +32,8 @@ echo "  $(wc -c <"${TMP}") bytes"
 pct exec 189 -- mkdir -p /opt
 cat "${TMP}" | pct exec 189 -- tar xzf - -C /opt
 
-echo "=== [2/3] Export volumes (CT242) ==="
-ssh -o BatchMode=yes "${FGSRV7}" "pct exec 242 -- bash -s" <<'REMOTE' >"${VOL_TMP}"
+echo "=== [2/3] Export volumes (CT${CT_SOURCE}) ==="
+ssh -o BatchMode=yes "${FGSRV7}" "pct exec ${CT_SOURCE} -- bash -s" <<'REMOTE' >"${VOL_TMP}"
 set -euo pipefail
 export_dir=/tmp/evonexus-vol-export-$$
 mkdir -p "${export_dir}"

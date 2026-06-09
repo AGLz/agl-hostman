@@ -20,6 +20,10 @@ src/web/node_modules/
 .env
 .env.local
 .env.*.local
+config/mssql-sync/mssql-sync.env
+
+# FGSRV6 pre-reinstall backups (WireGuard keys, DB dumps)
+.local/
 
 # IDE
 .vscode/

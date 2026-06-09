@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Atualiza CT242 EvoNexus: modelos .env + providers.json sem DashScope.
+# Atualiza CT548 EvoNexus (fgsrv7; antes CT242): modelos .env + providers.json sem DashScope.
 # Uso: bash scripts/evonexus/migrate-off-dashscope-ct242.sh
 
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-HOST="${EVONEXUS_SSH_HOST:-root@191.252.93.227}"
-CTID="${EVONEXUS_CTID:-242}"
-DEFAULT_MODEL="${EVONEXUS_DEFAULT_MODEL:-glm-4.7-flash}"
+HOST="${EVONEXUS_SSH_HOST:-root@100.109.181.93}"
+CTID="${EVONEXUS_CTID:-548}"
+DEFAULT_MODEL="${EVONEXUS_DEFAULT_MODEL:---agl-tier-2026}"
 ENV_FILE="/workspace/config/.env"
 
 scp -q "$REPO_ROOT/scripts/evonexus/sync-providers-anthropic-from-env.py" \
@@ -25,6 +25,7 @@ for c in evonexus-scheduler evonexus-dashboard evonexus-telegram; do
 done
 
 echo "==> Verificar"
-ssh "$HOST" "pct exec $CTID -- docker exec evonexus-scheduler sh -c 'grep -E \"^(OPENAI_MODEL|ANTHROPIC_MODEL|EVONEXUS)=\" $ENV_FILE'"
+ssh "$HOST" "pct exec $CTID -- docker exec evonexus-scheduler sh -c 'grep -E \"^(OPENAI_MODEL|ANTHROPIC_MODEL|EVONEXUS|ZAI_|OPENAI_FALLBACK)=\" $ENV_FILE'"
 
-echo "Done. Reload LiteLLM no gateway com config/litellm/config.yaml actualizado."
+echo "==> Reiniciar contentores (providers + .env)"
+ssh "$HOST" "pct exec $CTID -- docker compose -f /opt/evonexus/docker-compose.hub.yml restart dashboard scheduler telegram"

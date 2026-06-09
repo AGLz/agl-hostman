@@ -43,7 +43,7 @@ Sincronizar só a **config** (modelos, canais, políticas) desde agldv03: `bash 
 | `C:\Users\Administrator\.openclaw\workspace\` | Agent workspace |
 
 ### Model Configuration
-- **Primary**: zai/glm-5 (via LiteLLM 100.94.221.87:4000)
+- **Primary**: zai/glm-5 (via LiteLLM CT186 — `http://100.125.249.8:4000`)
 - **Fallbacks**: claude-sonnet, kimi-k2.5, deepseek, openai/gpt-5.3-chat-latest (LiteLLM → gpt-5.4-mini), gemini
 - **Local Ollama**: 192.168.0.200:11434/v1 (CT200 GPU)
 
@@ -63,8 +63,8 @@ Os monitores **não** correm na AGLWK45; correm no **agldv03** (CT179). OpenClaw
 |---------|----------------|--------------------------------------------|----------|
 | **n8n** (CT202) | `http://100.72.240.65:5679/...` | `http://192.168.0.202:5678/healthz` | Confirmar porta no CT202 |
 | **wg-easy** (FGSRV6) | Check em **100.72.240.65:51821** | `http://10.6.0.5:51821/` | `http://100.83.51.9:51821/` |
-| **LiteLLM** | — | `http://127.0.0.1:4000/health/readiness` (no CT179) ou `http://100.94.221.87:4000/...` | `http://192.168.0.179:4000/...` |
-| **LiteLLM / OpenClaw (LXC dedicados AGLSRV1)** | Duplicar o mesmo check no mesmo job que ainda usa CT179 | Após cutover: `http://192.168.0.186:4000/health/readiness` (CT186) e `http://192.168.0.187:28789/healthz` (CT187) desde agldv03/LAN | Ver `config/monitoring/jarvis-openclaw-http-endpoints.example.json` → `cutoverDedicatedLxc` e [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](../../docs/LITELLM-OPENCLAW-DEDICATED-LXC.md) |
+| **LiteLLM** | CT179 `:4000` (descontinuado) | **`http://192.168.0.186:4000/health/readiness`** (CT186) ou TS `http://100.125.249.8:4000/health/readiness` | Ver `cutoverDedicatedLxc` em `config/monitoring/jarvis-openclaw-http-endpoints.example.json` |
+| **OpenClaw (CT187)** | — | `http://192.168.0.187:28789/healthz` desde agldv03/LAN | [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](../../docs/LITELLM-OPENCLAW-DEDICATED-LXC.md) |
 
 **100.72.240.65** = **`fgsrv07-cloudflared7`** — não usar para n8n/wg-easy.
 
@@ -88,7 +88,7 @@ Os jobs agendados (`openclaw cron`) neste contentor invocam scripts em `scripts/
 | **Tailscale ativo** | `host-health.sh` faz ping a IPs `100.x` (AGLSRV1, AGLSRV6, FGSRV6, …) | `tailscale status` · `ping -c2 100.107.113.33` |
 | **WireGuard `wg0`** | Rotas preferenciais para mesh; NFS/SSHFS em alguns fluxos | `wg show wg0` · `ping -c2 10.6.0.5` (hub) · `ping -c2 10.6.0.10` (AGLSRV1) |
 | **LAN `192.168.0.0/24`** | SSH a AGLSRV1 para `pct`/`qm` e serviços na LAN | `ping -c2 192.168.0.245` · `ssh -o BatchMode=yes -o ConnectTimeout=5 root@192.168.0.245 true` |
-| **LiteLLM local** | `ai-stack-health.sh` e gateway dos agentes | `curl -sfS http://127.0.0.1:4000/health/readiness` |
+| **LiteLLM local (CT179)** | ~~`ai-stack-health.sh`~~ | CT179 sem LiteLLM desde 2026-06-05 — checks devem apontar ao **CT186** (ver linha acima) |
 | **OpenClaw em execução** | Daemon/process manager esperado pelo health script | `pgrep -af openclaw` (ou equivalente ao teu setup) |
 | **Chaves SSH / token API** | Jobs que administram Proxmox remotamente precisam de credenciais em `~/.ssh/` ou env — **nunca** no Git | Testar `ssh root@10.6.0.10` ou API conforme o teu `jobs.json` |
 
@@ -200,7 +200,7 @@ Get-Content "C:\Users\Administrator\.openclaw\cron\logs\*.log" -Tail 100
 **Diagnosis**:
 ```powershell
 # Check LiteLLM
-Invoke-WebRequest -Uri "http://100.94.221.87:4000/v1/models" -UseBasicParsing
+Invoke-WebRequest -Uri "http://100.125.249.8:4000/v1/models" -UseBasicParsing
 
 # Check Ollama
 Invoke-WebRequest -Uri "http://192.168.0.200:11434/api/tags" -UseBasicParsing
@@ -381,7 +381,7 @@ Get-Content "C:\Users\Administrator\.openclaw\telegram\*.log" -Tail 100
 - **Documentation**: Updates `docs/INFRA.md`
 
 ### LiteLLM Integration
-- **Gateway**: http://100.94.221.87:4000
+- **Gateway**: http://100.125.249.8:4000 (CT186)
 - **Models**: All major providers via proxy
 - **Local models**: Ollama on CT200
 

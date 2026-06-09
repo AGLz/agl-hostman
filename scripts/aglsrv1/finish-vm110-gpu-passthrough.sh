@@ -8,6 +8,10 @@ VMID="${VMID:-110}"
 
 log() { echo "[finish-gpu] $*"; }
 
+warn_no_kernel_downgrade() {
+  log "AVISO: não fazer pin em kernel < 6.11 — rpool usa vdev_zaps_v2 (ver docs/proxmox-kernel-issue.md)"
+}
+
 gpu_ready() {
   lspci -k -s 05:00.0 2>/dev/null | grep -q vfio-pci && \
     lspci -k -s 05:00.1 2>/dev/null | grep -q vfio-pci
@@ -33,17 +37,23 @@ main() {
     exit 3
   fi
 
+  warn_no_kernel_downgrade
+
   log "Parar VM$VMID..."
   qm shutdown "$VMID" --timeout 120 2>/dev/null || qm stop "$VMID" 2>/dev/null || true
   sleep 3
 
-  log "VM$VMID — passthrough (slot 05:00, VGA+áudio)..."
+  log "VM$VMID — passthrough headless (05:00.0 VGA, consola virtio)..."
   qm set "$VMID" --machine q35
   qm set "$VMID" --bios ovmf
   qm set "$VMID" --cpu host,hidden=1,flags=+pcid
-  # Passthrough do slot completo (VGA + HDMI audio) — tutorial: hostpci0: 01:00,x-vga=on,pcie=1
-  qm set "$VMID" --hostpci0 "05:00,pcie=1,x-vga=1,rombar=0"
-  qm set "$VMID" --vga none
+  # Só VGA (05:00.0) — áudio HDMI opcional; evita conflitos IRQ em alguns hosts.
+  qm set "$VMID" --hostpci0 "0000:05:00.0,pcie=1,rombar=0"
+  qm set "$VMID" --vga virtio
+  # Secure Boot OFF — módulo nvidia proprietário não assina para OVMF MS keys
+  if qm config "$VMID" | grep -q 'pre-enrolled-keys=1'; then
+    log "AVISO: recriar efidisk com pre-enrolled-keys=0 se modprobe nvidia falhar na guest"
+  fi
   # Mantém ballooning (ex. memory 16384, balloon 32768) — não alterar; evita oversubscription no host.
 
   log "Arrancar VM$VMID..."

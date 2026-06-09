@@ -37,8 +37,8 @@ Nodeid      Votes    Qdevice Name
 | **WireGuard IP** | 10.6.0.17 |
 | **LAN IP** | 192.168.15.222 |
 | **Cluster Status** | ✅ Nodeid 1 |
-| **Containers** | CT130-139 (8 running, 1 stopped) |
-| **Cloudflare Tunnel** | aglsrv5 (CT130) |
+| **Containers** | CT530–539, CT540 PBS (ex.130–139) |
+| **Cloudflare Tunnel** | aglsrv5 (**CT530**; ex.130) |
 
 **Containers on AGLSRV5**:
 | VMID | Name | Status |
@@ -91,10 +91,11 @@ Nodeid      Votes    Qdevice Name
 **Containers on FGSRV7**:
 | VMID | Name | Status | Network | Purpose |
 |------|------|--------|---------|---------|
-| 170 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel fgsrv7 |
-| 171 | cloudflared7b | running | vmbr70 (192.168.70.171) | Cloudflare Tunnel **fgsrv7b** — `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` |
-| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL Master (HA / GTID) — ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
-| 239 | pihole7 | running | vmbr70 (192.168.70.139) | DNS/Ad-blocking (HA migrated from AGLSRV5 CT139) |
+| 570 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel fgsrv7 (ex.170) |
+| 571 | cloudflared7b | running | vmbr70 (192.168.70.171) | Cloudflare Tunnel **fgsrv7b** (ex.171) |
+| 561 | mysql7 | running | vmbr70 (192.168.70.235) | MySQL Master (HA / GTID; ex.535/235) |
+| 562 | pihole7 | running | vmbr70 (192.168.70.139) | DNS (ex.539) |
+| 548 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus (ex.242) |
 
 **Cloudflare Tunnel (fgsrv7)**:
 - Tunnel ID: `513cec7b-754d-4dd8-a69d-d15942180fe4`

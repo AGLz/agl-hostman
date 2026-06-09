@@ -9,22 +9,24 @@
 # GitHub Issue: https://github.com/BerriAI/litellm/issues/19800
 
 model_list:
-  # Composer Fast → Z.AI GLM-4.7-Flash (sem DashScope; alinhado a config.yaml)
+  # Composer Fast → OpenAI gpt-5.4-mini (subscrição OpenAI API; alinhado a config.yaml)
   - model_name: cursor-composer
     litellm_params:
-      model: zai/glm-4.7-flash
-      api_key: os.environ/ZAI_API_KEY
+      model: openai/gpt-5.4-mini
+      api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Proxy Composer Fast (Z.AI GLM-4.7-Flash — DashScope só qwen-coder)"
+      description: "Proxy Composer Fast (OpenAI gpt-5.4-mini)"
       max_tokens: 65536
+      tier: paid
 
   - model_name: cursor-composer-2-fast
     litellm_params:
-      model: zai/glm-4.7-flash
-      api_key: os.environ/ZAI_API_KEY
+      model: openai/gpt-5.4-mini
+      api_key: os.environ/OPENAI_API_KEY
     model_info:
-      description: "Alias cursor-composer-2-fast (Z.AI GLM-4.7-Flash)"
+      description: "Alias cursor-composer-2-fast (OpenAI gpt-5.4-mini)"
       max_tokens: 65536
+      tier: paid
 
   - model_name: cursor-claude-sonnet
     litellm_params:

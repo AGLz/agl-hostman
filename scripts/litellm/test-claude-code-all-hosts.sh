@@ -7,14 +7,12 @@
 # =============================================================================
 set -euo pipefail
 
-[[ "${1:-}" == "--benchmark" ]] && exec "$(dirname "$0")/benchmark-models-all-hosts.sh"
-[[ "${1:-}" == "--consolidate" ]] && exec "$(dirname "$0")/benchmark-consolidate.sh" "${@:2}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=_litellm-sync-common.sh
+source "${SCRIPT_DIR}/_litellm-sync-common.sh"
 
-declare -A HOSTS
-HOSTS[agldv03]="100.94.221.87"
-HOSTS[agldv04]="100.113.9.98"
-HOSTS[agldv12]="100.71.217.115"
-HOSTS[fgsrv06]="100.83.51.9"
+[[ "${1:-}" == "--benchmark" ]] && exec "${SCRIPT_DIR}/benchmark-models-all-hosts.sh"
+[[ "${1:-}" == "--consolidate" ]] && exec "${SCRIPT_DIR}/benchmark-consolidate.sh" "${@:2}"
 
 PASS=0
 FAIL=0
@@ -22,13 +20,13 @@ FAIL=0
 echo "=== Teste Claude Code (chat completion) em todos os hosts ==="
 echo ""
 
-for host in agldv03 agldv04 agldv12 fgsrv06; do
-  ip="${HOSTS[$host]}"
+for host in ct186 agldv04 agldv12 fgsrv06; do
+  ip="${LITELLM_HOST_IPS[$host]}"
+  env_dir="$(litellm_remote_dir "$host")"
   echo "--- $host ($ip) ---"
 
-  # Lê LITELLM_MASTER_KEY de /opt/litellm/.env no host e faz POST /chat/completions
   result=$(ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${ip}" \
-    'KEY=$(grep "^LITELLM_MASTER_KEY=" /opt/litellm/.env 2>/dev/null | cut -d= -f2-); KEY="${KEY:-sk-litellm-default}"; curl -s --max-time 60 -w "\n%{http_code}" -X POST http://localhost:4000/chat/completions -H "Content-Type: application/json" -H "Authorization: Bearer $KEY" -d "{\"model\":\"glm\",\"messages\":[{\"role\":\"user\",\"content\":\"Responda apenas: OK\"}],\"max_tokens\":10}" 2>/dev/null' 2>/dev/null) || result="ERR"
+    "KEY=\$(grep '^LITELLM_MASTER_KEY=' ${env_dir}/.env 2>/dev/null | cut -d= -f2-); KEY=\"\${KEY:-sk-litellm-default}\"; curl -s --max-time 60 -w '\n%{http_code}' -X POST http://localhost:4000/chat/completions -H 'Content-Type: application/json' -H \"Authorization: Bearer \$KEY\" -d '{\"model\":\"glm\",\"messages\":[{\"role\":\"user\",\"content\":\"Responda apenas: OK\"}],\"max_tokens\":10}' 2>/dev/null" 2>/dev/null) || result="ERR"
 
   if [[ "$result" == "ERR" ]]; then
     echo "  Claude Code test: SSH/curl falhou ❌"

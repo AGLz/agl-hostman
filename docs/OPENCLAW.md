@@ -1,10 +1,10 @@
 # OpenClaw - Documentação AGL
 
-> **Last Updated**: 2026-05-01 | **Version doc**: 2.0.0 | **Status**: 🐳 Docker
+> **Last Updated**: 2026-06-05 | **Version doc**: 2.0.0 | **Status**: 🐳 Docker
 
 > ⚠️ **MIGRADO PARA DOCKER (2026-04-13)**: OpenClaw corre em container Docker no agldv03 (ex.: `openclaw-docker-openclaw-gateway-1` em `/root/openclaw-docker`) ou em **LXC dedicado CT187** após cutover. O serviço systemd no host está **desativado**. Ver [Docker Migration](#-docker-migration-2026-04-13) para detalhes.
 
-> **Cutover 2026-05-01:** no **agldv03** as stacks Docker LiteLLM (`/opt/litellm`) e OpenClaw (`/root/openclaw-docker`) foram paradas com `docker compose down` — não arrancam após reboot do CT até `docker compose up -d` manual. Produção canónica do proxy/gateway: **CT186 + CT187** em AGLSRV1 — [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md).
+> **Cutover 2026-05 / descontinuação agldv03 2026-06-05:** Produção canónica: **CT186** (LiteLLM) + **CT187** (OpenClaw) em AGLSRV1 — [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md). No **agldv03 (CT179)** o LiteLLM foi **removido** (`docker compose down -v` em `/opt/litellm`; `.STACK_DECOMMISSIONED`); todos os contentores Docker do CT179 estão parados. **Não** usar `http://100.94.221.87:4000`.
 
 **OpenClaw** é uma plataforma de agente AI autônomo self-hosted. Funciona como assistente pessoal com suporte a múltiplos canais (Telegram, Slack, Discord, WhatsApp etc.), multi-agentes, roteamento de modelos e automação via LLMs.
 
@@ -686,8 +686,8 @@ Ver também: `docs/OPENCLAW-DIRECT-STATUS.md` (histórico OpenRouter/LiteLLM; po
 | `config/openclaw/openclaw-litellm-local.jq` | Patch jq para providers → localhost:4000 |
 | `config/openclaw/fgsrv06-litellm.jq` | **fgsrv06**: mesmo que o local (LiteLLM no próprio host); **não** usar `100.94.221.87:4000` aqui |
 | `config/openclaw/litellm-gateway-local.env` | LITELLM_GATEWAY_URL + ANTHROPIC_BASE_URL → localhost:4000 (deploy copia para `~/.openclaw/litellm-gateway.env` em hosts com LiteLLM local) |
-| `config/openclaw/litellm-gateway-client.env` | Hosts sem LiteLLM local: aponta ao agldv03 |
-| `config/openclaw/openclaw-litellm-client.jq` | Satélites: `localhost:4000` → `100.94.221.87:4000` após copiar JSON do agldv03 |
+| `config/openclaw/litellm-gateway-client.env` | Hosts sem LiteLLM local: aponta ao **CT186** (`100.125.249.8:4000`) — não agldv03 |
+| `config/openclaw/openclaw-litellm-client.jq` | Satélites: `localhost:4000` → `100.125.249.8:4000` (CT186) |
 | `scripts/openclaw/propagate-openclaw-from-agldv03.sh` | **agldv03 →** agldv04, 05, 07, 12, fgsrv06; opcional **AGLWK45_VIA_AGLSRV1=1** → VM104 via AGLSRV1; **não** toca em `cron/` |
 | `scripts/openclaw/propagate-openclaw-to-aglwk45-qemu.sh` | Só **aglwk45**: `scp` + `vm104_guest_push_openclaw_json.py` no Proxmox (`AGLSRV1_HOST`, `AGLWK45_VMID`) |
 | `scripts/openclaw/vm104_guest_push_openclaw_json.py` | No **AGLSRV1**: `qm guest exec` — escreve `openclaw.json` completo no guest (backup `.bak.propagate-*`) |

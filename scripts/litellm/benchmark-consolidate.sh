@@ -7,18 +7,16 @@
 # =============================================================================
 set -euo pipefail
 
-declare -A HOSTS
-HOSTS[agldv03]="100.94.221.87"
-HOSTS[agldv04]="100.113.9.98"
-HOSTS[agldv12]="100.71.217.115"
-HOSTS[fgsrv06]="100.83.51.9"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=_litellm-sync-common.sh
+source "${SCRIPT_DIR}/_litellm-sync-common.sh"
 
 MODELS_FULL="glm-flash glm deepseek claude-haiku gemini-2.0 qwen-turbo qwen-plus glm-air qwen3.5-plus"
 MODELS_FREE="glm-flash glm-air qwen-turbo qwen-plus qwen3.5-plus"
 
 [[ "${1:-}" == "--free" ]] && { MODELS="$MODELS_FREE"; shift; } || MODELS="$MODELS_FULL"
 OUTPUT_DIR="${1:-}"
-[[ -n "$OUTPUT_DIR" ]] || OUTPUT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/docs/litellm-benchmark"
+[[ -n "$OUTPUT_DIR" ]] || OUTPUT_DIR="${LITELLM_REPO_ROOT}/docs/litellm-benchmark"
 mkdir -p "$OUTPUT_DIR"
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -31,13 +29,13 @@ echo "=== Benchmark consolidado — coletando dados ==="
 echo "Modelos: $MODELS"
 echo ""
 
-# Uma SSH por host, todos os modelos em paralelo no remote (mais rápido)
-for host in agldv03 agldv04 agldv12 fgsrv06; do
-  ip="${HOSTS[$host]}"
+for host in ct186 agldv04 agldv12 fgsrv06; do
+  ip="${LITELLM_HOST_IPS[$host]}"
+  env_dir="$(litellm_remote_dir "$host")"
   echo "  Coletando $host ($ip)..."
 
-  raw=$(ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${ip}" bash -s -- $MODELS <<'REMOTE'
-    KEY=$(grep "^LITELLM_MASTER_KEY=" /opt/litellm/.env 2>/dev/null | cut -d= -f2-)
+  raw=$(ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${ip}" "ENV_DIR=${env_dir} bash -s" -- $MODELS <<'REMOTE'
+    KEY=$(grep "^LITELLM_MASTER_KEY=" "${ENV_DIR}/.env" 2>/dev/null | cut -d= -f2-)
     KEY="${KEY:-sk-litellm-default}"
     for m in "$@"; do
       p="{\"model\":\"$m\",\"messages\":[{\"role\":\"user\",\"content\":\"Responda apenas: OK\"}],\"max_tokens\":10}"
@@ -63,7 +61,7 @@ echo ""
 echo "=== Gerando relatório consolidado ==="
 
 # CSV
-echo "model,agldv03,agldv04,agldv12,fgsrv06" > "$CSV_FILE"
+echo "model,ct186,agldv04,agldv12,fgsrv06" > "$CSV_FILE"
 
 # Markdown
 {
@@ -72,14 +70,14 @@ echo "model,agldv03,agldv04,agldv12,fgsrv06" > "$CSV_FILE"
   echo "**Data:** $(date -Iseconds)"
   echo "**Modelos:** $MODELS"
   echo ""
-  echo "| Modelo | agldv03 | agldv04 | agldv12 | fgsrv06 |"
-  echo "|--------|---------|---------|---------|--------|"
+  echo "| Modelo | ct186 | agldv04 | agldv12 | fgsrv06 |"
+  echo "|--------|-------|---------|---------|---------|"
 } > "$MD_FILE"
 
 for m in $MODELS; do
   row=" $m "
   csv_row="$m"
-  for host in agldv03 agldv04 agldv12 fgsrv06; do
+  for host in ct186 agldv04 agldv12 fgsrv06; do
     v="${RESULTS["${host}:${m}"]:--}"
     if [[ "$v" =~ ^[0-9]+$ ]]; then
       cell=" ${v}ms "

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Prepara CT242 vazio (ou recém-instalado) para receber sync CT189 → 242.
+# Prepara CT548 evonexus (fgsrv7; antes CT242) para receber sync CT189 → 548.
 # Instala Docker e dependências; não copia dados EvoNexus.
 #
 # Uso no fgsrv7 (host Proxmox):
 #   bash scripts/proxmox/bootstrap-ct242-evonexus.sh
-#   CTID=242 bash scripts/proxmox/bootstrap-ct242-evonexus.sh
+#   CTID=548 bash scripts/proxmox/bootstrap-ct242-evonexus.sh
 #
 # Depois: bash scripts/proxmox/pct-sync-evonexus-189-to-242.sh
 
 set -euo pipefail
 
-CTID="${CTID:-242}"
+CTID="${CTID:-548}"
 
 require_pct() {
   command -v pct >/dev/null || { echo "ERRO: pct — correr no Proxmox fgsrv7" >&2; exit 1; }

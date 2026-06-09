@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Orquestra smoke Claude no EvoNexus (CT242): copia script para o contentor e corre matriz modelo×agente.
-# Executar num host com `pct` (ex.: fgsrv7) e com o CT242 a correr Docker EvoNexus.
+# Orquestra smoke Claude no EvoNexus (CT548; antes CT242).
+# Executar num host com `pct` (ex.: fgsrv7) e com o CT548 a correr Docker EvoNexus.
 #
 # Uso (a partir da raiz do agl-hostman):
 #   bash scripts/evonexus/run-ct242-claude-smoke-matrix.sh
 #
 # Variáveis opcionais (override):
-#   CT_ID=242 DASHBOARD_CT=evonexus-dashboard
+#   CT_ID=548 DASHBOARD_CT=evonexus-dashboard
 #   EVONEXUS_SMOKE_MODELS="glm-4.7-flash,gpt-5.5"   # omissão = glm-4.7-flash (default EvoNexus)
 #   EVONEXUS_SMOKE_AGENTS="jarvis,atlas-project,hawk-debugger"
 #   EVONEXUS_SMOKE_PROMPT="informe sobre o avanço dos projetos"
@@ -14,7 +14,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-CT_ID="${CT_ID:-242}"
+CT_ID="${CT_ID:-548}"
 CONTAINER="${DASHBOARD_CT:-evonexus-dashboard}"
 SCRIPT_SRC="${ROOT}/scripts/evonexus/claude-agents-smoke.py"
 SCRIPT_CT="/root/claude-agents-smoke.py"

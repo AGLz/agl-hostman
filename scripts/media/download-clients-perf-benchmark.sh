@@ -5,6 +5,8 @@
 # Uso:
 #   bash scripts/media/download-clients-perf-benchmark.sh
 #   bash scripts/media/download-clients-perf-benchmark.sh --skip-optimize
+#   bash scripts/media/download-clients-perf-benchmark.sh --skip-optimize --skip-sab
+#   (--only-torrent = alias de --skip-sab; aria2/qBit/Deluge continuam)
 
 set -euo pipefail
 
@@ -14,10 +16,10 @@ TORRENT_URL="${TORRENT_URL:-https://cdimage.debian.org/debian-cd/current/amd64/b
 TORRENT_NAME="${TORRENT_NAME:-debian-13.5.0-amd64-netinst.iso}"
 SAB_TEST_NZB_URL="${SAB_TEST_NZB_URL:-https://sabnzbd.org/tests/test_download_100MB.nzb}"
 SKIP_OPTIMIZE=false
-ONLY_TORRENT="${BENCHMARK_ONLY_TORRENT:-0}"
+SKIP_SAB=false
 for a in "$@"; do
   [[ "$a" == --skip-optimize ]] && SKIP_OPTIMIZE=true
-  [[ "$a" == --only-torrent ]] && ONLY_TORRENT=1
+  [[ "$a" == --only-torrent || "$a" == --skip-sab ]] && SKIP_SAB=true
 done
 
 if [[ "$SKIP_OPTIMIZE" != true ]]; then
@@ -39,13 +41,13 @@ scp -q -o BatchMode=yes "$REPO_ROOT/scripts/media/_bench_qbit_ct121.py" "${AGLSR
 RESULT_REMOTE="/tmp/agl-download-perf-$(date +%Y%m%d-%H%M%S).txt"
 echo "Relatório remoto: $RESULT_REMOTE"
 
-ssh -o ConnectTimeout=15 -o BatchMode=yes "$AGLSRV1" "bash -s" "$RESULT_REMOTE" "$TORRENT_NAME" "$SAB_TEST_NZB_URL" "$TORRENT_HASH" "$ONLY_TORRENT" <<'REMOTE'
+ssh -o ConnectTimeout=15 -o BatchMode=yes "$AGLSRV1" "bash -s" "$RESULT_REMOTE" "$TORRENT_NAME" "$SAB_TEST_NZB_URL" "$TORRENT_HASH" "$SKIP_SAB" <<'REMOTE'
 set -euo pipefail
 RESULT="$1"
 TORRENT_NAME="$2"
 SAB_TEST_NZB_URL="$3"
 TORRENT_HASH="$4"
-ONLY_TORRENT="${5:-0}"
+SKIP_SAB="${5:-false}"
 TORRENT="/tmp/bench-test.torrent"
 REPORT="$RESULT"
 
@@ -87,7 +89,6 @@ pct push 121 "$TORRENT" /tmp/bench-test.torrent
 pct push 157 "$TORRENT" /tmp/bench-test.torrent
 pct push 123 "$TORRENT" /tmp/bench-test.torrent
 
-if [[ "$ONLY_TORRENT" != 1 ]]; then
 log "=== aria2 CT165 (download completo) ==="
 START=$(date +%s)
 pct exec 165 -- bash -s "$TORRENT_NAME" <<'IN' | tee -a "$REPORT"
@@ -113,7 +114,6 @@ fi
 IN
 log "CT165 elapsed_sec=$(($(date +%s)-START))"
 log ""
-fi
 
 log "=== qBittorrent CT121 (download fresco, API localhost) ==="
 pct exec 121 -- mkdir -p /mnt/overpower/downs/bench-qbit
@@ -164,7 +164,7 @@ else
 fi
 log ""
 
-if [[ "$ONLY_TORRENT" != 1 ]]; then
+if [[ "$SKIP_SAB" != true ]]; then
 log "=== SABnzbd CT141 (NZB teste ~100 MiB) ==="
 SAB_KEY=$(pct exec 123 -- python3 -c "import json,sqlite3;c=sqlite3.connect('/var/lib/radarr/radarr.db');print(json.loads(c.execute(\"SELECT Settings FROM DownloadClients WHERE Name='SABnzbd AGLSRV1'\").fetchone()[0])['apiKey'])")
 SAB_NZB="${SAB_TEST_NZB_URL}"

@@ -16,7 +16,7 @@ ENV_PATH = Path("/workspace/config/.env")
 PROV_PATH = Path("/workspace/config/providers.json")
 
 # Alias LiteLLM AGL — omissão em .env: estável no terminal (API Anthropic + Read/tools; ver docstring).
-DEFAULT_ANTHROPIC_MODEL = "glm-4.7-flash"
+DEFAULT_ANTHROPIC_MODEL = "agl-primary"
 
 
 def normalize_anthropic_base_url(url: str) -> str:
@@ -65,7 +65,8 @@ def main() -> None:
         patch["ANTHROPIC_BASE_URL"] = u.replace("/v1", "") if "/v1" in u else u
 
     if patch.get("ANTHROPIC_BASE_URL"):
-        patch["ANTHROPIC_BASE_URL"] = normalize_anthropic_base_url(patch["ANTHROPIC_BASE_URL"])
+        patch["ANTHROPIC_BASE_URL"] = normalize_anthropic_base_url(
+            patch["ANTHROPIC_BASE_URL"])
 
     base_url = (patch.get("ANTHROPIC_BASE_URL") or "").strip()
     official_anthropic = bool(base_url and "api.anthropic.com" in base_url)
@@ -83,9 +84,11 @@ def main() -> None:
     )
     patch["ANTHROPIC_MODEL"] = model
     if not patch.get("ANTHROPIC_DEFAULT_HAIKU_MODEL"):
-        patch["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = env.get("ANTHROPIC_DEFAULT_HAIKU_MODEL") or model
+        patch["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = env.get(
+            "ANTHROPIC_DEFAULT_HAIKU_MODEL") or model
     if not patch.get("ANTHROPIC_DEFAULT_SONNET_MODEL"):
-        patch["ANTHROPIC_DEFAULT_SONNET_MODEL"] = env.get("ANTHROPIC_DEFAULT_SONNET_MODEL") or model
+        patch["ANTHROPIC_DEFAULT_SONNET_MODEL"] = env.get(
+            "ANTHROPIC_DEFAULT_SONNET_MODEL") or model
     if not patch.get("CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY"):
         patch["CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY"] = env.get(
             "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY", "1"

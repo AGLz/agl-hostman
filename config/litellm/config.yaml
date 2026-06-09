@@ -1,6 +1,5 @@
-# Ollama: VM110 agl-ollama (AGLSRV1). LiteLLM CT186 usa Tailscale (não LAN 192.168.0.200).
-# Activo: aglsrv1-ollama 100.74.118.51:11434 | VM110 GPU (offline): aglsrv1-ollama-gpu 100.116.57.111
-# Ollama VM110: um único modelo local `qwen3:4b` (agl-primary + aliases ollama-qwen3-4b). Limites: scripts/aglsrv1/vm110-ollama-override.conf.
+# Ollama VM310 (AGLSRV3): RX580 8GB — qwen3:8b @ LAN 192.168.15.210; Tailscale 100.86.209.11:11434 (aglsrv3-ollama)
+# VM110 (AGLSRV1) permanece parada (GTX1650 instável). Ver docs/AGL-OLLAMA-VM310.md, scripts/aglsrv3/
 #
 # Z.AI (docs.z.ai): três bases úteis — (1) OpenAI-compat aggregado `https://api.z.ai/api/openai/v1` (entradas zai/glm-* abaixo);
 # (2) PaaS geral `https://api.z.ai/api/paas/v4`; (3) GLM Coding Plan `https://api.z.ai/api/coding/paas/v4` (subscrição Coding; política de uso
@@ -8,6 +7,9 @@
 # Claude Code via LiteLLM: usar `zai-glm-5` / `zai-glm-flash` (Anthropic-compat `https://api.z.ai/api/anthropic`) — o OpenAI-compat devolve 404 para GLM.
 # GLM-4.7-Flash / glm-flash: usar Z.AI Anthropic-compat (`api.z.ai/api/anthropic`) — OpenAI-compat e PaaS v4 devolvem 404/rate-limit/ content vazio.
 # Hermes CT188 (2026-05-30): OpenAI quota esgotada até ~2026-06-01 — quartet usa `groq-llama-31-8b`, fallback `or-nemotron-super-free`, aux `zai-glm-flash` (Z.AI Anthropic). Após quota OpenAI: Jarvis `gpt-5-mini`, agentes `glm-4.7-flash`.
+#
+# Política de routing (2026-06): **paid → local → free**. Subscrições/API: Anthropic, OpenAI, Z.AI (incl. Coding Plan), DeepSeek, Kimi, Gemini.
+# Free (Groq, OpenRouter :free, glm-4.7-flash) só como fallback ou burst. Matriz: docs/LITELLM-MODEL-TIERS.md
 #
 # DashScope (Alibaba Cloud): DESACTIVADO 2026-05 (fatura 5k+; ~99% era qwen3-coder-plus).
 # Alias qwen-coder / qwen/qwen-coder → DeepSeek V3.2 (NÃO chamar DashScope). Outros qwen* → Z.AI/Ollama/OpenRouter.
@@ -46,12 +48,12 @@ litellm_settings:
   - glm-flash:
     - kimi
     - deepseek
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
     - gemini
   - glm-4.7-flash:
     - groq-llama-31-8b
     - or-nemotron-super-free
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
   - zai/glm-4.7-flash:
     - groq-llama-31-8b
     - glm-4.7-flash
@@ -68,7 +70,7 @@ litellm_settings:
   - zai-glm-flash:
     - groq-llama-31-8b
     - or-nemotron-super-free
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
   - deepseek:
     - kimi
     - glm-flash
@@ -108,15 +110,17 @@ litellm_settings:
     - gemini
   - qwen-coder:
     - groq-llama-31-8b
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
     - or-nemotron-super-free
     - glm-flash
   fallbacks:
   - agl-primary:
-    - or-mistral-small-free
-    - gemini-lite
+    - groq-llama-31-8b
+    - zai-glm-flash
     - glm-4.7-flash
-    - or-gemma-3-4b-free
+    - zai-glm-5
+    - deepseek
+    - or-nemotron-super-free
   - openai/ollama-qwen3-4b:
     - glm-4.7-flash
     - glm-flash
@@ -125,46 +129,94 @@ litellm_settings:
     - glm-4.7-flash
     - glm-flash
     - or-nemotron-super-free
+  - ollama-qwen3-8b:
+    - ollama-qwen3-4b-fast
+    - groq-llama-31-8b
+    - glm-4.7-flash
+  - ollama-qwen3-4b-fast:
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
+    - glm-4.7-flash
+  - ollama-qwen35-9b:
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
+    - glm-4.7-flash
+  - ollama-llama31-8b:
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
+    - glm-4.7-flash
+  - ollama-mistral-7b:
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
+    - glm-4.7-flash
+  - ollama-qwen25-coder-7b:
+    - ollama-qwen3-8b
+    - deepseek
+    - glm-4.7-flash
+  - ollama-deepseek-r1-8b:
+    - ollama-qwen3-8b
+    - deepseek
+    - glm-4.7-flash
+  - ollama-gemma2-9b:
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
+    - glm-4.7-flash
   - claude-opus:
-    - glm-flash
-    - glm-flash
+    - claude-sonnet
+    - glm-5
+    - gpt-5.4-mini
+    - deepseek
+    - glm-4.7-flash
     - or-nemotron-super-free
-    - or-minimax-m2.5-free
   - claude-opus-4-7:
-    - glm-flash
-    - glm-flash
+    - claude-opus-4-6
+    - claude-sonnet
+    - glm-5
+    - gpt-5.4-mini
+    - glm-4.7-flash
     - or-nemotron-super-free
-    - or-minimax-m2.5-free
   - claude-opus-4-6:
-    - glm-flash
-    - glm-flash
+    - claude-sonnet
+    - glm-5
+    - gpt-5.4-mini
+    - glm-4.7-flash
     - or-nemotron-super-free
-    - or-minimax-m2.5-free
   - claude-sonnet:
-    - glm-flash
-    - glm-flash
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - claude-haiku
+    - deepseek
+    - glm-4.7-flash
   - claude-sonnet-4-6:
-    - glm-flash
-    - glm-flash
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - claude-haiku
+    - glm-4.7-flash
   - claude-sonnet-4-5-20250929:
-    - glm-flash
-    - glm-flash
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - claude-haiku
+    - glm-4.7-flash
   - claude-haiku:
-    - glm-flash
-    - glm-flash
-    - or-llama-3.3-70b-free
-    - or-gemma-3-4b-free
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - deepseek
+    - glm-4.7-flash
   - claude-haiku-4-5-20251001:
-    - glm-flash
-    - glm-flash
-    - or-llama-3.3-70b-free
-    - or-gemma-3-4b-free
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - deepseek
+    - glm-4.7-flash
   - zai/glm-4.5-flash:
     - glm-flash
     - glm-flash
@@ -177,7 +229,7 @@ litellm_settings:
   - glm-4.7-flash:
     - groq-llama-31-8b
     - or-nemotron-super-free
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
   - zai/glm-5:
     - gpt-5-nano
     - gpt-4o-mini
@@ -206,10 +258,12 @@ litellm_settings:
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - glm-5:
-    - glm-flash
-    - glm-flash
+    - zai-glm-5
+    - gpt-5.4-mini
+    - deepseek
+    - claude-haiku
+    - glm-4.7-flash
     - or-nemotron-super-free
-    - or-minimax-m2.5-free
   - glm-5-turbo:
     - glm-flash
     - glm-flash
@@ -225,27 +279,44 @@ litellm_settings:
     - glm-flash
     - or-nemotron-super-free
   - cursor-composer:
-    - cursor-glm-5
+    - zai-glm-5
+    - glm-5
+    - zai-coding-glm-4.7
+    - agl-primary
+    - claude-haiku
     - cursor-deepseek
-    - glm-flash
-    - glm-flash
+    - glm-4.7-flash
+    - groq-llama-31-8b
   - cursor-composer-2-fast:
-    - cursor-glm-5
+    - zai-glm-5
+    - glm-5
+    - zai-coding-glm-4.7
+    - agl-primary
+    - claude-haiku
     - cursor-deepseek
-    - glm-flash
-    - glm-flash
+    - glm-4.7-flash
+    - groq-llama-31-8b
   - cursor-claude-sonnet:
-    - cursor-glm-5
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
     - cursor-deepseek
-    - or-nemotron-super-free
+    - glm-4.7-flash
   - cursor-claude-opus:
-    - cursor-glm-5
-    - cursor-deepseek
-    - or-nemotron-super-free
+    - cursor-claude-sonnet
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - glm-4.7-flash
   - cursor-glm-5:
+    - zai-glm-5
+    - zai-coding-glm-4.7
+    - agl-primary
+    - gpt-5.4-mini
     - cursor-deepseek
-    - or-nemotron-super-free
-    - or-llama-3.3-70b-free
+    - glm-4.7-flash
   - deepseek:
     - glm-flash
     - glm-flash
@@ -298,12 +369,15 @@ litellm_settings:
     - gpt-5.4-mini
     - gpt-5-nano
   - gpt-5-mini:
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - claude-haiku
+    - glm-4.7-flash
     - groq-llama-31-8b
-    - or-nemotron-super-free
-    - ollama-qwen3-4b
   - groq-llama-31-8b:
     - or-nemotron-super-free
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
     - glm-flash
   - gpt-5.4:
     - glm-flash
@@ -311,10 +385,14 @@ litellm_settings:
     - or-nemotron-super-free
     - or-minimax-m2.5-free
   - gpt-5.4-mini:
-    - glm-flash
-    - glm-flash
-    - or-nemotron-super-free
-    - or-minimax-m2.5-free
+    - zai-glm-5
+    - glm-5
+    - zai-coding-glm-4.7
+    - agl-primary
+    - claude-haiku
+    - deepseek
+    - glm-4.7-flash
+    - groq-llama-31-8b
   - deepseek-4:
     - glm-flash
     - glm-flash
@@ -352,7 +430,7 @@ litellm_settings:
     - or-llama-3.3-70b-free
   - qwen-coder:
     - groq-llama-31-8b
-    - ollama-qwen3-4b
+    - groq-llama-31-8b
     - or-nemotron-super-free
     - glm-flash
   - qwen-turbo:
@@ -436,17 +514,19 @@ model_list:
     tpm: 100000
   model_name: infra-agent
 - litellm_params:
-    api_base: http://100.74.118.51:11434
-    model: ollama/qwen3:4b
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen3:8b
+    think: false
+    timeout: 120
     stream: true
-    timeout: 30
+    max_tokens: 8192
   model_info:
-    access: ollama
-    context_window: 32768
+    access: direct
+    context_window: 8192
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Primário AGL — Qwen3 4B local via Ollama (Tailscale aglsrv1-ollama 100.74.118.51:11434)
+    note: Primário AGL — Ollama qwen3:8b VM310 AGLSRV3 (RX580 8GB); TS 100.86.209.11
     output_cost_per_token: 0
   model_name: agl-primary
 - litellm_params:
@@ -879,35 +959,30 @@ model_list:
     output_cost_per_token: 4.2e-07
   model_name: cursor-deepseek
 - litellm_params:
-    api_base: https://api.z.ai/api/openai/v1
-    api_key: os.environ/ZAI_API_KEY
-    model: openai/glm-4.7-flash
-    max_tokens: 1024
-    timeout: 30
+    api_key: os.environ/OPENAI_API_KEY
+    model: openai/gpt-5.4-mini
+    max_tokens: 16384
+    timeout: 120
   model_info:
     access: direct
-    context_window: 131072
-    description: 'Composer → Z.AI GLM-4.7-Flash (FREE); fallback LiteLLM: GLM-5 /
-      DeepSeek / OR'
-    free_tier: true
-    input_cost_per_token: 0
+    context_window: 400000
+    description: 'Cursor Composer → OpenAI gpt-5.4-mini (subscrição OpenAI API); aliases gpt-5.3-chat-latest'
     max_tokens: 16384
-    output_cost_per_token: 0
+    subscription: openai
+    tier: paid
   model_name: cursor-composer
 - litellm_params:
-    api_base: https://api.z.ai/api/openai/v1
-    api_key: os.environ/ZAI_API_KEY
-    model: openai/glm-4.7-flash
-    max_tokens: 1024
-    timeout: 30
+    api_key: os.environ/OPENAI_API_KEY
+    model: openai/gpt-5.4-mini
+    max_tokens: 16384
+    timeout: 120
   model_info:
     access: direct
-    context_window: 131072
-    description: Composer 2 Fast → Z.AI GLM-4.7-Flash (FREE)
-    free_tier: true
-    input_cost_per_token: 0
+    context_window: 400000
+    description: Cursor Composer 2 Fast → OpenAI gpt-5.4-mini (mesmo backend que cursor-composer)
     max_tokens: 16384
-    output_cost_per_token: 0
+    subscription: openai
+    tier: paid
   model_name: cursor-composer-2-fast
 - litellm_params:
     api_key: os.environ/OPENAI_API_KEY
@@ -1262,29 +1337,157 @@ model_list:
     max_tokens: 65536
   model_name: groq-gpt-oss-120b-k2
 - litellm_params:
-    api_base: http://100.74.118.51:11434
-    model: ollama/qwen3:4b
-    stream: true
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen3:8b
+    think: false
     timeout: 120
+    stream: true
+    max_tokens: 8192
   model_info:
-    access: ollama
-    context_window: 32768
+    access: direct
+    context_window: 8192
     free_tier: true
     max_tokens: 8192
-    note: Alias LiteLLM — mesmo backend que agl-primary (ollama/qwen3:4b)
+    note: Alias ollama-qwen3-4b → qwen3:8b VM310 AGLSRV3 (nome legado)
   model_name: ollama-qwen3-4b
 - litellm_params:
-    api_base: http://100.74.118.51:11434
-    model: ollama/qwen3:4b
-    stream: true
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen3:8b
+    think: false
     timeout: 120
+    stream: true
+    max_tokens: 8192
   model_info:
-    access: ollama
-    context_window: 32768
+    access: direct
+    context_window: 8192
     free_tier: true
     max_tokens: 8192
-    note: Prefixo openai/ — mesmo backend qwen3:4b
+    note: Alias openai/ollama-qwen3-4b → qwen3:8b VM310 AGLSRV3 (nome legado)
   model_name: openai/ollama-qwen3-4b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen3:8b
+    think: false
+    timeout: 120
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 qwen3:8b explícito (agl-primary); TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-qwen3-8b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen3:4b
+    think: false
+    timeout: 90
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 qwen3:4b — rápido (~38 tok/s); TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-qwen3-4b-fast
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen3.5:9b
+    think: false
+    timeout: 180
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 qwen3.5:9b (~6.6 GB); TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-qwen35-9b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/llama3.1:8b
+    timeout: 120
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 llama3.1:8b; TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-llama31-8b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/mistral:7b
+    timeout: 120
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 mistral:7b — JSON/agents; TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-mistral-7b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/qwen2.5-coder:7b
+    timeout: 120
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 qwen2.5-coder:7b; TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-qwen25-coder-7b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/deepseek-r1:8b
+    think: false
+    timeout: 180
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 deepseek-r1:8b raciocínio; TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-deepseek-r1-8b
+- litellm_params:
+    api_base: http://100.86.209.11:11434
+    model: ollama/gemma2:9b
+    timeout: 120
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 gemma2:9b; TS 100.86.209.11
+    output_cost_per_token: 0
+  model_name: ollama-gemma2-9b
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY
     max_tokens: 2048

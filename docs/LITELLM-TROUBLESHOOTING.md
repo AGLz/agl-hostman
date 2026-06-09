@@ -1,7 +1,8 @@
 # LiteLLM — Troubleshooting
 
-> **Last Updated**: 2026-03-25  
-> **Host**: agldv03 (100.94.221.87) — porta 4000
+> **Last Updated**: 2026-06-05  
+> **Host canónico**: CT186 (agl-litellm) — LAN `http://192.168.0.186:4000`, Tailscale `http://100.125.249.8:4000`, path `/opt/agl-litellm`  
+> **agldv03 (CT179):** LiteLLM descontinuado — não troubleshootar `:4000` em `100.94.221.87`
 
 ## Diagnóstico rápido
 
@@ -33,19 +34,19 @@ curl -s -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://localhost:4000/mod
 
 **OpenClaw (2026.3.x) — `models.providers.*.apiKey`**: usar o marcador **`LITELLM_API_KEY`** (nome exacto da variável de ambiente), **não** a string literal `${LITELLM_MASTER_KEY}` (não é expandida e o LiteLLM recebe Bearer inválido → 401 ou respostas vazias). O script `scripts/openclaw/ensure-litellm-gateway-env-from-opt.sh` alinha `litellm-gateway.env`, `models.json` do agente e **`openclaw.json`**; `sync-systemd-openclaw-env.sh` exporta `LITELLM_API_KEY` para o systemd do gateway.
 
-**Causa**: O cliente (OpenClaw na VM Windows) envia **`sk-litellm-default`** como Bearer, mas o LiteLLM em **produção** usa outro valor em **`LITELLM_MASTER_KEY`** (ficheiro **`/opt/litellm/.env`** no agldv03). O placeholder `sk-litellm-default` só é válido se o proxy estiver configurado **explicitamente** com essa string.
+**Causa**: O cliente envia **`sk-litellm-default`** como Bearer, mas o LiteLLM em **produção (CT186)** usa outro valor em **`LITELLM_MASTER_KEY`** (ficheiro **`/opt/agl-litellm/.env`**). O placeholder `sk-litellm-default` só é válido se o proxy estiver configurado **explicitamente** com essa string.
 
-**Verificação no gateway**:
+**Verificação no gateway (CT186)**:
 ```bash
-# No agldv03 — deve ser 200 e JSON de modelos (substitua pela chave real do .env)
-grep ^LITELLM_MASTER_KEY= /opt/litellm/.env
-curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer COPIE_A_CHAVE_AQUI" http://127.0.0.1:4000/v1/models
+# Via Proxmox — substitua pela chave real do .env
+ssh root@100.107.113.33 'pct exec 186 -- grep ^LITELLM_MASTER_KEY= /opt/agl-litellm/.env'
+curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer COPIE_A_CHAVE_AQUI" http://100.125.249.8:4000/v1/models
 ```
 
 **Correção (aglwk45)**:
 1. Obter **`LITELLM_MASTER_KEY`** real (mesma linha que o container `litellm-proxy` usa).
 2. No `openclaw.json`, em **todos** os `models.providers.*` que apontam ao proxy LiteLLM, definir **`apiKey`** igual a essa chave (não usar `sk-litellm-default` se o servidor não a usar).
-3. Se os providers usam **`http://localhost:4000`** mas o LiteLLM corre no **agldv03**, alterar **`baseUrl`** para **`http://100.94.221.87:4000`** (Tailscale/LAN conforme a tua rede).
+3. Se os providers usam **`http://localhost:4000`** mas o LiteLLM corre no **CT186**, alterar **`baseUrl`** para **`http://100.125.249.8:4000`** (Tailscale) ou **`http://192.168.0.186:4000`** (LAN).
 
 **Automático (recomendado)**: na wk45, em Git Bash a partir do repo:
 
@@ -224,13 +225,13 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 **Se ~/.config/environment.d/** tem ANTHROPIC_API_KEY=896f..., remova ou corrija para sk-litellm-default.
 
-**Em hosts cliente** (agldv04/05/06): `LITELLM_GATEWAY_URL=http://100.94.221.87:4000`
+**Em hosts cliente** (sem LiteLLM local): `LITELLM_GATEWAY_URL=http://100.125.249.8:4000` (CT186 Tailscale) ou `http://192.168.0.186:4000` (LAN)
 
 ---
 
 ### 8a. agldv04 — Erro ao usar Claude Code/Claude-Flow após `cclitellm`
 
-**Causa**: O `cclitellm` antigo usava `sk-litellm-default` fixo, mas o LiteLLM em execução espera a chave de `/opt/litellm/.env` (ex: `sk-your-secure-master-key`). Ou o `.claude/settings.json` usa localhost enquanto o LiteLLM está em agldv03.
+**Causa**: O `cclitellm` antigo usava `sk-litellm-default` fixo, mas o LiteLLM em execução (CT186) espera a chave de `/opt/agl-litellm/.env`. Ou o `.claude/settings.json` usa localhost sem stack local.
 
 **Solução** (uma das opções):
 
@@ -253,18 +254,19 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
    ```bash
    # No agldv04 — deve retornar lista de modelos
    curl -s -H "Authorization: Bearer sk-litellm-default" \
-        http://100.94.221.87:4000/v1/models | jq -r '.data[].id' | head -5
+        http://100.125.249.8:4000/v1/models | jq -r '.data[].id' | head -5
    ```
 
-4. **Confirmar que LiteLLM está rodando no agldv03**:
+4. **Confirmar que LiteLLM está rodando no CT186**:
    ```bash
-   ssh root@100.94.221.87 'curl -s http://localhost:4000/health/readiness'
+   curl -sf http://100.125.249.8:4000/health/readiness
+   # ou: ssh root@100.107.113.33 'pct exec 186 -- curl -sf http://127.0.0.1:4000/health/readiness'
    ```
 
 5. **Se usar `cclitellm` no terminal**: Use `source config/openclaw/zshrc-openclaw.env` e depois `cclitellm` — a função agora usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env). O Cursor iniciado pelo menu **não herda** variáveis do shell; use settings.agldv04.json para Cursor.
 
 **Erros comuns**:
-- `Connection refused` / `ECONNREFUSED` → localhost:4000 (settings errado) ou LiteLLM parado no agldv03
+- `Connection refused` / `ECONNREFUSED` → URL errada ou LiteLLM parado no CT186
 - `401 Unauthorized` → ANTHROPIC_AUTH_TOKEN com ZAI key (896f...) em vez de sk-litellm-default
 
 ---
@@ -290,7 +292,7 @@ docker compose -f docker/litellm/docker-compose.yml restart litellm-proxy
 docker compose -f docker/litellm/docker-compose.yml up -d --force-recreate litellm-proxy
 ```
 
-**Cursor**: Configurar Base URL = `http://100.94.221.87:4000` (ou localhost) e adicionar modelos custom: `cursor-claude-sonnet`, `cursor-glm-5`, `cursor-deepseek`.
+**Cursor**: Base URL = `http://100.125.249.8:4000/cursor` (ou LAN `http://192.168.0.186:4000/cursor`); modelos custom: `cursor-claude-sonnet`, `cursor-glm-5`, `cursor-deepseek`. Ver `docs/CURSOR-LITELLM-INTEGRATION.md`.
 
 ---
 

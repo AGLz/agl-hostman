@@ -1,4 +1,4 @@
-# LiteLLM em /opt/litellm (agldv03, agldv04, agldv12)
+# LiteLLM em /opt/litellm (agldv04, agldv12 — legado multi-host). Canónico: CT186 /opt/agl-litellm. agldv03 descontinuado 2026-06-05.
 services:
   litellm-db:
     image: postgres:16-alpine

@@ -1,7 +1,9 @@
 # LiteLLM Multi-Host Deployment — Local em Cada Host
 
-> **Objetivo**: LiteLLM com config e DB locais em agldv03, agldv04, agldv12 e fgsrv06.  
-> **Regra**: OpenClaw e Claude-flow em cada host usam **localhost:4000**, nunca o gateway remoto do agldv03.
+> **Objetivo**: LiteLLM em produção no **CT186** (`/opt/agl-litellm`); réplicas opcionais em agldv04, agldv12 e fgsrv06.  
+> **Canónico (2026-06):** CT186 — LAN `http://192.168.0.186:4000`, Tailscale `http://100.125.249.8:4000`.  
+> **agldv03 (CT179):** LiteLLM **descontinuado** — não deployar nem sincronizar para `/opt/litellm` neste host.  
+> **Regra (hosts com stack local):** OpenClaw e Claude-flow usam **localhost:4000** no próprio host; clientes sem stack local apontam ao **CT186**.
 
 **OpenClaw no agldv12**: o CT **agldv12** é clone do ambiente de dev; **não** deve correr o gateway OpenClaw em paralelo ao agldv03 (Telegram/bots duplicados, estado partilhado). Serviço `openclaw-gateway.service` (**systemd --user**) mantido **desativado**; ficheiros da unit renomeados para `*.disabled-on-clone` no host. LiteLLM no agldv12 pode permanecer para testes multi-host se necessário.
 
@@ -9,13 +11,14 @@
 
 ## Visão geral
 
-**Base**: agldv03 é a fonte das configs (`/opt/litellm/config.yaml`). Sync propaga para agldv04, agldv12, fgsrv06. Se agldv03 rodar do repo, copie a config para `/opt/litellm/` antes do sync.
+**Base (repo):** `config/litellm/config.yaml` no **agl-hostman** — fonte única de verdade. Deploy canónico: **CT186** via `scripts/proxmox/bootstrap-ct186-litellm.sh` (`/opt/agl-litellm`). Sync opcional para agldv04, agldv12, fgsrv06 (scripts em `scripts/litellm/`).
 
-| Host | Tailscale IP | Rede | Config | Ollama | Redis |
-|------|--------------|------|--------|--------|-------|
-| **agldv03** | 100.94.221.87 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
-| **agldv04** | 100.113.9.98 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
-| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` | 192.168.0.200 | 192.168.0.137 |
+| Host | Tailscale IP | Rede | Config / path | Ollama | Redis |
+|------|--------------|------|---------------|--------|-------|
+| **CT186** (agl-litellm) | 100.125.249.8 | LAN AGLSRV1 | `config.yaml` → `/opt/agl-litellm` | 192.168.0.200 | — |
+| **agldv03** | 100.94.221.87 | LAN AGLSRV1 | ~~`/opt/litellm`~~ **descontinuado 2026-06-05** | — | — |
+| **agldv04** | 100.113.9.98 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | 192.168.0.200 | 192.168.0.137 |
+| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | 192.168.0.200 | 192.168.0.137 |
 | **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | 100.116.57.111 (TS) | litellm-redis (Docker) |
 
 **Nota (2026-05) — Ollama VM110 agl-ollama**: um único modelo local **`ollama/qwen3:4b`** (LAN `192.168.0.200:11434`; Tailscale `100.116.57.111` em `config-remote.yaml`). CT200 LXC **descontinuado** — ver [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md). Aliases LiteLLM: `ollama-qwen3-4b` / `openai/ollama-qwen3-4b`.
@@ -47,29 +50,33 @@
 ### 2. Script de deploy
 
 ```bash
-# Do repositório agl-hostman (agldv03 ou máquina com acesso)
+# Do repositório agl-hostman (qualquer máquina com SSH aos hosts)
 ./scripts/litellm/deploy-litellm-host.sh <host>
+# Produção canónica: bootstrap CT186 — scripts/proxmox/bootstrap-ct186-litellm.sh
 # Ex: ./scripts/litellm/deploy-litellm-host.sh agldv04
 # Ex: ./scripts/litellm/deploy-litellm-host.sh fgsrv06
 ```
 
-### 3. Sync de config (agldv03 → demais)
+### 3. Sync de config (repo → hosts)
 
 ```bash
-# Propagar config do agldv03 (base) para agldv04, agldv12, fgsrv06
-./scripts/litellm/sync-config-all-hosts.sh
+# Editar config/litellm/config.yaml no repo, depois:
+./scripts/litellm/sync-litellm-repo-to-opt.sh   # repo → /opt/litellm local (se aplicável)
+./scripts/litellm/sync-config-all-hosts.sh       # agldv04, agldv12, fgsrv06 (+ CT186 quando script actualizado)
+# CT186: copiar manualmente ou scripts/proxmox/bootstrap-ct186-litellm.sh após alterar config no repo
 ```
 
 ### 4. Deploy manual (por host)
 
-#### Hosts LAN (agldv03, agldv04, agldv12)
+#### Hosts LAN (agldv04, agldv12) — legado multi-host
 
 ```bash
 # No host de destino (ex: ssh root@100.113.9.98)
 mkdir -p /opt/litellm
 cd /opt/litellm
 
-# Copiar config do agldv03 (base): scp root@100.94.221.87:/opt/litellm/config.yaml .
+# Copiar config do repo (não do agldv03 — descontinuado):
+# scp /caminho/agl-hostman/config/litellm/config.yaml .
 
 # Criar .env
 cp /caminho/agl-hostman/config/litellm/.env.example .env
@@ -121,7 +128,7 @@ export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"  # ou LITELLM_MASTER_KEY do .en
 ### Cursor / Claude Code
 
 O `.claude/settings.json` do projeto já usa `ANTHROPIC_BASE_URL=http://localhost:4000`.  
-**Não usar** `litellm-gateway-client.env` (que aponta para agldv03 remoto).
+**Não usar** `litellm-gateway-client.env` legado (apontava ao agldv03). Preferir CT186: `http://100.125.249.8:4000` ou LAN `http://192.168.0.186:4000`.
 
 ---
 
@@ -217,17 +224,16 @@ claude --model glm "teste"
 
 ## Sincronização de config
 
-**agldv03 é a base**. Para propagar alterações para os demais hosts:
+**Repo é a base**. Para propagar alterações:
 
 ```bash
-# Sync agldv03 → agldv04, agldv12, fgsrv06
+# 1. Editar config/litellm/config.yaml no agl-hostman
+# 2. Deploy CT186 (canónico)
+bash scripts/proxmox/bootstrap-ct186-litellm.sh   # ou pct exec 186 — ver LITELLM-OPENCLAW-DEDICATED-LXC.md
+# 3. Réplicas opcionais
 ./scripts/litellm/sync-config-all-hosts.sh
-
-# Apenas fgsrv06
-./scripts/litellm/sync-fgsrv06.sh
+./scripts/litellm/sync-fgsrv06.sh                 # só fgsrv06
 ```
-
-Edite a config em agldv03 (`/opt/litellm/config.yaml`) e rode o sync.
 
 ---
 
@@ -241,9 +247,13 @@ Edite a config em agldv03 (`/opt/litellm/config.yaml`) e rode o sync.
 | `config/litellm/.env.example` | Template de variáveis |
 | `config/openclaw/litellm-gateway-local.env` | LITELLM_GATEWAY_URL=localhost:4000 |
 | `scripts/openclaw/use-litellm-local.mjs` | Configura OpenClaw para local |
-| `scripts/litellm/deploy-litellm-host.sh` | Deploy em host (agldv04/12/fgsrv06 puxam config de agldv03) |
-| `scripts/litellm/sync-config-all-hosts.sh` | Sync agldv03 → agldv04, agldv12, fgsrv06 |
-| `scripts/litellm/sync-fgsrv06.sh` | Sync agldv03 → fgsrv06 (variante remota) |
+| `scripts/proxmox/bootstrap-ct186-litellm.sh` | Bootstrap inicial CT186 (Docker + `/opt/agl-litellm`) |
+| `scripts/litellm/_litellm-sync-common.sh` | Funções partilhadas (repo → hosts; paths CT186 vs /opt/litellm) |
+| `scripts/litellm/deploy-litellm-callbacks-ct186.sh` | Sync config + callbacks → CT186 (`/opt/agl-litellm`) |
+| `scripts/litellm/replicate-all-hosts.sh` | Replica config + .env do repo → CT186 + agldv04/12/fgsrv06 |
+| `scripts/litellm/deploy-litellm-host.sh` | Deploy em ct186/agldv04/12/fgsrv06 (config do repo) |
+| `scripts/litellm/sync-config-all-hosts.sh` | Sync config repo → CT186 + agldv04, agldv12, fgsrv06 |
+| `scripts/litellm/sync-fgsrv06.sh` | Sync config → fgsrv06 (variante remota) |
 | `scripts/litellm/validate-all-hosts.sh` | Valida LiteLLM em todos os hosts (health + Docker) |
 | `scripts/litellm/test-claude-code-all-hosts.sh` | Testa fluxo Claude Code (chat completion) em todos os hosts |
 | `scripts/litellm/benchmark-models-all-hosts.sh` | Benchmark multi-model (glm-flash, glm, deepseek, etc.) — ordena por latência |
@@ -253,7 +263,7 @@ Edite a config em agldv03 (`/opt/litellm/config.yaml`) e rode o sync.
 
 ## IDs de modelo (sync com repo)
 
-As listas de `model_list` seguem os identificadores das APIs (mar/2026): **OpenAI** flagship **`gpt-5.4`**; fluxo rápido **gpt-5.4-mini** com aliases LiteLLM `openai/gpt-5.3-chat-latest`, `openai/gpt-5.3-instant` e `gpt-5.3-instant` (mesmo backend). **Google** código API **`gemini-3.1-pro-preview`** (entradas `gemini-3.1-pro` / `google/*` no proxy). **Qwen (DashScope, modo OpenAI-compat):** `qwen3.5-plus-2026-02-15`, `qwen3-coder-plus`; **OpenRouter** fallback `openrouter/qwen/qwen3.5-plus-02-15` (slug diferente do DashScope). **Anthropic** `claude-*-4-6` / haiku snapshot. **Groq** (`groq-llama-33`, `groq-gpt-oss-120b`) requerem `GROQ_API_KEY` no `.env`. **OpenRouter** inclui `openrouter-free` e `openrouter-llama-3.2-3b-free`. Deploy: `config/litellm/config.yaml` → agldv03 (e clones com mesma stack); **fgsrv06** usar `config/litellm/config-remote.yaml` como `/opt/litellm/config.yaml`; depois `docker compose up -d --force-recreate litellm-proxy`.
+As listas de `model_list` seguem os identificadores das APIs (mar/2026): **OpenAI** flagship **`gpt-5.4`**; fluxo rápido **gpt-5.4-mini** com aliases LiteLLM `openai/gpt-5.3-chat-latest`, `openai/gpt-5.3-instant` e `gpt-5.3-instant` (mesmo backend). **Google** código API **`gemini-3.1-pro-preview`** (entradas `gemini-3.1-pro` / `google/*` no proxy). **Qwen (DashScope, modo OpenAI-compat):** `qwen3.5-plus-2026-02-15`, `qwen3-coder-plus`; **OpenRouter** fallback `openrouter/qwen/qwen3.5-plus-02-15` (slug diferente do DashScope). **Anthropic** `claude-*-4-6` / haiku snapshot. **Groq** (`groq-llama-33`, `groq-gpt-oss-120b`) requerem `GROQ_API_KEY` no `.env`. **OpenRouter** inclui `openrouter-free` e `openrouter-llama-3.2-3b-free`. Deploy: `config/litellm/config.yaml` → **CT186** (`/opt/agl-litellm`); réplicas agldv04/12 em `/opt/litellm`; **fgsrv06** usar `config/litellm/config-remote.yaml`; depois `docker compose up -d --force-recreate litellm-proxy`. **agldv03:** descontinuado (2026-06-05).
 
 **Maintainer**: agl-hostman  
 **Relacionado**: [CLAUDE-FLOW-LITELLM.md](CLAUDE-FLOW-LITELLM.md), [OPENCLAW.md](OPENCLAW.md), [CURSOR-LITELLM-INTEGRATION.md](CURSOR-LITELLM-INTEGRATION.md)

@@ -219,7 +219,10 @@ docker compose --profile cli run --rm openclaw-cli cron list
 2. Atualizar monitorização (endpoints Jarvis) para os novos IPs/hostnames — ver `cutoverDedicatedLxc` em `config/monitoring/jarvis-openclaw-http-endpoints.example.json`.
 3. Parar LiteLLM + OpenClaw no **agldv03** quando o tráfego estiver estável no 186/187.
 
-**Feito no agldv03 (CT179), 2026-05-01:** `docker compose down` em `/opt/litellm` e em `/root/openclaw-docker` (contentores removidos; **não** voltam após reboot do CT até alguém correr `docker compose up -d` nesses directórios). Marcadores: `/opt/litellm/.STACK_STOPPED_AGLDV03`, `/root/openclaw-docker/.STACK_STOPPED_AGLDV03`.
+**Feito no agldv03 (CT179):**
+
+- **2026-05-01:** `docker compose down` em `/opt/litellm` e `/root/openclaw-docker` (marcadores `.STACK_STOPPED_AGLDV03`).
+- **2026-06-05:** LiteLLM **descontinuado** — `docker compose down -v` em `/opt/litellm` (volume DB removido); marcador `/opt/litellm/.STACK_DECOMMISSIONED`. Todos os contentores Docker do CT179 parados com `restart=no`. **Canónico:** CT186 `http://192.168.0.186:4000` (TS `100.125.249.8:4000`).
 
 **Crontab root:** removido (`crontab -r`); backup em `/root/crontab.root.bak.2026-05-01-agldv03` — restaurar com `crontab /root/crontab.root.bak.2026-05-01-agldv03`. Ficheiro de nota: `/root/.CRONTAB_DISABLED_AGLDV03`. O daemon `cron` mantém-se ativo para entradas em `/etc/cron.d/` (sistema, ex. `php`, `cron-apt`).
 

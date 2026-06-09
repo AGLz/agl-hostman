@@ -6,15 +6,18 @@ Documentação de diagnóstico, optimização e benchmark para **qBittorrent (CT
 
 | Script | Uso |
 |--------|-----|
-| `scripts/media/download-clients-perf-optimize.sh` | Ajusta `qBittorrent.conf`, aria2, `LimitNOFILE` via systemd |
+| `scripts/media/download-clients-perf-optimize.sh` | Template **aria2 CT165**: LXC (cores/RAM/features), sysctl TCP, ulimit, qBit/Deluge/SAB/aria2 |
+| `scripts/media/download-clients-perf-optimize.sh --fine-tune` | Camada 2 (~1 Gb/s): cache/buffers qBit, aria2 split, SAB, ZFS `recordsize` — ver [`DOWNLOAD-CLIENTS-FINE-TUNING-1GBPS.md`](DOWNLOAD-CLIENTS-FINE-TUNING-1GBPS.md) |
 | `scripts/media/download-clients-perf-benchmark.sh` | Torrent Debian + aria2 + qBit + Deluge + SAB (NZB teste) |
 | `scripts/media/download-clients-perf-benchmark-qbit-deluge.sh` | Só qBit CT121 vs Deluge CT157 (download fresco, comparação MiB/s) |
-| `scripts/media/ct-download-mounts-apply.sh` | `mp0` overpower em CT121/141/157 (idempotente) |
+| `scripts/media/ct-download-mounts-apply.sh` | `mp0–mp9` iguais a CT123 Radarr em CT121/141/157/165 (`--apply --verify`) |
 | `scripts/media/ct157-deluge-auth-sync.sh` | Auth daemon Deluge alinhada ao Radarr |
 | `scripts/media/_bench_qbit_ct121.py` | qBit: apaga `bench-qbit` + torrent, re-add, reporta `peak_MiBs` / `avg_MiBs` |
 | `scripts/media/_bench_deluge_ct157.py` | Deluge: remove+re-add, `peak_MiBs` / `avg_MiBs`, poll 5 s |
 | `scripts/media/_torrent_info_hash.py` | SHA1 info-hash do `.torrent` (polling qBit) |
 | `scripts/media/ct165-aria2-improve.sh` | Hook Radarr, RPC, hardening CT165 |
+| `scripts/media/download-clients-phase-a.sh` | **Fase A:** iperf3, SAB prep/teste — ver [`DOWNLOAD-CLIENTS-ROADMAP.md`](DOWNLOAD-CLIENTS-ROADMAP.md) |
+| `scripts/media/arr-data-paths-verify.sh` | Paths TRaSH em CT121/123/124/141/165 |
 
 ```bash
 # Optimizar (requer SSH a AGLSRV1)
@@ -33,16 +36,59 @@ bash scripts/media/download-clients-perf-benchmark-qbit-deluge.sh --skip-optimiz
 
 Torrent **~1 GiB** alternativo (quando mirror responder): Arch Linux — `https://archlinux.org/download/` ou `archlinux-x86_64.iso.torrent` nos mirrors oficiais.
 
-## Resultados (2026-06-03, download fresco Debian netinst)
+## Resultados (2026-06-03, pós-mounts *arr* + fine-tune)
 
-Torrent: Debian 13.5.0 amd64 netinst (~755 MiB). **Sem alterações ao pool `overpower`**. CT121 sessão limpa ([`QBIT-ARCHIVE-SPLIT.md`](QBIT-ARCHIVE-SPLIT.md)).
+Torrent: Debian 13.5.0 amd64 netinst (~755 MiB). Mounts **mp0–mp9** = CT123 em CT121/141/157/165. Comando: `download-clients-perf-benchmark.sh --skip-optimize`
+
+| Cliente | CT | Download | Pico | Média | Notas |
+|---------|-----|----------|------|-------|-------|
+| **aria2** | 165 | **17 s** | **~76 MiB/s** (log) / **53 MiB/s** (avg report) | — | path `bench-aria2` em `/mnt/overpower/downs/` |
+| **qBittorrent** | 121 | **35 s** | **45,66 MiB/s** | **21,52 MiB/s** | WebUI **167 s** até pronta (restauro) |
+| **Deluge** | 157 | **40 s** | **24,96 MiB/s** | **18,85 MiB/s** | 8 cores |
+| **SABnzbd** | 141 | *falhou* | — | — | NZB teste cancelado (igual corridas anteriores) |
+
+Relatório: `/tmp/agl-download-perf-20260603-122136.txt` (AGLSRV1).
+
+**qBit ~2× pico** vs corrida pré-mounts (~22 MiB/s) — alinhamento `mp1` + fine-tune; aria2 mantém liderança no mesmo torrent.
+
+### Benchmark completo torrent (2026-06-03, `--skip-sab`)
+
+Torrent Debian netinst (~755 MiB). Relatório: `/tmp/agl-download-perf-20260603-192403.txt`.
+
+| Cliente | CT | Tempo | Pico | Média (download) |
+|---------|-----|-------|------|------------------|
+| **aria2** | 165 | **20 s** | **~75 MiB/s** (log) | **~52 MiB/s** (summary aria2) |
+| **qBittorrent** | 121 | 45 s | **34,79 MiB/s** | **16,73 MiB/s** |
+| **Deluge** | 157 | 60 s | 16,72 MiB/s | 12,57 MiB/s |
+
+Comando: `bash scripts/media/download-clients-perf-benchmark.sh --skip-optimize --skip-sab`
+
+**Leitura:** aria2 continua a liderar no mesmo torrent; qBit variou vs corrida das 12h (pico **45,66** → **34,79**) — swarm/carga do host (load ~10). `pct exec … ulimit -n` ainda mostra **1024**; processos do serviço têm **65535** via systemd (`prlimit` no PID do qbittorrent/deluged se precisares confirmar).
+
+### Fase A — medição de linha (2026-06-03)
+
+Script: `download-clients-phase-a.sh --apply --sab-test`. Relatório: `/tmp/agl-download-phase-a-20260603-124938.txt` (AGLSRV1).
+
+| Teste | Resultado |
+|-------|-----------|
+| iperf3 CT121 → host (4 streams, 10 s) | **~21,2 Gbit/s** agregado — veth/LAN interna não limita 1 GbE |
+| iperf3 host → 192.168.0.1 | SKIP (sem `iperf3 -s` no gateway) |
+| paths TRaSH | OK (`arr-data-paths-verify.sh`) |
+| SAB NZB oficial 100 MB | **Failed** `not-complete` — usar NZB no NNTP de produção |
+| ulimit CT121 pós `--apply` optimize | **65535** |
+
+Detalhe e checklist: [`DOWNLOAD-CLIENTS-ROADMAP.md`](DOWNLOAD-CLIENTS-ROADMAP.md).
+
+### Corrida anterior (só qBit vs Deluge, pré-mounts unificados)
+
+Torrent: Debian 13.5.0 amd64 netinst (~755 MiB). CT121 sessão limpa ([`QBIT-ARCHIVE-SPLIT.md`](QBIT-ARCHIVE-SPLIT.md)).
 
 Comando: `bash scripts/media/download-clients-perf-benchmark-qbit-deluge.sh --skip-optimize`
 
 | Cliente | CT | Tempo total | Pico | Média (download) | Notas |
 |---------|-----|-------------|------|------------------|-------|
-| **qBittorrent** | 121 | **67 s** | **22,33 MiB/s** | **12,56 MiB/s** | `bench-qbit` apagado antes do teste (`_bench_qbit_ct121.py`) |
-| **Deluge** | 157 | **32 s** | **25,54 MiB/s** | ver script corrigido | `max_download_speed: -1`; **2 vCPU**; nesta corrida pico &gt; qBit |
+| **qBittorrent** | 121 | **67 s** | **22,33 MiB/s** | **12,56 MiB/s** | `bench-qbit` apagado antes do teste |
+| **Deluge** | 157 | **32 s** | **25,54 MiB/s** | **18,85 MiB/s** | pico ligeiramente &gt; qBit |
 
 Relatório: `/tmp/agl-download-perf-20260603-114607.txt` (AGLSRV1).
 
@@ -80,16 +126,18 @@ Disco `dd` 1 GiB (overpower): CT121/141/157 ~1,4–1,7 GB/s após mounts — I/O
 - Antes: **~600 torrents** → restauro bloqueava WebUI (**5+ min**).
 - Após `optimize --apply`, **não reiniciar** qBit sem necessidade.
 
-### 2. Mounts `overpower` (aplicados 2026-06-02)
+### 2. Mounts (igual CT123 Radarr — aplicados 2026-06-03)
 
-| CT | Serviço | `mp0` |
-|----|---------|--------|
-| 121 | qBittorrent | `/overpower/base` → `/mnt/overpower` |
-| 141 | SABnzbd | `/overpower/base` → `/mnt/overpower` |
-| 157 | Deluge | `/overpower/base` → `/mnt/overpower` |
-| 165 | aria2 | `/overpower` → `/mnt/overpower` |
+| Slot | Host → CT | Uso |
+|------|-----------|-----|
+| mp0 | `/mnt/shares` → `/mnt/shares` | Partilhas |
+| mp1 | `/overpower/base` → `/mnt/overpower` | Media + `downs/` (*arr*) |
+| mp2 | `/spark/base` → `/mnt/power` | Legado |
+| mp5–mp9 | `/mnt/storage` + aliases Extracted | Biblioteca mergerfs |
 
-Script: `bash scripts/media/ct-download-mounts-apply.sh --apply` (para CTs 121, 141, 157).
+**CT121, 141, 157, 165:** perfil idêntico a CT123/124/113. Script: `bash scripts/media/ct-download-mounts-apply.sh --apply --verify`
+
+**aria2:** `dir=/mnt/overpower/downs/...` passa a gravar em `/overpower/base/downs` no host (antes `mp0` apontava à raiz `/overpower/downs` ~737 MiB legado).
 
 **Não migrar dados antigos** no pool até haver espaço livre (AGLSRV3).
 
@@ -136,11 +184,32 @@ Aplicados por `download-clients-perf-optimize.sh` (confirmar com serviço parado
 
 Ver `docs/CT165-ARIA2.md`. Parâmetros de benchmark: `split=16`, `max-connection-per-server=16`, `file-allocation=falloc`.
 
+## Template aria2 CT165 (referência para alinhar)
+
+| Parâmetro | CT165 aria2 | Alvo CT121/157/141 |
+|-----------|-------------|---------------------|
+| **cores** | 8 | 121: 8 · 157: **8** (era 2) · 141: **4** (Usenet) |
+| **memory** | 4096 MiB | 121: 8192 (mantém) · 157: **4096** · 141: 4096 |
+| **features** | fuse, mount nfs;cifs, nesting | Aplicar em 121/141/157 |
+| **mp1** | `/overpower/base` → `/mnt/overpower` | Todos os download CTs (mp0 = shares) |
+| **Peers/conexões** | split=16, bt-max-peers=80, max-concurrent=8 | qBit 300/80/8 · Deluge 300/80/8 |
+| **Disco torrent** | `file-allocation=falloc` | qBit Preallocation=false + Disk IO simple |
+| **Rede CT** | sysctl `tcp_rmem`/`wmem` elevados | `99-agl-download.conf` em todos |
+| **ulimit** | 65535 | systemd `LimitNOFILE` + limits.conf |
+
+```bash
+bash scripts/media/download-clients-perf-optimize.sh --apply
+bash scripts/media/download-clients-perf-benchmark-qbit-deluge.sh --skip-optimize
+```
+
+**Nota mp0:** aria2 grava em `/overpower/downs` (raiz do pool); qBit/Deluge/SAB usam `/overpower/base/downs` (biblioteca media). Unificar o mount quebraria os paths do Radarr sem migração.
+
 ## Deluge CT157
 
 - Daemon RPC **58846**; Web UI **8112** (não usada no benchmark).
 - Credencial: Radarr **Deluge AGLSRV1** → `ct157-deluge-auth-sync.sh`.
 - Benchmark: `scripts/media/_bench_deluge_ct157.py` (Twisted RPC; `resume_torrent` se pausado por freeze de manutenção).
+- CT157: `firewall=1` removido do `net0` no optimize (veth sem filtro PVE extra).
 
 ### Porque Deluge pode ficar ~22 MiB/s vs aria2 ~58 MiB/s (hipóteses)
 

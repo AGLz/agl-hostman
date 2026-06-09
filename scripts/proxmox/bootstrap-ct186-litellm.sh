@@ -31,7 +31,7 @@ install -m 0644 "${AGL_HOSTMAN}/docker/litellm/docker-compose.ct186.yml" /opt/ag
 install -m 0644 "${AGL_HOSTMAN}/config/litellm/config.yaml" /opt/agl-litellm/config.yaml
 
 if [[ ! -f /opt/agl-litellm/.env ]]; then
-  echo "ERRO: crie /opt/agl-litellm/.env (ex.: copie de config/litellm/.env no repo ou do agldv03)." >&2
+  echo "ERRO: crie /opt/agl-litellm/.env (ex.: copie de config/litellm/.env no repo)." >&2
   echo "       Campos típicos: OPENAI_API_KEY, LITELLM_MASTER_KEY, outras chaves referenciadas no config.yaml." >&2
   exit 1
 fi

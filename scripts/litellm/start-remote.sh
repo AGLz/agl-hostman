@@ -14,7 +14,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
-# Gateway central (agldv03)
+# Gateway central (CT186)
 export LITELLM_GATEWAY_URL="${LITELLM_GATEWAY_URL:-http://100.125.249.8:4000}"
 
 cd "$REPO_ROOT"

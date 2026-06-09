@@ -1,6 +1,6 @@
 # Cloudflared tunnel config (FGSRV7 / CT170 - cloudflared7)
 #
-# Objetivo: rotear EvoNexus (CT242) com WebSocket do terminal separado:
+# Objetivo: rotear EvoNexus (CT548; IP 192.168.70.242) com WebSocket do terminal separado:
 # - /terminal*  -> terminal-server (WebSocket) em :32352
 # - restante    -> Flask/SPA em :8080
 #

@@ -89,7 +89,7 @@ Ver [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md) para o stack completo (Ov
 | ID | Name | Purpose | Status | Networks (Priority Order) |
 |----|------|---------|--------|---------------------------|
 | **CT111** | aluzdivina | NFS Server | ✅ | TS 100.65.189.83 (PRIMARY), WG 10.6.0.20 (legacy) |
-| **CT108** | agldv06 | Development | ✅ | Tailscale only |
+| **CT608** | agldv06 | Development | ✅ | Tailscale only (ex.108) |
 | **CT113** | - | Proxmox Backup | ✅ | WG 10.6.0.14 (legacy) |
 | **CT172** | - | Proxmox Backup | ⚠️ | Host AGLSRV6B offline |
 

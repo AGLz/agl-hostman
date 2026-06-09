@@ -22,15 +22,15 @@ RADARR_KEY=$(read_key 123 radarr radarr)
 SONARR_KEY=$(read_key 124 sonarr sonarr)
 PROWLARR_KEY=$(read_key 172 prowlarr prowlarr)
 
-# Clientes que estavam activos antes do freeze (AGLSRV1)
-ENABLE_NAMES=("Aria2 AGLSRV1" "qBittorrent AGLSRV1" "SABnzbd AGLSRV1")
+# Clientes AGLSRV1 após consolidate (torrent: só qBit; Usenet: SAB)
+ENABLE_NAMES=("qBittorrent AGLSRV1" "SABnzbd AGLSRV1")
 
 enable_clients() {
   local ct=$1 port=$2 key=$3 label=$4
   pct exec "$ct" -- python3 - "$port" "$key" "$label" <<'PY'
 import json, sys, urllib.request
 port, key, label = sys.argv[1], sys.argv[2], sys.argv[3]
-want = {"Aria2 AGLSRV1", "qBittorrent AGLSRV1", "SABnzbd AGLSRV1"}
+want = {"qBittorrent AGLSRV1", "SABnzbd AGLSRV1"}
 base = f"http://127.0.0.1:{port}/api/v3/downloadclient"
 clients = json.load(urllib.request.urlopen(urllib.request.Request(base, headers={"X-Api-Key": key})))
 for c in clients:

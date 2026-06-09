@@ -39,12 +39,17 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openai/glm-4.7-flash",
+        "primary": "openai/agl-primary",
         "fallbacks": [
+          "openai/zai-glm-5",
+          "openai/glm-5",
+          "openai/zai-coding-glm-4.7",
+          "openai/gpt-5.4-mini",
+          "openai/claude-haiku",
+          "openai/deepseek",
+          "openai/glm-4.7-flash",
           "openrouter/z-ai/glm-4.5-air:free",
-          "openrouter/deepseek/deepseek-chat",
-          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
-          "openai/ollama-qwen3-4b"
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free"
         ]
       },
       "imageModel": {
@@ -77,7 +82,13 @@
         "google/gemini-3.1-pro-preview": { "alias": "gemini" },
         "openrouter/z-ai/glm-4.5-air:free": { "alias": "or-glm-air-free" },
         "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "or-llama-free" },
-        "openai/ollama-nemotron-3-nano-4b": { "alias": "nemotron-local" }
+        "openai/ollama-qwen3-4b": { "alias": "agl-primary-local" },
+        "openai/zai-glm-5": { "alias": "zai-glm-5" },
+        "openai/glm-5": { "alias": "glm-5" },
+        "openai/zai-coding-glm-4.7": { "alias": "zai-coding" },
+        "openai/gpt-5.4-mini": { "alias": "gpt-5.4-mini" },
+        "openai/claude-haiku": { "alias": "claude-haiku" },
+        "openai/agl-primary": { "alias": "agl-primary" }
       }
     }
   }

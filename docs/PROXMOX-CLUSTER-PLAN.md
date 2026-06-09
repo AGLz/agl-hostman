@@ -1,443 +1,344 @@
-# Plano de Implementação - Cluster Proxmox (AGLSRV6 + AGLSRV6C + AGLSRV6D)
+# Plano de Implementação — Cluster Proxmox (AGLSRV6 + AGLSRV6C + AGLSRV6D)
 
-> **Status**: 📋 Planejamento completo - Aguardando janela de manutenção
-> **Data de criação**: 2025-11-08
-> **Versão**: 1.0.0
+> **Status**: 📋 Plano v2.0 — Fases 0–4 executáveis após alinhamento PVE 9.x; Fase 5 requer janela  
+> **Criação**: 2025-11-08 · **Revisão**: 2026-06-03  
+> **Versão**: 2.0.0  
+> **Scripts**: [`cluster-scripts/`](../cluster-scripts/) (não `scripts/proxmox/cluster/`)
 
 ---
 
 ## 🎯 Objetivo
 
-Criar um cluster Proxmox de 3 nós com QDevice externo para alta disponibilidade:
-- **AGLSRV6** (10.6.0.12) - Nó principal (EM PRODUÇÃO)
-- **AGLSRV6C** (10.6.0.22) - Nó secundário (Novo)
-- **AGLSRV6D** (10.6.0.23) - Nó terciário (Novo)
-- **QDevice**: AGLSRV1 (10.6.0.10) - Voto externo para quorum
+Cluster Proxmox **3 nós** no site **AGLALD**, com **QDevice** em AGLSRV1 para quorum tolerante a falhas:
+
+| Papel | Host | Hostname | WG | Tailscale | LAN principal |
+|-------|------|----------|-----|-----------|---------------|
+| Produção | AGLSRV6 | man6 | 10.6.0.12 | 100.98.108.66 | 192.168.0.202 / **192.168.1.202** (vmbr2) |
+| Extensão | AGLSRV6C | man6c | 10.6.0.22 | 100.124.53.91 | 192.168.0.233 / **192.168.1.233** (vmbr2) |
+| Extensão | AGLSRV6D | man6d | 10.6.0.23 | 100.76.201.83 | 192.168.0.234 (enp2s0) |
+| QDevice | AGLSRV1 | algsrv1 | 10.6.0.10 | 100.107.113.33 | 192.168.0.245 |
+
+**Nome do cluster:** `agl-cluster`  
+**Quorum alvo:** `expected votes = 2` (configuração 2/4 com QDevice) — ver [`QUORUM-2-4-SUMMARY.md`](QUORUM-2-4-SUMMARY.md)
 
 ---
 
-## 🚨 AVISOS CRÍTICOS
+## 📸 Estado verificado (2026-06-03)
 
-### ⚠️ AGLSRV6 EM PRODUÇÃO
-**NUNCA execute comandos de cluster no AGLSRV6 fora da janela de manutenção!**
+Inventário live via Tailscale SSH:
 
-- ✅ AGLSRV6 tem 11 containers e 6 VMs em produção
-- ✅ Usuários ativos no momento
-- ✅ Executar cluster commands pode causar downtime
-- ✅ **TODO O TRABALHO DEVE SER FEITO DURANTE JANELA DE MANUTENÇÃO**
+| Nó | PVE | Kernel | Cluster | CTs | VMs | NTP |
+|----|-----|--------|---------|-----|-----|-----|
+| man6 | **8.4.16** | 6.8.12-15-pve | standalone | **14** | **6** | ✅ sync |
+| man6c | **9.0.11** | 6.14.11-4-pve | standalone | 0 | 0 | ✅ sync |
+| man6d | **9.1.5** | 6.14.11-4-pve | standalone | 0 | 0 | ✅ sync |
+| AGLSRV1 (QDevice) | 9.0.3 | 6.11.0-2-pve | — | — | — | — |
 
-### ⚠️ Impactos da Criação do Cluster
+**Latência medida (ping, 2 pacotes):**
 
-1. **Configuração /etc/pve será SOBRESCRITA**:
-   - Ao adicionar um nó ao cluster, **TODA** configuração em `/etc/pve` é substituída
-   - VMs/CTs existentes **NÃO podem estar presentes** no nó que está entrando
-   - VMIDs duplicados causarão conflitos
+| Origem → Destino | Via | RTT médio |
+|------------------|-----|-----------|
+| man6 → man6c | 192.168.1.233 (vmbr2) | **~0,16 ms** |
+| man6 → man6c | 10.6.0.22 (wg0) | ~0,44 ms |
+| man6d → man6 | 192.168.1.202 | ~0,25 ms |
+| man6d → man6 | 10.6.0.12 (wg0) | ~0,42 ms |
 
-2. **Mudança de arquitetura**:
-   - De standalone para cluster
-   - Requer sincronização de configuração via Corosync
-   - Estado de quorum passa a ser crítico
+> **Nota:** O plano v1 assumia latência WG ~30–40 ms (site remoto). Os três hosts estão **co-localizados em AGLALD**; a LAN **192.168.1.0/24** (vmbr2 man6↔man6c) é o link preferido para Corosync.
 
-3. **Network Requirements**:
-   - Portas UDP 5405-5412 (Corosync)
-   - Porta TCP 22 (SSH)
-   - Latência baixa (<10ms recomendado, temos ~30-40ms via WireGuard)
+**Pré-requisitos já concluídos (2026-06):**
 
----
-
-## 📊 Análise de Servidores
-
-### AGLSRV6 (Nó Principal - EM PRODUÇÃO)
-| Propriedade | Valor |
-|------------|-------|
-| **Hostname** | AGLSRV6 (man6) |
-| **OS** | Proxmox VE |
-| **WireGuard IP** | 10.6.0.12 |
-| **Tailscale IP** | 100.98.108.66 |
-| **Resources** | 11 CTs, 6 VMs |
-| **Storage** | 954GB (bb), 3.9TB (usb4tb), 1.2TB (PBS) |
-| **Status** | 🔴 EM PRODUÇÃO - NÃO MEXER AGORA |
-
-**Containers em Produção**:
-- CT111 (aluzdivina) - NFS server (10.6.0.20)
-- CT113 (PBS), CT172 (PBS) - Backup servers
-- CT108 (agldv06) - Development
-- CT101 (cloudflared), CT102 (meshcentral)
-
-### AGLSRV6C (Nó Secundário)
-| Propriedade | Valor |
-|------------|-------|
-| **Hostname** | man6c (aglsrv6c) |
-| **OS** | Proxmox VE 9.0 / Debian 13 |
-| **Kernel** | 6.14.11-4-pve |
-| **LAN IP** | 192.168.0.233 |
-| **WireGuard IP** | 10.6.0.22 |
-| **Tailscale IP** | 100.124.53.91 |
-| **Resources** | Novo - sem VMs/CTs |
-| **Status** | ✅ Pronto para cluster |
-
-### AGLSRV6D (Nó Terciário)
-| Propriedade | Valor |
-|------------|-------|
-| **Hostname** | man6d (aglsrv6d) |
-| **OS** | Proxmox VE 9.0.11 / Debian 13 |
-| **Kernel** | 6.14.11-4-pve |
-| **LAN IP** | 192.168.0.234 |
-| **WireGuard IP** | 10.6.0.23 |
-| **Tailscale IP** | 100.76.201.83 |
-| **Hardware** | i5-4590, 8GB RAM, 465GB SSD |
-| **Resources** | Novo - sem VMs/CTs |
-| **Status** | ✅ Pronto para cluster |
-
-### QDevice Host (AGLSRV1)
-| Propriedade | Valor |
-|------------|-------|
-| **Hostname** | algsrv1 |
-| **OS** | Proxmox VE |
-| **WireGuard IP** | 10.6.0.10 |
-| **LAN IP** | 192.168.0.245 |
-| **Tailscale IP** | 100.107.113.33 |
-| **Role** | External vote provider (QDevice) |
-| **Status** | ✅ Disponível |
+- [x] Tailscale alinhado nos 3 nós (`accept-dns=false`, `accept-routes=false`, `--ssh`)
+- [x] vmbr2 / eth2 operacional (man6, man6c; CT101/114 cloudflared)
+- [x] WireGuard mesh 10.6.0.0/24 activo nos 3 nós
+- [x] Timezone `America/Sao_Paulo` + relógio sincronizado
 
 ---
 
-## 🛣️ Estratégia de Implementação
+## 🚨 Bloqueador #1 — Versões Proxmox incompatíveis
 
-### Abordagem Conservadora (RECOMENDADA)
+**Todos os nós do cluster devem correr a mesma major (e, para join, tipicamente a mesma minor) do Proxmox VE.**
 
-**Ordem de criação do cluster:**
+| Situação actual | Impacto |
+|-----------------|---------|
+| man6 = PVE **8.4** | **Não pode** fazer join a cluster PVE 9.x |
+| man6c = 9.0.11 vs man6d = 9.1.5 | **Risco** ao criar cluster só com 6C+6D; alinhar antes |
 
-1. **AGLSRV6C** cria o cluster (novo, sem dados)
-2. **AGLSRV6D** entra no cluster
-3. **QDevice** é configurado em AGLSRV1
-4. **Testar failover** e quorum
-5. **Durante janela de manutenção**: AGLSRV6 entra no cluster
+### Decisão recomendada
 
-### Por que AGLSRV6C deve criar o cluster?
+1. **Fase 0A (sem downtime em man6):** Actualizar **man6c** de 9.0.11 → **9.1.5** (igual man6d).  
+2. **Fase 0B (janela curta em man6):** Actualizar **man6** de 8.4.16 → **9.1.x** (seguir [guia oficial de upgrade PVE 8→9](https://pve.proxmox.com/wiki/Upgrade_from_8_to_9)).  
+3. **Só então:** Fases 2–5 (cluster + join man6).
 
-✅ **Vantagens**:
-- AGLSRV6C está vazio (sem VMs/CTs)
-- Zero risco de perda de dados
-- Permite testar o cluster antes de mexer em AGLSRV6
-- AGLSRV6 continua operacional durante testes
+**Alternativa conservadora:** Executar Fases 2–4 **apenas** com man6c + man6d (ambos PVE 9.x alinhados), validar quorum/HA, e deixar man6 standalone até concluir upgrade 8→9.
 
-❌ **Desvantagens de AGLSRV6 criar o cluster**:
-- Requer migração de TODAS as VMs/CTs antes
-- Alto risco de downtime
-- Processo mais complexo e demorado
+---
+
+## 🚨 Avisos críticos (produção man6)
+
+### Nunca executar `pvecm add` no man6 fora de janela
+
+- 14 CTs + 6 VMs; serviços críticos: CT101/114 (cloudflared), CT111 (NFS aluzdivina), CT113 (PBS), CT121 (WireGuard hub), CT108 (agldv06)
+- Join sobrescreve `/etc/pve`; VMIDs duplicados entre nós causam conflito
+- CT113 com lock `backup` — verificar jobs PBS antes da janela
+
+### CTs / VMs no man6 (referência migração Fase 5)
+
+**CTs (running):** 101, 102, 108, 109, 110, 111, 113, 114, 117, 121, 201  
+**CTs (stopped):** 104, 107, 116  
+**VMs (running):** 105 (aglhq26), 200 (WinServer2016)  
+**VMs (stopped):** 100, 103, 106, 112  
+
+---
+
+## 🛣️ Estratégia de implementação (v2)
+
+```mermaid
+flowchart TD
+    P0A[Fase 0A: man6c upgrade 9.0→9.1.5]
+    P0B[Fase 0B: man6 upgrade 8.4→9.1.x]
+    P1[Fase 1: Pré-requisitos + QDevice packages]
+    P2[Fase 2: pvecm create man6c + add man6d]
+    P3[Fase 3: QDevice AGLSRV1]
+    P4[Fase 4: Testes HA / failover]
+    P5[Fase 5: pvecm add man6 — JANELA]
+
+    P0A --> P2
+    P0B --> P5
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
+```
+
+**Ordem de criação do cluster (inalterada em espírito):**
+
+1. **man6c** cria o cluster (nó vazio)
+2. **man6d** entra no cluster
+3. **QDevice** em AGLSRV1
+4. Testes HA / quorum 2/4
+5. **man6** entra **só após** PVE 9.x alinhado + janela de manutenção
+
+---
+
+## 🌐 Rede do cluster (v2 — dual-link)
+
+### Link preferido por par
+
+| Par de nós | link0 (primário) | link1 (backup) |
+|------------|------------------|----------------|
+| man6 ↔ man6c | **192.168.1.202 / .233** (vmbr2) | 10.6.0.12 / .22 (wg0) |
+| man6c ↔ man6d | 192.168.0.233 / .234 (LAN) | 10.6.0.22 / .23 (wg0) |
+| man6 ↔ man6d | 10.6.0.12 / .23 (wg0) | 192.168.0.202 / .234 se roteável |
+
+### Comandos Corosync (após alinhamento PVE 9.x)
+
+```bash
+# man6c — criar cluster (preferir LAN inter-host)
+pvecm create agl-cluster --link0 192.168.1.233 --link1 10.6.0.22
+
+# man6d — join
+pvecm add 192.168.1.233 --link0 192.168.0.234 --link1 10.6.0.23
+# ou, se vmbr2 for adicionado ao man6d: --link0 192.168.1.234
+
+# man6 — SOMENTE na janela, após upgrade PVE 9
+pvecm add 192.168.1.233 --link0 192.168.1.202 --link1 10.6.0.12
+```
+
+### Melhoria opcional — vmbr2 no man6d
+
+man6d **não tem** hoje interface em 192.168.1.0/24, mas alcança `.202` por roteamento (~0,25 ms). Para topologia simétrica e menor dependência de rotas:
+
+- Adicionar NIC/bridge **vmbr2** com IP **192.168.1.234/24** (mesmo switch que man6/man6c)
+- Actualizar `cluster-scripts/02-create-cluster.sh` para usar IPs vmbr2
+
+### Portas e firewall
+
+| Serviço | Portas | Notas |
+|---------|--------|-------|
+| Corosync | UDP 5405–5412 | Entre todos os nós |
+| SSH | TCP 22 | Join cluster (`pvecm add`) |
+| QDevice | TCP 5403 | AGLSRV1 ↔ nós cluster |
+
+Tailscale **não** substitui link Corosync — usar IPs LAN/WG directos.
 
 ---
 
 ## 📋 Pré-requisitos
 
-### 1. Verificações de Rede
+### 1. Rede
 
-- [ ] WireGuard mesh funcionando (10.6.0.0/24)
-- [ ] Conectividade entre todos os nós (ping test)
-- [ ] Portas Corosync abertas (UDP 5405-5412)
-- [ ] Porta SSH aberta (TCP 22)
-- [ ] Latência aceitável (<100ms, ideal <10ms)
+- [x] WG mesh 10.6.0.0/24
+- [x] vmbr2 192.168.1.0/24 (man6, man6c)
+- [x] Latência LAN inter-host &lt; 1 ms (medido)
+- [ ] Portas UDP 5405–5412 abertas host-a-host (testar na Fase 1)
+- [ ] SSH root entre nós (chaves) — validar man6c↔man6d↔AGLSRV1
 
-### 2. Verificações de Sistema
+### 2. Sistema
 
-- [ ] **Todos os nós com mesmo timezone** (America/Sao_Paulo)
-- [ ] **Relógios sincronizados** (NTP/timesyncd)
-- [ ] **Mesma versão do Proxmox** (ou compatível)
-- [ ] **Hostnames únicos e resolvíveis**
-- [ ] **Root password access** entre nós
+- [x] Timezone America/Sao_Paulo
+- [x] NTP sincronizado
+- [ ] **Mesma versão PVE em todos os nós do cluster** ← **bloqueador**
+- [x] Hostnames únicos: man6, man6c, man6d
+- [ ] `/etc/hosts` consistente (man6 usa `servidor6.aglz.io`; considerar aliases cluster)
 
-### 3. Verificações de Storage
+### 3. Storage
 
-- [ ] **AGLSRV6C**: Sem VMs/CTs (✅ confirmado)
-- [ ] **AGLSRV6D**: Sem VMs/CTs (✅ confirmado)
-- [ ] **AGLSRV6**: Backups de todas VMs/CTs (antes de entrar no cluster)
+- [x] man6c / man6d sem CTs/VMs
+- [ ] Backups PBS de **todos** CTs/VMs do man6 antes da Fase 5
+- [ ] Inventário storage: man6 usa local + SSHFS + PBS — **sem storage partilhado** entre nós; HA limitado a migración online se destino tiver capacidade
 
-### 4. Verificações de Software
+> **Decisão storage:** Cluster sem Ceph/NFS partilhado = **orquestração centralizada** + migração manual/planeada. NFS CT111 permanece serviço de rede, não storage Proxmox clusterizado.
 
-- [ ] `corosync-qdevice` instalado em AGLSRV1 (QDevice host)
-- [ ] `pve-ha-manager` instalado em todos os nós
-- [ ] Firewall rules configuradas (ou desabilitado para cluster traffic)
+### 4. Software
 
----
-
-## 🔧 Fases de Implementação
-
-### Fase 1: Preparação (PRÉ-JANELA DE MANUTENÇÃO)
-
-**Objetivo**: Preparar AGLSRV6C, AGLSRV6D e AGLSRV1 (QDevice)
-
-**Tempo estimado**: 30-45 minutos
-
-**Ações**:
-1. ✅ Verificar pré-requisitos em todos os nós
-2. ✅ Instalar `corosync-qdevice` em AGLSRV1
-3. ✅ Configurar firewall rules (se necessário)
-4. ✅ Sincronizar relógios (NTP)
-5. ✅ Documentar estado atual de AGLSRV6
-
-**Scripts**: `01-prerequisites.sh`
-
-### Fase 2: Criação do Cluster Base (PRÉ-JANELA)
-
-**Objetivo**: Criar cluster com AGLSRV6C e AGLSRV6D
-
-**Tempo estimado**: 15-20 minutos
-
-**Ações**:
-1. ✅ AGLSRV6C: `pvecm create agl-cluster --link0 10.6.0.22`
-2. ✅ AGLSRV6D: `pvecm add 10.6.0.22 --link0 10.6.0.23`
-3. ✅ Verificar status do cluster: `pvecm status`
-4. ✅ Verificar quorum: `pvecm nodes`
-
-**Scripts**: `02-create-cluster.sh`
-
-### Fase 3: Configuração do QDevice (PRÉ-JANELA)
-
-**Objetivo**: Adicionar voto externo para quorum
-
-**Tempo estimado**: 10-15 minutos
-
-**Ações**:
-1. ✅ AGLSRV1: Instalar `corosync-qnetd`
-2. ✅ AGLSRV6C: `pvecm qdevice setup 10.6.0.10`
-3. ✅ Verificar QDevice: `pvecm status`
-4. ✅ Testar failover: Desligar AGLSRV6D temporariamente
-
-**Scripts**: `03-setup-qdevice.sh`
-
-### Fase 4: Testes de Failover (PRÉ-JANELA)
-
-**Objetivo**: Validar que o cluster está funcionando
-
-**Tempo estimado**: 20-30 minutos
-
-**Ações**:
-1. ✅ Criar VM de teste em AGLSRV6C
-2. ✅ Habilitar HA para a VM
-3. ✅ Desligar AGLSRV6C e verificar migração automática
-4. ✅ Testar perda de quorum (desligar 2 nós)
-5. ✅ Verificar logs do cluster
-
-**Scripts**: `04-test-cluster.sh`
-
-### Fase 5: Integração do AGLSRV6 (JANELA DE MANUTENÇÃO)
-
-**Objetivo**: Adicionar AGLSRV6 ao cluster
-
-**Tempo estimado**: 1-2 horas
-
-**⚠️ REQUER JANELA DE MANUTENÇÃO ⚠️**
-
-**Ações**:
-1. 🔴 **Notificar usuários** (downtime de 1-2 horas)
-2. 🔴 **Migrar VMs/CTs críticos** para AGLSRV6C/AGLSRV6D (ou desligar)
-3. 🔴 **Backup completo** de AGLSRV6
-4. 🔴 AGLSRV6: `pvecm add 10.6.0.22 --link0 10.6.0.12`
-5. 🔴 Verificar cluster status
-6. 🔴 Migrar VMs/CTs de volta (se necessário)
-7. 🔴 Testar HA e failover
-
-**Scripts**: `05-add-aglsrv6.sh` (⚠️ SOMENTE NA JANELA DE MANUTENÇÃO)
+- [ ] `corosync-qnetd` em AGLSRV1
+- [ ] `pve-ha-manager` nos nós cluster
+- [ ] Actualizar `cluster-scripts/01-prerequisites.sh` para validar versão PVE e latência vmbr2
 
 ---
 
-## 🌐 Configuração de Rede Recomendada
+## 🔧 Fases de implementação
 
-### Usar WireGuard como Cluster Network (RECOMENDADO)
+### Fase 0A — Alinhar man6c → 9.1.x (PRÉ-JANELA) ✅ 2026-06-03
 
-**Por que WireGuard?**
-- ✅ Criptografado
-- ✅ Já configurado e estável
-- ✅ Todos os nós já conectados
-- ✅ Latência aceitável (~30-40ms)
+**Resultado:** man6c actualizado **9.0.11 → 9.1.19** (`pve-manager/9.1.19`).
 
-**Configuração**:
-```bash
-# No pvecm create e pvecm add, usar:
---link0 <WIREGUARD_IP>
-
-# Exemplo:
-# AGLSRV6C: pvecm create agl-cluster --link0 10.6.0.22
-# AGLSRV6D: pvecm add 10.6.0.22 --link0 10.6.0.23
-# AGLSRV6: pvecm add 10.6.0.22 --link0 10.6.0.12
-```
-
-### Redundância de Links (OPCIONAL)
-
-Adicionar LAN como link secundário (apenas para AGLSRV6C e AGLSRV6D que estão na mesma rede local):
-
-```bash
-# Exemplo com 2 links:
-pvecm add 10.6.0.22 --link0 10.6.0.23 --link1 192.168.0.234
-```
-
-**Nota**: AGLSRV6 está em local diferente, então não tem acesso à LAN 192.168.0.x
+**Pendente:** ~~alinhar **man6d** (ainda 9.1.5) → 9.1.19~~ ✅ **2026-06-03** — man6d **9.1.19** (build `076d7c3c108f0346`, igual man6c).
 
 ---
 
-## 📦 Pacotes Necessários
+### Fase 0B — Upgrade man6 8.4 → 9.1.x (JANELA DEDICADA, ~2–3 h + buffer)
 
-### Em todos os nós do cluster:
-```bash
-apt-get update
-apt-get install -y pve-ha-manager corosync pve-cluster
-```
+**Risco detalhado:** [`docs/maint/AGLSRV6-PVE8-TO-9-UPGRADE-RISKS.md`](maint/AGLSRV6-PVE8-TO-9-UPGRADE-RISKS.md) — cenários de falha e plano **≤8 h**.
 
-### No QDevice host (AGLSRV1):
-```bash
-apt-get update
-apt-get install -y corosync-qnetd corosync-qdevice
-```
+**Bloqueador actual:** `pve8to9` **FAIL** — pacote `systemd-boot` instalado (remover antes da janela).
 
 ---
 
-## 🔒 Firewall Rules
+### Fase 1 — Preparação (PRÉ-JANELA, 30–45 min)
 
-### Proxmox Cluster (todos os nós)
+**Script:** [`cluster-scripts/01-prerequisites.sh`](../cluster-scripts/01-prerequisites.sh)
 
-**Corosync**:
-```bash
-# UDP ports 5405-5412
-iptables -A INPUT -p udp --dport 5405:5412 -j ACCEPT
-```
-
-**SSH**:
-```bash
-# TCP port 22
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-```
-
-**QDevice**:
-```bash
-# TCP port 5403 (no QDevice host e nos cluster nodes)
-iptables -A INPUT -p tcp --dport 5403 -j ACCEPT
-```
-
-**Nota**: Se usando Proxmox firewall GUI, adicionar rules via interface web.
+1. Verificar conectividade (WG + 192.168.1.x + 192.168.0.x)
+2. Instalar `corosync-qnetd` em AGLSRV1
+3. Instalar `pve-ha-manager` em man6c/man6d
+4. Testar portas Corosync (`nc -u -z`)
+5. Documentar estado man6 (VMIDs, `/etc/pve`, storages)
 
 ---
 
-## ✅ Checklist de Execução
+### Fase 2 — Cluster base man6c + man6d (PRÉ-JANELA, 15–20 min)
 
-### Antes de Começar
-- [ ] Todos os scripts criados e revisados
-- [ ] Backup completo de AGLSRV6
-- [ ] Documentação completa lida
-- [ ] Janela de manutenção agendada (mínimo 2 horas)
-- [ ] Usuários notificados sobre downtime
-
-### Fase 1: Preparação (PRÉ-JANELA)
-- [ ] Executar `01-prerequisites.sh` em todos os nós
-- [ ] Verificar conectividade de rede
-- [ ] Instalar pacotes necessários
-- [ ] Sincronizar relógios
-
-### Fase 2: Cluster Base (PRÉ-JANELA)
-- [ ] Executar `02-create-cluster.sh` em AGLSRV6C
-- [ ] Adicionar AGLSRV6D ao cluster
-- [ ] Verificar status do cluster
-- [ ] Verificar quorum (2/2 votes)
-
-### Fase 3: QDevice (PRÉ-JANELA)
-- [ ] Executar `03-setup-qdevice.sh` em AGLSRV1 e AGLSRV6C
-- [ ] Verificar QDevice ativo
-- [ ] Verificar quorum (2/3 votes com QDevice)
-
-### Fase 4: Testes (PRÉ-JANELA)
-- [ ] Executar `04-test-cluster.sh`
-- [ ] Criar VM de teste
-- [ ] Testar HA e failover
-- [ ] Documentar resultados
-
-### Fase 5: AGLSRV6 (JANELA DE MANUTENÇÃO)
-- [ ] **INICIAR JANELA DE MANUTENÇÃO**
-- [ ] Notificar usuários
-- [ ] Migrar ou desligar VMs/CTs de AGLSRV6
-- [ ] Backup final de AGLSRV6
-- [ ] Executar `05-add-aglsrv6.sh`
-- [ ] Verificar cluster status (3/3 nodes)
-- [ ] Testar HA e failover completo
-- [ ] Migrar VMs/CTs de volta
-- [ ] **FINALIZAR JANELA DE MANUTENÇÃO**
-
----
-
-## 🚨 Rollback Plan
-
-### Se algo der errado:
-
-**ANTES de adicionar AGLSRV6 ao cluster:**
-```bash
-# Em AGLSRV6C:
-pvecm delnode man6d  # Remove AGLSRV6D
-
-# Em AGLSRV6D:
-systemctl stop pve-cluster
-systemctl stop corosync
-rm -rf /etc/pve/corosync.conf
-rm -rf /etc/corosync/*
-pvecm updatecerts -f  # Force recreation
-```
-
-**DEPOIS de adicionar AGLSRV6 ao cluster:**
-⚠️ **MUITO MAIS COMPLEXO** - Requer reinstalação do Proxmox em AGLSRV6
-
-**Melhor estratégia**: Testar tudo nas Fases 1-4 antes da Fase 5!
-
----
-
-## 📊 Monitoramento Pós-Implementação
-
-### Comandos de Monitoramento
+**Pré-condição:** man6c e man6d na **mesma** versão PVE 9.1.x  
+**Script:** [`cluster-scripts/02-create-cluster.sh`](../cluster-scripts/02-create-cluster.sh) — **actualizar** para `--link0` em 192.168.1.233 antes de executar
 
 ```bash
-# Status geral do cluster
+# Em man6c
+pvecm create agl-cluster --link0 192.168.1.233 --link1 10.6.0.22
+
+# Em man6d
+pvecm add 192.168.1.233 --link0 192.168.0.234 --link1 10.6.0.23
+
+pvecm expected 2
 pvecm status
-
-# Listar nós
-pvecm nodes
-
-# Status do QDevice
-pvecm status | grep -A5 "Qdevice"
-
-# Logs do Corosync
-journalctl -u corosync -f
-
-# Logs do cluster
-journalctl -u pve-cluster -f
-
-# Status de HA
-ha-manager status
 ```
 
 ---
 
-## 📁 Scripts Criados
+### Fase 3 — QDevice AGLSRV1 (PRÉ-JANELA, 10–15 min)
 
-1. **`01-prerequisites.sh`** - Verificação de pré-requisitos
-2. **`02-create-cluster.sh`** - Criação do cluster base
-3. **`03-setup-qdevice.sh`** - Configuração do QDevice
-4. **`04-test-cluster.sh`** - Testes de failover
-5. **`05-add-aglsrv6.sh`** - ⚠️ Adicionar AGLSRV6 (JANELA MANUTENÇÃO)
+**Script:** [`cluster-scripts/03-setup-qdevice.sh`](../cluster-scripts/03-setup-qdevice.sh)
 
----
+```bash
+# AGLSRV1
+apt install -y corosync-qnetd
 
-## 📞 Suporte e Referências
-
-**Documentação Oficial**:
-- Proxmox Cluster Manager: https://pve.proxmox.com/pve-docs/chapter-pvecm.html
-- QDevice Setup: https://pve.proxmox.com/pve-docs/chapter-pvecm.html#_corosync_external_vote_support
-- High Availability: https://pve.proxmox.com/pve-docs/chapter-ha-manager.html
-
-**Troubleshooting**:
-- Cluster não forma quorum: Verificar portas UDP 5405-5412
-- QDevice não conecta: Verificar porta TCP 5403
-- Nó não entra no cluster: Verificar `/etc/pve` vazio
+# man6c (nó com quorum inicial)
+pvecm qdevice setup 10.6.0.10
+pvecm status   # Qdevice present, Quorate Yes, Expected votes 2
+```
 
 ---
 
-**Plano criado**: 2025-11-08
-**Versão**: 1.0.0
-**Status**: 📋 Aguardando janela de manutenção para Fase 5
-**Próximos passos**: Executar Fases 1-4 (pré-janela), agendar Fase 5
+### Fase 4 — Testes (PRÉ-JANELA, 20–30 min)
+
+**Script:** [`cluster-scripts/04-test-cluster.sh`](../cluster-scripts/04-test-cluster.sh)
+
+1. VM teste em man6c, HA enable
+2. Stop man6c → failover para man6d
+3. Simular perda quorum (documentar recuperação)
+4. Validar cenário **man6c+man6d offline, man6 standalone** — man6 **ainda não** no cluster; produção intacta
+
+---
+
+### Fase 5 — Join man6 (JANELA MANUTENÇÃO, 2–3 h)
+
+**Pré-condições:**
+
+- [ ] man6 em PVE **9.1.x** (Fase 0B concluída)
+- [ ] Fases 1–4 OK
+- [ ] Backup PBS completo
+- [ ] Plano rollback lido ([`CLUSTER-RISKS-AND-MAINTENANCE.md`](CLUSTER-RISKS-AND-MAINTENANCE.md))
+
+**Script:** [`cluster-scripts/05-add-aglsrv6.sh`](../cluster-scripts/05-add-aglsrv6.sh)
+
+**Sequência resumida:**
+
+1. Comunicar downtime (cloudflared, NFS, agldv06, PBS)
+2. Opcional: migrar CTs leves para man6c/man6d **antes** do join (VMIDs livres no cluster)
+3. Parar CTs/VMs ou aceitar restart pós-join
+4. `pvecm add 192.168.1.233 --link0 192.168.1.202 --link1 10.6.0.12` no man6
+5. `pvecm status` — 3 nós + QDevice
+6. Reconciliar storage definitions em `/etc/pve/storage.cfg`
+7. Arrancar CTs/VMs; testar túneis Cloudflare e NFS
+
+---
+
+## 📅 Cronograma sugerido
+
+| Semana | Actividade | Downtime man6 |
+|--------|------------|---------------|
+| 1 | Fase 0A (man6c upgrade) + Fase 1 | Nenhum |
+| 1 | Fases 2–4 (cluster 6C+6D + QDevice) | Nenhum |
+| 2 | Fase 0B (man6 upgrade 8→9) | **Sim** (~1–2 h) |
+| 3 | Fase 5 (join man6) | **Sim** (~2–3 h) |
+
+---
+
+## 🚨 Rollback
+
+**Antes do join man6:** remover man6d do cluster (`pvecm delnode man6d`), limpar corosync no nó removido — ver [`cluster-scripts/README.md`](../cluster-scripts/README.md).
+
+**Depois do join man6:** rollback complexo; preferir **não** avançar Fase 5 sem Fases 2–4 validadas.
+
+---
+
+## 📁 Artefactos no repositório
+
+| Ficheiro | Descrição |
+|----------|-----------|
+| [`docs/PROXMOX-CLUSTER-PLAN.md`](PROXMOX-CLUSTER-PLAN.md) | Este plano |
+| [`cluster-scripts/01–05`](../cluster-scripts/) | Scripts de execução |
+| [`docs/CLUSTER-RISKS-AND-MAINTENANCE.md`](CLUSTER-RISKS-AND-MAINTENANCE.md) | Riscos e manutenção |
+| [`docs/QUORUM-2-4-SUMMARY.md`](QUORUM-2-4-SUMMARY.md) | Quorum 2/4 |
+| [`docs/troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md`](troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md) | Rede vmbr2 / Tailscale |
+
+### TODO técnico (repo)
+
+- [ ] Actualizar `02-create-cluster.sh` para links 192.168.1.x + quorum 2/4
+- [ ] Adicionar check de versão PVE em `01-prerequisites.sh`
+- [ ] Documentar runbook upgrade man6 8→9 em `docs/maint/AGLSRV6-PVE8-TO-9-UPGRADE.md` (criar na execução)
+
+---
+
+## ✅ Próximos passos imediatos
+
+1. **Aprovar** cronograma e janelas (0B + 5)
+2. **Executar Fase 0A** — man6c → 9.1.5
+3. **Actualizar scripts** em `cluster-scripts/` (links vmbr2)
+4. **Executar Fases 1–4** sem tocar no man6
+5. **Agendar Fase 0B** (upgrade man6) e **Fase 5** (join) em janelas separadas ou contínuas
+
+---
+
+**Revisão:** 2026-06-03 · **Versão:** 2.0.0 · **Autor:** infra AGL (agl-hostman)

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Corrige modelos Hermes Quartet no CT188 quando gpt-5.5 / zai-glm-flash falham.
 #
-# Política (quota OpenAI/Z.AI esgotada ~até 2026-06-01, ver config/litellm/config.yaml):
-#   primário: groq-llama-31-8b | fallback: or-nemotron-super-free | aux/delegation: groq-llama-31-8b
+# Política (2026-06): Z.AI quota maior → OpenAI → Anthropic; Ollama GPU (agl-primary) para contexto longo / burst sem limites.
+#   primário Jarvis: zai-glm-5 | agentes: zai-coding-glm-4.7 | fallback: agl-primary | aux: glm-5
+# Modo legado --quota: Groq free (só se Z.AI/OpenAI indisponíveis)
 #
 # Uso (root no CT188):
 #   bash fix-hermes-quartet-models-ct188.sh
+#   bash fix-hermes-quartet-models-ct188.sh --paid-tier
 #   bash fix-hermes-quartet-models-ct188.sh --restore-openai   # após quota OpenAI repor
 
 set -euo pipefail
@@ -15,13 +17,19 @@ LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
 MODE="${1:-quota}"
 
 case "${MODE}" in
+  --paid-tier|"" )
+    JARVIS_MODEL="zai-glm-5"
+    AGENT_MODEL="zai-coding-glm-4.7"
+    FALLBACK_MODEL="agl-primary"
+    AUXILIARY_MODEL="glm-5"
+    ;;
   --restore-openai)
     JARVIS_MODEL="gpt-5-mini"
-    AGENT_MODEL="glm-4.7-flash"
-    FALLBACK_MODEL="glm-4.7-flash"
-    AUXILIARY_MODEL="gpt-5-nano"
+    AGENT_MODEL="zai-coding-glm-4.7"
+    FALLBACK_MODEL="agl-primary"
+    AUXILIARY_MODEL="zai-glm-5"
     ;;
-  quota|--quota|"")
+  quota|--quota)
     JARVIS_MODEL="groq-llama-31-8b"
     AGENT_MODEL="groq-llama-31-8b"
     FALLBACK_MODEL="or-nemotron-super-free"

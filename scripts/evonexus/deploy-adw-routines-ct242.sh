@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Deploy rotinas AGLz + patch runner no EvoNexus CT242 (fgsrv7).
+# Deploy rotinas AGLz + patch runner no EvoNexus CT548 (fgsrv7; antes CT242).
 set -euo pipefail
 
-CTID="${CTID:-242}"
+CTID="${CTID:-548}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 STAGING="${STAGING:-/opt/evonexus/adw-routines}"
 HOST="${HOST:-root@191.252.93.227}"

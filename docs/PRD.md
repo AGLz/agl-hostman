@@ -101,11 +101,11 @@ src/
 - API8: 75 controllers, PHP 8.1, Laravel 8.x — `api8.falg.com.br`
 - BD compartilhado: `falgimoveis11` em 191.252.201.205 (MySQL master FGSRV3)
 
-### 3.2 AI Stack (agldv03 — CT179)
+### 3.2 AI Stack (agldv03 — CT179 dev; LiteLLM canónico CT186)
 
 | Componente | Status | Pendência |
 |-----------|--------|-----------|
-| LiteLLM (19 modelos) | ✅ healthy | — |
+| LiteLLM (19 modelos) | ✅ CT186 (`100.125.249.8:4000`) | agldv03 descontinuado 2026-06-05 |
 | Ruflo v3.5.2 | ✅ | — |
 | OpenClaw v2026.2.26 | ✅ | — |
 | Hive Mind (23 workers) | ✅ | — |
@@ -356,7 +356,7 @@ STORAGE_ALERT_THRESHOLD=90  # % de uso para alertar
 | Sistema | Status | Crítico para |
 |---------|--------|-------------|
 | Proxmox API (AGLSRV1: 192.168.0.245:8006) | ✅ Ativo | Fase 3 |
-| LiteLLM (:4000 em agldv03) | ✅ Ativo | Fase 1 |
+| LiteLLM CT186 (:4000) | ✅ Ativo | Fase 1 |
 | MySQL FGSRV3 (falgimoveis11) | ✅ Ativo | Fase 2 |
 | CT183 Archon (PostgreSQL/Supabase) | ✅ Ativo | RuVector |
 | CT180 Dokploy | ✅ Ativo | Deploy Fase 4 |

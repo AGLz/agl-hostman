@@ -4,7 +4,7 @@ description: >
   Manage AGL Proxmox infrastructure (AGLSRV1, AGLSRV5, AGLSRV6). Use when the user asks to
   list/start/stop/restart VMs or LXC containers, check node status, create snapshots, manage backups,
   clone containers, or troubleshoot Proxmox issues. Covers CT179 (agldv03), CT181 (agldv04),
-  CT183/archon (agldv07), CT185/agldv12 on AGLSRV1; CT136 (agldv05) on AGLSRV5; CT108 (agldv06) on AGLSRV6.
+  CT183/archon (agldv07), CT185/agldv12 on AGLSRV1; **CT536** (agldv05; ex.136) on AGLSRV5; **CT608** (agldv06; ex.108) on AGLSRV6; **CT548** (evonexus; ex.242) on FGSRV7.
   Also handles pct unlock, cluster health, storage, and network bridges.
 ---
 # Proxmox AGL Infrastructure

@@ -15,7 +15,9 @@
 | RAM 3200 vs 2400 | 2400 = máximo oficial do CPU | **Não** forçar 3200 na BIOS (overclock arriscado com QPI instável) |
 | BIOS C-state | **C2** (confirmado) | Manter; rever Spread Spectrum / C6 / QPI power na próxima janela |
 | Undervolt | N/A (CPUs **v4**, não v3) | Sem BIOS undervolt nesta placa |
-| VM104 NUMA | **`numa: 1`** aplicado 2026-06-06 | Reboot VM para activar; monitorizar 3–7 dias |
+| VM104 NUMA | **`numa: 1`** aplicado 2026-06-06 | Activo; monitorizar 3–7 dias |
+| VM110 NUMA | **`numa: 0`** aplicado 2026-06-06 | GPU `05:00.0` em socket **0** — não usar `numa: 1` |
+| VM110 GPU | **Parada** (D3cold pós-restart) | **Reboot AGLSRV1** → `qm start 110` |
 | Migrate C: → NVMe | Pendente | Só após **backups** dos 2 NVMe + QPI estável |
 
 ---
@@ -35,6 +37,15 @@
 | nvme1n1 | X16 Plus SSD 2TB | `82:00.0` | 1 |
 
 IOMMU groups **15** e **16** isolados — candidatos futuros a PCI passthrough (`hostpci`).
+
+**GPU GTX 1650** (VM110 agl-ollama):
+
+| Dispositivo | PCI | NUMA |
+|-------------|-----|------|
+| GeForce GTX 1650 | `05:00.0` | **0** |
+| HDMI audio | `05:00.1` | **0** |
+
+Pin VM110 em `numa: 0` + `affinity 0-13,28-41` (espelho lógico da VM104 em socket 1). Ver [`AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md).
 
 ---
 

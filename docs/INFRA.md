@@ -36,7 +36,7 @@
 - **URL (LAN)**: <http://192.168.0.186:4000> — readiness: `/health/readiness`
 - **URL (Tailscale, CT186)**: obter com `pct exec 186 -- tailscale ip -4` (hostname típico `agl-litellm-ct186`)
 - **Providers** (config em repo): zai, anthropic, openai, google, deepseek, moonshot, ollama, etc. — ver [`config/litellm/config.yaml`](../config/litellm/config.yaml)
-- **Legado (parado após cutover 2026-05):** stack Docker no **agldv03 CT179** (`http://100.94.221.87:4000`) — não usar como canónico; ver [`docs/OPENCLAW.md`](OPENCLAW.md)
+- **Descontinuado (2026-06-05):** LiteLLM no **agldv03 CT179** — stack Docker removida (`docker compose down -v` em `/opt/litellm`; marcador `.STACK_DECOMMISSIONED`). **Não** usar `http://100.94.221.87:4000` nem `/opt/litellm` no CT179; ver [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md)
 - **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
 - **Ollama Models (CT200)**: modelo local servido pelo LiteLLM como **`ollama/qwen3:4b`** (aliases `agl-primary`, `ollama-qwen3-4b`); detalhe em [`docs/ct200-model-performance.md`](ct200-model-performance.md)
 
@@ -45,7 +45,7 @@
 | VMID | Hostname | IP LAN | Função | Runbook |
 |------|----------|--------|--------|---------|
 | **188** | agl-hermes | `192.168.0.188` | Hermes Agent (Docker `/opt/agl-hermes`, gateway `:8642`) | [`HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md`](HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md) |
-| **189** | agl-evonexus | `192.168.0.189` | EvoNexus hub (Docker `/opt/evonexus`; cutover desde CT242) | idem + `scripts/evonexus/` |
+| **189** | agl-evonexus | `192.168.0.189` | EvoNexus hub (Docker `/opt/evonexus`; cutover desde **CT548** fgsrv7, ex.242) | idem + `scripts/evonexus/` |
 | **190** | agl-openhuman | `192.168.0.190` | OpenHuman (install `/opt/openhuman`; UI/desktop) | idem |
 | **191** | agl-gstack | `192.168.0.191` | **Jarvis O** — OpenClaw + GStack (legado agência; ver [`AGLZ-HERMES-ONLY-AGENCY.md`](AGLZ-HERMES-ONLY-AGENCY.md)) | [`AGL-GSTACK-CT191-DEDICATED-LXC.md`](AGL-GSTACK-CT191-DEDICATED-LXC.md) |
 | **192** | agl-honcho | `192.168.0.192` | Honcho self-hosted (memória AGLz Agency) | [`HONCHO-CT192-DEDICATED-LXC.md`](HONCHO-CT192-DEDICATED-LXC.md) |
@@ -78,6 +78,18 @@ tailscale up \
 ```
 
 **Correcção imediata** (sem rejoin): `tailscale set --accept-routes=false` dentro do CT.
+
+### Tailscale — cluster AGLSRV6 (man6 / man6c / man6d)
+
+> Runbook completo (cloudflared6 + eth2 + table 52): [`troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md`](troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md)
+
+| Host | TS IP | Interface LAN | Script de alinhamento |
+|------|-------|---------------|------------------------|
+| man6 (AGLSRV6) | 100.98.108.66 | vmbr0 + vmbr2 (192.168.1.202) | `scripts/proxmox/pct-tailscale-align-aglsrv6.sh` |
+| man6c (AGLSRV6C) | 100.124.53.91 | vmbr0 + vmbr2 (192.168.1.233) | `LAN_IF=vmbr0 TS_HOSTNAME=aglsrv6c scripts/proxmox/tailscale-align-proxmox-host.sh` |
+| man6d (AGLSRV6D) | 100.76.201.83 | enp2s0 (192.168.0.234); anuncia 192.168.0.0/24 | `LAN_IF=enp2s0 TS_HOSTNAME=aglsrv6d scripts/proxmox/tailscale-align-proxmox-host.sh` |
+
+CTs cloudflared (101, 114) com **eth2** em `192.168.1.0/24`: `agl-lan-routes.conf` **não** deve listar `192.168.1.202/233` — tráfego inter-host usa eth2 directamente.
 
 **Verificação:**
 
@@ -203,7 +215,7 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | Tailscale IP | Hostname | OS | Status | Purpose |
 |---|---|---|---|---|
 | 100.98.108.66 | aglsrv6 | linux | Active | Proxmox host node |
-| 100.71.229.12 | aglsrv6-agldv06 | linux | Idle | Dev container CT108 (agldv06) |
+| 100.71.229.12 | aglsrv6-agldv06 | linux | Idle | Dev container **CT608** agldv06 (ex.108) |
 | 100.120.94.42 | aglsrv6-aglhq26 | windows | Active | Windows workstation |
 | 100.65.189.83 | aglsrv6-aluzdivina | linux | Active | NFS server (CT111) |
 | 100.121.95.88 | aglsrv6-cloudflared6 | linux | Active | Cloudflare Tunnel primary (CT101) |
@@ -233,7 +245,7 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.111.79.2 | fgsrv04 | linux | Active | Cloud VPS 04 |
 | 100.71.107.26 | fgsrv05 | linux | Active | Cloud VPS 05 / NFS server |
 | 100.83.51.9 | fgsrv06 | linux | Idle | Cloud VPS 06 / WireGuard hub |
-| 100.72.240.65 | fgsrv07-cloudflared7 | linux | Active | Cloudflare Tunnel (CT170) |
+| 100.72.240.65 | fgsrv07-cloudflared7 | linux | Active | Cloudflare Tunnel (**CT570**; ex.170) |
 | *(após login no CT171)* | fgsrv07-cloudflared7b | linux | Reauth pendente | CT171 `cloudflared7b` — reset Tailscale: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`; depois `pct exec 171 -- tailscale ip -4` e actualizar esta linha |
 | 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL master / GTID (CT235); ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
 | 100.109.181.93 | fgsrv07 | linux | Active | Cloud VPS 07 / Proxmox |
@@ -318,6 +330,9 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 |---------|---------|-----------|--------|
 | WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 (PRIMARY) |
 | Tailscale | 100.98.108.66 | tailscale0 | ✅ Fallback |
+| LAN externa | 192.168.0.202/24 | vmbr0 | ✅ Active |
+| LAN interna | 192.168.60.202/24 | vmbr1 | ✅ Active |
+| **LAN inter-host** | **192.168.1.202/24** | **vmbr2** | ✅ **PRIMARY cluster** (man6 ↔ man6c ↔ CTs eth2) |
 
 **Resources**:
 
@@ -330,7 +345,7 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 - DNS: **CT117 (pihole6)** — LAN **192.168.0.117** (migrado de CT115 em 2026-04-04; evita conflito com equipamento TP-LINK em `.115`)
 - Storage: CT111 (aluzdivina) - NFS server (10.6.0.20)
 - Backup: CT113 (PBS), CT172 (PBS)
-- Development: CT108 (agldv06)
+- Development: **CT608** (agldv06; ex.108)
 - Infrastructure: CT101 (cloudflared), CT102 (meshcentral)
 
 ---
@@ -386,27 +401,31 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 
 | VMID | Name | Status | Network | Purpose |
 |------|------|--------|---------|---------|
-| 170 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel (fgsrv7) |
-| 171 | cloudflared7b | running | vmbr70 (192.168.70.171) | Cloudflare Tunnel **fgsrv7b** — ver `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` |
-| 235 | mysql7 | running | vmbr70 (192.168.70.135) | MySQL Master (HA / GTID) |
-| 239 | pihole7 | running | vmbr70 (192.168.70.139) | DNS/Ad-blocking (HA) |
-| 240 | fileserver7 | running | vmbr70 | Partilha ficheiros |
-| 241 | agldv07 | running | vmbr70 | Dev / workloads |
-| 242 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus (Docker); público **<https://evo.aglz.io>** |
-| 243 | fg-legacy | running | vmbr70 | Legado |
+| 545 | fgsrv7-pbs | running | WAN | Proxmox Backup Server |
+| 546 | fileserver7 | stopped | vmbr70 | Partilha ficheiros (ex.240) |
+| 547 | agldv07 | stopped | vmbr70 | Dev (ex.241) |
+| 548 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus (ex.242); **https://evo.aglz.io** |
+| 549 | fg-legacy | running | vmbr70 (192.168.70.243) | Legado (ex.243) |
+| 550 | fg-ngrok | running | vmbr70 (192.168.70.244) | ngrok (ex.244) |
+| 561 | mysql7 | running | vmbr70 (192.168.70.235) | MySQL Master HA (ex.535) |
+| 562 | pihole7 | running | vmbr70 (192.168.70.139) | DNS (ex.539) |
+| 570 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel fgsrv7 (ex.170) |
+| 571 | cloudflared7b | running | vmbr70 (192.168.70.171) | Túnel **fgsrv7b** (ex.171) |
 
-**EvoNexus CT242 (SQLite única):** dashboard, scheduler, telegram e agentes no volume `workspace` devem usar **`/workspace/dashboard/data/evonexus.db`** (não `dashboard.db` na raiz nem `dashboard/data/dashboard.db`). Unificação e mounts: `scripts/evonexus/unify-single-sqlite-evonexus-db.sh` em `/opt/evonexus`. Tailscale no CT: `lxc.mount.entry` para `/dev/net/tun` no `242.conf`.
+**Renumeração VMID (2026-06):** ver `docs/PROXMOX-VMID-RENUMBER-2026-06.md`.
+
+**EvoNexus CT548 (SQLite única):** dashboard, scheduler, telegram e agentes no volume `workspace` devem usar **`/workspace/dashboard/data/evonexus.db`**. Unificação: `scripts/evonexus/unify-single-sqlite-evonexus-db.sh`. Tailscale: `lxc.mount.entry` em `548.conf`.
 
 **EvoNexus — Claude no terminal e LiteLLM:** o `claude-bridge` não herda o `.env` do contentor; injeta apenas `env_vars` do `providers.json` que passam na whitelist em `terminal-server/src/provider-config.js`. No upstream, **`ANTHROPIC_BASE_URL` e `ANTHROPIC_AUTH_TOKEN` não estão na lista** — se o perfil `anthropic` tiver gateway LiteLLM nesses campos, são ignorados e o `claude` arranca sem API key efetiva (mensagem tipo «não estás logado»). Mitigação: montar o overlay **`scripts/evonexus/overlays/terminal-server-provider-config.js`** em `/workspace/dashboard/terminal-server/src/provider-config.js` (ver cabeçalho do ficheiro) e no `providers.json` preencher `env_vars` com `ANTHROPIC_BASE_URL`, **`ANTHROPIC_AUTH_TOKEN`** (Bearer = `LITELLM_MASTER_KEY` no proxy), `DISABLE_LOGIN_COMMAND=1` quando aplicável; reiniciar o serviço `dashboard`. **Claude Code 2.1+:** não definir **`ANTHROPIC_API_KEY` e `ANTHROPIC_AUTH_TOKEN` em simultâneo** para hosts que não sejam `api.anthropic.com` — o cliente avisa *Auth conflict* e o comportamento fica ambíguo; o script **`scripts/evonexus/sync-providers-anthropic-from-env.py`** remove `ANTHROPIC_API_KEY` nesse caso após o merge. O perfil **litellm** com `openclaude` usa `OPENAI_*` (já permitidos); o problema costuma aparecer ao usar o binário **`claude`** com Anthropic + proxy.
 
 **EvoNexus — root, DSP e modelo por defeito:** o bridge original não aplicava `global_settings.dangerouslySkipPermissions` e **nunca** passava `--dangerously-skip-permissions` como root. Overlay **`scripts/evonexus/overlays/claude-bridge.js`** lê o `providers.json`, combina com `IS_SANDBOX=1` no compose do dashboard e repassa `IS_SANDBOX` ao PTY; injeta `--model` a partir de `ANTHROPIC_MODEL` (sync: **`scripts/evonexus/sync-providers-anthropic-from-env.py`**, omissão **`qwen3.5-plus`** quando `.env` não define modelo). Índice: **`scripts/evonexus/overlays/README-evonexus-overlays.md`**.
 
-**EvoNexus — backup antes de reiniciar o CT242:** no CT, pasta `/root/backups/evonexus-jarvis-<data>-<hora>/` com `opt-evonexus.tgz`, `vol-evonexus_*.tgz` (todos os volumes) e `inventory-claude-config.txt`; arquivo único `evonexus-jarvis-*-FULL.tgz` em `/root/backups/`. Cópia espelhada no **FGSRV7** em `/root/backups-ct242-evonexus/` (`pct pull`). Dentro da pasta há **`RESTORE.md`** com passos de restauro (Jarvis vive em `agent_memory` + ficheiros sob `.claude/` no volume de config/workspace — ver inventário). **Restauro completo CT242 (disco perdido):** `scripts/proxmox/RESTORE-CT242-EVONEXUS.md` + sync **CT189 → CT242** via `scripts/proxmox/pct-sync-evonexus-189-to-242.sh` (fgsrv7).
+**EvoNexus — backup antes de reiniciar o CT548:** pasta `/root/backups/evonexus-jarvis-*` no CT; espelho no FGSRV7 em `/root/backups-ct242-evonexus/` (nome histórico). Restauro: `scripts/proxmox/RESTORE-CT242-EVONEXUS.md` + sync **CT189 → CT548** via `pct-sync-evonexus-189-to-242.sh`.
 
 **MySQL HA Replication**:
 
-- Master: CT235 (FGSRV7) — Tailscale: 100.83.7.16 — doc: `docs/maint/MYSQL-HA-POST-RESET-2026-04.md`
-- Slave (read_only): CT135 (AGLSRV5) — Tailscale: 100.98.1.119; LAN secundária: 172.2.2.135/24 (eth1)
+- Master: **CT561** (FGSRV7) — doc: `docs/maint/MYSQL-HA-POST-RESET-2026-04.md`
+- Slave (read_only): **CT535** (AGLSRV5; ex.135)
 - Replication User: repl / Repl@123456
 - Status: ✅ Active via Tailscale (Master-Slave async)
 
@@ -420,20 +439,19 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 **Cloudflare Tunnel (fgsrv7)**:
 
 - Tunnel ID: `513cec7b-754d-4dd8-a69d-d15942180fe4`
-- Service: systemd (CT170 - cloudflared7)
+- Service: systemd (**CT570** cloudflared7; ex.170)
 - Endpoints:
   - `man7.aglz.io` → Proxmox Web UI (8006) ✅
-  - `evo.aglz.io` → EvoNexus CT242 (`/terminal*` → `:32352`, resto → `:8080`) ✅
+  - `evo.aglz.io` → EvoNexus **CT548** (`/terminal*` → `:32352`, resto → `:8080`) ✅
   - `mysql-slave.falg.com.br` → MySQL HA Slave (3306)
   - `mysql-slave.aglz.io` → MySQL HA Slave (3306)
 - Auto-start: ✅ systemd enabled
 
-**Segundo túnel — fgsrv7b (CT171 `cloudflared7b`)**:
+**Segundo túnel — fgsrv7b (CT571 `cloudflared7b`; ex.171)**:
 
-- Nome na Zero Trust: **fgsrv7b** — Tunnel ID: `850f2d28-367f-4bd2-a887-6998240828e3`; instalado com `cloudflared service install <token>` no CT171; rotas e DNS na consola Cloudflare.
-- LAN: `192.168.70.171/24` (evitar colisão com CT170).
-- **Tailscale**: o clone herdava o mesmo nó que o CT170 (`100.72.240.65`). Limpar estado e novo join com hostname **`fgsrv07-cloudflared7b`**: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh` (no FGSRV7: `CT_VMID=171 TS_HOSTNAME=fgsrv07-cloudflared7b bash …`). Opcional: `TAILSCALE_AUTHKEY` para join não interactivo. Após login, actualizar a tabela «FGSRV Group» com `pct exec 171 -- tailscale ip -4`.
-- Provisionamento: `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` (executar no FGSRV7 com `CF_TUNNEL_TOKEN` definido).
+- Instalado com `cloudflared service install <token>` no **CT571**; rotas na consola Cloudflare.
+- LAN: `192.168.70.171/24`. Reset Tailscale clone: `CT_VMID=571 TS_HOSTNAME=fgsrv07-cloudflared7b bash scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`
+- Provisionamento: `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` (`SOURCE_VMID=570`, `NEW_VMID=571`)
 
 **Access**:
 
@@ -943,9 +961,9 @@ zpool status -v local-zfs
 
 | VMID | Name | IP (WG/TS) | Purpose |
 |------|------|------------|---------|
-| 101 | cloudflared6 | TS: 100.120.181.108 | Cloudflare tunnel |
+| 101 | cloudflared6 | TS: 100.121.95.88 · eth0 .101 · eth1 .60.101 · eth2 .1.101 | Cloudflare tunnel (aglsrv6) |
 | 102 | meshcentral6 | - | Remote management |
-| 114 | cloudflared6b | - | Cloudflare tunnel |
+| 114 | cloudflared6b | TS: 100.115.195.128 · eth0 .114 · eth1 .60.114 · eth2 .1.114 | Cloudflare tunnel (aglsrv6) |
 | **117** | **pihole6** | **LAN: 192.168.0.117** | **Pi-hole DNS** (ex-CT115, 2026-04-04) |
 | 121 | wireguard | WG: 10.6.0.3 | WireGuard node |
 
@@ -1021,7 +1039,7 @@ df -h | grep wg            # All WireGuard mounts
 
 ---
 
-### From CT108 (agldv06)
+### From CT608 (agldv06; ex.108)
 
 **Available Networks**: Tailscale only
 **Not Available**: WireGuard (not configured)

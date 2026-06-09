@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Clona CT170 (cloudflared7) para um novo CT (hostname cloudflared7b; túnel Zero Trust típico **fgsrv7b**) com IP distinto na vmbr70
+# Clona CT570 cloudflared7 (antes CT170) para CT571 cloudflared7b (antes CT171)
 # e reinstala o cloudflared com token Zero Trust (túnel gerido na consola).
 #
 # Motivo: evitar colisão de IP (.170) e credenciais do túnel antigo no clone.
@@ -10,14 +10,14 @@
 #   bash /caminho/agl-hostman/scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh
 #
 # Variáveis opcionais:
-#   SOURCE_VMID=170 NEW_VMID=171 NEW_HOSTNAME=cloudflared7b
+#   SOURCE_VMID=570 NEW_VMID=571 NEW_HOSTNAME=cloudflared7b
 #   NEW_IP=192.168.70.171 GATEWAY=192.168.70.1 BRIDGE=vmbr70
 #   EXPECT_HOSTNAME=fgsrv7   # se definido, hostname -s tem de coincidir (segurança)
 
 set -euo pipefail
 
-SOURCE_VMID="${SOURCE_VMID:-170}"
-NEW_VMID="${NEW_VMID:-171}"
+SOURCE_VMID="${SOURCE_VMID:-570}"
+NEW_VMID="${NEW_VMID:-571}"
 NEW_HOSTNAME="${NEW_HOSTNAME:-cloudflared7b}"
 NEW_IP="${NEW_IP:-192.168.70.171}"
 GATEWAY="${GATEWAY:-192.168.70.1}"

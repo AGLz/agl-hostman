@@ -116,12 +116,12 @@ rf-swarm
 
 ## Integração AGL
 
-O devcontainer define `LITELLM_GATEWAY_URL=http://100.94.221.87:4000` (agldv03).
+O devcontainer define `LITELLM_GATEWAY_URL=http://100.125.249.8:4000` (LiteLLM **CT186**). O agldv03 já não expõe `:4000` (descontinuado 2026-06-05).
 
-Para usar LiteLLM local ou outro host, ajuste em `~/.claude/turbo-flow.env`:
+Para usar outro endpoint, ajuste em `~/.claude/turbo-flow.env`:
 
 ```bash
-echo 'LITELLM_GATEWAY_URL=http://100.94.221.87:4000' >> ~/.claude/turbo-flow.env
+echo 'LITELLM_GATEWAY_URL=http://100.125.249.8:4000' >> ~/.claude/turbo-flow.env
 ```
 
 ---

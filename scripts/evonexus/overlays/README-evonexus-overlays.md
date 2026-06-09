@@ -1,4 +1,4 @@
-# Overlays EvoNexus (CT242 / `/opt/evonexus`)
+# Overlays EvoNexus (CT548 fgsrv7; ex.242 / `/opt/evonexus`)
 
 Ficheiros montados por volume em `docker-compose.hub.yml` no serviço **dashboard**:
 

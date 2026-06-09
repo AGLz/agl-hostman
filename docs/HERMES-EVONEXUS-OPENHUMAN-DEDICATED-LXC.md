@@ -82,9 +82,9 @@ curl -sS http://127.0.0.1:8642/health
 
 ## 4. Bootstrap CT189 — EvoNexus
 
-Origem de referência: **CT242** em fgsrv7 (`/opt/evonexus`, `evo.aglz.io`). No CT189:
+Origem de referência: **CT548** (fgsrv7 evonexus; ex.242; `evo.aglz.io`). No CT189:
 
-1. Copiar stack e `.env` do CT242 **ou** clonar `EVONEXUS_REPO` (definir no bootstrap).
+1. Copiar stack e `.env` do **CT548** **ou** clonar `EVONEXUS_REPO` (definir no bootstrap).
 2. Ajustar `ANTHROPIC_BASE_URL` / `LITELLM_GATEWAY_URL` para o LiteLLM do **CT186** (IP Tailscale recomendado).
 3. Aplicar overlays: [`scripts/evonexus/overlays/README-evonexus-overlays.md`](../scripts/evonexus/overlays/README-evonexus-overlays.md).
 

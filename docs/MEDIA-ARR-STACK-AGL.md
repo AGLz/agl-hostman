@@ -293,7 +293,7 @@ Implementação **faseada** — só avançar fases dependentes de storage quando
 
 | # | Tarefa | Notas |
 |---|--------|-------|
-| 1.1 | Replicar `mp0–mp9` no **CT121** (qBittorrent) | Parar CT → editar `121.conf` → start; igual 123/124 |
+| 1.1 | Replicar `mp0–mp9` no **CT121** (qBittorrent) | **Feito 2026-06-03** — `ct-download-mounts-apply.sh`; ver [`DOWNLOAD-CLIENTS-ROADMAP.md`](DOWNLOAD-CLIENTS-ROADMAP.md) |
 | 1.2 | Opcional: `mp*` no **CT172** (Prowlarr) | Só se necessário para testes locais |
 | 1.3 | Unificar path lógico `/data` (documentação interna) | Ex.: `/data/media`, `/data/downloads` → binds reais |
 | 1.4 | Validar hardlink test | Download e biblioteca no mesmo filesystem |

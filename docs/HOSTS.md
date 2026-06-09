@@ -206,7 +206,7 @@ http://192.168.15.102/admin
 |---------|-----------|---------|
 | Storage | CT111 (aluzdivina) | NFS server (10.6.0.20) |
 | Backup | CT113 (PBS), CT172 (PBS) | Proxmox Backup Server |
-| Development | CT108 (agldv06) | Tailscale-only dev container |
+| Development | **CT608** (agldv06; ex.108) | Tailscale-only dev container |
 | Infrastructure | CT101 (cloudflared), CT102 (meshcentral) | Remote access |
 
 ### Connection Commands
@@ -272,18 +272,21 @@ https://192.168.1.202:8006  # Inter-host LAN
 | local-lvm | lvmthin | 130GB | 12GB | 117GB | 9% |
 | shares | dir | 65GB | 36GB | 29GB | 55% |
 
-### Containers (8 total: 7 running, 1 stopped)
+### Containers (AGLSRV5 — VMIDs 530–540 pós-renumber 2026-06)
 
 | VMID | Name | Status |
 |------|------|--------|
-| CT130 | cloudflared5 | ✅ Running |
-| CT132 | plex5 | ✅ Running |
-| CT133 | mesh5 | ✅ Running |
-| CT134 | ipmitool5 | ✅ Running |
-| CT135 | mysql5 | ⚠️ Stopped |
-| CT136 | agldv05 | ✅ Running |
-| CT138 | fileserver5 | ✅ Running |
-| CT139 | pihole5 | ✅ Running |
+| CT530 | cloudflared5 | ✅ Running |
+| CT532 | plex5 | ✅ Running |
+| CT533 | mesh5 | ✅ Running |
+| CT534 | ipmitool5 | ✅ Running |
+| CT535 | mysql5 | ✅ Running |
+| CT536 | agldv05 | ✅ Running |
+| CT538 | fileserver5 | ✅ Running |
+| CT539 | pihole5 | ✅ Running |
+| CT540 | aglsrv5-pbs | ✅ Running |
+
+Ver mapa legado: `docs/PROXMOX-VMID-RENUMBER-2026-06.md` (ex. CT130→530, CT136→536).
 
 ### Access Methods
 
@@ -335,6 +338,8 @@ ssh root@10.6.0.17  # ⚠️ Known issue - NOT RECOMMENDED
 | **Inter-host LAN** | **192.168.1.233** | **vmbr2** | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
 | WireGuard | 10.6.0.22 | wg0 | ✅ Port 51822 | Remote access |
 | Tailscale | 100.124.53.91 | tailscale0 | ✅ Active | Fallback |
+
+**Tailscale (2026-06):** `accept-dns=false`, `accept-routes=false`, `--ssh`; `agl-lan-routes.service` com `LAN_IF=vmbr0`. Alinhar com `scripts/proxmox/tailscale-align-proxmox-host.sh`. Ver [`troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md`](troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md).
 
 ### Hardware
 
@@ -439,6 +444,8 @@ https://192.168.1.233:8006  # Inter-host LAN
 | Tailscale | 100.76.201.83 | tailscale0 | ✅ Active | **PRIMARY** |
 | Local LAN | 192.168.0.234 | enp2s0 | ✅ Active | Secondary |
 | WireGuard | 10.6.0.23 | wg0 | ✅ Port 51823 | Legacy |
+
+**Tailscale (2026-06):** `accept-dns=false`, `accept-routes=false` (não aceita rotas de peers); **anuncia** subnet `192.168.0.0/24` como subnet router. `agl-lan-routes.service` com `LAN_IF=enp2s0`. Script: `scripts/proxmox/tailscale-align-proxmox-host.sh`.
 
 ### Hardware
 

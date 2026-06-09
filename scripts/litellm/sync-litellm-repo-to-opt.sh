@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Sincroniza config/litellm/config.yaml do repositório → /opt/litellm e reinicia o proxy.
-# Correr no host onde o LiteLLM corre (ex.: agldv03) com o repo montado (ex.: NFS).
+# Correr no host onde LiteLLM corre localmente (agldv04/12, fgsrv06) com repo montado.
+# CT186 (canónico): usar scripts/litellm/deploy-litellm-callbacks-ct186.sh ou sync-config-all-hosts.sh
 # Uso: sudo bash scripts/litellm/sync-litellm-repo-to-opt.sh [--no-restart]
 # Opções:
 #   --no-restart  só copia + backup + diff; não reinicia o contentor nem espera readiness

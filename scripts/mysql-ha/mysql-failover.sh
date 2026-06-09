@@ -4,8 +4,8 @@
 # Monitors MySQL Master and triggers failover to Slave
 #
 # Architecture:
-#   Topologia 2026-04 (GTID): CT235 (mysql7) = MASTER · CT135 (mysql5) = SLAVE read_only.
-#   Túneis Cloudflare / DNS: validar destinos em config.yml (CT130/CT170).
+#   Topologia 2026-06: CT561 (mysql7) = MASTER · CT535 (mysql5) = SLAVE read_only (ex.235/135).
+#   Túneis Cloudflare / DNS: validar destinos em config.yml (CT530/CT570; ex.130/170).
 #
 # On failover (slave CT135 promovido): CNAME mysql-ha / db-ha → túnel que alcança AGLSRV5
 # (CF_FAILOVER_DNS_TUNNEL, por omissão = CF_MASTER_TUNNEL). Enquanto o master CT235 está UP,
