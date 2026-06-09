@@ -313,7 +313,9 @@ services:
       hermes-claw3d-adapter:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- --header="Cookie: studio_access=$$STUDIO_ACCESS_TOKEN" http://127.0.0.1:3000/ >/dev/null 2>&1 || wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1']
+      test:
+        - CMD-SHELL
+        - node -e "const http=require('http');const t=process.env.STUDIO_ACCESS_TOKEN||'';const opts={hostname:'127.0.0.1',port:3000,path:'/',headers:t?{Cookie:'studio_access='+t}:{}};http.get(opts,r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
       interval: 45s
       timeout: 15s
       retries: 5

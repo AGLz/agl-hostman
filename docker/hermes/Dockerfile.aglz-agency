@@ -34,6 +34,7 @@ RUN apt-get update \
     redis-tools \
     python3-yaml \
     procps \
+    libportaudio2 \
     && rm -rf /var/lib/apt/lists/*
 
 # yq — editar/validar YAML (config Hermes, LiteLLM, compose)
@@ -46,7 +47,11 @@ RUN curl -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}
 RUN uv pip install \
     'python-telegram-bot[webhooks]==22.6' \
     'honcho-ai==2.0.1' \
-    'langfuse>=3.0.0'
+    'langfuse>=3.0.0' \
+    'edge-tts>=7.2.7' \
+    'faster-whisper>=1.2.1' \
+    'sounddevice>=0.5.5' \
+    'numpy>=2.4.3'
 
 # ── Linear CLI (Jarvis/Satya — backlog; LINEAR_API_KEY no .env do profile) ───
 RUN npm install -g @0xbigboss/linear-cli@0.2.11

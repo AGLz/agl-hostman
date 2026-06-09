@@ -49,9 +49,45 @@ done
 echo "=== llm-wiki no contentor (jarvis) ==="
 docker exec agl-hermes-jarvis test -r /opt/llm-wiki/wiki/index.md && ok "mount /opt/llm-wiki" || fail "mount /opt/llm-wiki"
 
+echo "=== Curator profile ==="
+if [[ -f "${HERMES_ROOT}/data/profiles/curator/config.yaml" ]]; then
+  ok "curator config.yaml"
+else
+  fail "curator config.yaml — correr bootstrap-hermes-curator-profile-ct188.sh"
+fi
+if [[ -f "${HERMES_ROOT}/data/profiles/curator/skills/research/llm-wiki/SKILL.md" ]] \
+  || [[ -L "${HERMES_ROOT}/data/profiles/curator/skills/research/llm-wiki" ]]; then
+  ok "curator skill llm-wiki"
+else
+  fail "curator llm-wiki — correr fix-curator-llm-wiki-skill-ct188.sh"
+fi
+
 echo "=== NFS dev tree (jarvis) ==="
 docker exec agl-hermes-jarvis test -d /mnt/overpower/apps/dev/agl && ok "mount /mnt/overpower/apps/dev" || fail "mount /mnt/overpower/apps/dev"
 docker exec agl-hermes-jarvis bash -lc 'touch /mnt/overpower/apps/dev/.hermes-rw-smoke 2>/dev/null && rm -f /mnt/overpower/apps/dev/.hermes-rw-smoke' && ok "mount rw /mnt/overpower/apps/dev" || fail "mount rw /mnt/overpower/apps/dev"
+
+echo "=== Voice (jarvis) ==="
+if docker exec agl-hermes-jarvis /opt/hermes/.venv/bin/python3 -c "import edge_tts, faster_whisper, langfuse" 2>/dev/null; then
+  ok "voice deps (edge-tts, faster-whisper, langfuse)"
+else
+  fail "voice deps — correr enable-hermes-voice-ct188.sh"
+fi
+if docker exec agl-hermes-jarvis grep -q 'auto_tts: true' /opt/data/config.yaml 2>/dev/null; then
+  ok "jarvis auto_tts=true"
+else
+  fail "jarvis auto_tts"
+fi
+if docker exec agl-hermes-jarvis /opt/hermes/.venv/bin/edge-tts --voice pt-BR-FranciscaNeural --text smoke --write-media /tmp/smoke-tts.mp3 2>/dev/null \
+  && docker exec agl-hermes-jarvis test -s /tmp/smoke-tts.mp3; then
+  ok "edge-tts synthesis"
+else
+  fail "edge-tts synthesis"
+fi
+if grep -q 'auto_tts: true' "${HERMES_ROOT}/data/profiles/curator/config.yaml" 2>/dev/null; then
+  ok "curator auto_tts=true"
+else
+  fail "curator auto_tts — correr enable-hermes-voice-ct188.sh"
+fi
 
 echo "=== Linear CLI ==="
 docker exec agl-hermes-jarvis linear --version >/dev/null 2>&1 && ok "linear-cli" || fail "linear-cli"
