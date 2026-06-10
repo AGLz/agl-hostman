@@ -1,10 +1,40 @@
 # AGLSRV3 — Mapa de discos
 
 > **Host**: `aglsrv3` · Tailscale `100.123.5.81` · LAN `192.168.15.247/24` (AGLFG)  
-> **Última auditoria**: 2026-06-03 (read-only; **nenhum wipe executado**)  
-> **Pools ZFS**: nenhum (`zpool list` vazio) · `zfsutils-linux` instalado
+> **Última auditoria**: 2026-06-09 (pós-manutenção física + ops disco)  
+> **Pool ZFS**: `aglsrv3-tb` raidz1 4×1TB + **sdi** 1TB (vdev single) **ONLINE** (~4,45 TB livre)  
+> **Removidos para teste externo**: `ZDE1G6CZ` (ST1000LM035), `WX22AB0CV28E` (WDC 1TB lento)  
+> **Em curso**: `badblocks` sdj + sdh · wipe sdh após badblocks (watcher activo)
 
 Runbook relacionado: [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) · [`HOSTS.md`](HOSTS.md#-aglsrv3-proxmox-ve-host)
+
+---
+
+## ⚠️ Letras `sdX` mudam — usar sempre serial / by-id
+
+Após remover discos e religar cabos, **as letras mudaram** face à auditoria 2026-06-03. O pool ZFS usa **by-id** (estável).
+
+| Serial | by-id | Dev **2026-06-09** | Papel |
+|--------|-------|-------------------|--------|
+| S2RANX0H564404D | `ata-Samsung_SSD_850_EVO_500GB_S2RANX0H564404D` | **sde** | Sistema Proxmox |
+| WX91A48LL4CN | `ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN` | **sdg** | Pool `aglsrv3-tb` |
+| S33JJ5CG901030 | `ata-ST1000LM024_HN-M101MBB_S33JJ5CG901030` | **sdd** | Pool `aglsrv3-tb` |
+| X6KLT31BT | `ata-TOSHIBA_MQ01ABD100_X6KLT31BT` | **sdb** | Pool `aglsrv3-tb` |
+| X6KLT319T | `ata-TOSHIBA_MQ01ABD100_X6KLT319T` | **sdf** | Pool `aglsrv3-tb` |
+| X6KLT31FT | `ata-TOSHIBA_MQ01ABD100_X6KLT31FT` | **sdi** | **Pool** — vdev single (5.º disco; ver nota raidz) |
+| W8E0CAKW | `ata-APPLE_HDD_ST2000DM001_W8E0CAKW` | **sdh** | badblocks → wipe automático · **parado** |
+| WXB1E39AE1J3 | `ata-WDC_WD20SPZX-75UA7T0_WXB1E39AE1J3` | **sdk** | **Wiped** 2026-06-09 · parado (pool 2TB futuro) |
+| S2X2J90C525025 | `ata-ST750LM022_HN-M750MBB_S2X2J90C525025` | **sda** | Arquivo 750G |
+| 6WS2Q9CJ | `ata-ST9750420AS_6WS2Q9CJ` | **sdc** | Arquivo 750G |
+| 6WS2Q6QR | `ata-ST9750420AS_6WS2Q6QR` | **sdj** | Arquivo 750G (UDMA_CRC hist.) |
+| 0010018001479 | NVMe `NE-1TB 2280` | **nvme0n1** | Windows / passthrough VM301 |
+
+**Fora do host (2026-06-09):**
+
+| Serial | Modelo | Motivo |
+|--------|--------|--------|
+| ZDE1G6CZ | ST1000LM035 1TB | 8 pending, short FAIL — testar noutro PC |
+| WX22AB0CV28E | WDC WD10SPZX 1TB | I/O ~40 MB/s — testar noutro PC/cabo |
 
 ---
 
@@ -13,249 +43,313 @@ Runbook relacionado: [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) · [`H
 ```mermaid
 flowchart TB
   subgraph sistema["🔒 Sistema — NÃO TOCAR"]
-    sdf["sdf · Samsung SSD 500GB<br/>Proxmox + local-lvm"]
+    sde["sde · Samsung SSD 500GB<br/>S2RANX0H564404D"]
   end
 
-  subgraph zfs_plan["🟢 Candidatos ZFS / lista WIPE"]
-    sdb["sdb · WDC 1TB"]
-    sde["sde · ST1000 1TB"]
-    sdg["sdg · Toshiba 1TB"]
-    sdh["sdh · Toshiba 1TB"]
-    sdj["sdj · WDC 1TB · novo online"]
-    sdl["sdl · Toshiba 1TB · novo online"]
-    sdi["sdi · WDC 2TB · APFS TM legado"]
+  subgraph pool["🟢 Pool aglsrv3-tb raidz1 ONLINE"]
+    sdg["sdg · WDC 1TB WX91A48LL4CN"]
+    sdd["sdd · ST1000 1TB S33JJ5CG901030"]
+    sdb["sdb · Toshiba 1TB X6KLT31BT"]
+    sdf["sdf · Toshiba 1TB X6KLT319T"]
   end
 
-  subgraph quarantine["🔴 Não usar em ZFS"]
-    sdk["sdk · ST1000LM035<br/>8 pending + short FAIL"]
+  subgraph expand["🟢 Candidatos — ainda não no pool"]
+    sdi["sdi · Toshiba 1TB X6KLT31FT"]
   end
 
-  subgraph archive["🟡 Arquivo / backup — PRESERVAR"]
-    sda["sda · ST750 750GB"]
-    sdc["sdc · ST975 750GB"]
-    sdd["sdd · ST975 750GB · UDMA_CRC"]
+  subgraph pool2t["🟢 Candidatos pool 2TB"]
+    sdh["sdh · Seagate/Apple 2TB W8E0CAKW · NOVO"]
+    sdk["sdk · WDC 2TB WXB1E39AE1J3"]
   end
 
-  sdf --> local_lvm["local-lvm ~330G thin"]
-  zfs_plan --> pool_tb["aglsrv3-tb: 6×1TB raidz1 ~4,6TB<br/>ou 3× mirror"]
-  sdi --> pool_2t["aglsrv3-2t: single 2TB"]
+  subgraph archive["🟡 Arquivo — PRESERVAR"]
+    sda["sda · ST750 S2X2J90C525025"]
+    sdc["sdc · ST975 6WS2Q9CJ"]
+    sdj["sdj · ST975 6WS2Q6QR · UDMA_CRC 4931"]
+  end
+
+  sde --> local_lvm["local-lvm"]
+  pool --> pbs["CT318 PBS · CT338 aglfs3 · CT317/304/306"]
+  expand --> attach["zpool attach → ~3,5 TB útil"]
+  pool2t --> aglsrv3_2t["aglsrv3-2t mirror ou single"]
 ```
 
 ---
 
-## Inventário físico (2026-06-03 — 12 discos online)
+## Inventário físico (2026-06-09 — 11 SATA + 1 NVMe)
 
-| Dev | Tamanho | Modelo | Serial | SMART | Papel |
-|-----|---------|--------|--------|-------|-------|
-| **sdf** | 465.8G | Samsung SSD 850 EVO 500GB | S2RANX0H564404D | PASSED | **Sistema Proxmox** |
-| **sda** | 698.6G | ST750LM022 | S2X2J90C525025 | PASSED | Arquivo backup |
-| **sdb** | 931.5G | WDC WD10SPZX-75Z10T1 | WX91A48LL4CN | PASSED | **ZFS 1TB** · badblocks a correr |
-| **sdc** | 698.6G | ST9750420AS | 6WS2Q9CJ | PASSED | Arquivo backup |
-| **sdd** | 698.6G | ST9750420AS | 6WS2Q6QR | PASSED* | Arquivo backup |
-| **sde** | 931.5G | ST1000LM024 | S33JJ5CG901030 | PASSED | **ZFS 1TB** · badblocks a correr |
-| **sdg** | 931.5G | TOSHIBA MQ01ABD100 | X6KLT31BT | PASSED | **ZFS 1TB** · badblocks a correr |
-| **sdh** | 931.5G | TOSHIBA MQ01ABD100 | X6KLT319T | PASSED | **ZFS 1TB** · badblocks a correr |
-| **sdi** | 1.8T | WDC WD20SPZX-75UA7T0 | WXB1E39AE1J3 | PASSED | **ZFS 2TB** · badblocks a correr |
-| **sdj** | 931.5G | WDC WD10SPZX-35Z10T0 | WX22AB0CV28E | PASSED | **ZFS 1TB** · novo online |
-| **sdk** | 931.5G | ST1000LM035-1RK172 | ZDE1G6CZ | PASSED** | **⛔ Quarentena — não ZFS** |
-| **sdl** | 931.5G | TOSHIBA MQ01ABD100 | X6KLT31FT | PASSED | **ZFS 1TB** · badblocks a correr |
+| Dev* | Tamanho | Modelo | Serial | SMART | I/O 256MB | Papel |
+|-----|---------|--------|--------|-------|-----------|-------|
+| **sde** | 500G | Samsung SSD 850 EVO | S2RANX0H564404D | PASSED | — | **Sistema** |
+| **sdg** | 1TB | WDC WD10SPZX | WX91A48LL4CN | PASSED | — | **Pool** |
+| **sdd** | 1TB | ST1000LM024 | S33JJ5CG901030 | PASSED | — | **Pool** |
+| **sdb** | 1TB | TOSHIBA MQ01ABD100 | X6KLT31BT | PASSED | — | **Pool** |
+| **sdf** | 1TB | TOSHIBA MQ01ABD100 | X6KLT319T | PASSED | — | **Pool** |
+| **sdi** | 1TB | TOSHIBA MQ01ABD100 | X6KLT31FT | PASSED, short OK | **114 MB/s** | **Livre** — expandir raidz1 |
+| **sdh** | 2TB | APPLE HDD ST2000DM001 | **W8E0CAKW** | PASSED, 26 588 h | **192 MB/s** | **Livre** — 2TB novo |
+| **sdk** | 2TB | WDC WD20SPZX (SMR) | WXB1E39AE1J3 | PASSED, 3 986 h | **75 MB/s** | **Livre** — TM/APFS legado |
+| **sda** | 750G | ST750LM022 | S2X2J90C525025 | PASSED | — | Arquivo |
+| **sdc** | 750G | ST9750420AS | 6WS2Q9CJ | PASSED, 20 999 h | — | Arquivo (~92% Dell) |
+| **sdj** | 750G | ST9750420AS | 6WS2Q6QR | PASSED* | **120 MB/s** | Arquivo AGLDATA08 ~97% |
+| **nvme0n1** | 1TB | NE-1TB 2280 | 0010018001479 | PASSED | — | Partições Windows |
 
-\* **sdd**: UDMA_CRC = **4931** (cabo/porta SATA). Preservar dados; trocar cabo antes de I/O pesado.  
-\** **sdk**: SMART health PASSED mas **short test FAILED** (LBA 6525920), **8 pending**, **8 offline uncorrectable**, 207 entradas no error log. **Excluir do pool** até recuperação ou substituição.
-
----
-
-## Partições e uso de dados
-
-### sdf — sistema (intocável)
-
-| Partição | Uso | Montagem / papel |
-|----------|-----|------------------|
-| sdf1 | LVM PV | `pve` VG |
-| sdf2 | vfat | `/boot/efi` |
-| (LVM) | ext4 + thin | `pve-root` (~96G), **local-lvm** (~330G thin, ~35% usado) |
-
-**Proxmox storage**: `local` (dir ~30% usado), `local-lvm` (thin).
-
-### Candidatos wipe (1 TB + 2 TB)
-
-| Dev | Partição | FS / label | Uso (df) | Conteúdo conhecido |
-|-----|----------|------------|----------|-------------------|
-| **sdb** | sdb3 | NTFS | **128M / 930G (1%)** | Instalação Windows vazia / já clonada para SSD 500G |
-| **sde** | sde3 | NTFS «Windows» | **137G / 918G (15%)** | Windows legado (clonado) |
-| **sdg** | sdg3 | NTFS «OS» | **172G / 471G (37%)** | zeladoria, Pegasus (~9G histórico) |
-| **sdg** | sdg4 | NTFS «BACKUP» | **114M / 448G (1%)** | Partição backup quase vazia |
-| **sdh** | sdh3 | NTFS «OS» | **125G / 918G (14%)** | tesouraria (~17G histórico) |
-| **sdi** | sdi2 | APFS | ~1.8T (sem mount Linux) | Time Machine (**migrado**) |
-| **sdj** | sdj3 | NTFS | **89G / 916G (10%)** | Windows (clonável) |
-| **sdk** | sdk3 | NTFS | **75G / 906G (9%)** | Windows — **não wipe** até resolver sectores |
-| **sdl** | sdl3 | NTFS | **78G / 919G (9%)** | Windows (clonável) |
-
-### Arquivo — preservar (750 GB)
-
-| Dev | Partição | FS / label | Uso (df) | Conteúdo |
-|-----|----------|------------|----------|----------|
-| **sda** | sda2 | NTFS «OS» | **29G / 698G (5%)** | Windows legado |
-| **sdc** | sdc5 | NTFS «Sistema» | **635G / 691G (92%)** | Dell — Users ElaineAparecida, kakos |
-| **sdd** | sdd1–2 | vfat/NTFS | USB boot/install | Legado instalador |
-| **sdd** | sdd3 | NTFS «AGLDATA08» | **641G / 667G (97%)** | `BB` ~573G, `apps` ~67G |
+\* **sdj**: contador **UDMA_CRC = 4931** (histórico de cabo); short test OK em 2026-06-09. Não usar em ZFS até confirmar cabo/porta estável (contador não subir após I/O).
 
 ---
 
-## SMART — atributos críticos (2026-06-03)
+## Pool `aglsrv3-tb` (estado 2026-06-09)
 
-| Dev | Realloc | Pending | Offline uncorr. | UDMA_CRC | SMART short | Error log |
-|-----|---------|---------|-----------------|----------|-------------|-----------|
-| sda | 0 | 0 | 0 | 0 | — | vazio |
-| sdb | 0 | 0 | 0 | 0 | — | vazio |
-| sdc | 0 | 0 | 0 | 0 | — | vazio |
-| sdd | 0 | 0 | 0 | **4931** | — | vazio |
-| sde | 0 | 0 | 0 | 0 | OK (2026-05) | vazio |
-| sdg | 0 | 0 | — | 0 | OK (2026-05) | vazio |
-| sdh | 0 | 0 | — | 0 | OK (2026-05) | vazio |
-| sdi | 0 | 0 | 0 | 0 | — | vazio |
-| sdj | 0 | 0 | 0 | 0 | — | vazio |
-| sdk | 0 | **8** | **8** | 0 | **FAIL** LBA 6525920 | 207 UNC |
-| sdl | 0 | 0 | — | 0 | **OK** | 340 hist. (short OK) |
+```
+zpool status aglsrv3-tb
+  state: ONLINE
+  raidz1-0:
+    ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN      → sdg
+    ata-ST1000LM024_HN-M101MBB_S33JJ5CG901030  → sdd
+    ata-TOSHIBA_MQ01ABD100_X6KLT31BT           → sdb
+    ata-TOSHIBA_MQ01ABD100_X6KLT319T           → sdf
+  ata-TOSHIBA_MQ01ABD100_X6KLT31FT             → sdi  (vdev single, wipe+add 2026-06-09)
+  SIZE: ~4,53 TB · AVAIL: ~4,45 TB · USED: ~85 GB
+  errors: No known data errors
+```
 
-**sdk:** considerar `smartctl -t long`, clonagem de dados úteis e **substituição** — não incluir em raidz1.
+> **Nota raidz 5.º disco:** Proxmox ZFS **2.2.8** não expõe `feature@raidz_expansion` (OpenZFS **2.3+**).  
+> `zpool attach raidz1-0` falhou; aplicado `zpool add` — sdi entra como **vdev single** (stripe com o raidz1).  
+> Capacidade extra ~930 GB; dados **novos** podem ir para sdi **sem paridade**. Upgrade ZFS 2.3+ permitiria expansão raidz1 real.
+
+**Datasets activos:** CT304, 306, 317, 318, 338; VM310 cloudinit/disk parcial.
 
 ---
 
-## Testes de superfície e I/O (read-only)
+## Discos livres — análise detalhada
 
-Ferramentas instaladas no host: `smartmontools`, `testdisk`, `badblocks`, `zfsutils-linux`.
+### sdi — X6KLT31FT (1 TB Toshiba)
 
-### Amostra de leitura (`dd` 512MB, read-only — 2026-06-03)
+| Campo | Valor |
+|-------|--------|
+| Partições | NTFS «OS» ~918G (~8% Windows legado) |
+| SMART | 0 realloc, 0 pending, UDMA_CRC 0 |
+| POH | 3 754 h |
+| Leitura | 114 MB/s |
+| **Recomendação** | **Melhor candidato a `zpool attach`** no raidz1 (5.º disco). Wipe após backup se dados já clonados. Capacidade útil ~**3,5 TB** (5×1TB raidz1). |
 
-| Dev | MB/s | Nota |
-|-----|------|------|
-| sdb | 103 | OK |
-| sde | 126 | OK (antes 24 MB/s — variável) |
-| sdg | ~109 | OK (2026-05) |
-| sdh | ~118 | OK (2026-05) |
-| sdi | ~52 | OK para 2TB |
-| sdj | 39.5 | Mais lento; monitorizar badblocks |
-| sdk | 139 | I/O OK apesar de sectores pendentes |
-| sdl | 116 | OK |
+### sdh — W8E0CAKW (2 TB Seagate 7200 — **novo no host**)
 
-### badblocks `-sv` (read-only)
+| Campo | Valor |
+|-------|--------|
+| Partições | EFI 200M + **APFS** ~1,8T (Time Machine Mac) |
+| SMART | PASSED, 0 pending, 26 588 h (disco usado, novo cabo/host) |
+| Self-test | Nenhum registado — correr `smartctl -t short` |
+| Leitura | **192 MB/s** (7200 rpm) |
+| **Recomendação** | Disco **preferido** para pool `aglsrv3-2t` (single ou perna principal de mirror). APFS só útil se ainda precisares dos backups Mac — caso contrário wipe após export. |
 
-**2026-06-03:** reiniciados em background (logs anteriores perdidos após reboot). **7 discos:** sdb, sde, sdg, sdh, sdi, sdj, sdl. **sdk excluído** (sectores danificados).
+### sdk — WXB1E39AE1J3 (2 TB WDC SMR)
 
-Estimativa: ~2–4 h/disco @ ~100 MB/s com 7 scans paralelos (carga alta no host).
+| Campo | Valor |
+|-------|--------|
+| Partições | EFI 200M + **APFS** ~1,8T (TM migrado) |
+| SMART | PASSED, 0 pending, 3 986 h |
+| Leitura | **75 MB/s** (SMR 5400 rpm) |
+| **Recomendação** | Segunda opção 2TB: **mirror com sdh** (redundância ~1,8 TB) ou arquivo frio. Evitar SMR como único pool de I/O intenso (PBS/VMs). |
+
+### Arquivo 750 GB (não ZFS)
+
+| Dev | Serial | Notas |
+|-----|--------|-------|
+| sda | S2X2J90C525025 | NTFS ~5% |
+| sdc | 6WS2Q9CJ | NTFS Dell ~92% |
+| sdj | 6WS2Q6QR | AGLDATA08 ~97%; UDMA_CRC histórico |
+
+---
+
+## SMART — atributos críticos (2026-06-09)
+
+| Dev | Serial | Realloc | Pending | Offline | UDMA_CRC | Short |
+|-----|--------|---------|---------|---------|----------|-------|
+| sde | S2RANX0… | 0 | 0 | 0 | 0 | — |
+| sdg | WX91A48… | 0 | 0 | 0 | 0 | OK |
+| sdd | S33JJ5… | 0 | 0 | 0 | 0 | OK |
+| sdb | X6KLT31BT | 0 | 0 | — | 0 | OK |
+| sdf | X6KLT319T | 0 | 0 | — | 0 | OK |
+| **sdi** | X6KLT31FT | 0 | 0 | — | 0 | OK |
+| **sdh** | W8E0CAKW | 0 | 0 | 0 | 0 | *(não corrido)* |
+| **sdk** | WXB1E39AE1J3 | 0 | 0 | 0 | 0 | OK |
+| sda | S2X2J90… | 0 | 0 | 0 | 0 | OK |
+| sdc | 6WS2Q9CJ | 0 | 0 | 0 | 0 | OK |
+| sdj | 6WS2Q6QR | 0 | 0 | 0 | **4931** | OK |
+
+---
+
+## Plano ZFS (2026-06-09 — recriação após PVE 9)
+
+**Decisão:** destruir pool actual (layout errado: raidz1-0 + vdev single) e recriar **raidz1 nativo 5×1TB** após:
+
+1. badblocks **sdj** + **sdh** (0 erros)
+2. wipe **sdh** (watcher) + **sdk** já limpo
+3. **Upgrade Proxmox 8.4 → 9** (OpenZFS 2.3+, `feature@raidz_expansion`)
+
+| Pool | Discos (by-id) | Layout | Capacidade útil ~ |
+|------|----------------|--------|-------------------|
+| `aglsrv3-tb` | 5×1TB (ver abaixo) | **raidz1** novo | ~**3,5 TB** |
+| `aglsrv3-2t` | W8E0CAKW + WXB1E39AE1J3 | mirror (fase posterior) | ~1,8 TB |
+
+**Discos do novo `aglsrv3-tb` (by-id):**
+
+- `ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN`
+- `ata-ST1000LM024_HN-M101MBB_S33JJ5CG901030`
+- `ata-TOSHIBA_MQ01ABD100_X6KLT31BT`
+- `ata-TOSHIBA_MQ01ABD100_X6KLT319T`
+- `ata-TOSHIBA_MQ01ABD100_X6KLT31FT`
+
+**Excluídos:** sde (sistema), sda/sdc/sdj (arquivo), 2×2TB parados, discos removidos ZDE1G6CZ / WX22AB0CV28E.
+
+### Features e propriedades do novo pool (OpenZFS 2.3+ / PVE 9)
+
+Referências: [PVE ZFS on Linux](https://pve.proxmox.com/wiki/ZFS_on_Linux) · [OpenZFS 2.3 release](https://www.phoronix.com/news/OpenZFS-2.3-Released) · `zpool-features(7)`
+
+#### Feature flags — o que activar
+
+| Feature | Acção | Motivo |
+|---------|--------|--------|
+| **raidz_expansion** | `enabled` na criação | Permite `zpool attach` de 6.º disco ao raidz1 sem recriar pool |
+| **block_cloning** | default em pool novo 2.3 | Clones CT / cópias ZFS muito mais rápidos |
+| **longname** | default em pool novo 2.3 | Nomes de ficheiro até 1023 caracteres |
+| **fast_dedup** | default (só se dedup=ON) | **Não usar dedup** neste host — RAM insuficiente |
+| **device_rebuild** | default | Rebuild resiliente de discos |
+| **zstd_compress** | activa ao usar `compression=zstd` | Dataset `backups` com `zstd-3` |
+| **dRAID** | — | Topologia diferente; não aplicável |
+| **encryption** | opcional | Segurança at-rest; exige gestão de chaves (PBS/CT318) |
+
+> **Nota:** `feature@raidz_expansion` torna o pool **não importável** em ZFS &lt; 2.3 — intencional após upgrade PVE 9.
+
+#### Propriedades do pool (script `create_pool`)
+
+| Propriedade | Valor | Motivo |
+|-------------|-------|--------|
+| `ashift=12` | 4K | Alinhamento sectores modernos (HDD 1TB) |
+| `autotrim=off` | HDD | TRIM só faz sentido em SSD |
+| `compression=lz4` | CT/VM default | Baixo CPU, ~20–30% poupança em rootfs |
+| `atime=off` | menos writes | Padrão recomendado PVE |
+| `xattr=sa` | Linux | xattrs no inode — melhor LXC/NFS |
+| `acltype=posixacl` | Proxmox | ACLs POSIX (pool actual tem `off`) |
+| `redundant_metadata=all` | default | Cópias extra de metadados em raidz |
+
+#### Datasets filhos
+
+| Dataset | recordsize | compression | Uso |
+|---------|------------|-------------|-----|
+| `aglsrv3-tb` (raiz) | 128K (default) | lz4 | CTs 304/306/317/318/338, imagens |
+| `aglsrv3-tb/backups` | **1M** | **zstd-3** | vzdump, tar streams, ficheiros grandes |
+
+`recordsize` em CTs é **dinâmico** (teto 128K); ficheiros pequenos usam blocos menores. Só vale `64K` se perfil for quase só rootfs pequeno — ganho marginal.
+
+#### O que **não** adicionar (sem hardware extra)
+
+| Opção | Motivo |
+|-------|--------|
+| **dedup** | ~5 GB RAM/TB deduplicado; CTs mistos não compensam |
+| **special vdev** | Requer SSD dedicado com mesma redundância que o pool |
+| **L2ARC** | Sem SSD cache; sde = sistema |
+| **SLOG (log vdev)** | Sem SSD spare; CTs são maioritariamente async |
+| **ashift=9** | Pior performance em discos 4Kn |
+
+#### Expansão futura (6.º disco 1TB)
+
+Após PVE 9 + pool com `raidz_expansion`:
+
+```bash
+zpool attach aglsrv3-tb raidz1-0 /dev/disk/by-id/ata-…
+zpool status aglsrv3-tb   # resilver / expansion
+```
+
+Dados **existentes** mantêm layout antigo (4+1); só **escritas novas** usam stripe alargado até reescrita/cópia.
+
+**Orquestração automática no host:** `/usr/local/sbin/aglsrv3-pool-rebuild-after-checks.sh`
+
+Ordem após badblocks/wipes:
+
+1. **Migrar VM310** → **cancelado** (discos perdidos no destroy; recriar de VM110 — ver [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md))
+2. Parar CTs 304/306/317/318/338 · remover storages PBS
+3. `zpool destroy` · upgrade PVE 9 · recriar raidz1 5×1TB
+
+Log: `/var/log/aglsrv3-pool-rebuild.log` · Estado: `/var/lib/aglsrv3-pool-rebuild/state` (`migrating-vm310` = VM310 a mover)
 
 ```bash
 # Progresso
-ssh root@100.123.5.81 'for d in sdb sde sdg sdh sdi sdj sdl; do printf "%s: " $d; grep -o "[0-9.]*% done.*errors)" /tmp/badblocks-$d.log 2>/dev/null | tail -1; done'
-ps aux | grep "[b]adblocks -sv"
+ssh root@100.123.5.81 aglsrv3-pool-rebuild-after-checks.sh --status
+
+# Após conclusão: reprovisionar CTs + PBS
+# scripts/proxmox/pbs-setup-renumbered-hosts.sh --host aglsrv3 --apply --remote
 ```
 
 ---
 
-## `/dev/disk/by-id` (wipe / zpool — usar sempre by-id)
+## Consumidores storage (2026-06-09)
 
-| Dev | by-id |
-|-----|-------|
-| sdb | `ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN` |
-| sde | `ata-ST1000LM024_HN-M101MBB_S33JJ5CG901030` |
-| sdg | `ata-TOSHIBA_MQ01ABD100_X6KLT31BT` |
-| sdh | `ata-TOSHIBA_MQ01ABD100_X6KLT319T` |
-| sdj | `ata-WDC_WD10SPZX-35Z10T0_WX22AB0CV28E` |
-| sdl | `ata-TOSHIBA_MQ01ABD100_X6KLT31FT` |
-| sdi | `ata-WDC_WD20SPZX-75UA7T0_WXB1E39AE1J3` |
-| sdk | `ata-ST1000LM035-1RK172_ZDE1G6CZ` (**quarentena — não wipe**) |
-| sdf | `ata-Samsung_SSD_850_EVO_500GB_S2RANX0H564404D` (**não wipe**) |
+| VMID | Nome | Storage | Estado |
+|------|------|---------|--------|
+| 301 | AGLHQ10 | local-lvm + NVMe passthrough? | stopped |
+| 302–305, 308 | várias | local-lvm | stopped |
+| **310** | **agl-ollama** | **recriar** de VM110 pós-upgrade | stopped (config órfã) |
+| 304, 306, 317, 318, 338 | CTs | **aglsrv3-tb** | running |
+
+`pvesm`: `aglsrv3-tb`, `local`, `local-lvm`, `pbs-*` activos.
 
 ---
 
-## Consumidores de `local-lvm` (sdf)
+## Upgrade PVE 8 → 9 — riscos e mitigações (AGLSRV3)
 
-| VMID | Nome | Disco aprox. | Estado (2026-06-03) |
-|------|------|--------------|---------------------|
-| 101 | AGLHQ10 | + NVMe passthrough | running |
-| 102 | AGLHQ11 | 240G | stopped |
-| 103 | opnsense | 40G (~99% cheio) | stopped |
-| 105 | AGLMAC07 | 256G | stopped |
-| 108 | truenas | 32G | stopped |
-| 117 | pihole3 | 12G | running |
-| 106 | cloudflared3 | 4G | running |
-| 104 | cloudflared | 2G | running (HA tunnel) |
+**CPU:** Intel Xeon **E5-2690 v3** (Haswell-EP, sig `0x306f2`) · **Boot:** UEFI + **GRUB** + root **LVM** (`pve/root` em sde).
 
-Backups vzdump em `/var/lib/vz/dump/` (~11G): incl. pihole 2026-05-28, AGLMAC07 2023 — **não apagar sem OK**.
+Referência oficial: [Upgrade from 8 to 9](https://pve.proxmox.com/wiki/Upgrade_from_8_to_9)
 
----
+### Problemas conhecidos (aplicáveis a este host)
 
-## Decisões e plano ZFS
+| Risco | Impacto | Mitigação aplicada/planeada |
+|-------|---------|----------------------------|
+| **GRUB + UEFI + LVM** | Após upgrade, boot cai em `grub>` | `grub-efi-amd64` + `grub-install --recheck` pré e pós-reboot; script `--grub-fix` |
+| **systemd-boot meta-pacote** | Conflitos em pacotes de boot | `apt purge systemd-boot` (manter GRUB) |
+| **Microcode em falta** | Rev `0x00000000`; TAA/MMIO Stale Data vulnerável | `non-free-firmware` + `intel-microcode` → rev **0x49** após reboot |
+| **/etc/hosts IP errado** | `pve8to9` FAIL (192.168.30.111 vs .247) | Corrigido para `192.168.30.247` |
+| **Repo bullseye obsoleto** | `pxve-no-sub.list` mistura suites | Ficheiro desactivado |
+| **/tmp como tmpfs (Trixie)** | Até 50% RAM; limpeza automática | Evitar builds grandes em `/tmp` durante upgrade |
+| **Audit journal flood** | Logs excessivos mid-upgrade | `systemctl disable systemd-journald-audit.socket` |
+| **LVM thin pool repair** | Erro `Check of pool pve/data failed` | Se ocorrer: `lvconvert --repair pve/data` |
+| **NIC rename (kernel 6.14+)** | Interfaces mudam nome | Consola IPMI/física disponível; considerar `pve-network-interface-pinning` |
+| **Tailscale repo bookworm** | Apt após Trixie | Script rebuild actualiza suite para `trixie` |
+| **Ceph Quincy** | Incompatível com PVE 9 | Repos comentados; sem Ceph hyper-converged activo |
 
-### Política acordada
-
-1. **ZFS só em 1 TB + 2 TB** — conteúdo já clonado para SSDs 500G ou migrado (Time Machine).
-2. **750 GB (sda, sdc, sdd)** — permanecem como **backup offline**, fora do pool.
-3. **sdf** — sistema; intocável.
-4. **Wipe** — apenas com **autorização explícita por serial/by-id**.
-
-### Pools planeados (pós-wipe + badblocks OK)
-
-| Pool | Discos | Layout | Capacidade útil ~ |
-|------|--------|--------|-------------------|
-| `aglsrv3-tb` | sdb, sde, sdg, sdh | **raidz1** (4×1TB) — **ONLINE** 2026-06-03 | ~**2,7 TB** |
-| `aglsrv3-tb` | + sdj, sdl (futuro) | `zpool attach` após re-teste | até ~4,6 TB |
-| `aglsrv3-tb` | (alternativa histórica) | **3× mirror** | ~2,8 TB |
-| `aglsrv3-2t` | sdi | single | ~1,8 TB |
-
-**Excluídos:** sdk (sectores danificados), sda/sdc/sdd (arquivo), sdf (sistema).
-
-### Lista WIPE proposta (ordem sugerida)
-
-| # | Dev | Serial | Nota |
-|---|-----|--------|------|
-| 1 | sdb | WX91A48LL4CN | ~1% usado |
-| 2 | sdh | X6KLT319T | SMART OK |
-| 3 | sdg | X6KLT31BT | SMART OK |
-| 4 | sdl | X6KLT31FT | Novo online; short OK |
-| 5 | sdj | WX22AB0CV28E | Novo online; I/O ~40 MB/s |
-| 6 | sdi | WXB1E39AE1J3 | TM migrado |
-| 7 | sde | S33JJ5CG901030 | 15% usado |
-| — | sdk | ZDE1G6CZ | **Não wipe** — quarentena |
-
-### Comandos (referência — **não executar sem OK**)
+### Scripts
 
 ```bash
-# Wipe exemplo (substituir by-id)
-wipefs -a /dev/disk/by-id/ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN
-sgdisk --zap-all /dev/disk/by-id/ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN
+# Pré-upgrade (correcções + pve8to9 até 0 FAIL)
+/usr/local/sbin/aglsrv3-pve9-preupgrade.sh apply
 
-# Pool aglsrv3-tb (executado 2026-06-03 — 4×1TB raidz1)
-zpool create -f -o ashift=12 \
-  -O compression=lz4 \
-  -O atime=off \
-  aglsrv3-tb raidz1 \
-  /dev/disk/by-id/ata-WDC_WD10SPZX-75Z10T1_WX91A48LL4CN \
-  /dev/disk/by-id/ata-ST1000LM024_HN-M101MBB_S33JJ5CG901030 \
-  /dev/disk/by-id/ata-TOSHIBA_MQ01ABD100_X6KLT31BT \
-  /dev/disk/by-id/ata-TOSHIBA_MQ01ABD100_X6KLT319T
+# Só verificar
+/usr/local/sbin/aglsrv3-pve9-preupgrade.sh --check-only
 
-pvesm add zfspool aglsrv3-tb -pool aglsrv3-tb
-
-# Expandir depois (sdj/sdl, após badblocks OK):
-# zpool attach aglsrv3-tb /dev/disk/by-id/ata-...
+# Se GRUB falhar após reboot
+/usr/local/sbin/aglsrv3-pve9-preupgrade.sh --grub-fix
 ```
+
+Log: `/var/log/aglsrv3-pve9-preupgrade.log`
+
+**Reboot recomendado** após `intel-microcode` (antes do `dist-upgrade` para Trixie) para confirmar rev `0x49` em `dmesg | grep microcode`.
 
 ---
 
 ## Pendências operacionais
 
-- [x] `badblocks -sv`: sdb, sde, sdg, sdh, sdi — **0 bad blocks** (2026-06-03).
-- [x] Wipe autorizado: sdb, sde, sdg, sdh (seriais acima).
-- [x] Pool **`aglsrv3-tb`** raidz1 4×1TB criado + `pvesm add zfspool` (2026-06-03).
-- [ ] sdj, sdl: offline no badblocks — `zpool attach` após cabo + re-teste.
-- [ ] SMART **long** nos candidatos wipe (recomendado).
-- [ ] **sdk:** decidir substituição ou recuperação (8 pending, short FAIL).
-- [ ] Trocar cabo SATA do **sdd** (UDMA_CRC 4931).
-- [ ] Autorização explícita de wipe por serial.
-- [ ] Tailscale CT117 — ver [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md).
-- [ ] VM103 opnsense — disco ~99% cheio.
+- [x] Remover discos problemáticos: **ZDE1G6CZ**, **WX22AB0CV28E** (fora do host).
+- [x] Pool **aglsrv3-tb** ONLINE após manutenção.
+- [x] **sdi** (X6KLT31FT): wipe + `zpool add` ao pool (2026-06-09).
+- [x] **badblocks** sdj + sdh: 0 erros (2026-06-09).
+- [x] **sdh/sdk** wiped; **pool destroy** concluído.
+- [ ] **Pool rebuild:** upgrade PVE 9 + raidz1 5×1TB (`systemctl start aglsrv3-pool-rebuild.service`).
+- [ ] **VM310:** `restore-vm310-from-vm110.sh --full` → Tailscale + `ollama pull`.
+- [ ] **Pós-rebuild:** reprovisionar CTs 304/306/317/318/338.
+- [ ] **sdj** (6WS2Q6QR): monitorizar UDMA_CRC; só leitura de arquivo.
+- [ ] Resultado testes externos em **ZDE1G6CZ** / **WX22AB0CV28E**.
+- [ ] VM303 opnsense — disco ~99% cheio.
 
 ---
 
@@ -263,7 +357,8 @@ pvesm add zfspool aglsrv3-tb -pool aglsrv3-tb
 
 | Data | Acção |
 |------|--------|
-| 2026-05-28 | Inventário inicial, instalação `testdisk`, scans read-only NTFS |
-| 2026-05-30 | SMART, df, dd I/O, badblocks (5 discos; logs perdidos no reboot) |
-| 2026-06-03 | sdj/sdk/sdl online; sdk **excluído** ZFS; badblocks reiniciado (7 discos); mapa actualizado |
-| 2026-06-03 | badblocks OK (5 discos); wipe sdb/sde/sdg/sdh; **pool aglsrv3-tb** raidz1 4×1TB ONLINE |
+| 2026-05-28 | Inventário inicial |
+| 2026-06-03 | Pool **aglsrv3-tb** raidz1 4×1TB; badblocks OK nos 4 |
+| 2026-06-09 | Pós-manutenção: removidos ZDE1G6CZ + WX22AB0CV28E; **novo 2TB W8E0CAKW**; remap sd*; análise sdi/sdh/sdk |
+| 2026-06-09 | badblocks sdj+sdh; wipe sdi→`zpool add`; wipe sdk; watcher wipe sdh pós-badblocks |
+| 2026-06-09 | Plano: destroy pool + PVE 9 + raidz1 5×1TB; script `aglsrv3-pool-rebuild-after-checks.sh` + systemd |

@@ -61,7 +61,7 @@ $runner = @"
 function Write-Result([string]`$Line) { Add-Content -Path `$ResultFile -Value `$Line }
 
 Write-Result '--- sync-six-repos ---'
-& '$Bash' -lc "export HOME='$homeBash' && export USERPROFILE='$homeBash' && cd '$repoBash' && export HOSTMAN_ROOT_OVERRIDE='$repoBash' && export SKIP_LLM_WIKI=1 && export SKIP_RUFLO_INIT=1 && ./scripts/skills/sync-six-repos.sh --repo all --harness $Harness" 2>&1 | ForEach-Object { Write-Result `$_ }
+    & '$Bash' -lc "export HOME='$homeBash' && export USERPROFILE='$homeBash' && cd '$repoBash' && export HOSTMAN_ROOT_OVERRIDE='$repoBash' && export SKIP_LLM_WIKI=1 && export SKIP_RUFLO_INIT=1 && ./scripts/skills/install-post-skills-claude-code.sh" 2>&1 | ForEach-Object { Write-Result `$_ }
 if (`$LASTEXITCODE -ne 0) {
     Write-Result "FAIL sync exit=`$LASTEXITCODE"
     exit `$LASTEXITCODE
@@ -79,6 +79,9 @@ if (Test-Path '$RepoRoot\scripts\skills\verify-six-repos.sh') {
 `$checks = @(
     '$HomeRoot\.cursor\skills\obsidian-cli\SKILL.md',
     '$HomeRoot\.claude\skills\using-superpowers\SKILL.md',
+    '$HomeRoot\.claude\skills\humanizer\SKILL.md',
+    '$HomeRoot\.claude\skills\fact-check\SKILL.md',
+    '$HomeRoot\.claude\skills\frontend-slides\SKILL.md',
     '$HomeRoot\.cursor\skills\od-design-md\SKILL.md'
 )
 foreach (`$path in `$checks) {

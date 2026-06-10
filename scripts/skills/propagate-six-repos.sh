@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Propaga Six Repos para hosts AGL (Fase 5).
+# Propaga Six Repos + post skills para hosts AGL (Fase 5).
 # Plano: ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md
 #
 # Uso:
-#   ./scripts/skills/propagate-six-repos.sh --host agldv03
+#   ./scripts/skills/propagate-six-repos.sh --host agldv04
+#   ./scripts/skills/propagate-six-repos.sh --host agldv-all
 #   ./scripts/skills/propagate-six-repos.sh --host ct188
 #   ./scripts/skills/propagate-six-repos.sh --host aglwk45
 #   ./scripts/skills/propagate-six-repos.sh --host all --dry-run
@@ -23,6 +24,11 @@ HOSTMAN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LLM_WIKI_DIR="${LLM_WIKI_DIR:-/mnt/overpower/apps/dev/agl/llm-wiki}"
 
 AGLDV03_HOST="${AGLDV03_HOST:-root@100.94.221.87}"
+AGLDV04_HOST="${AGLDV04_HOST:-root@100.113.9.98}"
+AGLDV05_HOST="${AGLDV05_HOST:-root@100.119.41.63}"
+AGLDV06_HOST="${AGLDV06_HOST:-root@100.71.229.12}"
+AGLDV07_HOST="${AGLDV07_HOST:-root@100.64.139.79}"
+AGLDV12_HOST="${AGLDV12_HOST:-root@100.71.217.115}"
 AGLSRV1_HOST="${AGLSRV1_HOST:-root@100.107.113.33}"
 CT188_VMID="${CT188_VMID:-188}"
 AGLWK45_VMID="${AGLWK45_VMID:-104}"
@@ -35,14 +41,15 @@ SSH=(ssh -o BatchMode=yes -o ConnectTimeout=25 -o StrictHostKeyChecking=accept-n
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") --host <agldv03|ct188|aglwk45|all> [--dry-run]
+Usage: $(basename "$0") --host <agldv03|agldv04|agldv05|agldv06|agldv07|agldv12|agldv-all|ct188|aglwk45|all> [--dry-run]
 
-Propaga instalação Six Repos (sync + verify + smoke) para hosts AGL.
+Propaga instalação Six Repos + post skills (sync + verify + Claude Code plugins).
 
-  agldv03   Dev principal — sync completo em ~/.claude|cursor|codex|verdent
-  ct188     Hermes — ensure llm-wiki NFS + smoke leitura (sem superpowers no contentor)
-  aglwk45   Windows VM104 — propagate-six-repos.ps1 via qm guest exec (AGLSRV1)
-  all       agldv03 + ct188 + aglwk45 (best-effort)
+  agldv03..12  Dev LXC — install-post-skills-claude-code.sh + verify
+  agldv-all    Todos os agldv* acima (best-effort SSH)
+  ct188        Hermes — ensure llm-wiki NFS + smoke leitura
+  aglwk45      Windows VM104 — propagate-six-repos-wk45-qemu.sh
+  all          agldv-all + ct188 + aglwk45
 USAGE
 }
 
@@ -69,29 +76,81 @@ pct_exec() {
   "${SSH[@]}" "$AGLSRV1_HOST" "pct exec $CT188_VMID -- bash -lc $(printf '%q' "$inner")"
 }
 
-propagate_agldv03() {
-  log "=== agldv03 ($AGLDV03_HOST) ==="
-  local sync_cmd="cd '$HOSTMAN_ROOT' && LLM_WIKI_DIR='$LLM_WIKI_DIR' ./scripts/skills/sync-six-repos.sh --repo all"
-  local verify_cmd="cd '$HOSTMAN_ROOT' && LLM_WIKI_DIR='$LLM_WIKI_DIR' ./scripts/skills/verify-six-repos.sh"
-  local smoke_cmd="cd '$HOSTMAN_ROOT' && LLM_WIKI_DIR='$LLM_WIKI_DIR' ./scripts/skills/smoke-obsidian-cli-wiki.sh"
+propagate_agldv_host() {
+  local name="$1"
+  local ssh_target="$2"
+  log "=== $name ($ssh_target) ==="
+  local install_cmd="cd '$HOSTMAN_ROOT' && LLM_WIKI_DIR='$LLM_WIKI_DIR' ./scripts/skills/install-post-skills-claude-code.sh"
+  local standalone_cmd="bash -s"
+  local verify_cmd="cd '$HOSTMAN_ROOT' && LLM_WIKI_DIR='$LLM_WIKI_DIR' SKIP_LLM_WIKI=${SKIP_LLM_WIKI:-0} ./scripts/skills/verify-six-repos.sh"
 
-  if [[ "$(hostname -s 2>/dev/null || hostname)" == "agldv03" ]] && [[ -d "$HOSTMAN_ROOT/.git" ]]; then
-    log "local agldv03 detectado"
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      echo "  [dry-run] $sync_cmd"
-      echo "  [dry-run] $verify_cmd"
-      echo "  [dry-run] $smoke_cmd"
+  local local_short
+  local_short="$(hostname -s 2>/dev/null || hostname)"
+
+  run_local() {
+    if [[ -d "$HOSTMAN_ROOT/.git" && -x "$HOSTMAN_ROOT/scripts/skills/install-post-skills-claude-code.sh" ]]; then
+      bash -lc "$install_cmd"
     else
-      bash -lc "$sync_cmd"
-      bash -lc "$verify_cmd"
-      bash -lc "$smoke_cmd" || warn "smoke Obsidian CLI (opcional se CLI inactivo)"
+      warn "$name: repo agl-hostman indisponível — modo standalone"
+      bash "$HOSTMAN_ROOT/scripts/skills/install-post-skills-standalone.sh" 2>/dev/null || \
+        bash -s < "$HOSTMAN_ROOT/scripts/skills/install-post-skills-standalone.sh"
+    fi
+  }
+
+  run_remote() {
+    if "${SSH[@]}" "$ssh_target" "test -d '$HOSTMAN_ROOT/.git'"; then
+      remote_bash "$ssh_target" "$install_cmd"
+    else
+      warn "$name: sem NFS em $HOSTMAN_ROOT — standalone via stdin"
+      if [[ "$DRY_RUN" -eq 1 ]]; then
+        echo "  [dry-run] ssh $ssh_target bash -s < install-post-skills-standalone.sh"
+      else
+        "${SSH[@]}" "$ssh_target" "bash -s" < "$HOSTMAN_ROOT/scripts/skills/install-post-skills-standalone.sh"
+      fi
+    fi
+  }
+
+  if [[ "$local_short" == "$name" ]]; then
+    log "local $name detectado"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] install post skills (local)"
+      echo "  [dry-run] $verify_cmd"
+    else
+      run_local
+      if [[ -d "$HOSTMAN_ROOT/.git" ]]; then
+        bash -lc "$verify_cmd" || warn "verify $name com WARNs"
+      fi
     fi
   else
-    remote_bash "$AGLDV03_HOST" "$sync_cmd"
-    remote_bash "$AGLDV03_HOST" "$verify_cmd"
-    remote_bash "$AGLDV03_HOST" "$smoke_cmd" || warn "smoke Obsidian remoto (opcional)"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] remote install $name"
+      echo "  [dry-run] $verify_cmd"
+    else
+      run_remote
+      if "${SSH[@]}" "$ssh_target" "test -d '$HOSTMAN_ROOT/.git'"; then
+        remote_bash "$ssh_target" "$verify_cmd" || warn "verify remoto $name (WARNs ok)"
+      fi
+    fi
   fi
-  ok "agldv03 propagate concluído"
+  ok "$name propagate concluído"
+}
+
+propagate_agldv03() { propagate_agldv_host agldv03 "$AGLDV03_HOST"; }
+propagate_agldv04() { propagate_agldv_host agldv04 "$AGLDV04_HOST"; }
+propagate_agldv05() { propagate_agldv_host agldv05 "$AGLDV05_HOST"; }
+propagate_agldv06() { propagate_agldv_host agldv06 "$AGLDV06_HOST"; }
+propagate_agldv07() { propagate_agldv_host agldv07 "$AGLDV07_HOST"; }
+propagate_agldv12() { propagate_agldv_host agldv12 "$AGLDV12_HOST"; }
+
+propagate_agldv_all() {
+  local FAIL=0
+  propagate_agldv03 || { warn "agldv03 falhou"; FAIL=1; }
+  propagate_agldv04 || { warn "agldv04 falhou"; FAIL=1; }
+  propagate_agldv05 || { warn "agldv05 falhou"; FAIL=1; }
+  propagate_agldv06 || { warn "agldv06 falhou"; FAIL=1; }
+  propagate_agldv07 || { warn "agldv07 falhou"; FAIL=1; }
+  propagate_agldv12 || { warn "agldv12 falhou"; FAIL=1; }
+  [[ "$FAIL" -eq 0 ]] || return 1
 }
 
 propagate_ct188() {
@@ -151,6 +210,12 @@ done
 run_host() {
   case "$1" in
     agldv03) propagate_agldv03 ;;
+    agldv04) propagate_agldv04 ;;
+    agldv05) propagate_agldv05 ;;
+    agldv06) propagate_agldv06 ;;
+    agldv07) propagate_agldv07 ;;
+    agldv12) propagate_agldv12 ;;
+    agldv-all) propagate_agldv_all ;;
     ct188) propagate_ct188 ;;
     aglwk45) propagate_aglwk45 ;;
     *) echo "Host desconhecido: $1" >&2; exit 1 ;;
@@ -159,7 +224,7 @@ run_host() {
 
 if [[ "$HOST" == "all" ]]; then
   FAIL=0
-  run_host agldv03 || FAIL=1
+  propagate_agldv_all || FAIL=1
   run_host ct188 || FAIL=1
   run_host aglwk45 || { warn "aglwk45 skipped/failed (VM offline ou U: indisponível)"; FAIL=1; }
   [[ "$FAIL" -eq 0 ]] || exit 1

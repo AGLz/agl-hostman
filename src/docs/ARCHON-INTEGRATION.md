@@ -2,7 +2,7 @@
 
 > **Version**: 1.0.0
 > **Last Updated**: 2025-11-20
-> **Archon Instance**: CT183 (agldv07)
+> **Archon Instance**: CT183 (archon @ AGLSRV1) — **não** confundir com **agldv07** (CT547 @ FGSRV7)
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ This Laravel application integrates bidirectionally with **Archon MCP** (CT183),
 - **Real-time event-driven updates**
 
 **Archon Instance Details:**
-- **Container**: CT183 (agldv07)
+- **Container**: CT183 (archon @ AGLSRV1)
 - **WireGuard**: 10.6.0.21:8051 (fastest, production)
 - **Tailscale**: 100.80.30.59:8051 (backup)
 - **LAN**: 192.168.0.183:8052 (development only)

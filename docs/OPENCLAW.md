@@ -620,7 +620,7 @@ openclaw gateway restart
 **Fonte de verdade do `openclaw.json` em runtime:** **agldv03** (CT179). Para replicar **só o JSON** (modelos, canais, políticas) nos satélites **sem** sobrescrever schedulers: `~/.openclaw/cron/` **nunca** entra no sync.
 
 ```bash
-# Propagar openclaw.json agldv03 → agldv04, agldv05, agldv07 (archon), agldv12, fgsrv06
+# Propagar openclaw.json agldv03 → agldv04, agldv05, agldv07 (CT547 FGSRV7), agldv12, fgsrv06
 # Clientes LiteLLM: jq openclaw-litellm-client.jq; fgsrv06: fgsrv06-litellm.jq + env local
 DRY_RUN=1 bash scripts/openclaw/propagate-openclaw-from-agldv03.sh
 bash scripts/openclaw/propagate-openclaw-from-agldv03.sh

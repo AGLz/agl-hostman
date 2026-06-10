@@ -17,7 +17,7 @@
 | Undervolt | N/A (CPUs **v4**, não v3) | Sem BIOS undervolt nesta placa |
 | VM104 NUMA | **`numa: 1`** aplicado 2026-06-06 | Activo; monitorizar 3–7 dias |
 | VM110 NUMA | **`numa: 0`** aplicado 2026-06-06 | GPU `05:00.0` em socket **0** — não usar `numa: 1` |
-| VM110 GPU | **Parada** (D3cold pós-restart) | **Reboot AGLSRV1** → `qm start 110` |
+| VM110 GPU | **Parada** — GTX 1650 **invisível** em `lspci` (2026-05-18) | **Reboot AGLSRV1** → `lspci 05:00` → `qm start 110` |
 | Migrate C: → NVMe | Pendente | Só após **backups** dos 2 NVMe + QPI estável |
 
 ---

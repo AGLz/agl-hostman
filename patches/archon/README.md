@@ -1,113 +1,91 @@
-# Archon MCP Server Patch
+# Archon — CT183 (AGLSRV1)
 
-> CT 183 - Archon Stack com Host networking
-> **Last Updated**: 2026-03-16
+> **Last Updated**: 2026-06-09
 
-## Services
-| Service | Port | Description |
-|--------|------|-------------|
-| archon-server | 8181 | Main API server with Supabase backend |
-| archon-mcp | 8051 | MCP server (Streamable HTTP) |
-| archon-ui | 3737 | Frontend UI (Vite) |
+## Arquitectura AGL
 
-## Network Configuration
-- Uses `network_mode: host` - containers share CT's network namespace
-- Accessible via CT's Tailscale IP: `100.80.30.59`
-- Also accessible via LAN IP: `192.168.0.183`
+| CT | Hostname | Função |
+|----|----------|--------|
+| **183** | archon | **Archon v0.4** (workflow engine) — `http://192.168.0.183:3000` |
+| **184** | supabase | **Supabase self-hosted** — `http://192.168.0.184:8000` (Kong API) |
 
-## Endpoints
-| Endpoint | URL | Purpose |
-|----------|-----|---------|
-| Health | `http://100.80.30.59:8181/health` | API health check |
-| API | `http://100.80.30.59:8181` | Main API |
-| MCP | `http://100.80.30.59:8051/mcp` | MCP endpoint |
-| UI | `http://100.80.30.59:3737` | Web interface |
+**Não** correr Supabase no CT183. O stack legado em `/root/supabase-self-hosted*` foi desactivado; usar **sempre CT184**.
 
-## Environment Variables
-| Variable | Service | Description |
-|----------|---------|-------------|
-| `SUPABASE_URL` | server, mcp | Supabase project URL |
-| `SUPABASE_SERVICE_KEY` | server, mcp | Supabase service key |
-| `VITE_API_URL` | ui | Backend API URL (`http://localhost:8181`) |
-| `VITE_ALLOWED_HOSTS` | ui | Allowed hosts for Vite dev server (comma-separated) |
+O Archon v0.4 **não** usa a API Supabase/PostgREST — usa PostgreSQL próprio (`archon-postgres`) ou SQLite. O CT184 fica disponível para outros serviços (RAG legado, agency, etc.).
 
-## Deployment
+---
 
-### Initial Setup
+## Archon v0.4 (produto actual)
+
+- Imagem: `ghcr.io/coleam00/archon:latest`
+- Versão: **0.4.x** (CLI workflow engine — branch `main`)
+- Deploy: `/opt/archon/docker-compose.yml` (`docker-compose.v2-ct183.yml` neste repo)
+- UI: porta **3000**
+- Docs: https://archon.diy
+
+### Comandos
+
 ```bash
-# On CT 183
-cd /root/Archon
-docker compose -f docker-compose-hostnet.yml up -d
+cd /opt/archon
+docker compose pull
+docker compose up -d
+curl http://localhost:3000/api/health
 ```
 
-### Adding Custom Domain
-To allow a custom domain like `archon.aglz.io`, add it to `VITE_ALLOWED_HOSTS`:
+**PostgreSQL (obrigatório com `--profile with-db` / stack CT183):** na 1ª instalação o volume `postgres_data` deve receber o schema. O `docker-compose.v2-ct183.yml` monta `migrations/000_combined.sql` em `docker-entrypoint-initdb.d` (só na criação inicial do volume). Se `/api/codebases` devolver 500 (`relation "remote_agent_codebases" does not exist`), correr:
 
-```yaml
-# In docker-compose-hostnet.yml
-archon-ui:
-  environment:
-    - VITE_ALLOWED_HOSTS=archon.aglz.io,localhost,127.0.0.1
-```
-
-Then restart:
 ```bash
-docker compose -f docker-compose-hostnet.yml up -d
+bash /opt/archon/init-db-ct183.sh
 ```
 
-## Troubleshooting
+### Variáveis (`.env`)
 
-### Container Missing
-If `archon-server` is not running:
+Ver `env.ct183.example`. Mínimo:
+
+- `PORT=3000`
+- `ARCHON_DATA=/opt/archon-data`
+- `ARCHON_USER_HOME=/opt/archon-user-home`
+- `DATABASE_URL=postgresql://postgres:...@postgres:5432/remote_coding_agent`
+- Credenciais Claude (`CLAUDE_CODE_OAUTH_TOKEN` ou `CLAUDE_API_KEY`) antes de workflows
+
+### Cloudflare (CT117)
+
+Túnel **`aglsrv1b`** (`908b1097-e182-4725-9960-626ecc003375`) corre no **CT117** via `cloudflared-archon.service`.
+
+| Hostname | Destino correcto (v0.4) |
+|----------|-------------------------|
+| `archon.aglz.io` | `http://192.168.0.183:3000` |
+
+**Importante:** este túnel é **remotamente gerido** (Zero Trust). A config em `/root/.cloudflared/config.yml` no CT117 é **sobrescrita** pelo ingress remoto (v34 ainda apontava `:3737` em Jun 2026).
+
+**Workaround activo (CT183):** `archon-v04-proxy.service` — nginx em `:3737` → `:3000` até actualizar o ingress remoto. Ficheiros em `patches/archon/proxy/`.
+
+**Actualizar ingress remoto:**
+
+1. Zero Trust → Networks → Tunnels → `aglsrv1b` → Public Hostname: `archon.aglz.io` → `http://192.168.0.183:3000`
+2. Remover hostnames legados `archon-api.aglz.io` / `archon-mcp.aglz.io` (v1)
+3. Ou: `scripts/cloudflare/update-archon-tunnel-ingress.sh` (requer `CLOUDFLARE_API_TOKEN` válido)
+
+**Não** correr `cloudflared-archon` no CT183 em paralelo — só CT117.
+
+---
+
+## Supabase (CT184 apenas)
+
 ```bash
-docker compose -f docker-compose-hostnet.yml up -d
+# API Kong
+curl -s -o /dev/null -w "%{http_code}" http://192.168.0.184:8000/rest/v1/
+
+# Studio (via rede interna; expor via tunnel se necessário)
+# http://192.168.0.184:8000 ou portas internas do stack
 ```
 
-### MCP Connection Issues
-- Verify health: `curl http://100.80.30.59:8181/health`
-- Check MCP: `curl http://100.80.30.59:8051/mcp`
-- Check logs: `docker logs archon-mcp --tail 50`
+Documentação: `docs/CT184-SUPABASE-SETUP-COMPLETE.md`
 
-### Vite Blocked Host Error
-If you see "This host is not allowed":
-1. Add the domain to `VITE_ALLOWED_HOSTS` in docker-compose
-2. Restart the ui container: `docker compose up -d archon-ui`
+---
 
-## Files
-- `docker-compose-hostnet.yml` - Docker compose configuration
-- `deploy.sh` - Deployment script (Wip)
-- `README.md` - This documentation
+## Legado v1 (archivado)
 
-## Recent Changes
+Branch `archive/v1-task-management-rag` — MCP/RAG/task management. **Descontinuado** no CT183 (Jun 2026). Backup em `/root/backups/pre-archon-v2-*`.
 
-### 2026-03-16: Vite Blocked Host Fix
-**Problem**: Accessing `archon.aglz.io` returned Vite error:
-```
-Blocked request. This host ("archon.aglz.io") is not allowed.
-```
-
-**Solution**: Added `VITE_ALLOWED_HOSTS` environment variable to `archon-ui`:
-```yaml
-archon-ui:
-  environment:
-    - VITE_API_URL=http://localhost:8181
-    - VITE_ALLOWED_HOSTS=archon.aglz.io,localhost,127.0.0.1
-```
-
-**Deployment**:
-```bash
-# Copy config to CT 183
-ssh root@100.107.113.33 'mkdir -p /root/Archon'
-scp docker-compose-hostnet.yml root@100.107.113.33:/root/Archon/
-ssh root@100.107.113.33 'pct exec 183 -- mkdir -p /root/Archon'
-ssh root@100.107.113.33 'pct push 183 /root/Archon/docker-compose-hostnet.yml /root/Archon/'
-
-# Recreate containers
-ssh root@100.80.30.59 'cd /root/Archon && docker compose -f docker-compose-hostnet.yml up -d --force-recreate'
-```
-
-**Verification**:
-```bash
-curl -s http://100.80.30.59:8181/health
-# {"status":"healthy","service":"archon-backend"...}
-```
+Ficheiros históricos neste repo: `docker-compose-hostnet.yml`, `docker-compose-hostnet-build.yml`.

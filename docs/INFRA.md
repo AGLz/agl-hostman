@@ -247,7 +247,8 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.83.51.9 | fgsrv06 | linux | Idle | Cloud VPS 06 / WireGuard hub |
 | 100.72.240.65 | fgsrv07-cloudflared7 | linux | Active | Cloudflare Tunnel (**CT570**; ex.170) |
 | *(após login no CT171)* | fgsrv07-cloudflared7b | linux | Reauth pendente | CT171 `cloudflared7b` — reset Tailscale: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`; depois `pct exec 171 -- tailscale ip -4` e actualizar esta linha |
-| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL master / GTID (CT235); ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
+| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL master / GTID (**CT561**; ex.235) |
+| 100.64.139.79 | fgsrv07-agldv07 | linux | **NeedsLogin** (CT547 running) | Dev **agldv07** (**CT547**; ex.241) — LAN `192.168.70.241`; **≠ CT183 archon** — reauth Tailscale após restore disco |
 | 100.109.181.93 | fgsrv07 | linux | Active | Cloud VPS 07 / Proxmox |
 
 ### Endpoints & Dispositivos Pessoais (6 hosts)
@@ -307,9 +308,9 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 - AI: CT183 (archon), CT200 (ollama), CT202 (n8n)
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 
-**Archon Stack (CT183)**:
+**Archon Stack (CT183)** — hostname **archon** / `aglsrv1-archon`; **não** é **agldv07** (agldv07 = **CT547** @ FGSRV7):
 
-- **Tailscale IP**: 100.80.30.59 | **LAN IP**: 192.168.0.183
+- **Tailscale IP**: 100.80.30.59 | **LAN IP**: 192.168.0.183 | **WireGuard**: 10.6.0.21
 - **Services**: archon-server (8181), archon-mcp (8051), archon-ui (3737)
 - **Network**: `network_mode: host` — containers share CT's network namespace
 - **Domain**: archon.aglz.io (Cloudflare Tunnel)
@@ -403,7 +404,7 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 |------|------|--------|---------|---------|
 | 545 | fgsrv7-pbs | running | WAN | Proxmox Backup Server |
 | 546 | fileserver7 | stopped | vmbr70 | Partilha ficheiros (ex.240) |
-| 547 | agldv07 | stopped | vmbr70 | Dev (ex.241) |
+| 547 | agldv07 | running | vmbr70 (192.168.70.241) | Dev satélite (ex.241); TS **`fgsrv07-agldv07`** `100.64.139.79` — **NeedsLogin** após restore |
 | 548 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus (ex.242); **https://evo.aglz.io** |
 | 549 | fg-legacy | running | vmbr70 (192.168.70.243) | Legado (ex.243) |
 | 550 | fg-ngrok | running | vmbr70 (192.168.70.244) | ngrok (ex.244) |

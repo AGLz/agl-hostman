@@ -29,13 +29,14 @@
 | `agl-primary` | `qwen3:8b` | Default privado, OpenClaw, baixo custo |
 | `ollama-qwen3-8b` | Idem | Alias explícito |
 | `ollama-qwen3-4b` | `qwen3:8b` | **Legado** (nome histórico) |
-| `ollama-qwen3-4b-fast` | `qwen3:4b` | Latência mínima (~38 tok/s medido) |
-| `ollama-qwen35-9b` | `qwen3.5:9b` | Melhor all-rounder local (apertado VRAM) |
-| `ollama-llama31-8b` | `llama3.1:8b` | Baseline Meta / instruction |
-| `ollama-mistral-7b` | `mistral:7b` | JSON, agents, rápido |
-| `ollama-qwen25-coder-7b` | `qwen2.5-coder:7b` | Código local |
-| `ollama-deepseek-r1-8b` | `deepseek-r1:8b` | Raciocínio local |
-| `ollama-gemma2-9b` | `gemma2:9b` | Alternativa Google |
+| `ollama-qwen3-4b-fast` | `qwen3:4b` | Latência mínima (~42 tok/s bench RX580) |
+| `ollama-qwen35-9b` | `qwen3.5:9b` | All-rounder local (~22 tok/s) |
+| `ollama-llama31-8b` | `llama3.1:8b` | JSON/structured (~27 tok/s, ~1s JSON) |
+| `ollama-qwen25-coder-7b` | `qwen2.5-coder:7b` | Código local (~26 tok/s) |
+| `ollama-deepseek-r1-8b` | `deepseek-r1:8b` | Raciocínio local (~25 tok/s) |
+| `ollama-gemma2-9b` | `gemma2:9b` | Alternativa Google (~18 tok/s) |
+
+**Removido (2026-06-09):** `ollama-mistral-7b` / `mistral:7b` — ~74s/inferência na RX580 (anómalo vs ~2–6s dos restantes).
 
 **Nota:** modelos Qwen3/DeepSeek-R1 usam `think: false` no proxy + callback (`agl_glm_flash_params.py`) para preencher `content`.
 

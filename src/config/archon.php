@@ -12,7 +12,8 @@ return [
     | Configuration for Archon MCP server integration (CT183).
     | Provides task management, project tracking, and RAG knowledge base.
     |
-    | Archon Instance: CT183 (agldv07)
+    | Archon Instance: CT183 (archon) @ AGLSRV1 — hostname aglsrv1-archon
+    | agldv07 = CT547 @ FGSRV7 (host dev separado; TS 100.64.139.79)
     | - LAN: 192.168.0.183:8052 (development only)
     | - WireGuard: 10.6.0.21:8051 (fastest, production)
     | - Tailscale: 100.80.30.59:8051 (backup)

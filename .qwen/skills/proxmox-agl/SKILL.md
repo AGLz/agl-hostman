@@ -3,8 +3,10 @@ name: proxmox-agl
 description: >
   Manage AGL Proxmox infrastructure (AGLSRV1, AGLSRV5, AGLSRV6). Use when the user asks to
   list/start/stop/restart VMs or LXC containers, check node status, create snapshots, manage backups,
-  clone containers, or troubleshoot Proxmox issues. Covers CT179 (agldv03), CT181 (agldv04),
-  CT183/archon (agldv07), CT185/agldv12 on AGLSRV1; **CT536** (agldv05; ex.136) on AGLSRV5; **CT608** (agldv06; ex.108) on AGLSRV6; **CT548** (evonexus; ex.242) on FGSRV7.
+  clone containers, or troubleshoot Proxmox issues. Covers CT179 (agldv03), CT181 (agldv04), CT183 (archon), CT185 (agldv12) on AGLSRV1;
+  **CT547** (agldv07; ex.241) on FGSRV7; **CT536** (agldv05; ex.136) on AGLSRV5;
+  **CT608** (agldv06; ex.108) on AGLSRV6; **CT548** (evonexus; ex.242) on FGSRV7.
+  VMID map: docs/PROXMOX-VMID-RENUMBER-2026-06.md
   Also handles pct unlock, cluster health, storage, and network bridges.
 ---
 # Proxmox AGL Infrastructure
@@ -44,10 +46,11 @@ ssh AGLSRV6          # Tailscale 100.98.108.66
 |------|----------|-------------------------------|-------------------|-------|
 | 179  | AGLSRV1  | agldv03 - Main dev + LiteLLM  | 100.94.221.87     | 48GB  |
 | 181  | AGLSRV1  | agldv04 - Secondary dev        | 100.113.9.98      | 48GB  |
-| 183  | AGLSRV1  | agldv07/archon - AI Command    | 100.80.30.59      | -     |
+| 183  | AGLSRV1  | archon - AI Command Center     | 100.80.30.59      | -     |
 | 185  | AGLSRV1  | agldv12 - Turbo Flow clone     | 100.71.217.115    | -     |
 | 136  | AGLSRV5  | agldv05 - Remote dev           | 100.119.41.63     | 8GB   |
 | 108  | AGLSRV6  | agldv06 - Remote dev           | 100.71.229.12     | -     |
+| 547  | FGSRV7   | agldv07 - Dev satélite         | 100.64.139.79     | 8GB   |
 
 ## Common Operations
 

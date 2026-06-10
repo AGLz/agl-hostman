@@ -1,0 +1,9 @@
+{
+  "repos": {
+    "humanizer": "blader/humanizer",
+    "fact-check": "petar-nauka/fact-check-skill",
+    "prompt-improver": "severity1/claude-code-prompt-improver (skills/prompt-improver only)"
+  },
+  "synced_at": "2026-06-09T12:30:15Z",
+  "skills": ["humanizer","fact-check","prompt-improver"]
+}

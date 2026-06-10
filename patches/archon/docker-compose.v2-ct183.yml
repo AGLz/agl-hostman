@@ -1,0 +1,58 @@
+# Archon v0.4 — stack completa CT183 (pre-built image + PostgreSQL)
+# Branch: main | Imagem: ghcr.io/coleam00/archon:latest
+
+services:
+  app:
+    image: ghcr.io/coleam00/archon:latest
+    container_name: archon-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      ARCHON_DOCKER: "true"
+    ports:
+      - "0.0.0.0:${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - ${ARCHON_DATA:-archon_data}:/.archon
+      - ${ARCHON_USER_HOME:-archon_user_home}:/home/appuser
+    networks:
+      - archon-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: archon-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: remote_coding_agent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Schema inicial (só corre na 1ª criação do volume postgres_data)
+      - ./migrations/000_combined.sql:/docker-entrypoint-initdb.d/000_combined.sql:ro
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - archon-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  archon-network:
+    driver: bridge
+
+volumes:
+  archon_data:
+  archon_user_home:
+  postgres_data:

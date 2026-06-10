@@ -4,7 +4,7 @@ description: >
   Manage WireGuard mesh network on AGL infrastructure. Use when working with WireGuard
   tunnels, wg0 interface, peer configuration, mesh routing, or troubleshooting WireGuard
   connectivity. Covers the AGL WireGuard mesh (10.6.0.0/24) with fgsrv06 as hub (10.6.0.5:51823)
-  and nodes: agldv03 (10.6.0.19), agldv04 (10.6.0.24), agldv05 (10.6.0.13), agldv07 (10.6.0.21).
+  and nodes: agldv03 (10.6.0.19), agldv04 (10.6.0.24), agldv05 (10.6.0.13), archon/CT183 (10.6.0.21).
 ---
 # WireGuard AGL Mesh Network
 
@@ -26,11 +26,14 @@ description: >
    └─────────────┘     └─────────────┘     └─────────────┘
           │
    ┌──────┴──────┐
-   │ agldv07     │
+   │ archon      │
+   │ (CT183)     │
    │ 10.6.0.21   │
    │ 100.80.x.x  │
    └─────────────┘
 ```
+
+> **agldv07** (**CT547** @ FGSRV7) **não** participa no mesh WG 10.6.0.0/24 — aceder via Tailscale `100.64.139.79` ou LAN FGSRV7 `192.168.70.241`.
 
 ## WireGuard IPs
 
@@ -40,7 +43,7 @@ description: >
 | agldv03  | 10.6.0.19   | 100.94.221.87     | Node     |
 | agldv04  | 10.6.0.24   | 100.113.9.98      | Node     |
 | agldv05  | 10.6.0.13   | 100.119.41.63     | Node     |
-| agldv07  | 10.6.0.21   | 100.80.30.59      | Node     |
+| archon   | 10.6.0.21   | 100.80.30.59      | Node (CT183) |
 
 ## Configuration Files
 
@@ -92,8 +95,8 @@ PublicKey = <agldv05-public-key>
 AllowedIPs = 10.6.0.13/32
 
 [Peer]
-# agldv07
-PublicKey = <agldv07-public-key>
+# archon (CT183)
+PublicKey = <archon-public-key>
 AllowedIPs = 10.6.0.21/32
 ```
 

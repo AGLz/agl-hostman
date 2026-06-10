@@ -5,7 +5,7 @@ import re
 from typing import Any, Optional
 
 _OLLAMA_ALIAS_PATTERN = re.compile(
-    r"(^|/)(agl-primary|ollama-qwen|ollama-llama|ollama-mistral|ollama-gemma|ollama-deepseek|openai/ollama-)",
+    r"(^|/)(agl-primary|ollama-qwen|ollama-llama|ollama-gemma|ollama-deepseek|openai/ollama-)",
     re.I,
 )
 

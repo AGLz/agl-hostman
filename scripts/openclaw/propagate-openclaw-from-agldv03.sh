@@ -30,11 +30,11 @@ ZSHRC_ENV="$REPO_ROOT/config/openclaw/zshrc-openclaw.env"
 SYNC_ENV_SCRIPT="$REPO_ROOT/scripts/openclaw/sync-systemd-openclaw-env.sh"
 
 # Formato: "user@tailscale-ip|mode"  mode = client | local_litellm
-# agldv07 = Archon CT183; agldv12 = clone dev (INFRA.md)
+# agldv07 = CT547 @ FGSRV7 (≠ CT183 archon); agldv12 = clone dev (INFRA.md)
 SATELLITES=(
   "root@100.113.9.98|client"    # agldv04
   "root@100.119.41.63|client"   # agldv05
-  "root@100.80.30.59|client"    # agldv07 (archon)
+  "root@100.64.139.79|client"   # agldv07 (CT547 fgsrv07-agldv07)
   "root@100.71.217.115|client"  # agldv12
   "root@100.83.51.9|local_litellm"  # fgsrv06 (LiteLLM local)
 )

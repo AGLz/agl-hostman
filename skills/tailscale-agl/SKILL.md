@@ -18,12 +18,16 @@ description: >
 | agldv04     | 100.113.9.98      | Secondary dev + LiteLLM           |
 | agldv05     | 100.119.41.63     | Remote dev (AGLSRV5)              |
 | agldv06     | 100.71.229.12     | Remote dev (AGLSRV6)              |
-| agldv07     | 100.80.30.59      | Archon AI Command Center          |
+| agldv07     | 100.64.139.79     | Dev satélite (**CT547** @ FGSRV7) |
 | agldv12     | 100.71.217.115    | Turbo Flow clone (OpenClaw off)   |
+| archon      | 100.80.30.59      | AI Command Center (**CT183** @ AGLSRV1) — **≠ agldv07** |
 | fgsrv06     | 100.83.51.9       | VPS + WireGuard hub + LiteLLM     |
+| fgsrv07     | 100.109.181.93    | Proxmox FGSRV7                    |
 | AGLSRV1     | 100.107.113.33    | Proxmox host (main)               |
 | AGLSRV5     | 100.119.223.113   | Proxmox host (remote)             |
 | AGLSRV6     | 100.98.108.66     | Proxmox host (remote)             |
+
+> **agldv07 vs archon:** `agldv07` = hostname **CT547** em FGSRV7 (`fgsrv07-agldv07`, LAN `192.168.70.241`). **archon** = **CT183** em AGLSRV1 (`aglsrv1-archon`, LAN `192.168.0.183`). Nunca usar `100.80.30.59` para agldv07.
 
 ### WireGuard Mesh (10.6.0.0/24)
 
@@ -33,7 +37,7 @@ description: >
 | agldv03  | 10.6.0.19   | Node           |
 | agldv04  | 10.6.0.24   | Node           |
 | agldv05  | 10.6.0.13   | Node           |
-| agldv07  | 10.6.0.21   | Node           |
+| archon   | 10.6.0.21   | Node (CT183)   |
 
 ## CLI Operations
 
@@ -44,7 +48,7 @@ tailscale status
 tailscale status --json | jq '.Peer | to_entries[] | {name: .value.HostName, ip: .value.TailscaleIPs[0], online: .value.Online}'
 
 # Check specific AGL hosts
-tailscale status | grep -E "agldv|fgsrv|aglsrv"
+tailscale status | grep -E "agldv|fgsrv|aglsrv|archon"
 
 # Network diagnostics
 tailscale netcheck
@@ -59,8 +63,9 @@ tailscale ip -4
 # Ping AGL hosts
 tailscale ping 100.94.221.87   # agldv03
 tailscale ping 100.113.9.98    # agldv04
+tailscale ping 100.64.139.79   # agldv07 (CT547 FGSRV7)
 tailscale ping 100.83.51.9     # fgsrv06
-tailscale ping 100.80.30.59    # agldv07/archon
+tailscale ping 100.80.30.59    # archon (CT183)
 
 # Check if connection is direct or relayed (DERP)
 tailscale ping 100.94.221.87
@@ -73,9 +78,11 @@ ssh root@100.94.221.87    # agldv03
 ssh root@100.113.9.98     # agldv04
 ssh root@100.119.41.63    # agldv05
 ssh root@100.71.229.12    # agldv06
-ssh root@100.80.30.59     # agldv07/archon
+ssh root@100.64.139.79    # agldv07 (CT547)
 ssh root@100.71.217.115   # agldv12
+ssh root@100.80.30.59     # archon (CT183)
 ssh root@100.83.51.9      # fgsrv06 (uses fg_srv.pem key)
+ssh root@100.109.181.93   # fgsrv07 Proxmox — ou `pct start 547` + exec no CT
 ```
 
 ### Expose Services
@@ -128,6 +135,12 @@ systemctl restart tailscaled
 
 # 4. Re-authenticate if needed
 tailscale up --authkey=<key>
+```
+
+### agldv07 (CT547) offline
+```bash
+# CT547 costuma estar stopped — arrancar no FGSRV7:
+ssh root@100.109.181.93 'pct start 547 && pct exec 547 -- tailscale ip -4'
 ```
 
 ### After cloning a container (CT179 → CT185)

@@ -53,7 +53,7 @@ cursor-agent "refactor the auth module"
 | agldv04  | 100.113.9.98      | ✅ Full            | Local :4000   |
 | agldv05  | 100.119.41.63     | ✅ Full            | Remote (03)   |
 | agldv06  | 100.71.229.12     | ✅ Full            | Remote (03)   |
-| agldv07  | 100.80.30.59      | ✅ Full            | N/A (Archon)  |
+| agldv07  | 100.64.139.79     | ✅ Full            | Remote (CT186) |
 | agldv12  | 100.71.217.115    | ✅ Full            | Local :4000   |
 | fgsrv06  | 100.83.51.9       | ✅ Full            | Local :4000   |
 

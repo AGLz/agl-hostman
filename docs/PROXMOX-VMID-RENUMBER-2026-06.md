@@ -23,7 +23,7 @@ Mapa fonte: `scripts/proxmox/aglsrv-vmid-map.env` · scripts: `pct-renumber.sh`,
 |-----------|-------------|------|---------------|--------|
 | **545** | — | fgsrv7-pbs | 191.252.93.245 | PBS |
 | **546** | 240 | fileserver7 | — | stopped |
-| **547** | 241 | agldv07 | — | stopped |
+| **547** | 241 | agldv07 | **192.168.70.241** | Dev satélite; TS **`fgsrv07-agldv07`** **`100.64.139.79`** — **≠ CT183 archon** (AGLSRV1) |
 | **548** | **242** | **evonexus** | **192.168.70.242** | EvoNexus / evo.aglz.io |
 | **549** | 243 | fg-legacy | 192.168.70.243 | |
 | **550** | 244 | fg-ngrok | 192.168.70.244 | |

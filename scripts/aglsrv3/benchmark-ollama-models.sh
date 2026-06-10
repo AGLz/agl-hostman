@@ -45,7 +45,6 @@ DEFAULT_MODELS=(
   deepseek-r1:8b
   qwen2.5:7b
   qwen2.5-coder:7b
-  mistral:7b
   command-r7b
   granite3.3:8b
 )

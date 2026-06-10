@@ -32,7 +32,7 @@ modular **Skills** — capabilities packaged as directories with `SKILL.md` file
 | agldv04  | 100.113.9.98      | ✅ (sync from 03)| Local :4000   |
 | agldv05  | 100.119.41.63     | ✅ (sync from 03)| Remote (03)   |
 | agldv06  | 100.71.229.12     | ✅ (sync from 03)| Remote (03)   |
-| agldv07  | 100.80.30.59      | ✅ (sync from 03)| N/A (Archon)  |
+| agldv07  | 100.64.139.79     | ✅ (sync from 03)| Remote (CT186) |
 | agldv12  | 100.71.217.115    | ✅ (sync from 03)| Local :4000   |
 | fgsrv06  | 100.83.51.9       | ✅ (sync from 03)| Local :4000   |
 

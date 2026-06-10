@@ -1,0 +1,17 @@
+[Unit]
+Description=Archon v0.4 legacy port proxy (3737 to 3000 for Cloudflare tunnel)
+Documentation=file:///opt/archon/proxy/README.md
+After=network-online.target docker.service nginx.service
+Wants=network-online.target
+Requires=nginx.service
+ConditionPathExists=/opt/archon/proxy/nginx-archon-v04-proxy.conf
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/archon/proxy/manage-legacy-proxy.sh enable
+ExecStop=/opt/archon/proxy/manage-legacy-proxy.sh disable
+ExecReload=/usr/sbin/nginx -t && /bin/systemctl reload nginx.service
+
+[Install]
+WantedBy=multi-user.target

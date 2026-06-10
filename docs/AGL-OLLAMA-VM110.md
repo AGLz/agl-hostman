@@ -125,7 +125,15 @@ scp scripts/aglsrv1/{strip-gpu,enable-vfio,setup-vm110,finish-vm110,install-vm11
 
 ---
 
-## Estado actual (2026-06-05)
+## Estado actual (2026-05-18 — verificação remota)
+
+- **VM110:** **stopped** — `qm start 110` falha: `no PCI device found for 0000:05:00.0`
+- **GPU host:** **ausente** em `lspci` (slot `02.3-[05]` vazio) — **D3cold**; rescan/bridge reset **não recuperaram**
+- **Acção necessária:** **reboot AGLSRV1** → `lspci -k -s 05:00.0` (vfio-pci) → `qm start 110` ou `finish-vm110-gpu-passthrough.sh`
+- **Config Proxmox OK:** `onboot: 1`, `hookscript`, `hostpci0 05:00.0`, `numa0` socket 0
+- **Ollama API:** offline (`192.168.0.200:11434`, TS `100.116.57.111`)
+
+### Estado operacional (2026-06-05 — última vez GPU activa)
 
 - **VM110:** running, Ubuntu 24.04, GPU passthrough **activo**
 - **GPU:** GTX 1650 em `01:00.0` (guest), driver NVIDIA 580, `nvidia-smi` OK

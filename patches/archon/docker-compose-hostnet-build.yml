@@ -1,0 +1,83 @@
+# Archon v1 — build from source + host networking (LXC CT183)
+# Branch: archive/v1-task-management-rag
+# Usage: docker compose -f docker-compose-hostnet-build.yml up -d --build
+
+services:
+  archon-server:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.server
+      args:
+        ARCHON_SERVER_PORT: ${ARCHON_SERVER_PORT:-8181}
+    image: archon-server:local
+    container_name: archon-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_MCP_PORT=${ARCHON_MCP_PORT:-8051}
+      - HOST=0.0.0.0
+      - PORT=${ARCHON_SERVER_PORT:-8181}
+    volumes:
+      - ./logs:/app/logs
+      - ./migration:/app/migration
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8181/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  archon-mcp:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.mcp
+      args:
+        ARCHON_MCP_PORT: ${ARCHON_MCP_PORT:-8051}
+    image: archon-mcp:local
+    container_name: archon-mcp
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      archon-server:
+        condition: service_healthy
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - TRANSPORT=sse
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - API_SERVICE_URL=http://localhost:${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_MCP_PORT=${ARCHON_MCP_PORT:-8051}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - HOST=0.0.0.0
+      - PORT=${ARCHON_MCP_PORT:-8051}
+
+  archon-ui:
+    build: ./archon-ui-main
+    image: archon-ui:local
+    container_name: archon-ui
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      archon-server:
+        condition: service_healthy
+    environment:
+      - VITE_ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - HOST=0.0.0.0
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS:-archon.aglz.io,localhost,127.0.0.1}
+      - DOCKER_ENV=true
