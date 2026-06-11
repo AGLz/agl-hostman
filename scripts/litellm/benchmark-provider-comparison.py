@@ -6,7 +6,7 @@ Gera JSON + Markdown para docs/LITELLM-PROVIDER-BENCHMARK.md
 Uso (agldv03 ou host com LiteLLM):
   LITELLM_URL=http://127.0.0.1:4000 \\
   LITELLM_KEY=sk-... \\
-  OLLAMA_URL=http://100.74.118.51:11434 \\
+  OLLAMA_URL=http://100.67.253.52:11434 \\
   python3 scripts/litellm/benchmark-provider-comparison.py
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ LITELLM_URL = os.environ.get(
     "LITELLM_URL", "http://127.0.0.1:4000").rstrip("/")
 LITELLM_KEY = os.environ.get("LITELLM_KEY", "")
 OLLAMA_URL = os.environ.get(
-    "OLLAMA_URL", "http://100.74.118.51:11434").rstrip("/")
+    "OLLAMA_URL", "http://100.67.253.52:11434").rstrip("/")
 _REPO_ROOT = Path(__file__).resolve().parents[2] if len(
     Path(__file__).resolve().parents) > 2 else Path("/tmp")
 OUT_JSON = os.environ.get("OUT_JSON", "/tmp/litellm-provider-benchmark.json")

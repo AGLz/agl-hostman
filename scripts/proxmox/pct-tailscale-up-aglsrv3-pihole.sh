@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-CT_VMID="${CT_VMID:-117}"
+CT_VMID="${CT_VMID:-317}"
 TS_HOSTNAME="${TS_HOSTNAME:-aglsrv3-pihole}"
 AUTHKEY_FILE="${TAILSCALE_AUTHKEY_FILE:-/root/.tailscale-authkey}"
 

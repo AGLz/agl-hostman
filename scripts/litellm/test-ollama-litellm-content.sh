@@ -20,7 +20,8 @@ BODY="$(cat <<EOF
 EOF
 )"
 
-resp="$(curl -sf --max-time 120 -X POST "${URL}/v1/chat/completions" \
+# Reason: cold load de modelos 8–12 GB na VM310 pode exceder 120s (LiteLLM request_timeout)
+resp="$(curl -sf --max-time 240 -X POST "${URL}/v1/chat/completions" \
   -H "Authorization: Bearer ${KEY}" \
   -H "Content-Type: application/json" \
   -d "$BODY")"

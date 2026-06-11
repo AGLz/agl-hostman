@@ -15,13 +15,15 @@
 
 | Host | Tailscale IP | Rede | Config / path | Ollama | Redis |
 |------|--------------|------|---------------|--------|-------|
-| **CT186** (agl-litellm) | 100.125.249.8 | LAN AGLSRV1 | `config.yaml` → `/opt/agl-litellm` | 192.168.0.200 | — |
+| **CT186** (agl-litellm) | 100.125.249.8 | LAN AGLSRV1 | `config.yaml` → `/opt/agl-litellm` | `100.67.253.52` (VM310 TS) | — |
 | **agldv03** | 100.94.221.87 | LAN AGLSRV1 | ~~`/opt/litellm`~~ **descontinuado 2026-06-05** | — | — |
-| **agldv04** | 100.113.9.98 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | 192.168.0.200 | 192.168.0.137 |
-| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | 192.168.0.200 | 192.168.0.137 |
-| **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | 100.116.57.111 (TS) | litellm-redis (Docker) |
+| **agldv04** | 100.113.9.98 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | `100.67.253.52` (via config canónico) | 192.168.0.137 |
+| **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | `100.67.253.52` | 192.168.0.137 |
+| **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | Groq/OR fallbacks (VM110 offline) | litellm-redis (Docker) |
 
-**Nota (2026-05) — Ollama VM110 agl-ollama**: um único modelo local **`ollama/qwen3:4b`** (LAN `192.168.0.200:11434`; Tailscale `100.116.57.111` em `config-remote.yaml`). CT200 LXC **descontinuado** — ver [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md). Aliases LiteLLM: `ollama-qwen3-4b` / `openai/ollama-qwen3-4b`.
+**Ollama primário (2026-06-11) — VM310 AGLSRV3:** `http://100.67.253.52:11434` (Tailscale `aglsrv3-ollama`); LAN `192.168.15.210`. LiteLLM canónico (`config.yaml`): `agl-primary` → `qwen3:8b`; `ollama-gemma3-4b` → `gemma3:4b`; ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md).
+
+**Legado AGLSRV1:** VM110/CT200 (`192.168.0.200`, TS `100.116.57.111`) **offline** — [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md).
 
 ---
 
@@ -31,7 +33,7 @@
 2. **Acesso SSH** como root
 3. **API keys** no `.env` (Anthropic, ZAI, DeepSeek, etc.)
 4. **`LITELLM_MASTER_KEY`** (recomendada em `/opt/litellm/.env`): ver `config/litellm/.env.example`. Sem esta variável o LiteLLM pode aceitar pedidos **sem** cabeçalho `Authorization` (útil em LAN fechada; **evitar** se a porta 4000 for acessível fora da equipa). Os scripts em `scripts/litellm/` usam `_litellm-master-key.sh` e omitam `Bearer` se a chave estiver vazia.
-5. **Tailscale** (fgsrv06 precisa para Ollama via 100.116.57.111)
+5. **Tailscale** (fgsrv06: Ollama local indisponível — usar fallbacks em `config-remote.yaml`)
 
 ---
 
@@ -92,7 +94,7 @@ curl -s http://localhost:4000/health/readiness
 #### fgsrv06 (remoto)
 
 ```bash
-# Usar config-remote.yaml (Ollama via Tailscale 100.116.57.111)
+# Usar config-remote.yaml (sem Ollama local — fallbacks Groq/OpenRouter)
 # Redis: cache desabilitado ou Redis local se disponível
 ```
 
@@ -134,15 +136,15 @@ O `.claude/settings.json` do projeto já usa `ANTHROPIC_BASE_URL=http://localhos
 
 ## Variantes de config
 
-### config.yaml (hosts LAN)
+### config.yaml (hosts LAN — canónico CT186)
 
-- Ollama: `http://192.168.0.200:11434` (CT200)
-- Redis: `192.168.0.137:6379` (CT137)
-- Todos os modelos cloud + Ollama local
+- Ollama: `http://100.67.253.52:11434` (VM310 AGLSRV3 via Tailscale)
+- Redis: `192.168.0.137:6379` (CT137) — opcional no CT186
+- Todos os modelos cloud + 10 aliases Ollama local (ver `LITELLM-MODEL-TIERS.md`)
 
 ### config-remote.yaml (fgsrv06)
 
-- Ollama: `http://100.116.57.111:11434` (CT200 via Tailscale)
+- Ollama: **não** — VM110 offline; aliases `ollama-*` fazem fallback Groq/OpenRouter
 - Redis: `litellm-redis:6379` (container no mesmo compose)
 - Stack: `docker-compose-fgsrv06.yml` inclui PostgreSQL + Redis + LiteLLM
 - **Fallbacks Claude/Haiku**: mesma ordem que `config.yaml` — **GLM (ZAI) primeiro**, depois deepseek, qwen3.5-plus, gemini (Haiku: `glm-flash` primeiro). Evita que qwen/deepseek fiquem à frente do GLM em falhas de Anthropic (ex.: claude-flow hive-mind via `claude-*`).

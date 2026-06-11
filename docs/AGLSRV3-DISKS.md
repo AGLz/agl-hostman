@@ -345,7 +345,7 @@ Log: `/var/log/aglsrv3-pve9-preupgrade.log`
 - [x] **badblocks** sdj + sdh: 0 erros (2026-06-09).
 - [x] **sdh/sdk** wiped; **pool destroy** concluído.
 - [ ] **Pool rebuild:** upgrade PVE 9 + raidz1 5×1TB (`systemctl start aglsrv3-pool-rebuild.service`).
-- [ ] **VM310:** `restore-vm310-from-vm110.sh --full` → Tailscale + `ollama pull`.
+- [x] **VM310:** operacional — Ollama 2× RX580, TS `100.67.253.52`, LiteLLM CT186 (2026-06-11). Ver [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md).
 - [ ] **Pós-rebuild:** reprovisionar CTs 304/306/317/318/338.
 - [ ] **sdj** (6WS2Q6QR): monitorizar UDMA_CRC; só leitura de arquivo.
 - [ ] Resultado testes externos em **ZDE1G6CZ** / **WX22AB0CV28E**.

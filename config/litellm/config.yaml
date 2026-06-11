@@ -1,4 +1,4 @@
-# Ollama VM310 (AGLSRV3): RX580 8GB — qwen3:8b @ LAN 192.168.15.210; Tailscale 100.86.209.11:11434 (aglsrv3-ollama)
+# Ollama VM310 (AGLSRV3): 2× RX580 8GB — LAN 192.168.15.210; Tailscale aglsrv3-ollama 100.67.253.52:11434
 # VM110 (AGLSRV1) permanece parada (GTX1650 instável). Ver docs/AGL-OLLAMA-VM310.md, scripts/aglsrv3/
 #
 # Z.AI (docs.z.ai): três bases úteis — (1) OpenAI-compat aggregado `https://api.z.ai/api/openai/v1` (entradas zai/glm-* abaixo);
@@ -157,6 +157,10 @@ litellm_settings:
     - ollama-qwen3-8b
     - groq-llama-31-8b
     - glm-4.7-flash
+  - ollama-gemma3-4b:
+    - ollama-qwen3-4b-fast
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
   - claude-opus:
     - claude-sonnet
     - glm-5
@@ -481,7 +485,7 @@ litellm_settings:
     - glm-flash
   forward_client_headers_to_llm_api: true
   num_retries: 2
-  request_timeout: 120
+  request_timeout: 240
 model_list:
 - litellm_params:
     api_base: https://api.z.ai/api/openai/v1
@@ -510,7 +514,7 @@ model_list:
     tpm: 100000
   model_name: infra-agent
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen3:8b
     think: false
     timeout: 120
@@ -522,7 +526,7 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Primário AGL — Ollama qwen3:8b VM310 (~25 tok/s bench RX580); TS 100.86.209.11
+    note: Primário AGL — Ollama qwen3:8b VM310 (~28 tok/s quente, think=false); 2× RX580; TS 100.67.253.52
     output_cost_per_token: 0
   model_name: agl-primary
 - litellm_params:
@@ -1333,7 +1337,7 @@ model_list:
     max_tokens: 65536
   model_name: groq-gpt-oss-120b-k2
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen3:8b
     think: false
     timeout: 120
@@ -1347,7 +1351,7 @@ model_list:
     note: Alias ollama-qwen3-4b → qwen3:8b VM310 AGLSRV3 (nome legado)
   model_name: ollama-qwen3-4b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen3:8b
     think: false
     timeout: 120
@@ -1361,7 +1365,7 @@ model_list:
     note: Alias openai/ollama-qwen3-4b → qwen3:8b VM310 AGLSRV3 (nome legado)
   model_name: openai/ollama-qwen3-4b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen3:8b
     think: false
     timeout: 120
@@ -1373,11 +1377,11 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 qwen3:8b explícito (agl-primary); TS 100.86.209.11
+    note: Ollama VM310 qwen3:8b explícito (agl-primary); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-qwen3-8b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen3:4b
     think: false
     timeout: 90
@@ -1389,11 +1393,11 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 qwen3:4b — latência mínima (~42 tok/s bench RX580); TS 100.86.209.11
+    note: Ollama VM310 qwen3:4b — latência mínima (~42 tok/s bench RX580); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-qwen3-4b-fast
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen3.5:9b
     think: false
     timeout: 180
@@ -1405,11 +1409,11 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 qwen3.5:9b (~22 tok/s, ~5.1 GB VRAM); TS 100.86.209.11
+    note: Ollama VM310 qwen3.5:9b (~3 tok/s RX580 — lento; usar só se precisar do modelo); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-qwen35-9b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/llama3.1:8b
     timeout: 120
     stream: true
@@ -1420,11 +1424,11 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 llama3.1:8b — JSON/structured (~27 tok/s, ~1s JSON bench); TS 100.86.209.11
+    note: Ollama VM310 llama3.1:8b — JSON/structured (~27 tok/s, ~1s JSON bench); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-llama31-8b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/qwen2.5-coder:7b
     timeout: 120
     stream: true
@@ -1435,11 +1439,11 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 qwen2.5-coder:7b — código (~26 tok/s, JSON ~0.9s bench); TS 100.86.209.11
+    note: Ollama VM310 qwen2.5-coder:7b — código (~26 tok/s, JSON ~0.9s bench); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-qwen25-coder-7b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/deepseek-r1:8b
     think: false
     timeout: 180
@@ -1451,11 +1455,11 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 deepseek-r1:8b raciocínio (~25 tok/s bench); TS 100.86.209.11
+    note: Ollama VM310 deepseek-r1:8b raciocínio (~25 tok/s bench); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-deepseek-r1-8b
 - litellm_params:
-    api_base: http://100.86.209.11:11434
+    api_base: http://100.67.253.52:11434
     model: ollama/gemma2:9b
     timeout: 120
     stream: true
@@ -1466,9 +1470,24 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 gemma2:9b (~18 tok/s, ~5.7 GB VRAM bench); TS 100.86.209.11
+    note: Ollama VM310 gemma2:9b (~18 tok/s, ~5.7 GB VRAM bench); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-gemma2-9b
+- litellm_params:
+    api_base: http://100.67.253.52:11434
+    model: ollama/gemma3:4b
+    timeout: 90
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 gemma3:4b — mais rápido (~44 tok/s JSON bench 2×RX580); TS 100.67.253.52
+    output_cost_per_token: 0
+  model_name: ollama-gemma3-4b
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY
     max_tokens: 2048

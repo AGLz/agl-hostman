@@ -1,6 +1,6 @@
 # Container Inventory
 
-> **Last Updated**: 2026-05-28 | **Version**: 1.3.0
+> **Last Updated**: 2026-06-11 | **Version**: 1.4.0
 > **Reference**: Complete inventory of containers across all Proxmox hosts
 
 ---
@@ -40,7 +40,10 @@
 |----|------|---------|--------|--------------|
 | **CT183** | archon | AI Command Center | ✅ | Archon MCP server (28 tools), WG 10.6.0.21, API: http://192.168.0.183:8051/mcp |
 | **CT184** | supabase | Self-Hosted Database | ✅ | Supabase stack (13 containers), PostgreSQL, Kong API, http://192.168.0.184:8000 |
-| **CT200** | ollama | GPU Inference | ✅ | Ollama with GPU passthrough |
+| **CT186** | agl-litellm | LiteLLM Gateway | ✅ | Docker `/opt/agl-litellm`, TS `100.125.249.8:4000`, LAN `192.168.0.186:4000` |
+| **CT187** | agl-openclaw | OpenClaw (Jarvis) | ✅ | Gateway produção; modelos via CT186 |
+| **CT200** | ollama | GPU Inference | ⏸️ | **Descontinuado** — substituído por VM110/VM310 |
+| **VM110** | agl-ollama | Ollama (legado) | ⏸️ | GTX 1650, `192.168.0.200` — **parada** (GPU D3cold) |
 | **CT202** | n8n | Workflow Automation | ✅ | n8n workflows |
 
 ### Media Services
@@ -67,6 +70,12 @@ Ver [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md) para o stack completo (Ov
 | 104 | cloudflared | Cloudflare Tunnel | ⏸️ | — | Stopped |
 
 **Host DNS:** `192.168.15.102` (CT117) → `1.1.1.1` / `8.8.8.8` — ver `HOSTS.md`.
+
+### VMs (AGLSRV3)
+
+| ID | Name | Purpose | Status | Networks | Notes |
+|----|------|---------|--------|----------|-------|
+| **310** | **agl-ollama** | **Ollama primário** | ✅ | LAN `192.168.15.210`, TS **`100.67.253.52:11434`** | 2× RX580, Vulkan; ver [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md) |
 
 ---
 
@@ -104,12 +113,13 @@ Ver [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md) para o stack completo (Ov
 
 ---
 
-**Document Version**: 1.3.0
-**Last Updated**: 2026-05-28
+**Document Version**: 1.4.0
+**Last Updated**: 2026-06-11
 **Maintainer**: Claude Code (agl-hostman project)
 
 **Recent Changes:**
-- ✅ AGLSRV3 CT117 `pihole3` — clone Pi-hole cross-site (2026-05-28)
+- ✅ VM310 `agl-ollama` — Ollama primário AGLSRV3 (2× RX580, TS `100.67.253.52`)
+- ✅ CT186/187 LiteLLM + OpenClaw canónico; CT200/VM110 Ollama legado offline
 - ✅ Added CT184 (supabase) - Self-hosted Supabase with 13 containers
 - ✅ CT183 (archon) - Fully operational with MCP connected to CT184
 - ✅ Integration complete: Archon MCP + Supabase self-hosted

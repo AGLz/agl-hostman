@@ -1,5 +1,7 @@
 # VM110 agl-ollama — Migração Ollama (CT200 → VM)
 
+> **⚠️ Legado / offline (2026-06-11).** Ollama primário está na **VM310** (AGLSRV3). LiteLLM `agl-primary` → `http://100.67.253.52:11434`. Ver [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md).
+
 **Data:** 2026-05-18  
 **Host:** AGLSRV1 (`192.168.0.245`, Tailscale `100.107.113.33`)  
 **VM:** 110 — `agl-ollama`  
@@ -139,7 +141,7 @@ scp scripts/aglsrv1/{strip-gpu,enable-vfio,setup-vm110,finish-vm110,install-vm11
 - **GPU:** GTX 1650 em `01:00.0` (guest), driver NVIDIA 580, `nvidia-smi` OK
 - **Secure Boot (VM):** desactivado — `efidisk0` com `pre-enrolled-keys=0`
 - **Ollama:** `http://192.168.0.200:11434`, `qwen3:4b` — **~80% GPU** (~3.2 GB VRAM)
-- **LiteLLM:** `agl-primary` → `192.168.0.200:11434` **sem alteração** de IP
+- **LiteLLM:** na altura `agl-primary` → `192.168.0.200:11434` (substituído por **VM310** — ver [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md))
 - **CT200:** stopped, `onboot 0`, GPU removida — **descontinuado**
 - **Kernel host:** `6.8.12-1-pve` (pin); `pcie_aspm=off` em `/etc/kernel/cmdline`
 - **Passthrough:** `hostpci0: 0000:05:00.0,pcie=1,rombar=0` + `vga: virtio` (headless)

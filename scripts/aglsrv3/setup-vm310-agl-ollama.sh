@@ -17,6 +17,7 @@ DNS="${DNS:-192.168.15.102}"
 MAC="${MAC:-BC:24:11:BA:73:10}"
 CI_USER="${CI_USER:-agladmin}"
 GPU_MAP="${GPU_MAP:-RX580}"
+GPU_MAP2="${GPU_MAP2:-RX580_2}"
 CLOUD_IMG="${CLOUD_IMG:-/var/lib/vz/template/cache/noble-server-cloudimg-amd64.img}"
 CLOUD_IMG_URL="${CLOUD_IMG_URL:-https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img}"
 SSH_KEY_FILE="${SSH_KEY_FILE:-/root/.ssh/authorized_keys}"
@@ -105,6 +106,7 @@ create_vm() {
   qm set "$VMID" --nameserver "$DNS"
   qm set "$VMID" --searchdomain aglz.io
   qm set "$VMID" --hostpci0 "mapping=${GPU_MAP},pcie=1,rombar=0"
+  qm set "$VMID" --hostpci1 "mapping=${GPU_MAP2},pcie=1,rombar=0"
   qm set "$VMID" --description "Ollama GPU RX580 8GB — AGLSRV3 (substitui teste VM301)"
 
   log "Config VM$VMID:"

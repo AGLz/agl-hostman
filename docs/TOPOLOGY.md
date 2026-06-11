@@ -1,6 +1,6 @@
 # Infrastructure Physical Topology and Network Architecture
 
-> **Last Updated**: 2026-03-31 | **Version**: 1.2.1
+> **Last Updated**: 2026-06-11 | **Version**: 1.2.2
 > **Reference**: Physical locations and network topology
 
 ---
@@ -46,14 +46,14 @@ The infrastructure is distributed across **4 physical locations**, each with its
 **AGLSRV1 (Main Production Host)**:
 - 68 containers/VMs (42 running, 26 stopped)
 - Development: CT179 (agldv03 - 48GB RAM), CT180 (dokploy)
-- AI Infrastructure: CT183 (Archon AI), CT200 (ollama), CT202 (n8n)
+- AI Infrastructure: CT183 (Archon AI), **CT186** (LiteLLM), **CT187** (OpenClaw), CT202 (n8n); Ollama primário **VM310** (AGLSRV3)
 - DNS/DHCP: CT102 (pihole)
 - Monitoring: CT132 (observium), CT162 (meshcentral)
 - Media: CT113 (plex), CT121-124 (arr stack)
 
 **AGLSRV3 (Remote Site — AGLFG LAN segment)**:
 - **Localização física:** site remoto (segmento `192.168.15.0/24`, **não** AGLHQ)
-- CT117 (pihole3) + CT106 (cloudflared3); VMs Windows/Truenas (maioria stopped)
+- CT117 (pihole3) + CT106 (cloudflared3); **VM310** (agl-ollama — Ollama 2× RX580, TS `100.67.253.52`); VMs Windows/Truenas (maioria stopped)
 - Hardware: Intel Xeon E5-2690 v3, 16GB RAM
 - Storage: `local` + `local-lvm` (~330GB thin)
 - DNS local: **CT117** @ `192.168.15.102` (clone Pi-hole AGLSRV1 CT102, 2026-05-28)
@@ -61,7 +61,7 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 ### Infrastructure Role
 - **AGLSRV1**: Primary production environment, main development containers, AI/ML infrastructure, central DNS and monitoring, file server (CT178/aglfs1 with 27TB storage)
-- **AGLSRV3**: Remote Proxmox (AGLFG LAN); DNS autónomo via CT117; sem rota LAN para `192.168.0.102` (AGLHQ)
+- **AGLSRV3**: Remote Proxmox (AGLFG LAN); DNS autónomo via CT117; **Ollama GPU** na VM310; sem rota LAN para `192.168.0.102` (AGLHQ)
 - AGLSRV1 ↔ AGLSRV3: conectividade via **Tailscale** e **WireGuard** (não LAN partilhada)
 
 ---

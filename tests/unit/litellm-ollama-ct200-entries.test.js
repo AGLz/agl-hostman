@@ -8,9 +8,9 @@ const path = require('node:path');
 const CONFIG = path.join(__dirname, '../../config/litellm/config.yaml');
 const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.yaml');
 
-const VM310_TS_OLLAMA = '100.86.209.11:11434';
+const VM310_TS_OLLAMA = '100.67.253.52:11434';
 const LEGACY_CT200_LAN = '192.168.0.200:11434';
-const LEGACY_VM110_TS = '100.74.118.51:11434';
+const LEGACY_VM110_TS = '100.116.57.111:11434';
 
 function escapeForRegex(ipHost) {
   return ipHost.replaceAll('.', '\\.');

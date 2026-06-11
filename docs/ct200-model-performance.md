@@ -1,5 +1,8 @@
 # CT200 Model Performance Benchmarks
 
+> **⚠️ Documento legado (CT200 / VM110 AGLSRV1).** Ollama primário migrou para **VM310** (AGLSRV3, 2× RX580).  
+> **Canónico:** [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md) · LiteLLM: [`docs/LITELLM-MODEL-TIERS.md`](LITELLM-MODEL-TIERS.md) · API TS: `http://100.67.253.52:11434`
+
 **Date**: 2025-10-27
 **GPU**: NVIDIA GeForce GTX 1650 (4GB VRAM)
 **Driver**: 550.127.05
@@ -8,14 +11,22 @@
 
 ---
 
-## Atualização 2026-05 — CT200 só `qwen3:4b` (LiteLLM)
+## Atualização 2026-06-11 — substituído por VM310 (não usar CT200)
+
+| Peça | Detalhe actual |
+|------|----------------|
+| **Primário (`agl-primary`)** | `ollama/qwen3:8b` em `http://100.67.253.52:11434` (VM310, AGLSRV3). Ver `config/litellm/config.yaml`. |
+| **Mais rápido** | Alias `ollama-gemma3-4b` → `gemma3:4b` (~44 tok/s bench). |
+| **Benchmark** | `OLLAMA_HOST=http://100.67.253.52:11434 bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only` |
+| **Deploy LiteLLM (CT186)** | `bash scripts/litellm/deploy-litellm-callbacks-ct186.sh` · smoke: `bash scripts/litellm/test-ollama-litellm-content.sh agl-primary` |
+
+### Histórico 2026-05 (CT200 / VM110 — obsoleto)
 
 | Peça | Detalhe |
 |------|---------|
-| **Primário LAN (`agl-primary`)** | Em `config/litellm/config.yaml`: `ollama/qwen3:4b` em `http://192.168.0.200:11434`. Ollama no CT200 com `OLLAMA_MAX_LOADED_MODELS=1`; disco só com este modelo; LiteLLM não expõe outros backends Ollama no CT200. |
-| **Alias** | `ollama-qwen3-4b` / `openai/ollama-qwen3-4b` (mesmo modelo). Em **fgsrv06**: `config/litellm/config-remote.yaml` + Ollama Tailscale `100.116.57.111`; `agl-primary` remoto continua DashScope com fallback para este alias quando aplicável. |
-| **Benchmark A/B** | `scripts/aglsrv1/benchmark-ollama-nemotron-vs-qwen3-ab.sh` — prompts PT / EN / JSON; JSON em `OUT_JSON` (omissão: `/tmp/ollama-ab-results.json`). Ex.: `OLLAMA_HOST=http://127.0.0.1:11434 bash scripts/aglsrv1/benchmark-ollama-nemotron-vs-qwen3-ab.sh`. |
-| **Deploy LiteLLM (CT186)** | Editar `config/litellm/config.yaml` no repo → `bash scripts/proxmox/bootstrap-ct186-litellm.sh` (ou sync manual para `/opt/agl-litellm`). Smoke: `curl -sf http://192.168.0.186:4000/health/liveliness` · `bash scripts/litellm/test-chat-model.sh agl-primary` (com `LITELLM_URL` apontando ao CT186). **agldv03:** descontinuado. |
+| **Primário LAN (`agl-primary`)** | Era `ollama/qwen3:4b` em `http://192.168.0.200:11434` (CT200/VM110). |
+| **Alias** | `ollama-qwen3-4b` / `openai/ollama-qwen3-4b`. |
+| **Benchmark A/B** | `scripts/aglsrv1/benchmark-ollama-nemotron-vs-qwen3-ab.sh` |
 
 ### Resultados A/B (colar após correr o benchmark)
 

@@ -13,21 +13,21 @@
 #   PULL=1 bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only --pull
 #
 # Desde o host AGLSRV3 via SSH:
-#   VM310_HOST=agladmin@100.86.209.11 bash scripts/aglsrv3/benchmark-ollama-models.sh --remote
+#   VM310_HOST=agladmin@100.67.253.52 bash scripts/aglsrv3/benchmark-ollama-models.sh --remote
 #
 # Opções:
 #   --pull       fazer ollama pull antes de cada modelo
 #   --dry-run    mostrar plano sem executar inferência
 #   --api-only   só HTTP (Tailscale); não requer ollama CLI local
-#   --remote     correr via ssh (VM310_HOST default agladmin@100.86.209.11)
+#   --remote     correr via ssh (VM310_HOST default agladmin@100.67.253.52)
 #   --output F   ficheiro CSV (default: /tmp/ollama-vm310-bench.csv)
 
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-API="${OLLAMA_HOST:-http://100.86.209.11:11434}"
-VM310_HOST="${VM310_HOST:-agladmin@100.86.209.11}"
-VM310_TS_IP="${VM310_TS_IP:-100.86.209.11}"
+API="${OLLAMA_HOST:-http://100.67.253.52:11434}"
+VM310_HOST="${VM310_HOST:-agladmin@100.67.253.52}"
+VM310_TS_IP="${VM310_TS_IP:-100.67.253.52}"
 OUT_CSV="${OUT_CSV:-/tmp/ollama-vm310-bench.csv}"
 PULL="${PULL:-0}"
 DRY_RUN="${DRY_RUN:-0}"
@@ -35,17 +35,21 @@ REMOTE="${REMOTE:-0}"
 API_ONLY="${API_ONLY:-0}"
 NUM_PREDICT="${NUM_PREDICT:-128}"
 KEEP_ALIVE="${KEEP_ALIVE:-5m}"
+# Reason: qwen3/qwen3.5/deepseek-r1 gastam num_predict em thinking por defeito → tok/s artificialmente baixo
+OLLAMA_THINK="${OLLAMA_THINK:-false}"
 
 # Reason: lista curada para 8 GB VRAM (disco Ollama ≤ ~6.6 GB confortável)
 DEFAULT_MODELS=(
+  qwen3:4b
   qwen3:8b
   qwen3.5:9b
   llama3.1:8b
   gemma2:9b
+  gemma3:4b
   deepseek-r1:8b
-  qwen2.5:7b
   qwen2.5-coder:7b
-  command-r7b
+  qwen2.5:7b
+  command-r7b:latest
   granite3.3:8b
 )
 
@@ -195,10 +199,10 @@ pull_model() {
 chat_benchmark() {
   local model="$1"
   local prompt="$2"
-  python3 - "$API" "$model" "$prompt" "$NUM_PREDICT" "$KEEP_ALIVE" <<'PY'
+  python3 - "$API" "$model" "$prompt" "$NUM_PREDICT" "$KEEP_ALIVE" "$OLLAMA_THINK" <<'PY'
 import json, sys, urllib.request
 
-api, model, prompt, num_predict, keep_alive = sys.argv[1:6]
+api, model, prompt, num_predict, keep_alive, think_flag = sys.argv[1:7]
 body = {
     "model": model,
     "messages": [{"role": "user", "content": prompt}],
@@ -206,6 +210,10 @@ body = {
     "keep_alive": keep_alive,
     "options": {"num_predict": int(num_predict)},
 }
+if think_flag.lower() not in ("1", "true", "yes", "on"):
+    body["think"] = False
+else:
+    body["think"] = True
 data = json.dumps(body).encode("utf-8")
 req = urllib.request.Request(
     api.rstrip("/") + "/api/chat",

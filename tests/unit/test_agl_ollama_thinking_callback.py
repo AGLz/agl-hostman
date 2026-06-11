@@ -18,7 +18,7 @@ _spec.loader.exec_module(_mod)
 @pytest.mark.parametrize(
     ("model", "data", "expected"),
     [
-        ("agl-primary", {"api_base": "http://100.86.209.11:11434"}, True),
+        ("agl-primary", {"api_base": "http://100.67.253.52:11434"}, True),
         ("ollama-qwen3-8b", {}, True),
         ("ollama/llama3.1:8b", {}, True),
         ("gpt-5.4-mini", {}, False),

@@ -26,6 +26,7 @@ GW="${GW:-192.168.15.1}"
 DNS="${DNS:-192.168.15.102}"
 MAC="${MAC:-BC:24:11:BA:73:10}"
 GPU_MAP="${GPU_MAP:-RX580}"
+GPU_MAP2="${GPU_MAP2:-RX580_2}"
 
 log() { echo "[restore-vm310] $*" >&2; }
 
@@ -67,7 +68,7 @@ restore_and_tune() {
   log "qmrestore ${dump_file} → VM${DST_VMID} storage=${STORAGE}"
   qmrestore "${dump_file}" "${DST_VMID}" --storage "${STORAGE}" --force
 
-  log "Ajustes AGLSRV3 (GPU RX580, rede AGLFG, sem hook VM110)..."
+  log "Ajustes AGLSRV3 (2× GPU RX580, rede AGLFG, sem hook VM110)..."
   qm set "${DST_VMID}" \
     --name agl-ollama \
     --delete hookscript \
@@ -76,6 +77,7 @@ restore_and_tune() {
     --delete unused0 \
     --delete unused1 \
     --hostpci0 "mapping=${GPU_MAP},pcie=1,rombar=0" \
+    --hostpci1 "mapping=${GPU_MAP2},pcie=1,rombar=0" \
     --net0 "virtio,bridge=vmbr0,macaddr=${MAC}" \
     --ipconfig0 "ip=${IP},gw=${GW}" \
     --nameserver "${DNS}" \

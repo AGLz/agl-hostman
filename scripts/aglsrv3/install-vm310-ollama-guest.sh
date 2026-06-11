@@ -15,6 +15,7 @@ install_amd() {
     linux-firmware \
     mesa-vulkan-drivers
   echo amdgpu > /etc/modules-load.d/amdgpu.conf
+  depmod -a
   modprobe amdgpu 2>/dev/null || true
   if [[ -d /dev/dri ]] && ls /dev/dri/renderD* &>/dev/null; then
     log "DRI devices presentes:"
@@ -25,13 +26,14 @@ install_amd() {
   fi
 }
 
-install_ollama() {
+  install_ollama() {
   if command -v ollama >/dev/null 2>&1; then
     log "Ollama já instalado: $(ollama --version 2>/dev/null || true)"
   else
     log "Instalar Ollama..."
     curl -fsSL https://ollama.com/install.sh | sh
   fi
+  usermod -aG render,video ollama 2>/dev/null || true
   install -d /etc/systemd/system/ollama.service.d
   if [[ -f "$OVERRIDE_SRC" ]]; then
     cp -a "$OVERRIDE_SRC" /etc/systemd/system/ollama.service.d/override.conf

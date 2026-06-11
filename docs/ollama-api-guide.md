@@ -1,10 +1,14 @@
-# Ollama API Guide - CT200 (ollama-gpu)
+# Ollama API Guide
 
-**Last Updated**: 2026-04-03
-**Ollama Version**: 0.12.2
+> **Canónico (2026-06-11):** VM310 **AGLSRV3** — TS `http://100.67.253.52:11434`, LAN `http://192.168.15.210:11434`.  
+> Ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md). Secção CT200 abaixo = **legado** (VM110/CT200 AGLSRV1 offline).
+
+**Last Updated**: 2026-06-11
+**Ollama Version**: ver guest VM310 (`ollama --version`)
 **Base URL** (usar conforme a rede):
-- **Tailscale** (recomendado fora da LAN): `http://100.116.57.111:11434`
-- **LAN**: `http://192.168.0.200:11434`
+- **Tailscale (primário)**: `http://100.67.253.52:11434`
+- **LAN AGLSRV3**: `http://192.168.15.210:11434`
+- **Legado AGLSRV1 (offline)**: TS `http://100.116.57.111:11434`, LAN `http://192.168.0.200:11434`
 
 Nos exemplos abaixo, `OLLAMA_BASE` = uma das URLs acima.
 

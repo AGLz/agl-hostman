@@ -188,8 +188,8 @@ for g in GROQ_API_KEY GROQ_API_KEY2; do
   fi
 done
 
-probe_post "ollama" "Ollama qwen3:4b @100.74.118.51" "http://100.74.118.51:11434/api/chat" "Bearer ollama" \
-  '{"model":"qwen3:4b","messages":[{"role":"user","content":"OK"}],"stream":false,"options":{"num_predict":8}}' "$TIMEOUT_OLLAMA"
+probe_post "ollama" "Ollama qwen3:8b @100.67.253.52 (VM310)" "http://100.67.253.52:11434/api/chat" "Bearer ollama" \
+  '{"model":"qwen3:8b","messages":[{"role":"user","content":"OK"}],"stream":false,"options":{"num_predict":8,"think":false}}' "$TIMEOUT_OLLAMA"
 
 echo ""
 echo "## 2. LiteLLM proxy (aliases Hermes)"

@@ -1,6 +1,6 @@
 # Proxmox Hosts Detailed Configuration
 
-> **Last Updated**: 2026-05-28 | **Version**: 1.2.0
+> **Last Updated**: 2026-06-11 | **Version**: 1.3.0
 > **Reference**: Complete host configurations, resources, and network details
 
 ---
@@ -42,7 +42,7 @@
 
 - **Total VMs/CTs**: 68 (42 running, 26 stopped)
 - **Primary Dev Container**: CT179 (agldv03) - 48GB RAM
-- **AI Infrastructure**: CT183 (archon), CT200 (ollama)
+- **AI Infrastructure**: CT183 (archon), **CT186** (LiteLLM), **CT187** (OpenClaw); Ollama primário **VM310** (AGLSRV3, TS `100.67.253.52`); legado CT200/VM110 offline
 - **Storage**:
   - local-zfs: 1.7TB
   - spark: 7.1TB (91.54% used)
@@ -55,7 +55,7 @@
 | DNS/DHCP | CT102 (pihole) | Primary DNS server |
 | Media | CT113 (plex), CT121-124 (arr stack) | Media automation |
 | Development | CT179 (agldv03), CT180 (dokploy) | 48GB dev container |
-| AI | CT183 (archon), CT200 (ollama), CT202 (n8n) | AI Command Center |
+| AI | CT183 (archon), CT186 (LiteLLM), CT187 (OpenClaw), CT202 (n8n); Ollama → VM310 AGLSRV3 | Gateway LLM + OpenClaw; ver `LITELLM-MODEL-TIERS.md` |
 | Monitoring | CT132 (observium), CT162 (meshcentral) | Infrastructure monitoring |
 
 ### Connection Commands
@@ -137,7 +137,7 @@ NFS remoto para CT178 (AGLSRV1) documentado historicamente; confirmar mounts act
 | 106 | cloudflared3 | — | — | Running |
 | 104 | cloudflared | — | — | Stopped (lock mounted) |
 
-**Virtual Machines**: VM101–108 (Windows / Truenas / OPNsense — maior parte stopped)
+**Virtual Machines**: VM101–108 (Windows / Truenas / OPNsense — maior parte stopped); **VM310** `agl-ollama` (Ollama primário, 2× RX580, TS `100.67.253.52`, LAN `192.168.15.210`) — [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 
 **Clone Pi-hole (2026-05-28):** `vzdump 102` no AGLSRV1 → `rsync` via Tailscale → `pct restore 117` no AGLSRV3 (`--ignore-unpack-errors`, rootfs 12G). Runbook: [`docs/AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md). Script Tailscale: `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh`.
 

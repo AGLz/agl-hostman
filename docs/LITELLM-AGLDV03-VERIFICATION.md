@@ -45,19 +45,21 @@ Resumo de execução real no servidor (mensagem de teste curta tipo «Reply exac
 
 Conclusão: o caminho **Hermes → LiteLLM → `qwen-coder` / `glm-flash` / `gemini-lite` / `or-hermes-free`** está **saudável** para chamadas simples. Os alias **OpenRouter :free** oscilam com **429** e **404** conforme quota e disponibilidade upstream.
 
-## Ollama (CT200 / AGLSRV1)
+## Ollama (VM310 / AGLSRV3)
 
-O **Ollama com GPU** não corre no agldv03 (CT179). Está no **CT200** do **AGLSRV1** (Proxmox `192.168.0.245`, `pct exec 200`).
+O **Ollama com GPU** não corre no agldv03 (CT179). O primário está na **VM310** (AGLSRV3, 2× RX580).
 
 | Acesso | URL |
 |--------|-----|
-| LAN (LiteLLM noutros CTs na mesma rede) | `http://192.168.0.200:11434` |
-| Tailscale (CT200) | `http://100.116.57.111:11434` |
+| Tailscale (recomendado) | `http://100.67.253.52:11434` |
+| LAN AGLSRV3 | `http://192.168.15.210:11434` |
 
-No repositório, `config/litellm/config.yaml` usa **`192.168.0.200:11434`** para todas as entradas `api_base` Ollama; `config/litellm/config-remote.yaml` usa o IP Tailscale. Testes de conectividade a partir do contentor `litellm-proxy` no agldv03 devem usar **este IP**, não `127.0.0.1` nem o IP do próprio CT179 — aí o serviço Ollama **não** existe.
+No repositório, `config/litellm/config.yaml` (CT186) usa **`100.67.253.52:11434`** em todas as entradas `api_base` Ollama. Smoke: `bash scripts/litellm/test-ollama-litellm-content.sh agl-primary` com `LITELLM_URL=http://100.125.249.8:4000`.
+
+**Legado AGLSRV1** (CT200/VM110 `192.168.0.200` / TS `100.116.57.111`): offline — ver [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md).
 
 ## Referências
 
 - Hermes + `~/.hermes`: `docs/HERMES-AGENT-AGLDV03.md`
-- Ollama CT200 (API, firewall): `docs/ollama-api-guide.md`
+- Ollama VM310: `docs/AGL-OLLAMA-VM310.md` · API: `docs/ollama-api-guide.md`
 - Matriz de modelos no repo: `config/litellm/config.yaml` (pode diferir ligeiramente do `config.yaml` em produção no CT)

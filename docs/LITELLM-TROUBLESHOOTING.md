@@ -123,14 +123,15 @@ Recriar: `docker compose -f docker/litellm/docker-compose.yml up -d --force-recr
 
 ### 3. Claude-flow trava 20+ min sem retorno
 
-**Causa**: (a) `request_timeout: 20` muito curto; (b) fallbacks Ollama (phi3, qwen3, llama) não suportam "thinking" → erro 500; (c) Ollama frio demora 30-60s.
+**Causa**: (a) `request_timeout` muito curto; (b) modelos Qwen3/DeepSeek-R1 com **thinking** activo → `content` vazio / erro 500; (c) Ollama **cold load** (troca de modelo 8–12 GB na VM310) demora 60–180s.
 
-**Soluções aplicadas**:
-- `request_timeout: 120` em `litellm_settings`
-- Claude fallbacks: apenas cloud APIs (glm, deepseek, qwen3.5-plus, gemini) — sem Ollama
-- Timeouts por modelo: claude-opus 90s, claude-haiku 60s, phi3/qwen3-4b 45-60s
+**Soluções aplicadas (2026-06-11)**:
+- `request_timeout: 240` em `litellm_settings` (CT186)
+- Callback `agl_glm_flash_params.py` + `think: false` nas rotas Ollama (`agl-primary`, `ollama-qwen*`, `ollama-deepseek-r1-8b`)
+- Claude fallbacks: preferir cloud APIs; Ollama só em aliases dedicados
+- Smoke: `bash scripts/litellm/test-ollama-litellm-content.sh <alias>` (timeout curl **240s**)
 
-**Deploy**: `sudo cp config/litellm/config.yaml /opt/litellm/ && docker restart litellm-proxy`
+**Deploy CT186**: `bash scripts/litellm/deploy-litellm-callbacks-ct186.sh` (force-recreate + scripts smoke em `/opt/agl-litellm/scripts/`)
 
 ---
 

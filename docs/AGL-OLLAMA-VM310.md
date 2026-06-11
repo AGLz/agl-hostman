@@ -1,14 +1,13 @@
-# VM310 agl-ollama — AGLSRV3 (RX 580)
+# VM310 agl-ollama — AGLSRV3 (2× RX 580)
 
-**Data:** 2026-06-09 (actualizado pós-destroy pool)  
+**Data:** 2026-06-10  
 **Host:** AGLSRV3 (`192.168.15.247`, Tailscale `100.123.5.81`)  
 **VM:** 310 — `agl-ollama`  
 **LAN:** `192.168.15.210/24`  
-**Modelo:** `qwen3:8b` (`OLLAMA_MAX_LOADED_MODELS=1`) — ~6.2 GB VRAM, 100% GPU na RX580  
-**GPU:** AMD RX 580 2048SP — **8 GB VRAM**, passthrough exclusivo (substitui VM301 AGLHQ10 teste)
+**Modelo:** `qwen3:8b` (`OLLAMA_MAX_LOADED_MODELS=2`) — ~6.2 GB VRAM/GPU, Vulkan RADV  
+**GPU:** 2× AMD RX 580 2048SP — **16 GB VRAM total**, passthrough exclusivo (`hostpci0` + `hostpci1`)
 
-> **2026-06-09:** Discos VM310 perdidos com `zpool destroy` (migração não correu a tempo).  
-> **Plano:** recriar após PVE 9 + pool novo, clonando **VM110** (AGLSRV1) como template OS/Ollama base; depois `ollama pull` + Tailscale de novo.
+> **2026-06-10:** VM310 **operacional** em AGLSRV3 (2× RX580, Ollama Vulkan, TS `100.67.253.52`). Histórico de discos perdidos (2026-06-09) resolvido com rebuild + restore.
 
 ---
 
@@ -35,17 +34,33 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 | VM301 AGLHQ10 | **Parada**, `onboot 0`, GPU removida |
 | Storage VM310 | **`aglsrv3-tb`** (após rebuild) ou `local-lvm` |
 | RAM VM310 | 16 GB (balloon 24 GB) |
-| LiteLLM | TS guest (ex. `100.86.209.11:11434`) — actualizar após novo `tailscale up` |
-| Aliases | `agl-primary`, `ollama-qwen3-4b`, `openai/ollama-qwen3-4b` |
+| LiteLLM | TS guest `100.67.253.52:11434` (`aglsrv3-ollama`) |
+| Aliases LiteLLM | `agl-primary`, `ollama-qwen3-8b`, `ollama-qwen3-4b-fast`, `ollama-gemma3-4b`, `ollama-qwen35-9b`, `ollama-llama31-8b`, `ollama-qwen25-coder-7b`, `ollama-deepseek-r1-8b`, `ollama-gemma2-9b` (+ legado `ollama-qwen3-4b`) |
 
 ---
 
-## GPU (AMD ROCm)
+## GPU (AMD — Vulkan, 2× RX 580)
 
-- Passthrough: `hostpci0 mapping=RX580,pcie=1,rombar=0`
-- Guest: `linux-firmware` + `linux-modules-extra-$(uname -r)` + `modprobe amdgpu`
-- Ollama override: `HSA_OVERRIDE_GFX_VERSION=10.3.0` (Polaris gfx803)
-- Verificar: `ollama ps` → **`100% GPU`**
+- Passthrough: `hostpci0 mapping=RX580` + `hostpci1 mapping=RX580_2`, `pcie=1,rombar=0`
+- Host: `vfio-pci ids=1002:6fdf,1002:aaf0` em `/etc/modprobe.d/vfio.conf`
+- Guest: `linux-modules-extra`, `linux-firmware`, `modprobe amdgpu`
+- Ollama (override `scripts/aglsrv3/vm310-ollama-override.conf`):
+  - `OLLAMA_VULKAN=1`, `HIP_VISIBLE_DEVICES=-1`, `ROCR_VISIBLE_DEVICES=-1` (só Vulkan)
+  - `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_NUM_PARALLEL=2` (2 modelos / 2 GPUs em paralelo)
+  - `OLLAMA_SCHED_SPREAD=0` — modelos ≤8 GB ficam numa GPU (menor latência PCIe)
+  - `HSA_OVERRIDE_GFX_VERSION=10.3.0`, `GGML_VK_DISABLE_INTEGER_DOT_PRODUCT=1`
+  - Utilizador `ollama` no grupo `render`
+- Verificar: logs → `total_vram="16.0 GiB"`, `Vulkan0` + `Vulkan1` (~8 GiB cada)
+- Aplicar/reaplicar: `bash scripts/aglsrv3/apply-vm310-ollama-optimize.sh`
+
+### Multi-GPU — expectativas (Ollama docs + prática)
+
+| Cenário | Comportamento |
+|---------|----------------|
+| Modelo ≤8 GB (ex. `qwen3:8b`) | **1 GPU** — melhor tok/s por pedido |
+| Modelo >8 GB (ex. `command-r7b`) | **Split** Vulkan0 + Vulkan1 |
+| 2 pedidos paralelos | Até **2 modelos** carregados (1 por GPU) com `NUM_PARALLEL=2` |
+| `OLLAMA_SCHED_SPREAD=1` | Espalha camadas em todas as GPUs — **não** acelera um único completion |
 
 ---
 
@@ -62,30 +77,57 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 
 ---
 
-## Benchmark de modelos (8 GB)
+## Benchmark de modelos (2× RX 580 — 16 GB VRAM)
 
 Lista curada e script de comparação (latência, tokens/s, `ollama ps` GPU vs CPU):
 
 ```bash
-# Na VM310 ou via Tailscale (default API: http://100.86.209.11:11434)
+# API Tailscale (default: http://100.67.253.52:11434)
 PULL=1 bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only
 
-# Desde agldv03 (sem SSH)
 OLLAMA_BENCH_MODELS="qwen3:8b qwen3:4b" bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only
-
-# SSH na guest
-VM310_HOST=agladmin@100.86.209.11 bash scripts/aglsrv3/benchmark-ollama-models.sh --remote --pull
 ```
 
-Saída CSV: `/tmp/ollama-vm310-bench.csv`. Objetivo na RX580: **`100% GPU`** em `ollama ps`.
+Saída CSV: `/tmp/ollama-vm310-bench-2xrx580.csv`. Objetivo: **`100% GPU`** em `ollama ps`.
 
-Modelos default no script: `qwen3:8b`, `qwen3.5:9b`, `llama3.1:8b`, `gemma2:9b`, `deepseek-r1:8b`, `qwen2.5-coder:7b`, `command-r7b`, `granite3.3:8b`. (`mistral:7b` removido — performance anómala na RX580.)
+Modelos default: `qwen3:4b`, `qwen3:8b`, `qwen3.5:9b`, `llama3.1:8b`, `gemma2:9b`, `gemma3:4b`, `deepseek-r1:8b`, `qwen2.5-coder:7b`, `qwen2.5:7b`, `command-r7b:latest`, `granite3.3:8b`.
 
-**Benchmark 2026-06-09 (Tailscale API, 8 GB VRAM):** CSV `/tmp/ollama-vm310-bench-full.csv` — primário `qwen3:8b` ~25 tok/s; rápido `qwen3:4b` ~42 tok/s; JSON `llama3.1:8b` / `qwen2.5-coder:7b` ~1s.
+**Benchmark 2026-06-11 (2× RX580, `think: false`, TS `100.67.253.52`, 11 modelos):**
+
+CSV: `/tmp/ollama-vm310-bench-full-think-off.csv` (ou `--output` no script).
+
+| Modelo | tok/s (chat quente) | tok/s (JSON quente) | VRAM | Notas |
+|--------|---------------------|---------------------|------|-------|
+| gemma3:4b | **~42** | **~44** | ~4.4 GB | Alias LiteLLM `ollama-gemma3-4b` |
+| qwen3:4b | ~39 | ~7* | ~5 GB | *1.º chat após swap infla load; JSON quente ~39 |
+| qwen3:8b | ~3.6* | **~25** | ~7.3 GB | **Primário** (`agl-primary`); JSON quente fiável |
+| llama3.1:8b | **~29** | **~30** | ~8.4 GB | JSON/structured |
+| gemma2:9b | **~23** | **~24** | ~11.4 GB | Split 2 GPUs; load lento |
+| granite3.3:8b | ~3.6* | ~17 | ~10.4 GB | Load muito lento no 1.º chat |
+| qwen2.5-coder:7b | ~4* | ~4 | ~6.8 GB | Código |
+| qwen2.5:7b | ~4* | ~4 | ~6.8 GB | |
+| deepseek-r1:8b | ~3.7* | ~3.9 | ~7.3 GB | R1 com `think: false` via callback |
+| command-r7b | ~3.7* | ~3.8 | ~9.4 GB | Split multi-GPU |
+| qwen3.5:9b | **~3** | **~3** | ~8.6 GB | Evitar como primário |
+
+**Smoke LiteLLM CT186 (2026-06-11):** 10/10 aliases Ollama OK (`ollama-gemma3-4b` incluído). `request_timeout` global **240s** (cold load modelos 8–12 GB).
+
+**Porque o benchmark anterior mostrava ~2 tok/s em qwen3:8b / qwen3.5:9b**
+
+1. **Thinking activo por defeito** nos modelos Qwen3 — o script não passava `think: false`; com `num_predict=128` quase todos os tokens iam para o campo `thinking` e `content` ficava vazio → tok/s aparente ~2–3.
+2. **LiteLLM já desactiva thinking** via callback (`agl_glm_flash_params.py`) — produção OK; só o benchmark estava errado.
+3. **Tempo de load** (~60–80 s) ao trocar modelos entre testes inflava `wall_ms` (corrigido medindo com modelo quente).
+
+Comparação thinking ON vs OFF (`qwen3:8b`, mesmo prompt):
+
+| Modo | wall | content |
+|------|------|---------|
+| default (think ON) | ~117 s | vazio (128 tokens em thinking) |
+| `think: false` | **~8 s** | resposta PT completa (~28 tok/s) |
 
 ---
 
-**Tailscale:** `100.86.209.11` (hostname `aglsrv3-ollama`) — LiteLLM usa esta IP directamente.
+**Tailscale:** `100.67.253.52` (`aglsrv3-ollama`) — LiteLLM usa este IP directamente.
 
 NAT legado no host (`100.123.5.81:11434`) pode ser removido; script `ollama-tailscale-nat.sh` só necessário se a VM não tiver TS próprio.
 

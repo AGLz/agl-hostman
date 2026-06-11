@@ -42,6 +42,7 @@ MODELS=(
   glm-flash
   zai/glm-4.7-flash
   ollama-qwen3-4b
+  ollama-gemma3-4b
 )
 
 fail=0

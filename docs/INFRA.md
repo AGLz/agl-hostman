@@ -34,11 +34,13 @@
 
 - **Host**: **CT186** (LXC `agl-litellm`, Proxmox **AGLSRV1**; Docker em `/opt/agl-litellm`)
 - **URL (LAN)**: <http://192.168.0.186:4000> — readiness: `/health/readiness`
-- **URL (Tailscale, CT186)**: obter com `pct exec 186 -- tailscale ip -4` (hostname típico `agl-litellm-ct186`)
+- **URL (Tailscale, CT186)**: `http://100.125.249.8:4000` (`aglsrv1-litellm`)
+- **Versão (2026-06-11)**: LiteLLM **1.82.6**; `request_timeout: 240`; deploy: `bash scripts/litellm/deploy-litellm-callbacks-ct186.sh`
 - **Providers** (config em repo): zai, anthropic, openai, google, deepseek, moonshot, ollama, etc. — ver [`config/litellm/config.yaml`](../config/litellm/config.yaml)
-- **Descontinuado (2026-06-05):** LiteLLM no **agldv03 CT179** — stack Docker removida (`docker compose down -v` em `/opt/litellm`; marcador `.STACK_DECOMMISSIONED`). **Não** usar `http://100.94.221.87:4000` nem `/opt/litellm` no CT179; ver [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md)
-- **Local Ollama (CT200)**: **Tailscale** `http://100.116.57.111:11434/v1` (recomendado fora da LAN) · **LAN** `http://192.168.0.200:11434/v1`
-- **Ollama Models (CT200)**: modelo local servido pelo LiteLLM como **`ollama/qwen3:4b`** (aliases `agl-primary`, `ollama-qwen3-4b`); detalhe em [`docs/ct200-model-performance.md`](ct200-model-performance.md)
+- **Descontinuado (2026-06-05):** LiteLLM no **agldv03 CT179** — stack Docker removida. Ver [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md)
+- **Ollama primário (VM310, AGLSRV3)**: **Tailscale** `http://100.67.253.52:11434` · **LAN** `http://192.168.15.210:11434` — 2× RX580, Vulkan
+- **LiteLLM → Ollama**: `agl-primary` = `qwen3:8b`; aliases `ollama-gemma3-4b` (~44 tok/s), `ollama-qwen3-4b-fast`, `ollama-llama31-8b`, etc. — ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md), [`docs/LITELLM-MODEL-TIERS.md`](LITELLM-MODEL-TIERS.md)
+- **Legado AGLSRV1:** CT200 / VM110 (`192.168.0.200`, TS `100.116.57.111`) **offline** — ver [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md)
 
 ### Agentes dedicados (CT188–190, AGLSRV1)
 
@@ -195,7 +197,8 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
 | 100.72.66.106 | aglsrv1-dokploy | linux | Active | Dokploy deployment manager (CT180) |
 | 100.105.133.18 | aglsrv1-haos | linux | Offline 158d | Home Assistant OS VM |
-| 100.116.57.111 | aglsrv1-ollama | linux | Active | Ollama GPU inference (CT200) |
+| 100.67.253.52 | aglsrv3-ollama | linux | Active | **Ollama primário** — VM310 AGLSRV3 (2× RX580) |
+| 100.116.57.111 | aglsrv1-ollama | linux | Offline | Legado VM110/CT200 AGLSRV1 — descontinuado |
 | 100.114.66.80 | aglsrv1-pihole | linux | Active | Pi-hole DNS (CT102) |
 
 ### AGLSRV5 Group (7 hosts)
@@ -922,7 +925,9 @@ zpool status -v local-zfs
 | VMID | Name | IP (LAN) | IP (TS) | GPU | Purpose |
 |------|------|----------|---------|-----|---------|
 | 183 | archon | 192.168.0.183 | - | - | **AI Command Center** |
-| 200 | ollama | 192.168.0.200 | 100.116.57.111 | ✅ NVIDIA | LLM compute |
+| 200 | ollama | 192.168.0.200 | 100.116.57.111 | — | **Descontinuado** (CT200) |
+| 110 | agl-ollama | 192.168.0.200 | 100.116.57.111 | GTX 1650 | **Parada** — GPU D3cold; ver VM310 |
+| 310 | agl-ollama | 192.168.15.210 | 100.67.253.52 | 2× RX580 | **Ollama primário** (AGLSRV3) |
 
 #### Databases & Services
 

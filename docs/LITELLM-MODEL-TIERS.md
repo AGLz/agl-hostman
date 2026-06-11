@@ -22,19 +22,20 @@
 
 ## Tiers de modelos
 
-### Local (hardware AGL — VM310 AGLSRV3, RX580 8GB, TS `100.86.209.11`)
+### Local (hardware AGL — VM310 AGLSRV3, 2× RX580 16 GB VRAM, TS `100.67.253.52:11434`)
 
 | Alias | Backend Ollama | Uso |
 |-------|----------------|-----|
-| `agl-primary` | `qwen3:8b` | Default privado, OpenClaw, baixo custo |
+| `agl-primary` | `qwen3:8b` | Default privado, OpenClaw, baixo custo (~25 tok/s quente) |
 | `ollama-qwen3-8b` | Idem | Alias explícito |
 | `ollama-qwen3-4b` | `qwen3:8b` | **Legado** (nome histórico) |
-| `ollama-qwen3-4b-fast` | `qwen3:4b` | Latência mínima (~42 tok/s bench RX580) |
-| `ollama-qwen35-9b` | `qwen3.5:9b` | All-rounder local (~22 tok/s) |
-| `ollama-llama31-8b` | `llama3.1:8b` | JSON/structured (~27 tok/s, ~1s JSON) |
-| `ollama-qwen25-coder-7b` | `qwen2.5-coder:7b` | Código local (~26 tok/s) |
-| `ollama-deepseek-r1-8b` | `deepseek-r1:8b` | Raciocínio local (~25 tok/s) |
-| `ollama-gemma2-9b` | `gemma2:9b` | Alternativa Google (~18 tok/s) |
+| `ollama-qwen3-4b-fast` | `qwen3:4b` | Latência baixa (~39 tok/s) |
+| `ollama-gemma3-4b` | `gemma3:4b` | **Mais rápido local** (~44 tok/s JSON bench) |
+| `ollama-qwen35-9b` | `qwen3.5:9b` | Evitar primário (~3 tok/s na RX580) |
+| `ollama-llama31-8b` | `llama3.1:8b` | JSON/structured (~30 tok/s JSON) |
+| `ollama-qwen25-coder-7b` | `qwen2.5-coder:7b` | Código local |
+| `ollama-deepseek-r1-8b` | `deepseek-r1:8b` | Raciocínio (`think: false` via callback) |
+| `ollama-gemma2-9b` | `gemma2:9b` | Alternativa Google (~23 tok/s) |
 
 **Removido (2026-06-09):** `ollama-mistral-7b` / `mistral:7b` — ~74s/inferência na RX580 (anómalo vs ~2–6s dos restantes).
 
@@ -72,7 +73,7 @@
 
 Ordem de preferência para **fallbacks** e defaults de agentes:
 
-1. **Ollama GPU** (`agl-primary`, VM310 TS `100.86.209.11`) — sem limites de tokens; contexto longo e burst
+1. **Ollama GPU** (`agl-primary`, VM310 TS `100.67.253.52`) — sem limites de tokens; contexto longo e burst
 2. **Z.AI** (`zai-glm-5`, `glm-5`, `zai-coding-glm-4.7`) — quota API maior que OpenAI/Anthropic
 3. **OpenAI** (`gpt-5.4-mini`, `gpt-5-mini`, …)
 4. **Anthropic** (`claude-haiku`, `claude-sonnet`, …)
@@ -117,15 +118,32 @@ BENCH_TIER=all python3 scripts/litellm/benchmark-provider-comparison.py
 ## Deploy após alterar `config.yaml`
 
 ```bash
-# CT186 (canónico) — a partir do repo agl-hostman
-scp config/litellm/config.yaml root@100.107.113.33:/tmp/config.yaml
-ssh root@100.107.113.33 'pct push 186 /tmp/config.yaml /opt/agl-litellm/config.yaml && pct exec 186 -- bash -lc "cd /opt/agl-litellm && docker compose up -d --force-recreate litellm-proxy"'
+# CT186 (canónico) — config + callbacks + smoke scripts
+bash scripts/litellm/deploy-litellm-callbacks-ct186.sh
 
-# Ou: bash scripts/proxmox/bootstrap-ct186-litellm.sh
+# Smoke Ollama (desde agldv03 ou host com rota TS)
+bash scripts/litellm/test-ollama-litellm-content.sh agl-primary
+bash scripts/litellm/test-ollama-litellm-content.sh ollama-gemma3-4b
+
+# Smoke no próprio CT186
+LITELLM_ENV_FILE=/opt/agl-litellm/.env LITELLM_URL=http://127.0.0.1:4000 \
+  bash /opt/agl-litellm/scripts/test-ollama-litellm-content.sh ollama-gemma3-4b
 ```
+
+**Timeouts (2026-06-11):** `request_timeout: 240` global; cold load de modelos 8–12 GB na VM310 pode levar 60–180s.
+
+## Benchmark Ollama (VM310)
+
+```bash
+OLLAMA_HOST=http://100.67.253.52:11434 bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only
+```
+
+Detalhe: [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 
 ## Referências
 
 - [`docs/CURSOR-LITELLM-INTEGRATION.md`](CURSOR-LITELLM-INTEGRATION.md)
+- [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
+- [`docs/LITELLM-MULTI-HOST-DEPLOYMENT.md`](LITELLM-MULTI-HOST-DEPLOYMENT.md)
 - [`docs/PROVIDERS-MULTIAGENT-2026.md`](PROVIDERS-MULTIAGENT-2026.md)
 - [`docs/LITELLM-PROVIDER-BENCHMARK.md`](LITELLM-PROVIDER-BENCHMARK.md)

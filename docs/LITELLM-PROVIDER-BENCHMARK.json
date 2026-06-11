@@ -1,7 +1,7 @@
 {
   "started_at": "2026-06-05 19:01 UTC",
   "litellm_url": "http://127.0.0.1:4000",
-  "ollama_url": "http://100.74.118.51:11434",
+  "ollama_url": "http://100.67.253.52:11434",
   "host": "agldv03",
   "results": [
     {
