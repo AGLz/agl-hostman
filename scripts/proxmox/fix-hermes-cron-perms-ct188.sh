@@ -19,7 +19,7 @@ fix_once() {
   install -d -m 700 -o "${HERMES_UID}" -g "${HERMES_GID}" "${CRON_DIR}"
   if [[ -f "${JOBS_FILE}" ]]; then
     chown "${HERMES_UID}:${HERMES_GID}" "${JOBS_FILE}"
-    chmod 600 "${JOBS_FILE}"
+    chmod 640 "${JOBS_FILE}"
   fi
   if [[ -d "${CRON_DIR}/output" ]]; then
     chown -R "${HERMES_UID}:${HERMES_GID}" "${CRON_DIR}/output"

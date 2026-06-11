@@ -114,6 +114,12 @@ litellm_settings:
     - or-nemotron-super-free
     - glm-flash
   fallbacks:
+  - zai-coding-glm-4.7:
+    - zai-glm-5
+    - groq-llama-31-8b
+    - agl-primary
+    - glm-4.7-flash
+    - or-nemotron-super-free
   - agl-primary:
     - groq-llama-31-8b
     - zai-glm-flash

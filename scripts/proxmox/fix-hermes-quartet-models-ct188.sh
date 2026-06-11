@@ -29,6 +29,13 @@ case "${MODE}" in
     FALLBACK_MODEL="agl-primary"
     AUXILIARY_MODEL="zai-glm-5"
     ;;
+  --coding-exhausted)
+    # Z.AI Coding Plan quota esgotada (zai-coding-glm-4.7 → 429)
+    JARVIS_MODEL="zai-glm-5"
+    AGENT_MODEL="groq-llama-31-8b"
+    FALLBACK_MODEL="groq-llama-31-8b"
+    AUXILIARY_MODEL="groq-llama-31-8b"
+    ;;
   quota|--quota)
     JARVIS_MODEL="groq-llama-31-8b"
     AGENT_MODEL="groq-llama-31-8b"
