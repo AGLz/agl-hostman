@@ -32,11 +32,11 @@ def test_is_ollama_route(model: str, data: dict, expected: bool) -> None:
     ("model", "data", "expected"),
     [
         ("agl-primary", {}, True),
-        ("ollama-qwen35-9b", {}, True),
+        ("ollama-qwen3-4b-fast", {}, True),
         ("ollama-llama31-8b",
          {"litellm_metadata": {"deployment": "ollama/llama3.1:8b"}}, False),
-        ("ollama-deepseek-r1-8b",
-         {"litellm_metadata": {"deployment": "ollama/deepseek-r1:8b"}}, True),
+        ("ollama-gemma3-4b",
+         {"litellm_metadata": {"deployment": "ollama/gemma3:4b"}}, False),
     ],
 )
 def test_ollama_uses_thinking(model: str, data: dict, expected: bool) -> None:

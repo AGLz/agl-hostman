@@ -38,19 +38,12 @@ KEEP_ALIVE="${KEEP_ALIVE:-5m}"
 # Reason: qwen3/qwen3.5/deepseek-r1 gastam num_predict em thinking por defeito → tok/s artificialmente baixo
 OLLAMA_THINK="${OLLAMA_THINK:-false}"
 
-# Reason: lista curada para 8 GB VRAM (disco Ollama ≤ ~6.6 GB confortável)
+# Reason: lista curada — só modelos instalados na VM310 (≤ ~16 GB disco)
 DEFAULT_MODELS=(
   qwen3:4b
   qwen3:8b
-  qwen3.5:9b
   llama3.1:8b
-  gemma2:9b
   gemma3:4b
-  deepseek-r1:8b
-  qwen2.5-coder:7b
-  qwen2.5:7b
-  command-r7b:latest
-  granite3.3:8b
 )
 
 PROMPT_PT="Responde numa frase curta em português europeu: para que serve um balanceador de carga?"

@@ -143,26 +143,10 @@ litellm_settings:
     - ollama-qwen3-8b
     - groq-llama-31-8b
     - glm-4.7-flash
-  - ollama-qwen35-9b:
-    - ollama-qwen3-8b
-    - groq-llama-31-8b
-    - glm-4.7-flash
   - ollama-llama31-8b:
     - ollama-qwen3-8b
     - ollama-qwen3-4b-fast
     - groq-llama-31-8b
-  - ollama-qwen25-coder-7b:
-    - ollama-qwen3-8b
-    - deepseek
-    - glm-4.7-flash
-  - ollama-deepseek-r1-8b:
-    - ollama-qwen3-8b
-    - deepseek
-    - glm-4.7-flash
-  - ollama-gemma2-9b:
-    - ollama-qwen3-8b
-    - groq-llama-31-8b
-    - glm-4.7-flash
   - ollama-gemma3-4b:
     - ollama-qwen3-4b-fast
     - ollama-qwen3-8b
@@ -1404,22 +1388,6 @@ model_list:
   model_name: ollama-qwen3-4b-fast
 - litellm_params:
     api_base: http://100.67.253.52:11434
-    model: ollama/qwen3.5:9b
-    think: false
-    timeout: 180
-    stream: true
-    max_tokens: 8192
-  model_info:
-    access: direct
-    context_window: 8192
-    free_tier: true
-    input_cost_per_token: 0
-    max_tokens: 8192
-    note: Ollama VM310 qwen3.5:9b (~3 tok/s RX580 — lento; usar só se precisar do modelo); TS 100.67.253.52
-    output_cost_per_token: 0
-  model_name: ollama-qwen35-9b
-- litellm_params:
-    api_base: http://100.67.253.52:11434
     model: ollama/llama3.1:8b
     timeout: 120
     stream: true
@@ -1433,52 +1401,6 @@ model_list:
     note: Ollama VM310 llama3.1:8b — JSON/structured (~27 tok/s, ~1s JSON bench); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-llama31-8b
-- litellm_params:
-    api_base: http://100.67.253.52:11434
-    model: ollama/qwen2.5-coder:7b
-    timeout: 120
-    stream: true
-    max_tokens: 8192
-  model_info:
-    access: direct
-    context_window: 8192
-    free_tier: true
-    input_cost_per_token: 0
-    max_tokens: 8192
-    note: Ollama VM310 qwen2.5-coder:7b — código (~26 tok/s, JSON ~0.9s bench); TS 100.67.253.52
-    output_cost_per_token: 0
-  model_name: ollama-qwen25-coder-7b
-- litellm_params:
-    api_base: http://100.67.253.52:11434
-    model: ollama/deepseek-r1:8b
-    think: false
-    timeout: 180
-    stream: true
-    max_tokens: 8192
-  model_info:
-    access: direct
-    context_window: 8192
-    free_tier: true
-    input_cost_per_token: 0
-    max_tokens: 8192
-    note: Ollama VM310 deepseek-r1:8b raciocínio (~25 tok/s bench); TS 100.67.253.52
-    output_cost_per_token: 0
-  model_name: ollama-deepseek-r1-8b
-- litellm_params:
-    api_base: http://100.67.253.52:11434
-    model: ollama/gemma2:9b
-    timeout: 120
-    stream: true
-    max_tokens: 8192
-  model_info:
-    access: direct
-    context_window: 8192
-    free_tier: true
-    input_cost_per_token: 0
-    max_tokens: 8192
-    note: Ollama VM310 gemma2:9b (~18 tok/s, ~5.7 GB VRAM bench); TS 100.67.253.52
-    output_cost_per_token: 0
-  model_name: ollama-gemma2-9b
 - litellm_params:
     api_base: http://100.67.253.52:11434
     model: ollama/gemma3:4b

@@ -31,11 +31,9 @@
 | `ollama-qwen3-4b` | `qwen3:8b` | **Legado** (nome histórico) |
 | `ollama-qwen3-4b-fast` | `qwen3:4b` | Latência baixa (~39 tok/s) |
 | `ollama-gemma3-4b` | `gemma3:4b` | **Mais rápido local** (~44 tok/s JSON bench) |
-| `ollama-qwen35-9b` | `qwen3.5:9b` | Evitar primário (~3 tok/s na RX580) |
 | `ollama-llama31-8b` | `llama3.1:8b` | JSON/structured (~30 tok/s JSON) |
-| `ollama-qwen25-coder-7b` | `qwen2.5-coder:7b` | Código local |
-| `ollama-deepseek-r1-8b` | `deepseek-r1:8b` | Raciocínio (`think: false` via callback) |
-| `ollama-gemma2-9b` | `gemma2:9b` | Alternativa Google (~23 tok/s) |
+
+**Removidos da VM310 (2026-06-11):** `ollama-qwen35-9b`, `ollama-qwen25-coder-7b`, `ollama-deepseek-r1-8b`, `ollama-gemma2-9b` — lentos ou redundantes; usar `deepseek`/`qwen-coder` via API ou `gemma3:4b`/`qwen3:4b-fast` local.
 
 **Removido (2026-06-09):** `ollama-mistral-7b` / `mistral:7b` — ~74s/inferência na RX580 (anómalo vs ~2–6s dos restantes).
 

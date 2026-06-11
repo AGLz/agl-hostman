@@ -127,7 +127,7 @@ Recriar: `docker compose -f docker/litellm/docker-compose.yml up -d --force-recr
 
 **Soluções aplicadas (2026-06-11)**:
 - `request_timeout: 240` em `litellm_settings` (CT186)
-- Callback `agl_glm_flash_params.py` + `think: false` nas rotas Ollama (`agl-primary`, `ollama-qwen*`, `ollama-deepseek-r1-8b`)
+- Callback `agl_glm_flash_params.py` + `think: false` nas rotas Ollama (`agl-primary`, `ollama-qwen*`)
 - Claude fallbacks: preferir cloud APIs; Ollama só em aliases dedicados
 - Smoke: `bash scripts/litellm/test-ollama-litellm-content.sh <alias>` (timeout curl **240s**)
 
