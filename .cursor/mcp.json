@@ -35,15 +35,16 @@
         "PLAYWRIGHT_BROWSERS_PATH": "/root/.cache/ms-playwright"
       }
     },
-    "archon": {
-      "type": "sse",
-      "url": "http://192.168.0.183:8051/mcp",
-      "description": "Archon MCP server for project management, PRP workflows, and task automation"
-    },
-    "archon-tailscale": {
-      "type": "sse",
-      "url": "http://100.80.30.59:8051/mcp",
-      "description": "Archon via Tailscale (fallback)"
+    "llm-wiki-fs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/mnt/overpower/apps/dev/agl/llm-wiki/wiki",
+        "/mnt/overpower/apps/dev/agl/llm-wiki/raw"
+      ],
+      "description": "Segundo cérebro AGL — llm-wiki wiki/ e raw/ (substitui Archon RAG)"
     },
     "github": {
       "type": "stdio",

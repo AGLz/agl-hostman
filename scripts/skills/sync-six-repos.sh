@@ -238,7 +238,7 @@ sync_obsidian() {
     return 0
   fi
 
-  sync_skill_dir "$repo_dir/skills/obsidian-cli" "obsidian-cli" "$(resolve_harness_list)"
+  sync_skill_dir "$repo_dir/skills/obsidian-cli" "obsidian-cli" "$(resolve_harness_list),hostman-cursor"
 
   local settings="$LLM_WIKI_DIR/.claude/settings.json"
   if [[ -d "$LLM_WIKI_DIR" ]]; then

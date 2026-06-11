@@ -89,6 +89,27 @@ No Hermes CT188, alinhar com o mesmo padrão quando MCP estiver activo no gatewa
 
 ---
 
+## Cursor (agl-hostman)
+
+Integração do segundo cérebro na IDE diária:
+
+| Artefacto | Função |
+|-----------|--------|
+| `.cursor/mcp.json` → `llm-wiki-fs` | MCP filesystem sobre `wiki/` e `raw/` do vault NFS |
+| `.cursor/rules/llm-wiki-second-brain.mdc` | Regra always-on: query `index.md` antes de implementar; ingest pós-mudança |
+| `.cursor/skills/obsidian-cli/` | Skill project-level (sync via `sync-six-repos --repo obsidian`) |
+| `scripts/skills/setup-obsidian-cli-llm-wiki.sh` | Verificar Obsidian CLI + vault default |
+
+**Cutover:** servidores MCP `archon` / `archon-tailscale` removidos de `.cursor/mcp.json` — conhecimento curado via llm-wiki, não RAG Archon.
+
+```bash
+./scripts/skills/sync-six-repos.sh --repo obsidian
+./scripts/skills/setup-obsidian-cli-llm-wiki.sh
+./scripts/skills/verify-six-repos.sh
+```
+
+---
+
 ## Honcho vs llm-wiki (quando usar o quê)
 
 | Pergunta | Usar |

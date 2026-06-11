@@ -191,6 +191,39 @@ else
 fi
 
 echo ""
+echo "-- 8. llm-wiki segundo cérebro (agl-hostman Cursor) --"
+if [[ -f "$HOSTMAN_ROOT/.cursor/rules/llm-wiki-second-brain.mdc" ]]; then
+  pass "agl-hostman .cursor/rules/llm-wiki-second-brain.mdc"
+else
+  fail "llm-wiki-second-brain.mdc em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/.cursor/skills/obsidian-cli/SKILL.md" ]]; then
+  pass "obsidian-cli (hostman-cursor) -> $HOSTMAN_ROOT/.cursor/skills/obsidian-cli/SKILL.md"
+else
+  warn "obsidian-cli em falta em .cursor/skills/ — correr sync-six-repos --repo obsidian"
+fi
+if [[ -f "$HOSTMAN_ROOT/.cursor/mcp.json" ]]; then
+  if grep -q '"llm-wiki-fs"' "$HOSTMAN_ROOT/.cursor/mcp.json" \
+    && grep -q 'llm-wiki/wiki' "$HOSTMAN_ROOT/.cursor/mcp.json"; then
+    pass "agl-hostman MCP llm-wiki-fs"
+  else
+    fail "MCP llm-wiki-fs em falta em .cursor/mcp.json"
+  fi
+  if grep -q '"archon"' "$HOSTMAN_ROOT/.cursor/mcp.json"; then
+    warn "Archon MCP ainda em .cursor/mcp.json — cutover para llm-wiki pendente"
+  else
+    pass "Archon MCP removido de .cursor/mcp.json"
+  fi
+else
+  fail ".cursor/mcp.json em falta"
+fi
+if [[ -x "$HOSTMAN_ROOT/scripts/skills/setup-obsidian-cli-llm-wiki.sh" ]]; then
+  pass "setup-obsidian-cli-llm-wiki.sh executável"
+else
+  warn "setup-obsidian-cli-llm-wiki.sh em falta ou não executável"
+fi
+
+echo ""
 if [[ "$SKIP_LLM_WIKI" != "1" ]]; then
   echo "-- llm-wiki vault --"
   if [[ -f "$LLM_WIKI_DIR/wiki/index.md" ]]; then

@@ -1,0 +1,47 @@
+---
+description: Segundo cérebro AGL (llm-wiki) — consultar vault antes de implementar; ingest de decisões e runbooks no wiki, não duplicar em docs/ solto
+globs:
+alwaysApply: true
+---
+
+# llm-wiki — segundo cérebro
+
+O repositório **[llm-wiki](https://github.com/AGLz/llm-wiki)** é a **fonte de verdade curada** para conhecimento AGL (runbooks, entidades, decisões, síntese). Este repo (`agl-hostman`) é **capacidade operacional** — não duplicar conhecimento durável em markdown solto aqui.
+
+## Paths (agldv03 / NFS)
+
+| Camada | Path |
+|--------|------|
+| Vault | `/mnt/overpower/apps/dev/agl/llm-wiki` |
+| Catálogo | `llm-wiki/wiki/index.md` — **começar sempre aqui** em queries |
+| Wiki | `llm-wiki/wiki/` |
+| Fontes | `llm-wiki/raw/` — **só leitura** (imutável) |
+| Schema | `llm-wiki/AGENTS.md` |
+
+## Antes de implementar (agl-hostman)
+
+1. **Query** — Ler `wiki/index.md` e páginas relevantes (MCP `llm-wiki-fs`, skill `obsidian-cli`, ou Read tool).
+2. **Honcho vs wiki** — Factos documentados → **llm-wiki**; preferências de sessão / conclusões episódicas → Honcho (CT192).
+3. **Linear** — Backlog e estados de entrega; não substitui runbooks no wiki.
+
+## Depois de mudanças relevantes
+
+Quando alterares infra, deploy, integrações ou decisões de arquitectura:
+
+1. Actualizar ou criar página em `llm-wiki/wiki/` (wikilinks `[[...]]`, frontmatter).
+2. Actualizar `wiki/index.md` e entrada em `wiki/log.md` (`ingest | ...` ou `maintenance | ...`).
+3. Em `agl-hostman`, limitar `docs/` a pointers curtos + link para a página wiki — **não** copiar runbooks completos.
+
+## Ferramentas Cursor
+
+| Ferramenta | Uso |
+|------------|-----|
+| MCP `llm-wiki-fs` | Leitura/escrita em `wiki/` e `raw/` via filesystem MCP |
+| Skill `obsidian-cli` | Operações vault (search, append, daily) — requer Obsidian 1.12+ desktop + CLI no PATH |
+| `scripts/skills/setup-obsidian-cli-llm-wiki.sh` | Verificar/pré-requisitos Obsidian CLI |
+
+## Referências
+
+- Integração agency: `docs/LLM-WIKI-AGENCY-INTEGRATION.md`
+- Plano Six Repos: `ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`
+- Página wiki: `[[Plano Six Repos Multi-Agente]]`, `[[Obsidian CLI Skill]]`

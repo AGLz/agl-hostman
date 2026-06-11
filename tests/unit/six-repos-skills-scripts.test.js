@@ -56,5 +56,22 @@ test('verify-six-repos.sh passa após sync obsidian (obsidian-cli skill paths)',
     env: { ...process.env, LLM_WIKI_DIR: LLM_WIKI },
   });
   assert.match(out, /obsidian-cli \(llm-wiki\).*OK/s);
+  assert.match(out, /llm-wiki-second-brain\.mdc/s);
+  assert.match(out, /MCP llm-wiki-fs/s);
   assert.match(out, /FAIL=0/);
+});
+
+test('setup-obsidian-cli-llm-wiki.sh existe e é executável', () => {
+  const setup = path.join(ROOT, 'scripts/skills/setup-obsidian-cli-llm-wiki.sh');
+  assert.ok(fs.existsSync(setup));
+  assert.ok(fs.statSync(setup).mode & 0o111);
+});
+
+test('.cursor/mcp.json expõe llm-wiki-fs e não inclui archon', () => {
+  const mcpPath = path.join(ROOT, '.cursor/mcp.json');
+  const mcp = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+  assert.ok(mcp.mcpServers['llm-wiki-fs']);
+  assert.ok(mcp.mcpServers['llm-wiki-fs'].args.some((a) => a.includes('llm-wiki/wiki')));
+  assert.equal(mcp.mcpServers.archon, undefined);
+  assert.equal(mcp.mcpServers['archon-tailscale'], undefined);
 });
