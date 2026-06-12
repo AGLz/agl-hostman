@@ -24,7 +24,7 @@ Ver também: [`LLM-WIKI-AGENCY-INTEGRATION.md`](LLM-WIKI-AGENCY-INTEGRATION.md),
 ## Ordem de implementação
 
 1. **AGLSRV1:** `pct-create-agl-obsidian.sh` → `pct-apply-agldv03-lxc-profile.sh --with-apparmor 193`
-2. **CT193:** IP estático `.193`, Tailscale `--accept-routes=false`
+2. **CT193:** IP estático `.193`, Tailscale (`pct-tailscale-up-ct193-obsidian.sh`, `--accept-routes=false`)
 3. **CT193:** `bootstrap-ct193-obsidian.sh` (Docker, CouchDB, Obsidian hub, bridge, systemd)
 4. **Manual (uma vez):** abrir vault no Obsidian hub, activar CLI, instalar plugin LiveSync, E2EE
 5. **Clientes:** CT179 / wk45 / mobile — LiveSync via Tailscale IP do CT193
@@ -152,7 +152,31 @@ Alternativa headless: `GH_TOKEN=... bash setup-github-gh.sh` (fine-grained PAT c
 
 ---
 
-## 6. LiveSync — clientes
+## 6. Tailscale (CT193)
+
+Script: `scripts/proxmox/pct-tailscale-up-ct193-obsidian.sh` (no AGLSRV1)
+
+Parâmetros canónicos LAN AGLSR1 (`docs/INFRA.md`):
+
+```bash
+tailscale up \
+  --hostname=agl-obsidian-ct193 \
+  --accept-dns=false \
+  --accept-routes=false \
+  --ssh \
+  --accept-risk=lose-ssh
+```
+
+Após autenticar no link `login.tailscale.com`:
+
+```bash
+bash scripts/proxmox/pct-install-agl-lan-routes.sh 193
+pct exec 193 -- tailscale ip -4
+```
+
+---
+
+## 7. LiveSync — clientes
 
 | Cliente | CouchDB URL |
 |---------|-------------|
@@ -164,7 +188,7 @@ Importar setup URI gerado no hub. **Não** usar Obsidian Sync oficial no mesmo v
 
 ---
 
-## 7. Verificação
+## 8. Verificação
 
 Ficheiro: `scripts/obsidian/verify-obsidian-ct.sh`
 
@@ -184,7 +208,7 @@ pct exec 188 -- head -5 /opt/llm-wiki/wiki/index.md
 
 ---
 
-## 8. Verificação automática
+## 9. Verificação automática
 
 ```bash
 bash scripts/obsidian/verify-obsidian-ct.sh

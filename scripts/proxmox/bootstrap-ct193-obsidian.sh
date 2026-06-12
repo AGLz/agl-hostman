@@ -50,6 +50,11 @@ bash "${REPO}/scripts/obsidian/install-obsidian-hub.sh"
 
 bash "${REPO}/scripts/obsidian/setup-github-gh.sh" --install-only || true
 
+if ! command -v tailscale >/dev/null 2>&1; then
+  curl -fsSL https://tailscale.com/install.sh | sh
+  systemctl enable --now tailscaled
+fi
+
 ln -sfn "${REPO}" /opt/agl-hostman
 chmod +x "${REPO}/scripts/obsidian/"*.sh "${REPO}/scripts/proxmox/"pct-create-agl-obsidian.sh 2>/dev/null || true
 
@@ -73,6 +78,8 @@ echo "Manual obrigatório:"
 echo "  1. Editar docker/obsidian/.env (COUCHDB_PASSWORD)"
 echo "  2. docker compose -f ${REPO}/docker/obsidian/docker-compose.couchdb.yml up -d"
 echo "  3. Abrir vault llm-wiki no Obsidian; activar CLI; plugin LiveSync → 127.0.0.1:5984"
-echo "  4. GitHub (gh): bash ${REPO}/scripts/obsidian/setup-github-gh.sh"
+echo "  4. Tailscale: no AGLSRV1 — bash ${REPO}/scripts/proxmox/pct-tailscale-up-ct193-obsidian.sh"
+echo "     depois: bash ${REPO}/scripts/proxmox/pct-install-agl-lan-routes.sh 193"
+echo "  5. GitHub (gh): bash ${REPO}/scripts/obsidian/setup-github-gh.sh"
 echo "     ou no agldv03: bash ${REPO}/scripts/obsidian/propagate-gh-auth-to-ct193.sh"
-echo "  5. bash ${REPO}/scripts/obsidian/verify-obsidian-ct.sh"
+echo "  6. bash ${REPO}/scripts/obsidian/verify-obsidian-ct.sh"

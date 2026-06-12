@@ -916,7 +916,7 @@ zpool status -v local-zfs
 | 103 | portainer | 192.168.0.103 | - | - | Docker mgmt |
 | 178 | aglfs1 | 192.168.0.178 | - | - | File server |
 | 179 | agldv03 | 192.168.0.179 | WG: 10.6.0.19, TS: 100.94.221.87 | 48GB | **Primary Dev** |
-| **193** | **agl-obsidian** | **192.168.0.193** | TS: *(após join)* | 2GB | **Obsidian hub 24/7** + CouchDB LiveSync + Git bridge llm-wiki — [`OBSIDIAN-CT-AGL.md`](OBSIDIAN-CT-AGL.md) |
+| **193** | **agl-obsidian** | **192.168.0.193** | **100.125.112.35** (`agl-obsidian-ct193`) | 2GB | **Obsidian hub 24/7** + CouchDB LiveSync + Git bridge llm-wiki — [`OBSIDIAN-CT-AGL.md`](OBSIDIAN-CT-AGL.md) |
 | 185 | agldv12 | 192.168.0.185 | TS: 100.71.217.115 | - | Turbo Flow v4.0 (clone agldv03) |
 | 180 | dokploy | 192.168.0.180 | - | - | Deployment |
 | 202 | n8n-docker | 192.168.0.202 | - | - | Workflow automation |
