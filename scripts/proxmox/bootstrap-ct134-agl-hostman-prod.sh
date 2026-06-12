@@ -41,8 +41,8 @@ else
 fi
 
 ENV_EXAMPLE="${ENV_EXAMPLE:-}"
-if [[ -z "${ENV_EXAMPLE}" && -f /mnt/overpower/apps/dev/agl/agl-hostman/docker/dokploy/.env.ct134.example ]]; then
-  ENV_EXAMPLE=/mnt/overpower/apps/dev/agl/agl-hostman/docker/dokploy/.env.ct134.example
+if [[ -z "${ENV_EXAMPLE}" && -f /mnt/overpower/apps/dev/agl/agl-hostman/docker/dokploy/env.ct134.example ]]; then
+  ENV_EXAMPLE=/mnt/overpower/apps/dev/agl/agl-hostman/docker/dokploy/env.ct134.example
 fi
 if [[ ! -f "${DEPLOY_DIR}/.env" ]]; then
   if [[ -f "${DEPLOY_DIR}/.env.example" ]]; then

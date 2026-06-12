@@ -16,7 +16,7 @@ Legenda: `[ ]` pendente · `[x]` feito · `[~]` em progresso
 | CT134-0.1 | Confirmar VMID 134 livre no AGLSRV1 | P0 | [x] |
 | CT134-0.2 | Validar IP 192.168.0.134 livre | P0 | [x] |
 | CT134-0.3 | Testar conectividade CT149 (Postgres) e CT137 (Redis) | P0 | [x] |
-| CT134-0.4 | Commit/merge artefactos pipeline no repo | P0 | [~] |
+| CT134-0.4 | Commit/merge artefactos pipeline no repo | P0 | [x] |
 
 ### Fase 1 — CT134 LXC + Docker
 
@@ -100,3 +100,4 @@ _Registar aqui durante a implementação._
 | Data | Nota |
 |------|------|
 | 2026-06-12 | Plano criado; cutover depende de origin dev documentado em §3 runbook Cloudflare |
+| 2026-06-12 | **F0 validado AGLSRV1:** VMID 134 livre; IP .134 sem resposta ping; Postgres :5432 e Redis :6379 open; template `debian-12-standard_12.12-1` presente; `local-zfs` ~333GB livre |
