@@ -16,7 +16,7 @@
 | Peça | Detalhe actual |
 |------|----------------|
 | **Primário (`agl-primary`)** | `ollama/qwen3:8b` em `http://100.67.253.52:11434` (VM310, AGLSRV3). Ver `config/litellm/config.yaml`. |
-| **Mais rápido** | `ollama-gemma4-qat-final` / `ollama-gemma3-4b` (~46 tok/s JSON bench). |
+| **Mais rápido** | `ollama-gemma4-qat` / `ollama-gemma3-4b` (~46 tok/s JSON bench). |
 | **Benchmark** | `OLLAMA_HOST=http://100.67.253.52:11434 bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only` |
 | **Deploy LiteLLM (CT186)** | `bash scripts/litellm/deploy-litellm-callbacks-ct186.sh` · smoke: `bash scripts/litellm/test-ollama-litellm-content.sh agl-primary` |
 

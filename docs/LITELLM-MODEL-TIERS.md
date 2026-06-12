@@ -31,7 +31,7 @@
 | `ollama-qwen3-4b` | `qwen3:8b` | **Legado** (nome histórico) |
 | `ollama-qwen3-4b-fast` | `qwen3:4b` | Latência baixa (~39 tok/s) |
 | `ollama-gemma3-4b` | `gemma3:4b` | Rápido local (~46 tok/s JSON bench) |
-| `ollama-gemma4-qat-final` | `gemma4-qat-final` | QAT custom VM310 (~46 tok/s JSON; fallback cruzado com gemma3) |
+| `ollama-gemma4-qat` | `gemma4-qat` | QAT custom VM310 (~46 tok/s JSON; fallback cruzado com gemma3) |
 | `ollama-llama31-8b` | `llama3.1:8b` | JSON/structured (~20 tok/s JSON) |
 
 **Removidos da VM310 (2026-06-11):** `ollama-qwen35-9b`, `ollama-qwen25-coder-7b`, `ollama-deepseek-r1-8b`, `ollama-gemma2-9b` — lentos ou redundantes; usar `deepseek`/`qwen-coder` via API ou `gemma3:4b`/`qwen3:4b-fast` local.
@@ -122,12 +122,12 @@ bash scripts/litellm/deploy-litellm-callbacks-ct186.sh
 
 # Smoke Ollama (desde agldv03 ou host com rota TS)
 bash scripts/litellm/test-ollama-litellm-content.sh agl-primary
-bash scripts/litellm/test-ollama-litellm-content.sh ollama-gemma4-qat-final
+bash scripts/litellm/test-ollama-litellm-content.sh ollama-gemma4-qat
 bash scripts/litellm/test-ollama-litellm-content.sh ollama-gemma3-4b
 
 # Smoke no próprio CT186
 LITELLM_ENV_FILE=/opt/agl-litellm/.env LITELLM_URL=http://127.0.0.1:4000 \
-  bash /opt/agl-litellm/scripts/test-ollama-litellm-content.sh ollama-gemma4-qat-final
+  bash /opt/agl-litellm/scripts/test-ollama-litellm-content.sh ollama-gemma4-qat
   bash /opt/agl-litellm/scripts/test-ollama-litellm-content.sh ollama-gemma3-4b
 ```
 

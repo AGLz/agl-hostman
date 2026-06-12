@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Remove modelos Ollama não usados na VM310 (libertar disco).
-# Mantém: qwen3:8b, qwen3:4b, gemma3:4b, gemma4-qat-final, llama3.1:8b.
+# Mantém: qwen3:8b, qwen3:4b, gemma3:4b, gemma4-qat, llama3.1:8b.
 #
 # Uso (AGLSRV3):
 #   bash scripts/aglsrv3/prune-vm310-ollama-models.sh
@@ -18,7 +18,7 @@ KEEP=(
   qwen3:8b
   qwen3:4b
   gemma3:4b
-  gemma4-qat-final
+  gemma4-qat
   llama3.1:8b
 )
 

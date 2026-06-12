@@ -35,8 +35,8 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 | Storage VM310 | **`aglsrv3-tb`** (após rebuild) ou `local-lvm` |
 | RAM VM310 | 16 GB (balloon 24 GB) |
 | LiteLLM | TS guest `100.67.253.52:11434` (`aglsrv3-ollama`) |
-| Aliases LiteLLM | `agl-primary`, `ollama-qwen3-8b`, `ollama-qwen3-4b-fast`, `ollama-gemma3-4b`, `ollama-gemma4-qat-final`, `ollama-llama31-8b` (+ legado `ollama-qwen3-4b`) |
-| **Modelos em disco (2026-06-12)** | `qwen3:8b`, `qwen3:4b`, `gemma3:4b`, `gemma4-qat-final`, `llama3.1:8b` (+ variantes teste `gemma4-copy`, `gemma4-qat-test`, `test-copy` — remover após validação) |
+| Aliases LiteLLM | `agl-primary`, `ollama-qwen3-8b`, `ollama-qwen3-4b-fast`, `ollama-gemma3-4b`, `ollama-gemma4-qat`, `ollama-llama31-8b` (+ legado `ollama-qwen3-4b`) |
+| **Modelos em disco (2026-06-12)** | `qwen3:8b`, `qwen3:4b`, `gemma3:4b`, `gemma4-qat`, `llama3.1:8b` (+ variantes teste `gemma4-copy`, `gemma4-qat-test`, `test-copy` — remover após validação) |
 
 ---
 
@@ -87,24 +87,24 @@ Lista curada e script de comparação (latência, tokens/s, `ollama ps` GPU vs C
 OLLAMA_HOST=http://100.67.253.52:11434 bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only
 
 OLLAMA_HOST=http://100.67.253.52:11434 \
-  OLLAMA_BENCH_MODELS="gemma4-qat-final qwen3:8b" \
+  OLLAMA_BENCH_MODELS="gemma4-qat qwen3:8b" \
   bash scripts/aglsrv3/benchmark-ollama-models.sh --api-only \
-  --output /tmp/ollama-vm310-bench-gemma4-qat-final.csv
+  --output /tmp/ollama-vm310-bench-gemma4-qat.csv
 ```
 
-Saída CSV: `/tmp/ollama-vm310-bench-gemma4-qat-final.csv` (ou `--output`). Objetivo: **`100% GPU`** em `ollama ps`.
+Saída CSV: `/tmp/ollama-vm310-bench-gemma4-qat.csv` (ou `--output`). Objetivo: **`100% GPU`** em `ollama ps`.
 
-Modelos default (benchmark): `qwen3:4b`, `qwen3:8b`, `llama3.1:8b`, `gemma3:4b`, `gemma4-qat-final`.
+Modelos default (benchmark): `qwen3:4b`, `qwen3:8b`, `llama3.1:8b`, `gemma3:4b`, `gemma4-qat`.
 
 **Removidos da VM310 (2026-06-11, disco):** `qwen3.5:9b`, `gemma2:9b`, `deepseek-r1:8b`, `qwen2.5-coder:7b`, `qwen2.5:7b`, `command-r7b`, `granite3.3:8b` — lentos, sem alias activo ou substituídos por API paid/free. Script: `scripts/aglsrv3/prune-vm310-ollama-models.sh`.
 
 **Benchmark 2026-06-12 (2× RX580, `think: false`, TS `100.67.253.52`, 5 modelos produção):**
 
-CSV: `/tmp/ollama-vm310-bench-gemma4-qat-final.csv`.
+CSV: `/tmp/ollama-vm310-bench-gemma4-qat.csv`.
 
 | Modelo | tok/s (chat quente) | tok/s (JSON quente) | VRAM | Notas |
 |--------|---------------------|---------------------|------|-------|
-| gemma4-qat-final | **~43** | **~46** | ~4.4 GB | Alias LiteLLM `ollama-gemma4-qat-final` |
+| gemma4-qat | **~43** | **~46** | ~4.4 GB | Alias LiteLLM `ollama-gemma4-qat` |
 | gemma3:4b | **~43** | **~46** | ~4.4 GB | Alias LiteLLM `ollama-gemma3-4b` |
 | qwen3:4b | ~38 | ~38 | ~5.0 GB | Alias `ollama-qwen3-4b-fast` |
 | qwen3:8b | **~25** | **~26** | ~7.2 GB | **Primário** (`agl-primary`) |
