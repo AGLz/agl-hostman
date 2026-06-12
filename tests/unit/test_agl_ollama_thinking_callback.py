@@ -35,8 +35,8 @@ def test_is_ollama_route(model: str, data: dict, expected: bool) -> None:
         ("ollama-qwen3-4b-fast", {}, True),
         ("ollama-llama31-8b",
          {"litellm_metadata": {"deployment": "ollama/llama3.1:8b"}}, False),
-        ("ollama-gemma3-4b",
-         {"litellm_metadata": {"deployment": "ollama/gemma3:4b"}}, False),
+        ("ollama-gemma4-qat-final",
+         {"litellm_metadata": {"deployment": "ollama/gemma4-qat-final"}}, False),
     ],
 )
 def test_ollama_uses_thinking(model: str, data: dict, expected: bool) -> None:

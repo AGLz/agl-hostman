@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Remove modelos Ollama não usados na VM310 (libertar disco).
-# Mantém: qwen3:8b, qwen3:4b, gemma3:4b, llama3.1:8b (~16 GB).
+# Mantém: qwen3:8b, qwen3:4b, gemma3:4b, gemma4-qat-final, llama3.1:8b.
 #
 # Uso (AGLSRV3):
 #   bash scripts/aglsrv3/prune-vm310-ollama-models.sh
@@ -18,6 +18,7 @@ KEEP=(
   qwen3:8b
   qwen3:4b
   gemma3:4b
+  gemma4-qat-final
   llama3.1:8b
 )
 
@@ -30,6 +31,9 @@ REMOVE=(
   qwen2.5:7b
   qwen2.5-coder:7b
   mistral:7b
+  gemma4-copy
+  gemma4-qat-test
+  test-copy
 )
 
 log() { printf '[prune-vm310] %s\n' "$*" >&2; }
@@ -55,30 +59,34 @@ print(len(ms), 'modelos:', ', '.join(m['name'] for m in ms))
 }
 
 prune_remote() {
-  local remove_json
-  remove_json="$(printf '%s\n' "${REMOVE[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')"
-  local keep_json
-  keep_json="$(printf '%s\n' "${KEEP[@]}" | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')"
+  local -a remote_args=("$VMID" "$DRY_RUN")
+  remote_args+=("${REMOVE[@]}")
+  remote_args+=("--")
+  remote_args+=("${KEEP[@]}")
 
-  ssh -o BatchMode=yes "$AGLSRV3" bash -s -- "$VMID" "$DRY_RUN" "$remove_json" "$keep_json" <<'REMOTE'
+  ssh -o BatchMode=yes "$AGLSRV3" bash -s -- "${remote_args[@]}" <<'REMOTE'
 set -euo pipefail
 VMID="$1"
 DRY_RUN="$2"
-REMOVE_JSON="$3"
-KEEP_JSON="$4"
+shift 2
+REMOVE=()
+while [[ $# -gt 0 && "$1" != "--" ]]; do
+  REMOVE+=("$1")
+  shift
+done
+[[ "${1:-}" == "--" ]] && shift
+KEEP=("$@")
 qm guest exec "$VMID" -- bash -lc "
 set -e
 export HOME=/usr/share/ollama
 OLL=/usr/local/bin/ollama
-REMOVE=(\$(python3 -c 'import json,sys; print(\" \".join(json.loads(sys.argv[1])))' '$REMOVE_JSON'))
-KEEP=(\$(python3 -c 'import json,sys; print(\" \".join(json.loads(sys.argv[1])))' '$KEEP_JSON'))
-echo \"Manter: \${KEEP[*]}\"
-for m in \"\${REMOVE[@]}\"; do
-  if [[ '$DRY_RUN' == '1' ]]; then echo \"DRY_RUN: rm \$m\"; continue; fi
-  echo \"=== rm \$m ===\"
-  \$OLL rm \"\$m\" 2>/dev/null || echo \"WARN: \$m\"
+echo Manter: ${KEEP[*]}
+for m in ${REMOVE[*]}; do
+  if [[ '$DRY_RUN' == '1' ]]; then echo DRY_RUN: rm \$m; continue; fi
+  echo === rm \$m ===
+  \$OLL rm \"\$m\" 2>/dev/null || echo WARN: \$m
 done
-echo \"=== remaining ===\"
+echo === remaining ===
 curl -sf http://127.0.0.1:11434/api/tags | python3 -c \"import json,sys;d=json.load(sys.stdin);print(len(d.get('models',[])),'models');[print(m['name']) for m in d.get('models',[])]\"
 df -h / | tail -1
 du -sh /usr/share/ollama/.ollama/models

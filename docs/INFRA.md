@@ -39,7 +39,7 @@
 - **Providers** (config em repo): zai, anthropic, openai, google, deepseek, moonshot, ollama, etc. — ver [`config/litellm/config.yaml`](../config/litellm/config.yaml)
 - **Descontinuado (2026-06-05):** LiteLLM no **agldv03 CT179** — stack Docker removida. Ver [`docs/LITELLM-OPENCLAW-DEDICATED-LXC.md`](LITELLM-OPENCLAW-DEDICATED-LXC.md)
 - **Ollama primário (VM310, AGLSRV3)**: **Tailscale** `http://100.67.253.52:11434` · **LAN** `http://192.168.15.210:11434` — 2× RX580, Vulkan
-- **LiteLLM → Ollama**: `agl-primary` = `qwen3:8b`; aliases `ollama-gemma3-4b` (~44 tok/s), `ollama-qwen3-4b-fast`, `ollama-llama31-8b`, etc. — ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md), [`docs/LITELLM-MODEL-TIERS.md`](LITELLM-MODEL-TIERS.md)
+- **LiteLLM → Ollama**: `agl-primary` = `qwen3:8b`; aliases `ollama-gemma4-qat-final`, `ollama-gemma3-4b` (~46 tok/s JSON), `ollama-qwen3-4b-fast`, `ollama-llama31-8b` — ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 - **Legado AGLSRV1:** CT200 / VM110 (`192.168.0.200`, TS `100.116.57.111`) **offline** — ver [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md)
 
 ### Agentes dedicados (CT188–190, AGLSRV1)

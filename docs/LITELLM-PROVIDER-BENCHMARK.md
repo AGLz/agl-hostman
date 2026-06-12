@@ -1,4 +1,4 @@
-# Benchmark comparativo — LiteLLM providers vs Ollama GPU (VM310 qwen3:8b / gemma3:4b)
+# Benchmark comparativo — LiteLLM providers vs Ollama GPU (VM310 qwen3:8b / gemma4-qat-final)
 
 **Gerado:** 2026-06-06 02:23 UTC  
 **LiteLLM (canónico CT186):** `http://100.125.249.8:4000`  

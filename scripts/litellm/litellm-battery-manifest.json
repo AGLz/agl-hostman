@@ -28,6 +28,7 @@
     { "id": "cerebras-gpt-oss-120b", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": true, "optional": true },
     { "id": "ollama-qwen3-8b", "runFor": ["full"], "timeoutSec": 180, "maxTokens": 48, "expectUsage": false, "optional": true },
     { "id": "ollama-gemma3-4b", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": false, "optional": true },
+    { "id": "ollama-gemma4-qat-final", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": false, "optional": true },
     { "id": "or-glm-4.5-air-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
     { "id": "or-llama-3.3-70b-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
     { "id": "or-gemma-3-12b-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true }

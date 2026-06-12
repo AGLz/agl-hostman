@@ -21,7 +21,7 @@
 | **agldv12** | 100.71.217.115 | LAN AGLSRV1 | `config.yaml` → `/opt/litellm` | `100.67.253.52` | 192.168.0.137 |
 | **fgsrv06** | 100.83.51.9 | Cloud VPS | `config-remote.yaml` | Groq/OR fallbacks (VM110 offline) | litellm-redis (Docker) |
 
-**Ollama primário (2026-06-11) — VM310 AGLSRV3:** `http://100.67.253.52:11434` (Tailscale `aglsrv3-ollama`); LAN `192.168.15.210`. LiteLLM canónico (`config.yaml`): `agl-primary` → `qwen3:8b`; `ollama-gemma3-4b` → `gemma3:4b`; ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md).
+**Ollama primário (2026-06-12) — VM310 AGLSRV3:** `http://100.67.253.52:11434` (Tailscale `aglsrv3-ollama`); LAN `192.168.15.210`. LiteLLM canónico (`config.yaml`): `agl-primary` → `qwen3:8b`; `ollama-gemma4-qat-final` / `ollama-gemma3-4b`; ver [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md).
 
 **Legado AGLSRV1:** VM110/CT200 (`192.168.0.200`, TS `100.116.57.111`) **offline** — [`docs/AGL-OLLAMA-VM110.md`](AGL-OLLAMA-VM110.md).
 

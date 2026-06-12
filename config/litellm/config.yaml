@@ -148,6 +148,12 @@ litellm_settings:
     - ollama-qwen3-4b-fast
     - groq-llama-31-8b
   - ollama-gemma3-4b:
+    - ollama-gemma4-qat-final
+    - ollama-qwen3-4b-fast
+    - ollama-qwen3-8b
+    - groq-llama-31-8b
+  - ollama-gemma4-qat-final:
+    - ollama-gemma3-4b
     - ollama-qwen3-4b-fast
     - ollama-qwen3-8b
     - groq-llama-31-8b
@@ -1413,9 +1419,24 @@ model_list:
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Ollama VM310 gemma3:4b — mais rápido (~44 tok/s JSON bench 2×RX580); TS 100.67.253.52
+    note: Ollama VM310 gemma3:4b — rápido (~46 tok/s JSON bench 2×RX580); TS 100.67.253.52
     output_cost_per_token: 0
   model_name: ollama-gemma3-4b
+- litellm_params:
+    api_base: http://100.67.253.52:11434
+    model: ollama/gemma4-qat-final
+    timeout: 90
+    stream: true
+    max_tokens: 8192
+  model_info:
+    access: direct
+    context_window: 8192
+    free_tier: true
+    input_cost_per_token: 0
+    max_tokens: 8192
+    note: Ollama VM310 gemma4-qat-final QAT (~46 tok/s JSON bench); paridade gemma3:4b; TS 100.67.253.52
+    output_cost_per_token: 0
+  model_name: ollama-gemma4-qat-final
 - litellm_params:
     api_key: os.environ/OPENROUTER_API_KEY
     max_tokens: 2048

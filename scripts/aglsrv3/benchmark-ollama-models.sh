@@ -38,12 +38,13 @@ KEEP_ALIVE="${KEEP_ALIVE:-5m}"
 # Reason: qwen3/qwen3.5/deepseek-r1 gastam num_predict em thinking por defeito → tok/s artificialmente baixo
 OLLAMA_THINK="${OLLAMA_THINK:-false}"
 
-# Reason: lista curada — só modelos instalados na VM310 (≤ ~16 GB disco)
+# Reason: lista curada — modelos instalados na VM310 (incl. gemma4-qat-final)
 DEFAULT_MODELS=(
   qwen3:4b
   qwen3:8b
   llama3.1:8b
   gemma3:4b
+  gemma4-qat-final
 )
 
 PROMPT_PT="Responde numa frase curta em português europeu: para que serve um balanceador de carga?"
@@ -150,13 +151,26 @@ model_present() {
     tags_json=$(curl -sf "${API}/api/tags" || echo '{}')
     python3 - "$model" "$tags_json" <<'PY'
 import json, sys
+
 target, raw = sys.argv[1], sys.argv[2]
 try:
     data = json.loads(raw)
 except json.JSONDecodeError:
     raise SystemExit(1)
-names = {m.get("name") for m in data.get("models", [])}
-raise SystemExit(0 if target in names else 1)
+
+names = {m.get("name") for m in data.get("models", []) if m.get("name")}
+
+
+def matches(name: str) -> bool:
+    if name in names:
+        return True
+    if f"{name}:latest" in names:
+        return True
+    base = name.split(":", 1)[0]
+    return any(n == base or n.startswith(f"{base}:") for n in names)
+
+
+raise SystemExit(0 if matches(target) else 1)
 PY
     return $?
   fi
