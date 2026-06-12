@@ -2,6 +2,8 @@
 # Smoke CT193 agl-obsidian — CouchDB, NFS, systemd, Obsidian CLI (se activo).
 set -euo pipefail
 
+export PATH="/usr/local/bin:${PATH}"
+
 LLM_WIKI_DIR="${LLM_WIKI_DIR:-/mnt/overpower/apps/dev/agl/llm-wiki}"
 COUCHDB_URL="${COUCHDB_URL:-http://127.0.0.1:5984/_up}"
 STRICT_CLI="${STRICT_OBSIDIAN_CLI:-0}"
@@ -47,10 +49,12 @@ fi
 
 if command -v obsidian >/dev/null 2>&1; then
   pass "obsidian CLI ($(obsidian version 2>/dev/null | head -1 || echo unknown))"
-  if obsidian search query="Obsidian CT" vault=llm-wiki format=json 2>/dev/null | head -c 50 | grep -q .; then
+  if timeout 20 obsidian read path="wiki/Obsidian CT AGL.md" vault=llm-wiki 2>/dev/null | head -c 40 | grep -q .; then
+    pass "obsidian read (wiki/Obsidian CT AGL.md)"
+  elif timeout 30 obsidian search query="Obsidian" vault=llm-wiki format=text 2>/dev/null | head -c 20 | grep -q .; then
     pass "obsidian search"
   else
-    warn "obsidian search sem resultados — vault default / app parada?"
+    warn "obsidian read/search lento — índice ainda a construir?"
   fi
 elif [[ "${STRICT_CLI}" == "1" ]]; then
   fail "obsidian CLI não no PATH"

@@ -47,6 +47,7 @@ fi
 docker compose -f docker-compose.couchdb.yml up -d
 
 bash "${REPO}/scripts/obsidian/install-obsidian-hub.sh"
+bash "${REPO}/scripts/obsidian/install-obsidian-cli-wrapper.sh"
 
 bash "${REPO}/scripts/obsidian/setup-github-gh.sh" --install-only || true
 
@@ -69,7 +70,11 @@ systemctl enable obsidian-hub agl-llm-wiki-bridge agl-llm-wiki-bridge.timer
 if grep -q '^COUCHDB_PASSWORD=change-me' .env 2>/dev/null; then
   echo "AVISO: COUCHDB_PASSWORD ainda é placeholder — arrancar serviços após editar .env" >&2
 else
+  # Reason: obsidian.json (cli=true) tem de ser lido no arranque do hub.
+  systemctl stop obsidian-hub 2>/dev/null || true
+  sleep 2
   systemctl start obsidian-hub agl-llm-wiki-bridge agl-llm-wiki-bridge.timer 2>/dev/null || true
+  sleep 20
 fi
 
 echo ""
