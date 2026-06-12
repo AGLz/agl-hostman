@@ -19,7 +19,10 @@ PAGES=(
   "Everything Claude Code (ECC).md"
   "Open Design.md"
   "Obsidian CLI Skill.md"
+  "Obsidian CT AGL.md"
   "Karpathy Skills.md"
+  "Unraid.md"
+  "AGLSRV5 Unraid VM127.md"
 )
 
 if [[ -r "$WIKI_HOST/wiki/index.md" ]]; then
