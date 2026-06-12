@@ -1,0 +1,16 @@
+[Unit]
+Description=Git bridge llm-wiki — watch NFS e push edições humanas
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Environment=LLM_WIKI_DIR=/mnt/overpower/apps/dev/agl/llm-wiki
+Environment=BRIDGE_DEBOUNCE_SEC=30
+ExecStart=/opt/agl-hostman/scripts/obsidian/bridge-llm-wiki-git.sh watch
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

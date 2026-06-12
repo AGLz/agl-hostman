@@ -1,0 +1,11 @@
+[Unit]
+Description=Git pull periódico llm-wiki (complemento ao bridge watch)
+
+[Timer]
+Unit=agl-llm-wiki-bridge-pull.service
+OnBootSec=2min
+OnUnitActiveSec=3min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

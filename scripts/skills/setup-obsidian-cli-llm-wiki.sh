@@ -39,6 +39,7 @@ warn "obsidian CLI não está no PATH"
 candidates=(
   "$HOME/.local/bin/obsidian"
   "/usr/local/bin/obsidian"
+  "/opt/obsidian/obsidian"
   "/opt/Obsidian/obsidian"
   "$HOME/Applications/Obsidian/obsidian"
 )
@@ -65,7 +66,11 @@ Pré-requisitos (Obsidian 1.12+, fevereiro 2026):
      ./scripts/skills/setup-obsidian-cli-llm-wiki.sh
      ./scripts/skills/verify-six-repos.sh
 
-Nota CT188/Hermes: contentores só leem /opt/llm-wiki (ro) — CLI Obsidian é para dev desktop, não para LXC headless.
+Hub CT193 (agl-obsidian): Obsidian 24/7 + CLI via SSH:
+  ssh root@192.168.0.193 'obsidian search query="Proxmox" vault=llm-wiki'
+  docs/OBSIDIAN-CT-AGL.md
+
+Nota CT188/Hermes: contentores só leem /opt/llm-wiki (ro) — sem Obsidian no contentor.
 
 EOF
 

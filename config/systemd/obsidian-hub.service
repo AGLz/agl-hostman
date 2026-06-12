@@ -1,0 +1,21 @@
+[Unit]
+Description=Obsidian hub 24/7 (llm-wiki vault, headless Xvfb)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+# Reason: CLI IPC precisa do socket partilhado com o processo Obsidian
+PrivateTmp=false
+Environment=OBSIDIAN_VAULT_PATH=/mnt/overpower/apps/dev/agl/llm-wiki
+Environment=OBSIDIAN_VAULT_NAME=llm-wiki
+# Reason: headless LXC — sem áudio nem aceleração GPU
+Environment=ELECTRON_DISABLE_SANDBOX=1
+ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1280x720x24" /opt/obsidian/obsidian --no-sandbox --no-zygote --disable-gpu --disable-dev-shm-usage --disable-software-rasterizer
+Restart=always
+RestartSec=15
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

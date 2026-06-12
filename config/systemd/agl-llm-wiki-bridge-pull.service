@@ -1,0 +1,9 @@
+[Unit]
+Description=Git pull llm-wiki (agentes / GitHub)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=LLM_WIKI_DIR=/mnt/overpower/apps/dev/agl/llm-wiki
+ExecStart=/opt/agl-hostman/scripts/obsidian/bridge-llm-wiki-git.sh pull

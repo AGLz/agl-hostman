@@ -236,9 +236,9 @@ arp -a | grep 1c:2a:a3:1e:86:77
 | 100.124.53.91 | aglsrv6c | linux | Active | AGLSRV6C extension node |
 | 100.76.201.83 | aglsrv6d | linux | Active | AGLSRV6D extension node |
 | 100.123.5.81 | aglsrv3 | linux | Active | Proxmox host AGLFG (`192.168.15.247`) |
-| *(pendente)* | aglsrv3-pihole | linux | **NeedsLogin** | CT117 Pi-hole @ LAN `192.168.15.102` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) + `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh` |
+| *(pendente)* | aglsrv3-pihole | linux | **NeedsLogin** | CT317 Pi-hole @ LAN `192.168.15.117` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) + `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh` |
 
-> **AGLSRV3 DNS (2026-05-28):** Pi-hole local clonado de AGLSRV1 CT102. Host `resolv.conf` → `192.168.15.102`. Tailscale do CT117 requer auth key ou login na URL (`tailscale up` no CT117).
+> **AGLSRV3 DNS:** Pi-hole local CT317 @ `192.168.15.117`. Host `resolv.conf` e CTs apontam para este IP.
 
 ### FGSRV Group (7 hosts)
 
@@ -440,22 +440,20 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 # Persisted via /etc/systemd/system/iptables-restore.service
 ```
 
-**Cloudflare Tunnel (fgsrv7)**:
+**Cloudflare Tunnel — par HA (FGSRV7):**
 
-- Tunnel ID: `513cec7b-754d-4dd8-a69d-d15942180fe4`
-- Service: systemd (**CT570** cloudflared7; ex.170)
-- Endpoints:
-  - `man7.aglz.io` → Proxmox Web UI (8006) ✅
-  - `evo.aglz.io` → EvoNexus **CT548** (`/terminal*` → `:32352`, resto → `:8080`) ✅
-  - `mysql-slave.falg.com.br` → MySQL HA Slave (3306)
-  - `mysql-slave.aglz.io` → MySQL HA Slave (3306)
-- Auto-start: ✅ systemd enabled
+| CT | Túnel | Gestão | Conta CF |
+|----|-------|--------|----------|
+| **570** `cloudflared7` | **fgsrv7** `513cec7b-…` | UI web Zero Trust | aglz.io (`cert.pem` agldv03) |
+| **571** `cloudflared7b` | **fgsrv7b** `850f2d28-…` | CLI / API / AI | falg.* (token API dedicado) |
 
-**Segundo túnel — fgsrv7b (CT571 `cloudflared7b`; ex.171)**:
+Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname existir nos **dois** túneis. Detalhe: `docs/CLOUDFLARE-TUNNELS.md` (secção FGSRV7 HA).
 
-- Instalado com `cloudflared service install <token>` no **CT571**; rotas na consola Cloudflare.
-- LAN: `192.168.70.171/24`. Reset Tailscale clone: `CT_VMID=571 TS_HOSTNAME=fgsrv07-cloudflared7b bash scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`
-- Provisionamento: `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` (`SOURCE_VMID=570`, `NEW_VMID=571`)
+- **fgsrv7:** `man7.aglz.io`, `evo.aglz.io`, `www5.aglz.io`, MySQL TCP, etc.
+- **fgsrv7b:** `falg.com.br` → CT549; pendente espelhar `falgimoveis.com` / `www.*` — `scripts/cloudflare/update-fgsrv7b-tunnel-fg-legacy-ingress.sh`
+- Provisionamento CT571: `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh`
+
+> **Padrão Proxmox:** `cloudflared` só em **CT dedicado** (AGLSRV1 CT117, AGLSRV5 CT530, AGLSRV6 CT101/114, FGSRV7 CT570/571).
 
 **Access**:
 
@@ -514,14 +512,16 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 ### FGSRV4 (Cloud VPS)
 
 **Location**: Cloud VPS (vps22826.publiccloud.com.br)
-**Type**: Proxmox VE Host
+**Type**: Ubuntu 22.04 VPS (legado PHP/Nginx — **não** é host Proxmox; ver auditoria 2026-06-11)
+**Descomissionamento**: [`docs/maint/FGSRV04-DECOMMISSION-INVENTORY.md`](maint/FGSRV04-DECOMMISSION-INVENTORY.md) — `www5` migrado para FGSRV07 CT549; domínios principais ainda neste host até cutover DNS.
 
 | Network | Address | Port | Status |
 |---------|---------|------|--------|
+| Public IP | 191.252.201.108 | - | ✅ Internet |
 | WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active |
 | Tailscale | 100.111.79.2 | - | ✅ Active |
 
-**User**: sysadmin
+**User**: sysadmin (público) / root (Tailscale)
 
 ---
 
@@ -916,6 +916,7 @@ zpool status -v local-zfs
 | 103 | portainer | 192.168.0.103 | - | - | Docker mgmt |
 | 178 | aglfs1 | 192.168.0.178 | - | - | File server |
 | 179 | agldv03 | 192.168.0.179 | WG: 10.6.0.19, TS: 100.94.221.87 | 48GB | **Primary Dev** |
+| **193** | **agl-obsidian** | **192.168.0.193** | TS: *(após join)* | 2GB | **Obsidian hub 24/7** + CouchDB LiveSync + Git bridge llm-wiki — [`OBSIDIAN-CT-AGL.md`](OBSIDIAN-CT-AGL.md) |
 | 185 | agldv12 | 192.168.0.185 | TS: 100.71.217.115 | - | Turbo Flow v4.0 (clone agldv03) |
 | 180 | dokploy | 192.168.0.180 | - | - | Deployment |
 | 202 | n8n-docker | 192.168.0.202 | - | - | Workflow automation |
@@ -1146,7 +1147,8 @@ docker-compose ps          # Compose stack status
 | **aglsrv5e** | `863fd93d-...` | **FGSRV6** (Docker) | ✅ 4 conn | n8n5e, portainer5e |
 | aglsrv6 | `a00590ff-...` | ? | ✅ 8 conn | - |
 | archon | `908b1097-...` | AGLSRV1 (CT117) | ✅ 4 conn | archon.aglz.io |
-| **fgsrv7** | `513cec7b-...` | **FGSRV7** (Host) | ✅ 4 conn | **man7.aglz.io** |
+| **fgsrv7** | `513cec7b-...` | **FGSRV7** (CT570) | ✅ 4 conn | man7, evo, mysql-slave |
+| **fgsrv7b** | `850f2d28-...` | **FGSRV7** (CT571) | ✅ 4 conn | **falg.com.br** → CT549 |
 
 ### Túneis Inativos
 
