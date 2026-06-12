@@ -73,8 +73,10 @@ if [[ -n "${HARBOR_USERNAME:-}" && -n "${HARBOR_PASSWORD:-}" ]]; then
 fi
 
 cd "${DEPLOY_DIR}"
-docker compose pull || true
-docker compose up -d
+docker compose pull || echo "AVISO: pull Harbor falhou — projecto/imagem pode ainda não existir (Fase 2)" >&2
+if ! docker compose up -d; then
+  echo "AVISO: stack não arrancou (normal até imagem prod existir no Harbor)" >&2
+fi
 
 echo ""
 echo "=== CT134 bootstrap concluído ==="

@@ -22,10 +22,10 @@ Legenda: `[ ]` pendente · `[x]` feito · `[~]` em progresso
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-1.1 | `pct-create-agl-hostman-prod.sh` | P0 | [ ] |
-| CT134-1.2 | SSH + password/chave deploy | P0 | [ ] |
-| CT134-1.3 | `bootstrap-ct134-agl-hostman-prod.sh` | P0 | [ ] |
-| CT134-1.4 | Configurar `.env` prod (DB, Redis, APP_URL) | P0 | [ ] |
+| CT134-1.1 | `pct-create-agl-hostman-prod.sh` | P0 | [x] |
+| CT134-1.2 | SSH + password/chave deploy | P0 | [~] |
+| CT134-1.3 | `bootstrap-ct134-agl-hostman-prod.sh` | P0 | [x] |
+| CT134-1.4 | Configurar `.env` prod (DB, Redis, APP_URL) | P0 | [x] |
 | CT134-1.5 | Tailscale no CT134 (opcional) | P2 | [ ] |
 
 ### Fase 2 — Harbor + DB
@@ -100,4 +100,4 @@ _Registar aqui durante a implementação._
 | Data | Nota |
 |------|------|
 | 2026-06-12 | Plano criado; cutover depende de origin dev documentado em §3 runbook Cloudflare |
-| 2026-06-12 | **F0 validado AGLSRV1:** VMID 134 livre; IP .134 sem resposta ping; Postgres :5432 e Redis :6379 open; template `debian-12-standard_12.12-1` presente; `local-zfs` ~333GB livre |
+| 2026-06-12 | **F1 CT134 criado AGLSRV1:** VMID 134 `agl-hostman` · IP `192.168.0.134/24` · Docker 29.5.3 · compose+env em `/opt/agl-hostman-prod` · AppArmor unconfined · `docker compose up` aguarda imagem Harbor (F2) · Harbor :443/:5000 recusado de CT134→182 (validar CT182) · Tailscale instalado, falta `tailscale up` |

@@ -11,6 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/pct-create-agl-hostman-prod.env}"
 if [[ -f "${ENV_FILE}" ]]; then
+  sed -i 's/\r$//' "${ENV_FILE}" 2>/dev/null || true
   # shellcheck disable=SC1090
   set -a && source "${ENV_FILE}" && set +a
 fi
