@@ -46,7 +46,7 @@ class EnvironmentConfigService
             if (! in_array($type, ['dev', 'qa', 'uat', 'production'])) {
                 throw new ValidationException(
                     Validator::make([], [])
-                        ->after(fn ($validator) => $validator->errors()->add('type', "Invalid environment type: {$type}"))
+                        ->after(fn($validator) => $validator->errors()->add('type', "Invalid environment type: {$type}"))
                 );
             }
 
@@ -74,7 +74,7 @@ class EnvironmentConfigService
             ]);
 
             // Clear cache
-            Cache::forget(self::CACHE_PREFIX.$type);
+            Cache::forget(self::CACHE_PREFIX . $type);
 
             Log::info('Created environment', [
                 'id' => $environment->id,
@@ -102,7 +102,7 @@ class EnvironmentConfigService
     public function getEnvironmentConfig(string $type): array
     {
         return Cache::remember(
-            self::CACHE_PREFIX.$type,
+            self::CACHE_PREFIX . $type,
             self::CACHE_TTL,
             function () use ($type) {
                 return match ($type) {
@@ -209,7 +209,7 @@ class EnvironmentConfigService
             'git_branch' => 'main',
             'auto_deploy' => false,
             'auto_test' => false,
-            'domains' => ['dev.agl-hostman.local', 'dev-agl.aglz.io'],
+            'domains' => ['ah-dev.aglz.io', 'dev.agl-hostman.local'],
             'env_vars' => [
                 'APP_ENV' => 'development',
                 'APP_DEBUG' => 'true',
@@ -237,7 +237,7 @@ class EnvironmentConfigService
             'git_branch' => 'develop',
             'auto_deploy' => true,
             'auto_test' => true,
-            'domains' => ['qa.agl-hostman.local', 'qa-agl.aglz.io'],
+            'domains' => ['ah-qa.aglz.io', 'qa.agl-hostman.local'],
             'env_vars' => [
                 'APP_ENV' => 'qa',
                 'APP_DEBUG' => 'true',
@@ -266,7 +266,7 @@ class EnvironmentConfigService
             'git_branch' => 'release',
             'auto_deploy' => false,
             'auto_test' => true,
-            'domains' => ['uat.agl-hostman.local', 'uat-agl.aglz.io'],
+            'domains' => ['ah-uat.aglz.io', 'uat.agl-hostman.local'],
             'env_vars' => [
                 'APP_ENV' => 'uat',
                 'APP_DEBUG' => 'false',
@@ -294,7 +294,7 @@ class EnvironmentConfigService
             'git_branch' => 'main',
             'auto_deploy' => false,
             'auto_test' => true,
-            'domains' => ['hostman.aglz.io', 'infra.aglz.io'],
+            'domains' => ['ah.aglz.io', 'infra.aglz.io'],
             'env_vars' => [
                 'APP_ENV' => 'production',
                 'APP_DEBUG' => 'false',
@@ -318,10 +318,10 @@ class EnvironmentConfigService
      */
     public function clearCache(): void
     {
-        Cache::forget(self::CACHE_PREFIX.'dev');
-        Cache::forget(self::CACHE_PREFIX.'qa');
-        Cache::forget(self::CACHE_PREFIX.'uat');
-        Cache::forget(self::CACHE_PREFIX.'production');
+        Cache::forget(self::CACHE_PREFIX . 'dev');
+        Cache::forget(self::CACHE_PREFIX . 'qa');
+        Cache::forget(self::CACHE_PREFIX . 'uat');
+        Cache::forget(self::CACHE_PREFIX . 'production');
 
         Log::info('Cleared environment configuration cache');
     }

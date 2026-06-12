@@ -80,7 +80,7 @@ services:
       start_period: 30s
 
   # Nginx web server (sidecar for app)
-  # Portas: NGINX_PORT (dev local), NGINX_TUNNEL_PORT (ex.: Cloudflare → ah.aglz.io), NGINX_SSL_PORT (HTTPS local)
+  # Portas: NGINX_PORT (dev local), NGINX_TUNNEL_PORT (Cloudflare: prod ah.aglz.io → CT134; dev futuro ah-dev.aglz.io)
   nginx:
     image: nginx:1.25-alpine
     container_name: agl-hostman-nginx

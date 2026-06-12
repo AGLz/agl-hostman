@@ -15,7 +15,7 @@ return [
     */
     'app' => [
         'name' => env('PRODUCTION_APP_NAME', 'AGL Hostman'),
-        'url' => env('PRODUCTION_APP_URL', 'https://prod-agl.aglz.io'),
+        'url' => env('PRODUCTION_APP_URL', 'https://ah.aglz.io'),
         'debug' => false, // Always false in production
         'force_https' => env('PRODUCTION_FORCE_HTTPS', true),
     ],
@@ -72,8 +72,8 @@ return [
         'dokploy_token' => env('PRODUCTION_DOKPLOY_TOKEN'),
 
         // Domain Configuration
-        'domain' => env('PRODUCTION_DOMAIN', 'prod-agl.aglz.io'),
-        'domains' => array_filter(explode(',', env('PRODUCTION_DOMAINS', 'prod-agl.aglz.io,agl-hostman.aglz.io'))),
+        'domain' => env('PRODUCTION_DOMAIN', 'ah.aglz.io'),
+        'domains' => array_filter(explode(',', env('PRODUCTION_DOMAINS', 'ah.aglz.io,prod-agl.aglz.io,agl-hostman.aglz.io'))),
 
         // Blue-Green Configuration
         'blue_green_enabled' => env('BLUE_GREEN_ENABLED', true),

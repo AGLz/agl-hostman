@@ -53,7 +53,7 @@ APP_URL_QA=https://agl-hostman-qa.aglz.io
 APP_URL_UAT=https://agl-hostman-uat.aglz.io
 ```
 
-**Note**: Production URL is hardcoded in workflow (https://hostman.aglz.io)
+**Note**: Production URL is `https://ah.aglz.io` (CT134). Dev futuro: `https://ah-dev.aglz.io`.
 
 ---
 

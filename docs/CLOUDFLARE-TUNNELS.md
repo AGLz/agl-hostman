@@ -1,7 +1,23 @@
 # Cloudflare Tunnels - AGL Infrastructure
 
-> **Last Updated**: 2026-06-03 | **Version**: 1.3.0
+> **Last Updated**: 2026-06-11 | **Version**: 1.5.0
 > **Reference**: Documentação completa dos túneis Cloudflare
+
+---
+
+## Padrão de deploy (Proxmox)
+
+Em **todos os hosts Proxmox AGL**, o `cloudflared` corre num **CT/LXC dedicado** — **não** no host bare metal nem misturado com workloads de aplicação.
+
+| Host | CT(s) cloudflared | Notas |
+|------|-------------------|--------|
+| AGLSRV1 | **117** | Túnel `archon` |
+| AGLSRV5 | **530** `cloudflared5` | |
+| AGLSRV6 | **101**, **114** | `cloudflared6` + `cloudflared6b` |
+| **FGSRV7** | **570** `cloudflared7`, **571** `cloudflared7b` | Par HA — um túnel por CT; ver [FGSRV7 HA](#fgsrv7--par-ha-cloudflared-ct570--ct571) |
+| FGSRV6 | Docker `cloudflared-tunnel` | Excepção: VPS sem Proxmox |
+
+Operação típica: `ssh root@<host-tailscale> 'pct exec <vmid> -- systemctl status cloudflared'`.
 
 ---
 
@@ -17,12 +33,65 @@
 | `863fd93d-73c5-4c3e-90b5-7cbd37643f70` | **aglsrv5e** | **FGSRV6** (Docker) | gru08, gru13, gru20, gru21 | ✅ 4 conexões | ✅ Docker |
 | `a00590ff-2177-48c0-ad13-3abf90b765b9` | aglsrv6 | AGLSRV6 CT101+114 | gru05, gru08, gru17 | ✅ 8 conexões (2 CTs) | ✅ systemd (token) |
 | `908b1097-e182-4725-9960-626ecc003375` | archon | AGLSRV1 (CT117) | gru02, gru07, gru17 | ✅ 4 conexões | ✅ systemd |
-| `513cec7b-754d-4dd8-a69d-d15942180fe4` | **fgsrv7** | **FGSRV7** (Host) | gru07, gru20, gru21 | ✅ 4 conexões | ✅ systemd |
+| `513cec7b-754d-4dd8-a69d-d15942180fe4` | **fgsrv7** | **FGSRV7** (**CT570** `cloudflared7`; ex.170) | gru07, gru20, gru21 | ✅ 4 conexões | ✅ systemd |
 | `850f2d28-367f-4bd2-a887-6998240828e3` | **fgsrv7b** | **FGSRV7** (**CT571** `cloudflared7b`; ex.171) | gru11, gru18, gru19, gru20 | ✅ 4 conexões | ✅ systemd (token) |
 
 ---
 
 ## 🏗️ Detalhes por Host
+
+### FGSRV7 — par HA cloudflared (CT570 + CT571)
+
+Dois **CT/LXC dedicados** no host Proxmox FGSRV7 (`100.109.181.93`), cada um com **um** processo `cloudflared` e **um** túnel Cloudflare. Juntos formam HA operacional para janelas de **backup PBS** (um CT parado → o outro mantém conectores activos).
+
+```
+                    Cloudflare Edge
+                          │
+         ┌────────────────┴────────────────┐
+         │                                 │
+    túnel fgsrv7                    túnel fgsrv7b
+  513cec7b-…                      850f2d28-…
+         │                                 │
+    CT570 cloudflared7              CT571 cloudflared7b
+    192.168.70.170                  192.168.70.171
+         │                                 │
+         └────────────┬────────────────────┘
+                      │ vmbr70 (origins internos)
+              CT549 fg-legacy, CT548 evo, …
+```
+
+| CT | VMID | Túnel | Administração | Conta Cloudflare (API) | Auth no CT |
+|----|------|-------|---------------|------------------------|------------|
+| **cloudflared7** | **570** | **fgsrv7** `513cec7b-…` | **Interface web** Zero Trust (Networks → Tunnels) | **aglz.io** (+ aguileraz.net no mesmo token `cert.pem` agldv03) | `credentials-file` + `config.yml`; config **remota** prevalece |
+| **cloudflared7b** | **571** | **fgsrv7b** `850f2d28-…` | **CLI / API / scripts / AI** (`cloudflared`, `update-fgsrv7b-tunnel-*.sh`) | **falg.com.br**, **falgimoveis.com**, etc. (token API **separado**) | `cloudflared tunnel run --token …` (só config remota) |
+
+**Failover durante backup (PBS):**
+
+1. Parar **CT570** (backup) → o túnel **fgsrv7** fica sem conector; tráfego dos hostnames que existirem **também** no **fgsrv7b** continua via **CT571**.
+2. Parar **CT571** (backup) → o inverso via **CT570** / **fgsrv7**.
+3. Após backup, `pct start` no CT — o `cloudflared` (systemd) volta a registar conexões automaticamente.
+
+**Requisito para HA real:** hostnames **críticos** (ex. `falg.com.br`, `falgimoveis.com`, `www.*`) devem estar declarados como **public hostnames** nos **dois** túneis (mesmo `service` / origin, ex. `http://192.168.70.243`). Caso contrário, parar o CT que é o único conector daquele hostname corta o site.
+
+**Tokens (não misturar contas):**
+
+| Uso | Onde | Credencial |
+|-----|------|------------|
+| Túnel **fgsrv7**, DNS **aglz.io** | agldv03 | `~/.cloudflared/cert.pem` → `apiToken` embutido; ou UI web |
+| Túnel **fgsrv7b**, zonas **falg.*** | agldv* (token novo) | `CLOUDFLARE_API_TOKEN` com Tunnel Edit + DNS nas zonas falg |
+
+**Comandos rápidos (estado do par):**
+
+```bash
+ssh root@100.109.181.93 'pct status 570 571'
+ssh root@100.109.181.93 'pct exec 570 -- systemctl is-active cloudflared; pct exec 571 -- systemctl is-active cloudflared'
+ssh root@100.109.181.93 'pct exec 570 -- journalctl -u cloudflared -n 2 --no-pager | grep "Updated to new configuration"'
+ssh root@100.109.181.93 'pct exec 571 -- journalctl -u cloudflared -n 2 --no-pager | grep "Updated to new configuration"'
+```
+
+Provisionamento do segundo CT: `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh`.
+
+---
 
 ### FGSRV7 - fgsrv7 (systemd no CT570; ex.170)
 
@@ -45,16 +114,10 @@
 - **Gateway**: 192.168.70.1 (vmbr70 no host)
 - **Resources**: 1 core, 1GB RAM
 
-**Container CT571 (`cloudflared7b`; ex.171)** — segundo connector (túnel **fgsrv7b**)
+**Configuração cloudflared (resumo):**
 
-- **Tunnel ID**: `850f2d28-367f-4bd2-a887-6998240828e3`
-- **Network**: vmbr70 — **192.168.70.171/24**
-- **Provisionamento**: clone CT570 → CT571 — `scripts/maint/fgsrv07/provision-cloudflared7b-from-170.sh` (`SOURCE_VMID=570`)
-
-**Configuração cloudflared**:
-
-- **CT571 / túnel `fgsrv7b`**: token Zero Trust (config remota).
-- **CT570 (`cloudflared7`)**: systemd; config em `/etc/cloudflared/config.yml`
+- **CT570** → só túnel **fgsrv7**; ver secção [HA](#fgsrv7--par-ha-cloudflared-ct570--ct571).
+- **CT571** → só túnel **fgsrv7b**; detalhe na secção [fgsrv7b](#fgsrv7---fgsrv7b-ct571-cloudflared7b-ex171) abaixo.
 
 **Configuração de Rede (Host)**:
 
@@ -129,8 +192,10 @@ ssh root@100.109.181.93 'pct status 570'
 ssh root@100.109.181.93 'pct exec 570 -- systemctl status cloudflared'
 ssh root@100.109.181.93 'pct exec 570 -- journalctl -u cloudflared -f'
 ssh root@100.109.181.93 'pct exec 570 -- systemctl restart cloudflared'
-ssh root@100.109.181.93 'pct exec 570 -- cat /etc/cloudflared/config.yml'
+ssh root@100.109.181.93 'pct exec 570 -- journalctl -u cloudflared -n 5 | grep "Updated to new configuration"'
 ```
+
+> **Config efectiva:** o CT570 recebe **config remota** do Zero Trust (ver log `Updated to new configuration`). O ficheiro `/etc/cloudflared/config.yml` local é referência; rotas novas exigem API ou consola Zero Trust.
 
 **Troubleshooting**:
 
@@ -143,6 +208,63 @@ ssh root@100.109.181.93 '
   pct exec 570 -- ip route add default via 192.168.70.1
 '
 ```
+
+---
+
+### FGSRV7 - fgsrv7b (CT571 `cloudflared7b`; ex.171)
+
+**Tunnel ID**: `850f2d28-367f-4bd2-a887-6998240828e3`
+
+**Container CT571**:
+
+- **VMID**: 571 (legado 171)
+- **Hostname**: cloudflared7b
+- **Network**: vmbr70 — `192.168.70.171/24`
+- **Auth**: token Zero Trust (`cloudflared tunnel run --token …`) — **só config remota**
+
+**Ingress remota (2026-06-11, via `journalctl -u cloudflared`)**:
+
+| Hostname | Serviço | Destino |
+|----------|---------|---------|
+| `falg.com.br` | HTTP | **CT549** `fg-legacy` |
+| `www.falg.com.br` | HTTP | **CT549** (2026-06-11) |
+| `falgimoveis.com` | HTTP | **CT549** (2026-06-11) |
+| `www.falgimoveis.com` | HTTP | **CT549** (2026-06-11) |
+| *(catch-all)* | `http_status:404` | — |
+
+**Stack PHP legado (origin)** — **CT549** @ `192.168.70.243:80`:
+
+- Nginx `server_name`: `falg.com.br`, `www.falg.com.br`, `falgimoveis.com`, `www.falgimoveis.com`, `www5.falg.com.br`, `www5.aglz.io`
+- Webroot: `/var/www/fg_antigo/public_html` (PHP 5.6)
+
+**Actualizar ingress (API / AI)** — credenciais da conta **FGz** (falg.*), **não** AGLz:
+
+```bash
+# CTs agldv03–12: bloco em ~/.zshrc (scripts/cloudflare/setup-dual-cf-env-agldv.sh)
+source ~/.zshrc
+# FGz: Global User API Key (cfk_*) + email — DNS e API legacy mysql-ha
+export CF_EMAIL CF_API_KEY CF_ZONE_ID   # alias do bloco
+# AGLz: CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID (aglz.io, túnel fgsrv7)
+
+bash scripts/cloudflare/test-dual-cf-dns.sh          # validar AGLz + FGz + DNS
+bash scripts/cloudflare/update-fgsrv7b-tunnel-fg-legacy-ingress.sh  # requer Bearer ou token com Tunnel Edit na conta FGz
+```
+
+**Nota (2026-06):** chaves `cfk_*` são **Global User API Key** (auth `X-Auth-Email` + `X-Auth-Key`), não Bearer. Para `update-fgsrv7b-tunnel-*.sh` convém um **User API Token** (`cfut_*` ou formato legado) com *Cloudflare Tunnel Edit* na conta FGz.
+
+Depois de alterar **fgsrv7b**, replicar os mesmos hostnames críticos no **fgsrv7** via [UI web](https://one.dash.cloudflare.com) (conta aglz.io) para manter HA no backup do CT571.
+
+Alternativa manual: Zero Trust → Networks → Tunnels → **fgsrv7b** → Public Hostname.
+
+**Comandos úteis**:
+
+```bash
+ssh root@100.109.181.93 'pct exec 571 -- systemctl status cloudflared'
+ssh root@100.109.181.93 'pct exec 571 -- journalctl -u cloudflared -n 3 | grep "Updated to new configuration"'
+ssh root@100.109.181.93 'pct exec 549 -- nginx -t && pct exec 549 -- systemctl reload nginx'
+```
+
+**DNS:** zonas `falg.com.br` e `falgimoveis.com` usam **A proxied** para Cloudflare (não CNAME público para o túnel). O encaminhamento HTTP(S) faz-se pelos **public hostnames** do túnel no Zero Trust — não pelo registo DNS em si.
 
 ---
 
@@ -253,6 +375,8 @@ ssh root@100.119.223.113 'pct exec 130 -- systemctl restart cloudflared'
 **Endpoints**:
 
 - archon.aglz.io → Archon AI (CT183:8080)
+- **ah.aglz.io** → agl-hostman **produção** (CT134 `192.168.0.134:80`) — ver [`runbooks/CT134-CLOUDFLARE-CUTOVER.md`](runbooks/CT134-CLOUDFLARE-CUTOVER.md)
+- **ah-dev.aglz.io** → agl-hostman dev (CT179 / nginx — a configurar no cutover)
 - mysql-master.aglz.io → MySQL HA Master (CT131:3306)
 - mesh.aglz.io → MeshCentral (CT162)
 

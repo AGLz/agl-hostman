@@ -25,7 +25,7 @@ async function login(page) {
   await expect(page).not.toHaveURL(/\/auth\/login(?:$|\?)/, { timeout: 15000 })
 }
 
-test.describe('ah.aglz.io hosted smoke', () => {
+test.describe('ah.aglz.io production smoke', () => {
   test.use({ baseURL: hostedBaseURL() })
 
   test('root serves the hosted app with security headers', async ({ request }) => {

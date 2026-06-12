@@ -127,7 +127,7 @@ class SetupProductionEnvironment extends Command
      */
     private function checkCommand(string $command): bool
     {
-        exec($command.' 2>&1', $output, $returnCode);
+        exec($command . ' 2>&1', $output, $returnCode);
 
         return $returnCode === 0;
     }
@@ -169,7 +169,7 @@ class SetupProductionEnvironment extends Command
                 'dokploy_url' => $this->option('dokploy-url') ?? 'http://192.168.0.182:3000',
                 'dokploy_token' => $this->option('dokploy-token') ?? config('deployment.production_dokploy_token'),
                 'harbor_project' => $this->option('harbor-project') ?? 'agl-hostman-prod',
-                'domains' => ['prod-agl.aglz.io', 'agl-hostman.aglz.io'],
+                'domains' => ['ah.aglz.io', 'prod-agl.aglz.io', 'agl-hostman.aglz.io'],
                 'auto_deploy' => false,
                 'auto_test' => true,
                 'git_branch' => 'main',
@@ -195,7 +195,7 @@ class SetupProductionEnvironment extends Command
 
             return $environment;
         } catch (\Exception $e) {
-            $this->error('   ✗ Failed to create environment: '.$e->getMessage());
+            $this->error('   ✗ Failed to create environment: ' . $e->getMessage());
 
             return null;
         }
@@ -240,7 +240,7 @@ class SetupProductionEnvironment extends Command
         $this->info('🔐 Generating production secrets...');
 
         $secrets = [
-            'APP_KEY' => 'base64:'.base64_encode(Str::random(32)),
+            'APP_KEY' => 'base64:' . base64_encode(Str::random(32)),
             'REVERB_APP_KEY' => Str::random(32),
             'REVERB_APP_SECRET' => Str::random(32),
             'DB_PASSWORD' => Str::random(32),
@@ -343,6 +343,6 @@ class SetupProductionEnvironment extends Command
         $this->newLine();
 
         $this->info("Environment ID: {$environment->id}");
-        $this->info('Domains: '.implode(', ', $environment->domains));
+        $this->info('Domains: ' . implode(', ', $environment->domains));
     }
 }

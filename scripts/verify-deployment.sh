@@ -62,7 +62,7 @@ if [ "$ENVIRONMENT" = "qa" ]; then
 elif [ "$ENVIRONMENT" = "uat" ]; then
     HEALTH_URL="https://agl-hostman-uat.aglz.io/health"
 elif [ "$ENVIRONMENT" = "production" ]; then
-    HEALTH_URL="https://hostman.aglz.io/health"
+    HEALTH_URL="https://ah.aglz.io/health/"
 fi
 
 HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" --max-time 10 2>/dev/null || echo "000")

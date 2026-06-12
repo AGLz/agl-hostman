@@ -20,7 +20,7 @@ class ProductionEnvironmentSeeder extends Seeder
             'dokploy_url' => config('deployment.production_dokploy_url', 'http://192.168.0.182:3000'),
             'dokploy_token' => config('deployment.production_dokploy_token'),
             'harbor_project' => 'agl-hostman-prod',
-            'domains' => ['prod-agl.aglz.io', 'agl-hostman.aglz.io'],
+            'domains' => ['ah.aglz.io', 'prod-agl.aglz.io', 'agl-hostman.aglz.io'],
             'auto_deploy' => false, // Always manual for production
             'auto_test' => true,
             'git_branch' => 'main',
@@ -64,11 +64,11 @@ class ProductionEnvironmentSeeder extends Seeder
         ]);
 
         $this->command->info('✅ Production environment configured:');
-        $this->command->info('   - Environment: '.$production->name);
-        $this->command->info('   - Type: '.$production->type);
-        $this->command->info('   - Auto-deploy: '.($production->auto_deploy ? 'Yes' : 'No'));
+        $this->command->info('   - Environment: ' . $production->name);
+        $this->command->info('   - Type: ' . $production->type);
+        $this->command->info('   - Auto-deploy: ' . ($production->auto_deploy ? 'Yes' : 'No'));
         $this->command->info('   - Replicas: 2 (HA)');
         $this->command->info('   - Deployment: Blue-Green');
-        $this->command->info('   - Domains: '.implode(', ', $production->domains));
+        $this->command->info('   - Domains: ' . implode(', ', $production->domains));
     }
 }

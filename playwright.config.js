@@ -1,7 +1,7 @@
 const { defineConfig, devices } = require('@playwright/test')
 const path = require('path')
 
-// PLAYWRIGHT_BASE_URL — ex.: https://ah.aglz.io (tunnel → agl-hostman)
+// PLAYWRIGHT_BASE_URL — prod: https://ah.aglz.io · dev (futuro): https://ah-dev.aglz.io
 // PW_SKIP_WEBSERVER=1 — não arranca npm na raiz nem Vite em src/web (tests contra URL remota)
 const customBase = process.env.PLAYWRIGHT_BASE_URL
 const localhostLike =

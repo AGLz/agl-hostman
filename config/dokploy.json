@@ -98,7 +98,7 @@
   ],
   "networking": {
     "domains": [
-      "hostman.aglz.io"
+      "ah.aglz.io"
     ],
     "tls": {
       "enabled": true,

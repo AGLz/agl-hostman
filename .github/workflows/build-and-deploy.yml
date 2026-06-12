@@ -192,7 +192,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://hostman.aglz.io
+      url: https://ah.aglz.io
 
     steps:
       - name: Deploy to production
@@ -207,7 +207,7 @@ jobs:
       - name: Verify production deployment
         run: |
           sleep 60
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://hostman.aglz.io/health)
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://ah.aglz.io/health/)
           if [ "$RESPONSE" = "200" ]; then
             echo "✅ Production deployment successful"
           else

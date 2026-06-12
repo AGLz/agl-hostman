@@ -1,0 +1,64 @@
+# agl-hostman — produção CT134 (pull Harbor; gerido por Dokploy ou compose local)
+# Imagem: harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest
+
+services:
+  app:
+    image: ${IMAGE:-harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest}
+    container_name: agl-hostman-prod-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - app-storage:/var/www/html/storage
+      - app-bootstrap-cache:/var/www/html/bootstrap/cache
+    networks:
+      - agl-prod
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1/health || curl -sf http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
+
+  horizon:
+    image: ${IMAGE:-harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest}
+    container_name: agl-hostman-prod-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    env_file:
+      - .env
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - agl-prod
+    depends_on:
+      app:
+        condition: service_healthy
+
+  scheduler:
+    image: ${IMAGE:-harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest}
+    container_name: agl-hostman-prod-scheduler
+    restart: unless-stopped
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    env_file:
+      - .env
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - agl-prod
+    depends_on:
+      app:
+        condition: service_healthy
+
+networks:
+  agl-prod:
+    driver: bridge
+
+volumes:
+  app-storage:
+  app-bootstrap-cache:
