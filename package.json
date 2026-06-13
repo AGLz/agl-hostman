@@ -31,7 +31,7 @@
     "@fastify/cors": "^9.0.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^16.4.5",
-    "fastify": "^4.27.0",
+    "fastify": "^5.8.5",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
