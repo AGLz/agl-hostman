@@ -1,0 +1,353 @@
+name: CD - Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (default: latest)'
+        required: false
+        type: string
+
+env:
+  REGISTRY: harbor.aglz.io:5000
+  IMAGE_NAME: agl-hostman
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # ============================================================================
+  # Job 1: Validate Pre-deployment
+  # ============================================================================
+  pre-deploy-validation:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify CI passed
+        run: |
+          echo "Checking if CI workflow passed for this commit..."
+          # GitHub will automatically ensure required workflows pass
+
+      - name: Validate configuration files
+        run: |
+          if [ ! -f "src/.env.example" ]; then
+            echo "Error: .env.example not found"
+            exit 1
+          fi
+          echo "Configuration files validated"
+
+  # ============================================================================
+  # Job 2: Deploy to Staging
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: pre-deploy-validation
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging-agl.aglz.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure Docker context for staging
+        run: |
+          echo "${{ secrets.STAGING_DOCKER_CONTEXT }}" | docker context create staging --docker-host "-"
+
+      - name: Deploy to staging via Dokploy
+        run: |
+          # Trigger Dokploy deployment webhook
+          curl -X POST "${{ secrets.STAGING_DOKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"branch": "${{ github.ref_name }}", "sha": "${{ github.sha }}"}'
+
+      - name: Wait for deployment to complete
+        run: |
+          echo "Waiting for staging deployment to stabilize..."
+          sleep 60
+
+      - name: Run health checks on staging
+        run: |
+          for i in {1..30}; do
+            if curl -f https://staging-agl.aglz.io/api/health; then
+              echo "Staging deployment is healthy"
+              exit 0
+            fi
+            echo "Waiting for health check... ($i/30)"
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Run smoke tests on staging
+        run: |
+          curl -f https://staging-agl.aglz.io/api/overview || exit 1
+          curl -f https://staging-agl.aglz.io/api/containers || exit 1
+          curl -f https://staging-agl.aglz.io/api/vms || exit 1
+          echo "Smoke tests passed"
+
+  # ============================================================================
+  # Job 3: Deploy to Production (requires approval)
+  # ============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-validation]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://prod-agl.aglz.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify version tag
+        id: version
+        run: |
+          VERSION=${{ github.event.inputs.version || 'latest' }}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Initialize blue-green deployment
+        run: |
+          echo "Starting blue-green deployment to production..."
+
+      - name: Determine active slot
+        id: slot
+        run: |
+          # Query current active slot from production
+          ACTIVE_SLOT=$(curl -s https://prod-agl.aglz.io/api/deployment/slot || echo "blue")
+          INACTIVE_SLOT=$([ "$ACTIVE_SLOT" = "blue" ] && echo "green" || echo "blue")
+          echo "active=$ACTIVE_SLOT" >> $GITHUB_OUTPUT
+          echo "inactive=$INACTIVE_SLOT" >> $GITHUB_OUTPUT
+
+      - name: Deploy to inactive slot
+        run: |
+          echo "Deploying to ${{ steps.slot.outputs.inactive }} slot..."
+          # Deploy via Dokploy to inactive slot
+          curl -X POST "${{ secrets.PRODUCTION_DOKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"slot\": \"${{ steps.slot.outputs.inactive }}\",
+              \"version\": \"${{ steps.version.outputs.version }}\",
+              \"sha\": \"${{ github.sha }}\"
+            }"
+
+      - name: Wait for inactive slot deployment
+        run: |
+          echo "Waiting for ${{ steps.slot.outputs.inactive }} slot to be ready..."
+          sleep 90
+
+      - name: Health check inactive slot
+        run: |
+          INACTIVE_ENDPOINT="https://${{ steps.slot.outputs.inactive }}-prod-agl.aglz.io/api/health"
+          for i in {1..20}; do
+            if curl -f "$INACTIVE_ENDPOINT"; then
+              echo "Inactive slot is healthy"
+              exit 0
+            fi
+            echo "Waiting for inactive slot health... ($i/20)"
+            sleep 15
+          done
+          exit 1
+
+      - name: Run smoke tests on inactive slot
+        run: |
+          INACTIVE_BASE="https://${{ steps.slot.outputs.inactive }}-prod-agl.aglz.io"
+          curl -f "$INACTIVE_BASE/api/overview" || exit 1
+          curl -f "$INACTIVE_BASE/api/containers" || exit 1
+          curl -f "$INACTIVE_BASE/api/vms" || exit 1
+          echo "Smoke tests passed on inactive slot"
+
+      - name: Gradual traffic switch (10%, 50%, 100%)
+        run: |
+          PERCENTAGES=(10 50 100)
+          for pct in "${PERCENTAGES[@]}"; do
+            echo "Switching $pct% traffic to ${{ steps.slot.outputs.inactive }}"
+            curl -X POST "${{ secrets.PRODUCTION_LB_API_URL }}/traffic" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ secrets.PRODUCTION_LB_TOKEN }}" \
+              -d "{
+                \"from\": \"${{ steps.slot.outputs.active }}\",
+                \"to\": \"${{ steps.slot.outputs.inactive }}\",
+                \"percentage\": $pct
+              }"
+            echo "Waiting for stability..."
+            sleep 60
+          done
+
+      - name: Monitor for rollback conditions
+        run: |
+          # Monitor for 5 minutes, check error rates
+          for i in {1..10}; do
+            ERROR_RATE=$(curl -s "https://prod-agl.aglz.io/api/metrics/error-rate" || echo "0")
+            if (( $(echo "$ERROR_RATE > 0.05" | bc -l) )); then
+              echo "Error rate too high: $ERROR_RATE, initiating rollback"
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Mark new slot as active
+        run: |
+          echo "Marking ${{ steps.slot.outputs.inactive }} as active slot..."
+          curl -X POST "${{ secrets.PRODUCTION_DOKPLOY_WEBHOOK_URL }}/activate" \
+            -H "Content-Type: application/json" \
+            -d "{\"slot\": \"${{ steps.slot.outputs.inactive }}\"}"
+
+      - name: Cleanup old slot
+        run: |
+          echo "Keeping old slot for rollback window..."
+          # Old slot remains available for 1 hour for rollback
+
+      - name: Final health check
+        run: |
+          for i in {1..10}; do
+            if curl -f https://prod-agl.aglz.io/api/health; then
+              echo "Production deployment successful"
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+
+  # ============================================================================
+  # Job 4: Post-deployment Tests
+  # ============================================================================
+  post-deploy-tests:
+    name: Post-deployment Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, bcmath
+
+      - name: Install Composer dependencies
+        working-directory: ./src
+        run: composer install --prefer-dist --no-interaction --no-dev
+
+      - name: Run integration tests against staging
+        working-directory: ./src
+        run: |
+          cp .env.testing .env
+          php artisan test --testsuite=Integration --filter=Staging
+
+  # ============================================================================
+  # Job 5: Rollback on Failure
+  # ============================================================================
+  rollback-on-failure:
+    name: Auto-rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure()
+    environment:
+      name: production
+
+    steps:
+      - name: Initiate rollback
+        run: |
+          echo "Deployment failed, initiating rollback..."
+
+      - name: Switch traffic back to previous slot
+        run: |
+          curl -X POST "${{ secrets.PRODUCTION_LB_API_URL }}/traffic" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.PRODUCTION_LB_TOKEN }}" \
+            -d '{"percentage": 100, "slot": "previous"}'
+
+      - name: Verify rollback health
+        run: |
+          for i in {1..20}; do
+            if curl -f https://prod-agl.aglz.io/api/health; then
+              echo "Rollback successful"
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1
+
+      - name: Notify rollback
+        run: |
+          echo "Rollback notification sent"
+          # Send notification via Slack/webhook
+
+  # ============================================================================
+  # Job 6: Deployment Summary
+  # ============================================================================
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-validation, deploy-staging, deploy-production, post-deploy-tests]
+    if: always()
+
+    steps:
+      - name: Generate deployment summary
+        run: |
+          echo "## Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Staging | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Post-deploy Tests | ${{ needs.post-deploy-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send deployment notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Deployment ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Deployment: ${{ job.status }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

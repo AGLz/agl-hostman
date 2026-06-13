@@ -1,0 +1,217 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - { name: 'Unit', processes: 8, coverage: true }
+          - { name: 'Feature', processes: 4, coverage: true }
+          - { name: 'Integration', processes: 2, coverage: false }
+          - { name: 'Architecture', processes: 4, coverage: false }
+          - { name: 'Performance', processes: 2, coverage: false }
+
+    name: ${{ matrix.suite.name }} Tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+          coverage: ${{ matrix.suite.coverage && 'pcov' || 'none' }}
+          ini-values: memory_limit=512M
+          tools: composer:v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          cd src
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup test environment
+        run: |
+          cd src
+          cp .env.example .env
+          php artisan key:generate
+          php artisan config:clear
+
+      - name: Run ${{ matrix.suite.name }} Tests
+        run: |
+          cd src
+          if [ "${{ matrix.suite.coverage }}" = "true" ]; then
+            php artisan test \
+              --testsuite=${{ matrix.suite.name }} \
+              --parallel \
+              --processes=${{ matrix.suite.processes }} \
+              --coverage \
+              --coverage-clover coverage-${{ matrix.suite.name }}.xml
+          else
+            php artisan test \
+              --testsuite=${{ matrix.suite.name }} \
+              --parallel \
+              --processes=${{ matrix.suite.processes }}
+          fi
+
+      - name: Upload coverage
+        if: matrix.suite.coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.suite.name }}
+          path: src/coverage-${{ matrix.suite.name }}.xml
+          retention-days: 1
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-reports
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          tools: composer:v2
+
+      - name: Install phpcov
+        run: composer global require sebastian/phpcov
+
+      - name: Merge coverage
+        run: |
+          mkdir -p coverage
+          ~/.composer/vendor/bin/phpcov merge \
+            --clover coverage/merged.xml \
+            coverage-reports/coverage-*/*.xml
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/merged.xml
+          flags: unittests
+          fail_ci_if_error: false
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const xml = fs.readFileSync('coverage/merged.xml', 'utf8');
+            const match = xml.match(/lines-covered="(\d+)".*lines-valid="(\d+)"/);
+
+            if (match) {
+              const covered = parseInt(match[1]);
+              const total = parseInt(match[2]);
+              const percentage = ((covered / total) * 100).toFixed(2);
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 📊 Test Coverage Report
+
+✅ **${percentage}%** code coverage
+
+| Metric | Value |
+|--------|-------|
+| Lines covered | ${covered}/${total} |
+| Target | 70%+ |
+| Status | ${percentage >= 70 ? '✅ Passing' : '❌ Below target'} |
+`
+              });
+            }
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    name: Static Analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          tools: composer:v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          cd src
+          composer install --no-interaction
+
+      - name: Run PHPStan
+        run: |
+          cd src
+          ./vendor/bin/phpstan analyse --memory-limit=2G || true
+
+      - name: Run Psalm
+        run: |
+          cd src
+          ./vendor/bin/psalm --show-info=false || true
+
+  security-check:
+    runs-on: ubuntu-latest
+    name: Security Check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          tools: composer:v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          cd src
+          composer install --no-interaction
+
+      - name: Security Advisories Check
+        run: |
+          cd src
+          composer audit --no-dev || true

@@ -1,0 +1,292 @@
+name: Deploy to UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      promotion_id:
+        description: 'Promotion ID (from QA promotion request)'
+        required: false
+        type: string
+      source_version:
+        description: 'Source version tag from QA (e.g., qa-1a2b3c4)'
+        required: true
+        type: string
+      skip_approval:
+        description: 'Skip approval check (emergency only)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: harbor.aglz.io:5000
+  PROJECT: agl-hostman-uat
+  IMAGE_NAME: agl-hostman
+
+jobs:
+  check-approval:
+    name: Check Approval Status
+    runs-on: ubuntu-latest
+    outputs:
+      approved: ${{ steps.check.outputs.approved }}
+
+    steps:
+      - name: Check promotion approval
+        id: check
+        if: ${{ github.event.inputs.promotion_id && !github.event.inputs.skip_approval }}
+        run: |
+          PROMOTION_ID="${{ github.event.inputs.promotion_id }}"
+          API_URL="${{ secrets.APP_URL }}/api/promotion/${PROMOTION_ID}/status"
+
+          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" "$API_URL")
+          STATUS=$(echo "$RESPONSE" | jq -r '.data.status')
+
+          if [ "$STATUS" = "approved" ]; then
+            echo "approved=true" >> $GITHUB_OUTPUT
+            echo "✅ Promotion is approved"
+          else
+            echo "approved=false" >> $GITHUB_OUTPUT
+            echo "❌ Promotion is not approved (status: $STATUS)"
+            exit 1
+          fi
+
+      - name: Skip approval check
+        if: ${{ github.event.inputs.skip_approval }}
+        run: |
+          echo "⚠️ Approval check skipped (emergency deployment)"
+          echo "approved=true" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    name: Build and Push to Harbor
+    needs: check-approval
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: release  # UAT uses release branch
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Generate image tag
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          IMAGE_TAG="uat-${SHORT_SHA}"
+          FULL_IMAGE="${{ env.REGISTRY }}/${{ env.PROJECT }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
+
+          echo "tags=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+          echo "📦 Building image: ${FULL_IMAGE}"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.REGISTRY }}/${{ env.PROJECT }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            APP_ENV=uat
+
+      - name: Image summary
+        run: |
+          echo "### 📦 Docker Image Built" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.meta.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ steps.meta.outputs.short_sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Source:** \`${{ github.event.inputs.source_version }}\`" >> $GITHUB_STEP_SUMMARY
+
+  deploy-uat:
+    name: Deploy to UAT (CT181)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: uat
+      url: https://uat-agl.aglz.io
+
+    steps:
+      - name: Trigger Dokploy deployment
+        id: deploy
+        run: |
+          echo "🚀 Triggering deployment to CT181..."
+
+          WEBHOOK_URL="${{ secrets.DOKPLOY_WEBHOOK_URL }}"
+
+          curl -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "tag": "${{ needs.build-and-push.outputs.tag }}",
+              "promotion_id": "${{ github.event.inputs.promotion_id }}",
+              "source_version": "${{ github.event.inputs.source_version }}",
+              "triggered_by": "${{ github.actor }}"
+            }'
+
+          echo "✅ Deployment triggered"
+
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting for deployment to complete..."
+          sleep 30  # Give Dokploy time to start
+
+          MAX_WAIT=300  # 5 minutes
+          ELAPSED=0
+          INTERVAL=10
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            HEALTH=$(curl -s -o /dev/null -w "%{http_code}" https://uat-agl.aglz.io/api/health)
+
+            if [ "$HEALTH" = "200" ]; then
+              echo "✅ Deployment successful (health check passed)"
+              exit 0
+            fi
+
+            echo "⏳ Waiting for health check... ($ELAPSED/$MAX_WAIT seconds)"
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "❌ Deployment timeout (health check failed after $MAX_WAIT seconds)"
+          exit 1
+
+  smoke-tests:
+    name: Run Smoke Tests
+    needs: deploy-uat
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: release
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo, pdo_pgsql, redis, mbstring, xml, curl
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Configure environment
+        run: |
+          cp .env.uat.example .env
+          php artisan key:generate
+
+          # Set UAT API URL for tests
+          sed -i "s|APP_URL=.*|APP_URL=https://uat-agl.aglz.io|" .env
+
+      - name: Run smoke tests
+        id: tests
+        run: |
+          echo "🧪 Running smoke tests..."
+
+          php artisan test --group=smoke --stop-on-failure --parallel
+
+          echo "✅ All smoke tests passed"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: |
+            tests/results/
+            storage/logs/laravel.log
+
+      - name: Report smoke test results
+        if: success()
+        run: |
+          echo "### 🧪 Smoke Tests Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All critical path tests passed successfully." >> $GITHUB_STEP_SUMMARY
+
+  update-promotion:
+    name: Update Promotion Status
+    needs: [smoke-tests, build-and-push]
+    if: ${{ github.event.inputs.promotion_id }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Mark promotion as completed
+        run: |
+          PROMOTION_ID="${{ github.event.inputs.promotion_id }}"
+          API_URL="${{ secrets.APP_URL }}/api/promotion/${PROMOTION_ID}/complete"
+
+          curl -X POST "$API_URL" \
+            -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "target_version": "${{ needs.build-and-push.outputs.tag }}",
+              "smoke_test_results": {
+                "passed": true,
+                "github_run_id": "${{ github.run_id }}"
+              }
+            }'
+
+          echo "✅ Promotion marked as completed"
+
+  notify:
+    name: Send Notifications
+    needs: [deploy-uat, smoke-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deployment summary
+        run: |
+          if [ "${{ needs.smoke-tests.result }}" = "success" ]; then
+            echo "### ✅ UAT Deployment Successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** UAT (CT181)" >> $GITHUB_STEP_SUMMARY
+            echo "**URL:** https://uat-agl.aglz.io" >> $GITHUB_STEP_SUMMARY
+            echo "**Image Tag:** \`${{ needs.build-and-push.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Source Version:** \`${{ github.event.inputs.source_version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Deployed By:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ UAT Deployment Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Check logs for details**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # TODO: Add Slack/Discord/Email notifications
+      - name: Notification placeholder
+        run: echo "Add notification integrations here"
+
+  rollback:
+    name: Rollback on Failure
+    needs: [deploy-uat, smoke-tests]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger rollback
+        run: |
+          echo "🔄 Triggering automatic rollback..."
+
+          API_URL="${{ secrets.APP_URL }}/api/deployment/uat/rollback"
+
+          curl -X POST "$API_URL" \
+            -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+            -H "Content-Type: application/json"
+
+          echo "✅ Rollback triggered"
