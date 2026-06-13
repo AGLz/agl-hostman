@@ -65,11 +65,13 @@ Ver [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md) para o stack completo (Ov
 
 | ID | Name | Purpose | Status | Networks | Notes |
 |----|------|---------|--------|----------|-------|
-| **117** | **pihole3** | **DNS (Pi-hole)** | ✅ | LAN **192.168.15.102**, TS **`aglsrv3-pihole`** (NeedsLogin) | Clone vzdump AGLSRV1 CT102 (2026-05-28); ver [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) |
-| 106 | cloudflared3 | Cloudflare Tunnel | ✅ | — | Running |
-| 104 | cloudflared | Cloudflare Tunnel | ⏸️ | — | Stopped |
+| **317** | **pihole3** | **DNS (Pi-hole)** | ✅ | LAN **192.168.15.117**, TS **`aglsrv3-pihole`** | Clone AGLSRV1 CT102 |
+| **304** | **cloudflared3a** | Cloudflare Tunnel | ✅ | `.15.104` + `.30.104` | Túnel `aglsrv3` (HA) |
+| **306** | **cloudflared3b** | Cloudflare Tunnel | ✅ | `.15.106` + `.30.106` | Túnel `aglsrv3` (HA) |
+| **318** | **aglsrv3-pbs** | PBS | ✅ | `.15.118` + `.30.118` | Backups locais |
+| **338** | **aglfs3** | File server | ✅ | `.15.138` + `.30.138` | NFS/SMB |
 
-**Host DNS:** `192.168.15.102` (CT117) → `1.1.1.1` / `8.8.8.8` — ver `HOSTS.md`.
+**Host DNS:** `192.168.15.117` (CT317) → `1.1.1.1` / `8.8.8.8` — ver `HOSTS.md`.
 
 ### VMs (AGLSRV3)
 

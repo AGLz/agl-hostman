@@ -101,7 +101,7 @@ ssh root@10.6.0.10
 ### DNS (host Proxmox)
 
 ```text
-nameserver 192.168.15.102   # CT117 pihole3 (Pi-hole local)
+nameserver 192.168.15.117   # CT317 pihole3 (Pi-hole local)
 nameserver 1.1.1.1
 nameserver 8.8.8.8
 search aglz.io
@@ -133,9 +133,11 @@ NFS remoto para CT178 (AGLSRV1) documentado historicamente; confirmar mounts act
 
 | VMID | Name | LAN | Tailscale | Notas |
 |------|------|-----|-----------|--------|
-| **117** | **pihole3** | **192.168.15.102/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28); DHCP desactivado |
-| 106 | cloudflared3 | — | — | Running |
-| 104 | cloudflared | — | — | Stopped (lock mounted) |
+| **317** | **pihole3** | **192.168.15.117/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28) |
+| **304** | **cloudflared3a** | **192.168.15.104/24** | — | Túnel `aglsrv3` (HA) |
+| **306** | **cloudflared3b** | **192.168.15.106/24** | — | Túnel `aglsrv3` (HA) |
+| **318** | **aglsrv3-pbs** | **192.168.15.118/24** | — | PBS local |
+| **338** | **aglfs3** | **192.168.15.138/24** | — | File server |
 
 **Virtual Machines**: VM101–108 (Windows / Truenas / OPNsense — maior parte stopped); **VM310** `agl-ollama` (Ollama primário, 2× RX580, TS `100.67.253.52`, LAN `192.168.15.210`) — [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 
@@ -163,7 +165,7 @@ https://192.168.15.247:8006   # LAN
 https://100.123.5.81:8006     # Tailscale (se firewall permitir)
 
 # Pi-hole Web UI (CT117)
-http://192.168.15.102/admin
+http://192.168.15.117/admin
 ```
 
 ### Notes

@@ -35,4 +35,5 @@ exit 1
 REMOTE
 
 echo "OK: config + custom_callbacks + scripts/smoke em $HOST:$REMOTE_DIR"
-echo "Smoke no CT186: LITELLM_ENV_FILE=$REMOTE_DIR/.env LITELLM_URL=http://127.0.0.1:4000 bash $REMOTE_DIR/scripts/test-ollama-litellm-content.sh ollama-gemma4-qat"
+echo "Smoke no CT186: LITELLM_ENV_FILE=$REMOTE_DIR/.env LITELLM_URL=http://127.0.0.1:4000 bash $REMOTE_DIR/scripts/test-ollama-litellm-content.sh agl-primary"
+echo "Smoke strong: ... test-ollama-litellm-content.sh agl-primary-strong"

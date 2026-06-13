@@ -17,7 +17,7 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Configuration
-HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglsrv1.local}"
+HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglz.io}"
 HARBOR_IP="${HARBOR_IP:-192.168.0.182}"
 CERT_DIR="/data/cert"
 
@@ -57,7 +57,9 @@ subjectAltName = @alt_names
 
 [alt_names]
 DNS.1=${HARBOR_HOSTNAME}
-DNS.2=harbor
+DNS.2=harbor.aglsrv1.local
+DNS.3=harbor.aglz.io
+DNS.4=harbor
 IP.1=${HARBOR_IP}
 IP.2=127.0.0.1
 EOF

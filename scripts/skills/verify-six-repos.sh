@@ -224,6 +224,24 @@ else
 fi
 
 echo ""
+echo "-- 9. mandatory delivery pipeline (global) --"
+if [[ -f "$HOME/.cursor/rules/mandatory-delivery-pipeline.mdc" ]]; then
+  pass "Cursor global mandatory-delivery-pipeline.mdc"
+else
+  warn "Cursor global delivery pipeline em falta — correr install-global-delivery-rules.sh"
+fi
+if [[ -f "$HOSTMAN_ROOT/.cursor/rules/mandatory-delivery-pipeline.mdc" ]]; then
+  pass "agl-hostman mandatory-delivery-pipeline.mdc"
+else
+  warn "project mandatory-delivery-pipeline.mdc em falta"
+fi
+if [[ -f "$HOME/.claude/rules/mandatory-delivery-pipeline.md" ]]; then
+  pass "Claude user mandatory-delivery-pipeline.md"
+else
+  warn "Claude delivery pipeline em falta — correr install-global-delivery-rules.sh"
+fi
+
+echo ""
 if [[ "$SKIP_LLM_WIKI" != "1" ]]; then
   echo "-- llm-wiki vault --"
   if [[ -f "$LLM_WIKI_DIR/wiki/index.md" ]]; then

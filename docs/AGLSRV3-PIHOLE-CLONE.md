@@ -2,7 +2,7 @@
 
 > **Data**: 2026-05-28  
 > **Origem**: AGLSRV1 CT102 (`pihole` @ `192.168.0.102`)  
-> **Destino**: AGLSRV3 CT117 (`pihole3` @ `192.168.15.102`)  
+> **Destino**: AGLSRV3 CT317 (`pihole3` @ `192.168.15.117`)  
 > **Site**: AGLFG (LAN `192.168.15.0/24`) — **sem rota LAN** para Pi-hole AGLHQ
 
 ## Contexto
@@ -13,7 +13,7 @@ O AGLSRV3 está num site físico remoto (segmento `192.168.15.0/24`). O host **n
 |------|------------------|-------------------|
 | Host | `100.107.113.33` / `192.168.0.245` | `100.123.5.81` / `192.168.15.247` |
 | CT | 102 `pihole` | 117 `pihole3` |
-| LAN DNS | `192.168.0.102` | `192.168.15.102` |
+| LAN DNS | `192.168.0.102` | `192.168.15.117` (VMID 317; antes `.102`) |
 | Tailscale | `aglsrv1-pihole` (`100.114.66.80`) | `aglsrv3-pihole` (**join pendente**) |
 
 ## Procedimento executado (2026-05-28)
@@ -31,7 +31,7 @@ pct restore 117 /var/lib/vz/dump/vzdump-lxc-102-2026_05_28-11_31_00.tar.zst \
 
 # Rede CT117
 pct set 117 -hostname pihole3 -tags aglsrv3,dns,pihole
-pct set 117 -net0 name=eth0,bridge=vmbr0,ip=192.168.15.102/24,gw=192.168.15.1,type=veth
+pct set 317 -net0 name=eth0,bridge=vmbr0,ip=192.168.15.117/24,gw=192.168.15.1,type=veth
 
 # Pós-clone no CT117
 systemctl disable --now wg-quick@wg0 2>/dev/null || true
@@ -39,7 +39,7 @@ tailscale logout  # remover identidade aglsrv1-pihole herdada
 # DHCP Pi-hole: desactivado no clone (evitar conflito com CT102)
 
 # DNS do host AGLSRV3
-# /etc/resolv.conf → 192.168.15.102, 1.1.1.1, 8.8.8.8
+# /etc/resolv.conf → 192.168.15.117, 1.1.1.1, 8.8.8.8
 # tailscale set --accept-dns=false
 ```
 
@@ -77,10 +77,10 @@ pct exec 117 -- tailscale ip -4
 
 ```bash
 # Web UI
-http://192.168.15.102/admin
+http://192.168.15.117/admin
 
 # DNS
-dig @192.168.15.102 google.com +short
+dig @192.168.15.117 google.com +short
 
 # Host AGLSRV3
 grep nameserver /etc/resolv.conf

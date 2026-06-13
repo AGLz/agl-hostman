@@ -162,12 +162,17 @@ setup_aglsrv3() {
   local pbs_root="${AGLSRV3_PBS_STORES_ROOT:-/aglsrv3-tb}"
   apply_pbs_link "${AGLSRV3_PBS_VMID}" "${AGLSRV3_PBS_IP}" "${pbs_root}" "aglsrv3" "pbs-"
 
-  # VMs 301-303,305,308 + CTs 304,306,317,338 (excl. 318 PBS)
-  local vmids="301,302,303,305,308,304,306,317,338"
+  # VMs 301-303,305,308,310 + CTs 304,306,317,338 (excl. 318 PBS)
+  local vmids="301,302,303,305,308,310,304,306,317,338"
   if [[ "${APPLY}" == true ]]; then
-    upsert_backup_job "backup-aglsrv3-pbs-daily" "AGLSRV3 daily PBS (renumbered)" "aglsrv3" "pbs-local" "04:15" "${vmids}" 1
+    upsert_backup_job "backup-aglsrv3-pbs-daily" "AGLSRV3 daily PBS -> aglsrv3-tb" "aglsrv3" "pbs-aglsrv3-tb" "04:15" "${vmids}" 1
+    if [[ -x /usr/local/sbin/aglsrv3-host-root-backup.sh ]]; then
+      log "Host root backup: /usr/local/sbin/aglsrv3-host-root-backup.sh (cron aglsrv3-host-root-backup)"
+    else
+      log "AVISO: instalar host root backup: bash scripts/proxmox/aglsrv3-host-backup-install.sh --remote"
+    fi
   else
-    log "DRY-RUN aglsrv3 job vmid=${vmids} storage=pbs-local"
+    log "DRY-RUN aglsrv3 job vmid=${vmids} storage=pbs-aglsrv3-tb"
   fi
 }
 

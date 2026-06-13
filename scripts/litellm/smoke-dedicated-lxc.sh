@@ -38,12 +38,9 @@ echo "    HTTP $health_code"
 
 MODELS=(
   cursor-composer
-  qwen-coder
+  agl-primary
+  agl-primary-strong
   glm-flash
-  zai/glm-4.7-flash
-  ollama-qwen3-4b
-  ollama-gemma3-4b
-  ollama-gemma4-qat
 )
 
 fail=0

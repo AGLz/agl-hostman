@@ -146,7 +146,12 @@ clone_repo() {
     fi
   else
     log_info "Clone $url -> $dir"
-    run_or_echo git clone --depth 1 "$url" "$dir"
+    if command -v gh >/dev/null 2>&1 && [[ "$url" =~ github\.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
+      local slug="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+      run_or_echo gh repo clone "$slug" "$dir" -- --depth 1
+    else
+      run_or_echo git clone --depth 1 "$url" "$dir"
+    fi
   fi
 }
 

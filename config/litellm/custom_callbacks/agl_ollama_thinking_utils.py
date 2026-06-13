@@ -10,7 +10,7 @@ _OLLAMA_ALIAS_PATTERN = re.compile(
 )
 
 _OLLAMA_THINKING_ALIAS_PATTERN = re.compile(
-    r"(^|/)(agl-primary|ollama-qwen|ollama-deepseek|openai/ollama-qwen|openai/ollama-deepseek)",
+    r"(^|/)(agl-primary-strong|ollama-qwen|ollama-deepseek|openai/ollama-qwen|openai/ollama-deepseek)",
     re.I,
 )
 
@@ -22,7 +22,7 @@ def is_ollama_route(model: Optional[str], data: dict) -> bool:
     if _OLLAMA_ALIAS_PATTERN.search(slug):
         return True
     api_base = str(data.get("api_base") or "")
-    if ":11434" in api_base:
+    if ":11434" in api_base or ":11435" in api_base:
         return True
     deployment = str(data.get("litellm_metadata", {}).get("deployment", ""))
     if "ollama" in deployment.lower():

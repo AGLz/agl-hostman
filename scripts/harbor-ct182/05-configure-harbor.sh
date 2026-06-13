@@ -18,7 +18,7 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_step() { echo -e "${BLUE}[STEP]${NC} $1"; }
 
-HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglsrv1.local}"
+HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglz.io}"
 HARBOR_URL="https://${HARBOR_HOSTNAME}"
 HARBOR_USER="admin"
 HARBOR_PASS="${HARBOR_ADMIN_PASSWORD:-Harbor12345}"

@@ -16,7 +16,7 @@
 | Runtime | CT134 AGLSRV1 |
 | URL pública | **`https://ah.aglz.io`** (ex-dev; outros ambientes: `ah-dev`, `ah-qa`, `ah-uat`) |
 | Stack | Laravel 12 (`src/Dockerfile`) + Horizon + scheduler |
-| Registry | `harbor.aglz.io:5000/agl-hostman-prod/hostman` |
+| Registry | `harbor.aglz.io/agl-hostman-prod/hostman` |
 | Orquestração | Dokploy (CT180) → deploy no CT134 |
 | Dev | CT179 agldv03 (NFS) — **não** partilhar código com prod |
 

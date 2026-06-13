@@ -1,6 +1,7 @@
 # VM110 agl-ollama — Migração Ollama (CT200 → VM)
 
-> **⚠️ Legado / offline (2026-06-11).** Ollama primário está na **VM310** (AGLSRV3). LiteLLM `agl-primary` → `http://100.67.253.52:11434`. Ver [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md).
+> **⚠️ Legado / offline (2026-06-11).** Ollama primário canónico está na **VM310** (AGLSRV3) — **suspenso até reboot AGLSRV3 (segunda).**  
+> **Janela 23h (2026-05-18):** **Plan C** — `gemma4-qat` text-only (GGUF QAT HF) na **VM110** GTX 1650 4 GB. Ver secção [Plan C](#plan-c--gemma-4-qat-gtx-1650-4-gb) abaixo.
 
 **Data:** 2026-05-18  
 **Host:** AGLSRV1 (`192.168.0.245`, Tailscale `100.107.113.33`)  
@@ -116,6 +117,9 @@ OLLAMA_GPU_MEMORY_FRACTION=0.95
 | `prepare-gpu-passthrough-host.sh` | AGLSRV1 root | vfio + initramfs **antes** do reboot |
 | `finish-vm110-gpu-passthrough.sh` | AGLSRV1 root | Reanexa GPU **após** reboot |
 | `install-vm110-ollama-guest.sh` | VM110 root | NVIDIA + Ollama + pull qwen3:4b |
+| `install-vm110-gemma4-qat-plan-c.sh` | VM110 root | **Plan C:** HF GGUF QAT + `ollama create gemma4-qat` |
+| `verify-vm110-gemma4-qat.sh` | VM110 / remoto | Smoke gemma4-qat + qwen3:4b + VRAM |
+| `runbook-vm110-maintenance-23h.sh` | agldv03 | Orquestração preflight / host / guest / litellm |
 
 Cópia rápida para o host:
 
@@ -235,6 +239,47 @@ curl -sf http://192.168.0.200:11434/api/tags
 # Benchmark comparativo providers (latência, capacidade, limites)
 python3 scripts/litellm/benchmark-provider-comparison.py
 # Resultado: docs/LITELLM-PROVIDER-BENCHMARK.md
+```
+
+---
+
+## Plan C — Gemma 4 QAT (GTX 1650 4 GB)
+
+**Objectivo:** `agl-primary` = `gemma4-qat` local na VM110 durante indisponibilidade da VM310 (AGLSRV3).
+
+| Item | Valor |
+|------|--------|
+| Modelo | `google/gemma-4-E2B-it-qat-q4_0-gguf` → **só** `gemma-4-E2B_q4_0-it.gguf` (~3,35 GB) |
+| **Não usar** | `gemma-4-E2B-it-mmproj.gguf` (~987 MB) nem `gemma4:e2b-it-qat` do registry Ollama (multimodal → OOM) |
+| Alias Ollama | `gemma4-qat` |
+| Fallback guest | `qwen3:4b` (~3,2 GB VRAM, já validado) |
+| ctx | 8192 (se OOM → `OLLAMA_CONTEXT_LENGTH=4096`) |
+| API | LAN `192.168.0.200:11434`, TS `100.116.57.111:11434` |
+
+### Sequência janela ~23h
+
+```bash
+# Agora (agldv03) — preflight + sync scripts para AGLSRV1
+PHASE=preflight bash scripts/aglsrv1/runbook-vm110-maintenance-23h.sh
+
+# AGLSRV1 — se vfio não activo
+bash /root/agl-hostman/scripts/aglsrv1/prepare-gpu-passthrough-host.sh
+reboot
+
+# Após boot (agldv03) — host + guest + LiteLLM
+PHASE=all bash scripts/aglsrv1/runbook-vm110-maintenance-23h.sh
+```
+
+Fases individuais: `PHASE=host|guest|litellm`.
+
+**LiteLLM (CT186):** `bash scripts/litellm/apply-litellm-vm110-plan-c.sh`  
+**Rollback Groq:** `bash scripts/litellm/restore-litellm-groq-failover.sh`
+
+### Verificação Plan C
+
+```bash
+OLLAMA_HOST=http://100.116.57.111:11434 bash scripts/aglsrv1/verify-vm110-gemma4-qat.sh
+bash scripts/litellm/test-ollama-litellm-content.sh agl-primary
 ```
 
 ---

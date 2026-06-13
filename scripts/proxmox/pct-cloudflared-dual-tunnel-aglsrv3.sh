@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# CT104 + CT106 — dois conectores cloudflared no AGLSRV3 (HA durante vzdump/backup).
+# CT304 + CT306 (cloudflared3a / cloudflared3b) — dois conectores cloudflared no AGLSRV3.
 # Um túnel continua activo enquanto o outro CT está parado para backup.
 #
 # Uso (no host aglsrv3 ou via SSH):
 #   bash scripts/proxmox/pct-cloudflared-dual-tunnel-aglsrv3.sh
 #   bash scripts/proxmox/pct-cloudflared-dual-tunnel-aglsrv3.sh --check-only
 #
-# Pré-requisitos: pct, CT106 running com cloudflared OK.
-# Fix conhecido CT104: /etc/resolv.conf com chattr +i impede arranque Proxmox.
+# Pré-requisitos: pct, CT306 (cloudflared3b) running com cloudflared OK.
+# Fix conhecido CT304: /etc/resolv.conf com chattr +i impede arranque Proxmox.
 
 set -euo pipefail
 
-CT_PRIMARY=106
-CT_SECONDARY=104
-MAC_104="BC:24:11:5D:44:DD"
+CT_PRIMARY=306
+CT_SECONDARY=304
 CHECK_ONLY=false
 
 for arg in "$@"; do
@@ -72,11 +71,11 @@ pct list | grep -E "^\s*(${CT_PRIMARY}|${CT_SECONDARY})\s" || true
 
 ensure_resolv_mutable "${CT_SECONDARY}"
 
-echo "=== Rede CT${CT_SECONDARY} (DHCP em vmbr0, MAC ${MAC_104}) ==="
-pct set "${CT_SECONDARY}" -net0 "name=eth0,bridge=vmbr0,hwaddr=${MAC_104},ip=dhcp,type=veth"
+echo "=== Rede CT${CT_SECONDARY} (cloudflared3a — IP estático via aglsrv3-dual-lan-static.sh) ==="
+# Rede gerida por scripts/proxmox/aglsrv3-dual-lan-static.sh; não forçar DHCP aqui.
 
 pct set "${CT_SECONDARY}" --onboot 1
-pct set "${CT_SECONDARY}" --description "Cloudflared HA com CT106 — conector duplicado; failover durante backup vzdump"
+pct set "${CT_SECONDARY}" --description "cloudflared3a — HA com CT306 (cloudflared3b); túnel aglsrv3"
 
 echo "=== Arranque CT${CT_SECONDARY} ==="
 if pct status "${CT_SECONDARY}" | grep -q stopped; then
@@ -102,4 +101,4 @@ for vmid in "${CT_PRIMARY}" "${CT_SECONDARY}"; do
   echo "OK: CT${vmid} cloudflared active — $(pct exec "${vmid}" -- ip -4 -o addr show dev eth0 | awk '{print $4}')"
 done
 
-echo "Feito. Dois conectores activos (104 + 106). Não usar chattr +i em /etc/resolv.conf nos CTs Proxmox."
+echo "Feito. Dois conectores activos (304 cloudflared3a + 306 cloudflared3b). Não usar chattr +i em /etc/resolv.conf nos CTs Proxmox."

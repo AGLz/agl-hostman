@@ -104,7 +104,7 @@ provision_aglsrv3() {
   local gw=${AGLSRV3_PBS_GW}
   local hn=${AGLSRV3_PBS_HOSTNAME}
   local dump_on_target="/var/lib/vz/dump/pbs-from-ct113.tar.zst"
-  local ns="192.168.15.102"
+  local ns="${AGLSRV3_DNS:-192.168.15.117}"
 
   log "=== AGLSRV3 CT${vmid} (${hn}) ==="
   if remote "${AGLSRV3_SSH}" "pct config ${vmid}" &>/dev/null; then

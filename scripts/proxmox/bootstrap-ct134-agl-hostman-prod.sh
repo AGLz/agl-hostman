@@ -4,7 +4,7 @@
 set -euo pipefail
 
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/agl-hostman-prod}"
-HARBOR_REGISTRY="${HARBOR_REGISTRY:-harbor.aglz.io:5000}"
+HARBOR_REGISTRY="${HARBOR_REGISTRY:-harbor.aglz.io}"
 HARBOR_PROJECT="${HARBOR_PROJECT:-agl-hostman-prod}"
 IMAGE_NAME="${IMAGE_NAME:-hostman}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/agl-hostman-prod/docker-compose.yml}"

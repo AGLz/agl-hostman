@@ -31,7 +31,8 @@ def test_is_ollama_route(model: str, data: dict, expected: bool) -> None:
 @pytest.mark.parametrize(
     ("model", "data", "expected"),
     [
-        ("agl-primary", {}, True),
+        ("agl-primary", {}, False),
+        ("agl-primary-strong", {}, True),
         ("ollama-qwen3-4b-fast", {}, True),
         ("ollama-llama31-8b",
          {"litellm_metadata": {"deployment": "ollama/llama3.1:8b"}}, False),

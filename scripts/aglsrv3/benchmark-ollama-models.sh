@@ -43,7 +43,6 @@ DEFAULT_MODELS=(
   qwen3:4b
   qwen3:8b
   llama3.1:8b
-  gemma3:4b
   gemma4-qat
 )
 

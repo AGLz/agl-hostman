@@ -1,13 +1,15 @@
 # VM310 agl-ollama — AGLSRV3 (2× RX 580)
 
-**Data:** 2026-06-10  
+**Data:** 2026-06-12 (tiering agl-primary + dual-GPU)  
 **Host:** AGLSRV3 (`192.168.15.247`, Tailscale `100.123.5.81`)  
 **VM:** 310 — `agl-ollama`  
 **LAN:** `192.168.15.210/24`  
-**Modelo:** `qwen3:8b` (`OLLAMA_MAX_LOADED_MODELS=2`) — ~6.2 GB VRAM/GPU, Vulkan RADV  
-**GPU:** 2× AMD RX 580 2048SP — **16 GB VRAM total**, passthrough exclusivo (`hostpci0` + `hostpci1`)
+**Primário:** `gemma4-qat` @ GPU0 `:11434` — alias LiteLLM **`agl-primary`** (~46 tok/s JSON)  
+**Secundário:** `qwen3:8b` @ GPU1 `:11435` (planeado) — alias **`agl-primary-strong`** (~26 tok/s)  
+**Fallback:** `qwen3:4b` @ `:11434` — alias **`ollama-qwen3-4b-fast`**  
+**GPU:** 2× AMD RX 580 2048SP — passthrough `hostpci0` + `hostpci1` (`rombar=0`)
 
-> **2026-06-10:** VM310 **operacional** em AGLSRV3 (2× RX580, Ollama Vulkan, TS `100.67.253.52`). Histórico de discos perdidos (2026-06-09) resolvido com rebuild + restore.
+> **2026-06-12:** **AGLSRV3 travado** — host indisponível até reboot (segunda-feira). LiteLLM desviado para Groq/OpenRouter; restaurar Ollama após VM310 online.
 
 ---
 
@@ -34,9 +36,9 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 | VM301 AGLHQ10 | **Parada**, `onboot 0`, GPU removida |
 | Storage VM310 | **`aglsrv3-tb`** (após rebuild) ou `local-lvm` |
 | RAM VM310 | 16 GB (balloon 24 GB) |
-| LiteLLM | TS guest `100.67.253.52:11434` (`aglsrv3-ollama`) |
-| Aliases LiteLLM | `agl-primary`, `ollama-qwen3-8b`, `ollama-qwen3-4b-fast`, `ollama-gemma3-4b`, `ollama-gemma4-qat`, `ollama-llama31-8b` (+ legado `ollama-qwen3-4b`) |
-| **Modelos em disco (2026-06-12)** | `qwen3:8b`, `qwen3:4b`, `gemma3:4b`, `gemma4-qat`, `llama3.1:8b` (+ variantes teste `gemma4-copy`, `gemma4-qat-test`, `test-copy` — remover após validação) |
+| LiteLLM | TS guest `100.67.253.52:11434` (GPU0), `:11435` (GPU1 quando VBIOS OK) |
+| Aliases LiteLLM | **`agl-primary`** (gemma4-qat), **`agl-primary-strong`** (qwen3:8b), **`ollama-qwen3-4b-fast`**, `ollama-gemma4-qat` (legado), `ollama-qwen3-8b`, `ollama-llama31-8b`; `ollama-gemma3-4b` → redireccionado para gemma4-qat |
+| **Modelos em disco (2026-06-12)** | `gemma4-qat`, `qwen3:8b`, `qwen3:4b`, `llama3.1:8b` (4 modelos, ~15 GB) |
 
 ---
 
@@ -45,14 +47,22 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 - Passthrough: `hostpci0 mapping=RX580` + `hostpci1 mapping=RX580_2`, `pcie=1,rombar=0`
 - Host: `vfio-pci ids=1002:6fdf,1002:aaf0` em `/etc/modprobe.d/vfio.conf`
 - Guest: `linux-modules-extra`, `linux-firmware`, `modprobe amdgpu`
-- Ollama (override `scripts/aglsrv3/vm310-ollama-override.conf`):
-  - `OLLAMA_VULKAN=1`, `HIP_VISIBLE_DEVICES=-1`, `ROCR_VISIBLE_DEVICES=-1` (só Vulkan)
-  - `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_NUM_PARALLEL=2` (2 modelos / 2 GPUs em paralelo)
-  - `OLLAMA_SCHED_SPREAD=0` — modelos ≤8 GB ficam numa GPU (menor latência PCIe)
-  - `HSA_OVERRIDE_GFX_VERSION=10.3.0`, `GGML_VK_DISABLE_INTEGER_DOT_PRODUCT=1`
-  - Utilizador `ollama` no grupo `render`
-- Verificar: logs → `total_vram="16.0 GiB"`, `Vulkan0` + `Vulkan1` (~8 GiB cada)
-- Aplicar/reaplicar: `bash scripts/aglsrv3/apply-vm310-ollama-optimize.sh`
+- Ollama GPU0 (`scripts/aglsrv3/vm310-ollama-override.conf`): `:11434`, `GGML_VK_VISIBLE_DEVICES=0`, `MAX_LOADED_MODELS=1`
+- Ollama GPU1 (`vm310-ollama-gpu1-override.conf` + `ollama-gpu1.service`): `:11435`, `GGML_VK_VISIBLE_DEVICES=1` — **só activo se** `dmesg` mostrar `Initialized amdgpu` @ `02:00.0`
+- Aplicar: `bash scripts/aglsrv3/apply-vm310-ollama-optimize.sh`
+- Pre-warm: `bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh` (não aquece qwen3:8b em `:11434` se GPU1 inactiva — evita eviction do primário)
+- Prune: `bash scripts/aglsrv3/prune-vm310-ollama-models.sh`
+
+### Blocker dual-residency (2026-06-12)
+
+A 2.ª RX580 (`0000:02:00.0`) **não inicializa amdgpu** na guest (`Invalid PCI ROM header` / `error -22`). Com uma instância Ollama, carregar 2.º modelo **evicta** o 1.º. Até fix VBIOS:
+
+| Porta | GPU | Modelo residente |
+|-------|-----|------------------|
+| `:11434` | RX580 #1 (OK) | `gemma4-qat` (primário) |
+| `:11435` | — (desactivado) | — |
+
+**Próximo passo infra:** ROM válida para `RX580_2` → `hostpci1 rombar=1,romfile=…` → validar `02:00.0` → activar `ollama-gpu1` → apontar `agl-primary-strong` / `ollama-qwen3-8b` para `:11435`.
 
 ### Multi-GPU — expectativas (Ollama docs + prática)
 
@@ -73,7 +83,12 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 | `scripts/aglsrv3/setup-vm310-agl-ollama.sh` | Cria VM310 do zero (cloud-init) |
 | `scripts/aglsrv3/install-vm310-ollama-guest.sh` | Ollama + GPU na guest |
 | `scripts/aglsrv3/ollama-tailscale-nat.sh` | NAT TS `:11434` → VM310 |
-| `scripts/aglsrv3/vm310-ollama-override.conf` | systemd ollama |
+| `scripts/aglsrv3/vm310-ollama-override.conf` | systemd ollama GPU0 |
+| `scripts/aglsrv3/vm310-ollama-gpu1-override.conf` | systemd ollama-gpu1 |
+| `scripts/aglsrv3/apply-vm310-ollama-optimize.sh` | Deploy overrides + gpu1 condicional |
+| `scripts/aglsrv3/prewarm-vm310-dual-ollama.sh` | Pre-warm gemma4 (+ qwen3 se GPU1) |
+| `scripts/aglsrv3/prune-vm310-ollama-models.sh` | Remover modelos obsoletos |
+| `scripts/aglsrv3/verify-vm310-gpu1-ready.sh` | Exit 0 se GPU1 amdgpu OK |
 | `scripts/aglsrv3/benchmark-ollama-models.sh` | Benchmark multi-modelo (8 GB VRAM) |
 
 ---
@@ -94,9 +109,9 @@ OLLAMA_HOST=http://100.67.253.52:11434 \
 
 Saída CSV: `/tmp/ollama-vm310-bench-gemma4-qat.csv` (ou `--output`). Objetivo: **`100% GPU`** em `ollama ps`.
 
-Modelos default (benchmark): `qwen3:4b`, `qwen3:8b`, `llama3.1:8b`, `gemma3:4b`, `gemma4-qat`.
+Modelos default (benchmark): `qwen3:4b`, `qwen3:8b`, `llama3.1:8b`, `gemma4-qat`.
 
-**Removidos da VM310 (2026-06-11, disco):** `qwen3.5:9b`, `gemma2:9b`, `deepseek-r1:8b`, `qwen2.5-coder:7b`, `qwen2.5:7b`, `command-r7b`, `granite3.3:8b` — lentos, sem alias activo ou substituídos por API paid/free. Script: `scripts/aglsrv3/prune-vm310-ollama-models.sh`.
+**Removidos da VM310 (2026-06-12, prune):** `gemma3:4b` (redundante vs gemma4-qat), mais legados anteriores. Script: `scripts/aglsrv3/prune-vm310-ollama-models.sh`.
 
 **Benchmark 2026-06-12 (2× RX580, `think: false`, TS `100.67.253.52`, 5 modelos produção):**
 
@@ -104,10 +119,9 @@ CSV: `/tmp/ollama-vm310-bench-gemma4-qat.csv`.
 
 | Modelo | tok/s (chat quente) | tok/s (JSON quente) | VRAM | Notas |
 |--------|---------------------|---------------------|------|-------|
-| gemma4-qat | **~43** | **~46** | ~4.4 GB | Alias LiteLLM `ollama-gemma4-qat` |
-| gemma3:4b | **~43** | **~46** | ~4.4 GB | Alias LiteLLM `ollama-gemma3-4b` |
-| qwen3:4b | ~38 | ~38 | ~5.0 GB | Alias `ollama-qwen3-4b-fast` |
-| qwen3:8b | **~25** | **~26** | ~7.2 GB | **Primário** (`agl-primary`) |
+| gemma4-qat | **~43** | **~46** | ~4.4 GB | **`agl-primary`** (primário AGL) |
+| qwen3:4b | ~38 | ~38 | ~5.0 GB | **`ollama-qwen3-4b-fast`** (fallback) |
+| qwen3:8b | **~25** | **~26** | ~7.2 GB | **`agl-primary-strong`** (secundário) |
 | llama3.1:8b | ~19 | ~20 | ~7.0 GB | JSON/structured |
 
 **Smoke LiteLLM CT186 (2026-06-11):** aliases Ollama activos OK. `request_timeout` global **240s**.

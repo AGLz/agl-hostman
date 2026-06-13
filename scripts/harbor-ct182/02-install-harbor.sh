@@ -18,7 +18,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Configuration
 HARBOR_VERSION="${HARBOR_VERSION:-2.12.2}"
-HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglsrv1.local}"
+HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglz.io}"
 HARBOR_IP="${HARBOR_IP:-192.168.0.182}"
 DATA_DIR="/data/registry"
 INSTALL_DIR="/opt/harbor"

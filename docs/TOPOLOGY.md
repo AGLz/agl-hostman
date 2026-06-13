@@ -53,10 +53,10 @@ The infrastructure is distributed across **4 physical locations**, each with its
 
 **AGLSRV3 (Remote Site — AGLFG LAN segment)**:
 - **Localização física:** site remoto (segmento `192.168.15.0/24`, **não** AGLHQ)
-- CT117 (pihole3) + CT106 (cloudflared3); **VM310** (agl-ollama — Ollama 2× RX580, TS `100.67.253.52`); VMs Windows/Truenas (maioria stopped)
+- CT317 (pihole3) + CT304/306 (cloudflared3a/b); **VM310** (agl-ollama — Ollama 2× RX580, TS `100.67.253.52`); VMs Windows/Truenas (maioria stopped)
 - Hardware: Intel Xeon E5-2690 v3, 16GB RAM
 - Storage: `local` + `local-lvm` (~330GB thin)
-- DNS local: **CT117** @ `192.168.15.102` (clone Pi-hole AGLSRV1 CT102, 2026-05-28)
+- DNS local: **CT317** @ `192.168.15.117` (clone Pi-hole AGLSRV1 CT102, 2026-05-28)
 - Host DNS: Pi-hole local → `1.1.1.1` / `8.8.8.8`; Tailscale `accept-dns=false`
 
 ### Infrastructure Role

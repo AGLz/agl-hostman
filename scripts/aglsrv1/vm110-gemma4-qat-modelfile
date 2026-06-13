@@ -1,0 +1,15 @@
+# Plan C — Gemma 4 E2B QAT text-only (GGUF Q4_0, sem mmproj)
+# Fonte: google/gemma-4-E2B-it-qat-q4_0-gguf — só gemma-4-E2B_q4_0-it.gguf (~3,35 GB)
+# GTX 1650 4 GB: não carregar gemma-4-E2B-it-mmproj.gguf (~987 MB multimodal)
+#
+# O renderer/parser gemma4 é nativo do Ollama ≥ 0.20; num_ctx ajustável via override systemd.
+FROM {{GGUF_PATH}}
+
+PARAMETER num_ctx 8192
+PARAMETER temperature 1
+PARAMETER top_p 0.95
+PARAMETER top_k 64
+PARAMETER stop <end_of_turn>
+PARAMETER stop <start_of_image>
+
+LICENSE """Apache License Version 2.0 — Google Gemma. Ver https://ai.google.dev/gemma/docs/gemma_4_license"""

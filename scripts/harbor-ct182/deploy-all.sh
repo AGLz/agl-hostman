@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Configuration
 export HARBOR_VERSION="${HARBOR_VERSION:-2.12.2}"
-export HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglsrv1.local}"
+export HARBOR_HOSTNAME="${HARBOR_HOSTNAME:-harbor.aglz.io}"
 export HARBOR_IP="${HARBOR_IP:-192.168.0.182}"
 export HARBOR_ADMIN_PASSWORD="${HARBOR_ADMIN_PASSWORD:-Harbor12345}"
 

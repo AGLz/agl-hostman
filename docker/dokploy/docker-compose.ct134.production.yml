@@ -1,9 +1,9 @@
 # agl-hostman — produção CT134 (pull Harbor; gerido por Dokploy ou compose local)
-# Imagem: harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest
+# Imagem: harbor.aglz.io/agl-hostman-prod/hostman:prod-latest
 
 services:
   app:
-    image: ${IMAGE:-harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest}
+    image: ${IMAGE:-harbor.aglz.io/agl-hostman-prod/hostman:prod-latest}
     container_name: agl-hostman-prod-app
     restart: unless-stopped
     env_file:
@@ -26,7 +26,7 @@ services:
           memory: 4G
 
   horizon:
-    image: ${IMAGE:-harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest}
+    image: ${IMAGE:-harbor.aglz.io/agl-hostman-prod/hostman:prod-latest}
     container_name: agl-hostman-prod-horizon
     restart: unless-stopped
     command: php artisan horizon
@@ -41,7 +41,7 @@ services:
         condition: service_healthy
 
   scheduler:
-    image: ${IMAGE:-harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest}
+    image: ${IMAGE:-harbor.aglz.io/agl-hostman-prod/hostman:prod-latest}
     container_name: agl-hostman-prod-scheduler
     restart: unless-stopped
     command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"

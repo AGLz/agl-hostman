@@ -70,7 +70,7 @@ pct create "${VMID}" "${TEMPLATE}" \
   --cores 8 \
   --rootfs "${STORAGE}:64" \
   --net0 "name=eth0,bridge=vmbr0,gw=${GW},ip=${IP},type=veth" \
-  --nameserver 192.168.15.102 \
+  --nameserver 192.168.15.117 \
   --searchdomain aglz.io \
   --features nesting=1,fuse=1,mknod=1,keyctl=1 \
   --mp0 "/aglsrv3-tb/shares,mp=/mnt/shares" \

@@ -33,6 +33,12 @@ else
   warn "frontend-slides em falta no project — correr sync-six-repos --repo ecc"
 fi
 
+if [[ -x "$HOSTMAN_ROOT/scripts/skills/install-global-delivery-rules.sh" ]]; then
+  "$HOSTMAN_ROOT/scripts/skills/install-global-delivery-rules.sh"
+else
+  warn "install-global-delivery-rules.sh em falta — saltar pipeline global"
+fi
+
 if [[ "${SKIP_PROMPT_IMPROVER_PLUGIN:-0}" == "1" ]]; then
   warn "SKIP_PROMPT_IMPROVER_PLUGIN=1 — saltar plugin (skill ~/.claude/skills/prompt-improver mantida)"
   exit 0

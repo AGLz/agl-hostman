@@ -1,0 +1,36 @@
+---
+description: "Pipeline obrigatório: testes → code review → commit → push → PR/merge → resolução de conflitos"
+alwaysApply: true
+---
+
+# Pipeline de Entrega Obrigatório (AGL)
+
+> Aplica a **todo** trabalho com alterações de código ou config versionável. Não considerar tarefa concluída sem cumprir esta sequência.
+
+## Definition of Done (agentes)
+
+1. **Implementar** — diff mínimo, alinhado ao pedido.
+2. **Testar** — correr testes afetados; corrigir falhas antes de avançar.
+3. **Code review** — invocar **code-reviewer** (ou review-security/bugbot quando pedido) após escrever código; corrigir CRITICAL/HIGH.
+4. **Commit** — só quando o utilizador pedir ou a política da sessão exigir; mensagem conventional commits; nunca secrets.
+5. **Push** — `git push -u` se branch nova; confirmar remoto actualizado.
+6. **PR / merge** — criar PR com `gh pr create` (histórico completo da branch, test plan); resolver conflitos com rebase/merge explícito; nunca force-push em main/master.
+7. **Conflitos** — `git pull --rebase`, resolver, testar de novo, push.
+
+## Proibições
+
+- Não declarar "feito" com alterações só locais (sem push quando há remoto).
+- Não saltar review em features, APIs, integrações ou >3 ficheiros.
+- Não `--no-verify`, `--force` em main, ou amend após push (salvo pedido explícito).
+
+## Comandos de verificação (antes de fechar)
+
+```bash
+git status
+git diff --stat
+# testes do stack afectado (ex.: npm test, php artisan test --filter=...)
+```
+
+## Integração com bd / Linear
+
+- Follow-ups → `bd create` ou issue Linear; não deixar TODOs soltos como único tracking.

@@ -26,15 +26,16 @@ Legenda: `[ ]` pendente · `[x]` feito · `[~]` em progresso
 | CT134-1.2 | SSH + password/chave deploy | P0 | [~] |
 | CT134-1.3 | `bootstrap-ct134-agl-hostman-prod.sh` | P0 | [x] |
 | CT134-1.4 | Configurar `.env` prod (DB, Redis, APP_URL) | P0 | [x] |
-| CT134-1.5 | Tailscale no CT134 (opcional) | P2 | [ ] |
+| CT134-1.5 | Tailscale no CT134 (opcional) | P2 | [x] |
 
 ### Fase 2 — Harbor + DB
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-2.1 | Projecto Harbor `agl-hostman-prod` | P0 | [ ] |
+| CT134-2.1 | Projecto Harbor `agl-hostman-prod` | P0 | [x] |
 | CT134-2.2 | Robot account → GitHub Secrets | P0 | [ ] |
-| CT134-2.3 | DB `agl_hostman_prod` CT149 | P0 | [ ] |
+| CT134-2.3 | DB `agl_hostman_prod` CT149 | P0 | [x] |
+| CT134-2.6 | Certificado Harbor `harbor.aglz.io` + trust Docker CT134 | P0 | [x] |
 | CT134-2.4 | Push imagem smoke manual | P1 | [ ] |
 | CT134-2.5 | Política retention Harbor | P2 | [ ] |
 

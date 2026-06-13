@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: harbor.aglz.io:5000
+  REGISTRY: harbor.aglz.io
   IMAGE_NAME: agl-hostman
   PHP_VERSION: '8.4'
   NODE_VERSION: '20'
