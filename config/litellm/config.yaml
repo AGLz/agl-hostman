@@ -358,12 +358,12 @@ litellm_settings:
     - gpt-5.4-mini
     - gpt-5-mini
   - gpt-5.4-nano:
-    - glm-flash
+    - groq-llama-31-8b
     - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
   - openai/gpt-5.4-nano:
-    - glm-flash
+    - groq-llama-31-8b
     - glm-flash
     - or-nemotron-super-free
     - or-llama-3.3-70b-free
@@ -1057,13 +1057,16 @@ model_list:
 - litellm_params:
     api_key: os.environ/OPENAI_API_KEY
     model: openai/gpt-5.4-nano
+    timeout: 90
   model_info:
     access: direct
     context_window: 1000000
-    description: OpenAI GPT-5.4 nano (tier mais barato da família 5.4)
+    description: OpenAI GPT-5.4 nano (cron OpenClaw CT187; fallback Groq no 429)
     input_cost_per_token: 5.0e-08
     max_tokens: 16384
     output_cost_per_token: 4.0e-07
+    rpm: 120
+    tpm: 200000
   model_name: gpt-5.4-nano
 
 - litellm_params:
