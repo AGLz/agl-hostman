@@ -79,7 +79,8 @@ fi
 
 echo "=== 4/4 Restart quartet ==="
 cd "${HERMES_ROOT}"
-docker compose -f docker-compose.aglz-quartet.yml restart agl-hermes-jarvis agl-hermes-elon agl-hermes-satya agl-hermes-werner
+docker compose -f docker-compose.aglz-quartet.yml restart jarvis elon satya werner 2>/dev/null \
+  || docker compose -f docker-compose.aglz-quartet.yml restart
 sleep 15
 
 echo ""
