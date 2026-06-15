@@ -17,6 +17,7 @@ AGLDV05_HOST="${AGLDV05_HOST:-root@100.119.41.63}"
 AGLDV06_HOST="${AGLDV06_HOST:-root@100.71.229.12}"
 AGLDV07_HOST="${AGLDV07_HOST:-root@100.64.139.79}"
 AGLDV12_HOST="${AGLDV12_HOST:-root@100.71.217.115}"
+AGLWK45_VMID="${AGLWK45_VMID:-104}"
 
 DRY_RUN=0
 HOST=""
@@ -43,6 +44,24 @@ done
 log() { echo "[INFO] $*"; }
 ok() { echo "[OK] $*"; }
 warn() { echo "[WARN] $*"; }
+
+propagate_aglwk45() {
+  log "=== aglwk45 (VM${AGLWK45_VMID:-104} via AGLSRV1 guest agent) ==="
+  local qemu="$HOSTMAN_ROOT/scripts/dotfiles/propagate-dotfiles-wk45-qemu.sh"
+  if [[ ! -x "$qemu" ]]; then
+    chmod +x "$qemu" 2>/dev/null || true
+  fi
+  if [[ ! -f "$qemu" ]]; then
+    warn "propagate-dotfiles-wk45-qemu.sh em falta"
+    return 1
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "  [dry-run] $qemu"
+    return 0
+  fi
+  bash "$qemu" || { warn "aglwk45 qemu propagate falhou"; return 1; }
+  ok "aglwk45 propagate via qm guest exec"
+}
 
 propagate_one() {
   local name="$1"
@@ -91,6 +110,7 @@ case "$HOST" in
   agldv06) propagate_one agldv06 "$AGLDV06_HOST" ;;
   agldv07) propagate_one agldv07 "$AGLDV07_HOST" ;;
   agldv12) propagate_one agldv12 "$AGLDV12_HOST" ;;
+  aglwk45) propagate_aglwk45 ;;
   local) propagate_one "$(hostname -s)" local ;;
   agldv-all)
     propagate_one agldv03 "$AGLDV03_HOST" || warn "agldv03 skip"
@@ -115,7 +135,7 @@ case "$HOST" in
         agldv12) propagate_one agldv12 "$AGLDV12_HOST" || true ;;
       esac
     done
-    warn "aglwk45: usar install-agl-home-sync.ps1 (fase Windows — pendente)"
+    propagate_aglwk45 || warn "aglwk45 skip"
     ;;
   *)
     echo "Host desconhecido: $HOST" >&2
