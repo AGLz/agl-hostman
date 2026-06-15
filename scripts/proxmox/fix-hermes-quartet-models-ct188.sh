@@ -29,12 +29,12 @@ case "${MODE}" in
     FALLBACK_MODEL="agl-primary"
     AUXILIARY_MODEL="zai-glm-5"
     ;;
-  --coding-exhausted)
-    # Z.AI Coding Plan quota esgotada (zai-coding-glm-4.7 → 429)
+  --coding-exhausted|--resilient)
+    # Z.AI Coding Plan quota esgotada OU sessões longas: evitar Groq (TPM 6k).
     JARVIS_MODEL="zai-glm-5"
-    AGENT_MODEL="groq-llama-31-8b"
-    FALLBACK_MODEL="groq-llama-31-8b"
-    AUXILIARY_MODEL="groq-llama-31-8b"
+    AGENT_MODEL="zai-glm-5"
+    FALLBACK_MODEL="agl-primary"
+    AUXILIARY_MODEL="glm-4.7-flash"
     ;;
   quota|--quota)
     JARVIS_MODEL="groq-llama-31-8b"
@@ -43,7 +43,7 @@ case "${MODE}" in
     AUXILIARY_MODEL="groq-llama-31-8b"
     ;;
   *)
-    echo "Uso: $0 [--restore-openai]" >&2
+    echo "Uso: $0 [--paid-tier|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
     exit 1
     ;;
 esac
