@@ -43,6 +43,8 @@ Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan
 
 Plano e scripts: [`ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`](ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md) · integração llm-wiki: [`docs/LLM-WIKI-AGENCY-INTEGRATION.md`](docs/LLM-WIKI-AGENCY-INTEGRATION.md).
 
+**Dotfiles + live sync (Cursor/Claude/Codex):** configs em `config/dotfiles/`; chats/history em `/mnt/overpower/apps/dev/agl/agl-home-sync/` (NFS overpower). Scripts: `scripts/dotfiles/install-agl-home-sync.sh`, `verify-agl-home-sync.sh`, `propagate-dotfiles.sh`.
+
 ```bash
 bash scripts/skills/sync-six-repos.sh --repo all
 bash scripts/skills/verify-six-repos.sh

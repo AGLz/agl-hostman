@@ -1,0 +1,28 @@
+{
+    "mcp.enabled": true,
+    "mcp.autoStart": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    },
+    "files.associations": {
+        "*.blade.php": "blade",
+        "*.vue": "vue"
+    },
+    "emmet.includeLanguages": {
+        "blade": "html",
+        "vue": "html"
+    },
+    "php.suggest.basic": false,
+    "php.validate.enable": true,
+    "intelephense.files.associations": [
+        "*.php",
+        "*.blade.php"
+    ],
+    "intelephense.files.exclude": [
+        "**/node_modules/**",
+        "**/vendor/**"
+    ],
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "vue.server.hybridMode": true
+}

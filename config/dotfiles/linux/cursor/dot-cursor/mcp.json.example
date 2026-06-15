@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "archon": {
+      "url": "http://100.80.30.59:8052/mcp"
+    },
+    "dokploy-mcp": {
+      "command": "npx",
+      "args": ["-y", "@ahdev/dokploy-mcp"],
+      "env": {
+        "DOKPLOY_URL": "https://dok.aglz.io/api",
+        "DOKPLOY_API_KEY": "${DOKPLOY_API_KEY}"
+      }
+    }
+  }
+}

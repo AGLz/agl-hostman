@@ -1,0 +1,56 @@
+# Manifesto dotfiles AGL — mapa symlink por plataforma.
+# Live data (chats, globalStorage, history) → AGL_HOME_SYNC_ROOT (NFS overpower / aglfs1).
+# Config versionável → config/dotfiles/ neste repo (agl-hostman).
+#
+# Variáveis (install-agl-home-sync.sh):
+#   AGL_HOME_SYNC_ROOT  default: /mnt/overpower/apps/dev/agl/agl-home-sync
+#   AGL_HOME_USER       default: linux-root | win-administrator
+#   HOSTMAN_ROOT        raiz agl-hostman
+
+version: 1
+
+linux:
+  live_symlinks:
+    - local: ~/.config/Cursor/User/globalStorage
+      remote: cursor/globalStorage
+      migrate: true
+      note: "SQLite — single-writer; fechar Cursor antes de trocar de host"
+    - local: ~/.cursor/chats
+      remote: cursor/dot-cursor/chats
+      migrate: true
+    - local: ~/.cursor/projects
+      remote: cursor/dot-cursor/projects
+      migrate: true
+    - local: ~/.claude/history.jsonl
+      remote: claude/history.jsonl
+      migrate: true
+      type: file
+    - local: ~/.claude/file-history
+      remote: claude/file-history
+      migrate: true
+  git_symlinks:
+    - local: ~/.config/Cursor/User/settings.json
+      source: config/dotfiles/linux/cursor/User/settings.json
+    - local: ~/.config/Cursor/User/keybindings.json
+      source: config/dotfiles/linux/cursor/User/keybindings.json
+    - local: ~/.claude/settings.json
+      source: config/dotfiles/linux/claude/settings.json
+  optional_copy_if_missing:
+    - local: ~/.cursor/mcp.json
+      source: config/dotfiles/linux/cursor/dot-cursor/mcp.json.example
+    - local: ~/.codex/config.toml
+      source: config/dotfiles/linux/codex/config.toml
+  local_only:
+    - ~/.config/Cursor/User/globalStorage/storage.json
+    - ~/.claude/.credentials.json
+    - ~/.claude/.token-cache
+
+windows:
+  live_root_env: AGL_HOME_SYNC_ROOT_WIN
+  live_symlinks:
+    - local: "%APPDATA%\\Cursor\\User\\globalStorage"
+      remote: cursor/globalStorage
+    - local: "%USERPROFILE%\\.cursor\\chats"
+      remote: cursor/dot-cursor/chats
+    - local: "%USERPROFILE%\\.cursor\\projects"
+      remote: cursor/dot-cursor/projects
