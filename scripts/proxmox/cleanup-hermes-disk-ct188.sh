@@ -8,6 +8,13 @@
 set -euo pipefail
 
 DRY="${1:-}"
+INSTALL_CRON=""
+if [[ "${DRY}" == "--install-cron" ]]; then
+  INSTALL_CRON="--install-cron"
+  DRY=""
+elif [[ "${1:-}" == "--dry-run" ]]; then
+  DRY="--dry-run"
+fi
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 DATA="${HERMES_ROOT}/data"
 DAYS_CRON="${DAYS_CRON:-14}"
@@ -63,3 +70,13 @@ echo ""
 echo "=== Depois ==="
 df -h / | tail -1
 du -sh "${DATA}" /var/lib/docker 2>/dev/null | head -5
+
+if [[ "${INSTALL_CRON}" == "--install-cron" ]]; then
+  SCRIPT_PATH="$(readlink -f "$0")"
+  LINE="0 3 * * 0 root ${SCRIPT_PATH} >/var/log/hermes-disk-cleanup.log 2>&1"
+  if ! grep -qF "${SCRIPT_PATH}" /etc/cron.d/hermes-disk-cleanup 2>/dev/null; then
+    printf '%s\n' "${LINE}" > /etc/cron.d/hermes-disk-cleanup
+    chmod 644 /etc/cron.d/hermes-disk-cleanup
+    echo "OK cron semanal /etc/cron.d/hermes-disk-cleanup (domingo 03:00)"
+  fi
+fi

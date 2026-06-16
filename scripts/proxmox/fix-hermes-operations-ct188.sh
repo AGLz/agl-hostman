@@ -15,7 +15,7 @@ test -d "${SCRIPTS}" || { echo "ERRO: ${SCRIPTS} inexistente" >&2; exit 1; }
 echo "========== HERMES CT188 — remediação completa =========="
 echo "Antes:" && df -h / | tail -1
 
-bash "${SCRIPTS}/cleanup-hermes-disk-ct188.sh"
+bash "${SCRIPTS}/cleanup-hermes-disk-ct188.sh" --install-cron
 bash "${SCRIPTS}/fix-hermes-cron-perms-ct188.sh" --install-cron
 bash "${SCRIPTS}/fix-hermes-rate-limits-ct188.sh" "${AGL_HOSTMAN}"
 bash "${SCRIPTS}/fix-hermes-langfuse-ct188.sh"

@@ -29,19 +29,12 @@ if awk "BEGIN {exit !(${tmp_gb} > 2)}"; then
   [[ "${LEVEL}" == "ok" ]] && LEVEL="heads_up"
 fi
 
-down=()
-if command -v docker >/dev/null 2>&1; then
-  for c in agl-hermes-jarvis agl-hermes-elon agl-hermes-satya agl-hermes-werner; do
-    if ! docker inspect -f '{{.State.Health.Status}}' "${c}" 2>/dev/null | grep -q healthy; then
-      if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "${c}"; then
-        down+=("${c}")
-      fi
-    fi
-  done
-fi
-if ((${#down[@]})); then
-  ALERTS+=("Containers down: ${down[*]}")
-  LEVEL="urgent"
+if command -v docker >/dev/null 2>&1 && [[ -S /var/run/docker.sock ]]; then
+  running="$(docker ps --format '{{.Names}}' 2>/dev/null | grep -c 'agl-hermes-' || true)"
+  if [[ "${running}" -lt 4 ]]; then
+    ALERTS+=("Menos de 4 gateways Hermes visíveis via docker (${running}/4)")
+    LEVEL="urgent"
+  fi
 fi
 
 if ! curl -sf -m 8 http://127.0.0.1:8642/health >/dev/null 2>&1; then
