@@ -6,6 +6,11 @@
 # Cursor (cursor-*): aliases REMOVIDOS 2026-06-15 — usar gpt-5.4-mini / claude-* directamente.
 # GEMINI_API_KEY: config/litellm/.env ou /opt/agl-litellm/.env (Vertex Express AQ.*; nunca commitar).
 # qwen-coder → removido (era DeepSeek). Ollama qwen3:4b* → gemma4-qat @ :11434.
+# VM310 Ollama dual-GPU — agl-primary @ http://100.67.253.52:11434, agl-primary-strong @ http://100.67.253.52:11435
+# Fallbacks: Groq / Z.AI / OpenRouter após falha local. Ver docs/AGL-OLLAMA-VM310.md
+# Fallbacks: Groq / Z.AI / OpenRouter após falha local. Ver docs/AGL-OLLAMA-VM310.md
+# Aliases agl-primary / ollama-* → Groq + OpenRouter até VM310 voltar (TS 100.67.253.52:11434).
+# Restaurar: gemma4-qat @ :11434 (agl-primary), qwen3:8b @ :11435 (agl-primary-strong) — ver git history / docs/AGL-OLLAMA-VM310.md
 # VM110 (AGLSRV1) permanece parada (GTX1650 instável). Ver docs/AGL-OLLAMA-VM310.md, scripts/aglsrv3/
 #
 # Z.AI (docs.z.ai): três bases úteis — (1) OpenAI-compat aggregado `https://api.z.ai/api/openai/v1` (entradas zai/glm-* abaixo);
@@ -1114,7 +1119,6 @@ model_list:
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
@@ -1131,7 +1135,6 @@ model_list:
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
@@ -1165,7 +1168,6 @@ model_list:
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
@@ -1182,7 +1184,6 @@ model_list:
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
@@ -1199,7 +1200,6 @@ model_list:
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
@@ -1216,7 +1216,6 @@ model_list:
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192

@@ -12,6 +12,7 @@ const CONFIG_REMOTE = path.join(
 );
 
 const VM310_TS_OLLAMA = "100.67.253.52:11434";
+const VM110_TS_OLLAMA = "100.74.118.51:11434";
 const LEGACY_CT200_LAN = "192.168.0.200:11434";
 const LEGACY_VM110_TS = "100.116.57.111:11434";
 
@@ -32,25 +33,41 @@ function assertNoOllamaCloudAliases(yaml, label) {
   assert.doesNotMatch(yaml, /ollama-gpt-oss-20b-cloud/, label);
 }
 
-test("LiteLLM local: agl-primary via Ollama VM310 Tailscale (gemma4-qat)", () => {
+test("LiteLLM local: agl-primary via Ollama local (VM310 ou VM110 failover)", () => {
   const yaml = fs.readFileSync(CONFIG, "utf8");
+  const vm110Failover = yaml.includes("VM110 Ollama");
 
   assertNoOllamaCloudAliases(yaml, "config.yaml");
-  assert.match(
-    yaml,
-    /model:\s*ollama\/gemma4-qat[\s\S]*?model_name:\s*agl-primary/,
-    "config.yaml: agl-primary usa ollama/gemma4-qat VM310 GPU0",
-  );
-  assert.match(
-    yaml,
-    /model:\s*ollama\/qwen3:8b[\s\S]*?model_name:\s*agl-primary-strong/,
-    "config.yaml: agl-primary-strong usa ollama/qwen3:8b VM310 GPU1",
-  );
-  assert.match(
-    yaml,
-    new RegExp(escapeForRegex(VM310_TS_OLLAMA), "g"),
-    "config.yaml: api_base Tailscale VM310",
-  );
+
+  if (vm110Failover) {
+    assert.match(
+      yaml,
+      /model:\s*ollama\/qwen3:4b[\s\S]*?model_name:\s*agl-primary/,
+      "config.yaml: agl-primary usa ollama/qwen3:4b VM110",
+    );
+    assert.match(
+      yaml,
+      new RegExp(escapeForRegex(VM110_TS_OLLAMA), "g"),
+      "config.yaml: api_base Tailscale VM110",
+    );
+  } else {
+    assert.match(
+      yaml,
+      /model:\s*ollama\/gemma4-qat[\s\S]*?model_name:\s*agl-primary/,
+      "config.yaml: agl-primary usa ollama/gemma4-qat VM310 GPU0",
+    );
+    assert.match(
+      yaml,
+      /model:\s*ollama\/qwen3:8b[\s\S]*?model_name:\s*agl-primary-strong/,
+      "config.yaml: agl-primary-strong usa ollama/qwen3:8b VM310 GPU1",
+    );
+    assert.match(
+      yaml,
+      new RegExp(escapeForRegex(VM310_TS_OLLAMA), "g"),
+      "config.yaml: api_base Tailscale VM310",
+    );
+  }
+
   assert.doesNotMatch(
     yaml,
     new RegExp(escapeForRegex(LEGACY_CT200_LAN)),
