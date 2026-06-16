@@ -21,6 +21,15 @@ profile_cfg() {
   fi
 }
 
+profile_dir() {
+  local agent="$1"
+  if [[ "${agent}" == "jarvis" ]]; then
+    echo "${HERMES_ROOT}/data"
+  else
+    echo "${HERMES_ROOT}/profiles/${agent}"
+  fi
+}
+
 if [[ "${MODE}" == "--enable" ]]; then
   test -f "${KEYS_FILE}" || { echo "ERRO: ${KEYS_FILE} inexistente" >&2; exit 1; }
   AGL_HOSTMAN="${AGL_HOSTMAN:-/mnt/overpower/apps/dev/agl/agl-hostman}"
@@ -30,7 +39,20 @@ fi
 
 echo "=== Desactivar plugin observability/langfuse (OTLP 401) ==="
 for agent in jarvis elon satya werner; do
+  pdir="$(profile_dir "${agent}")"
+  envf="${pdir}/.env"
   cfg="$(profile_cfg "${agent}")"
+  [[ -d "${pdir}" ]] || continue
+
+  for var in OTEL_SDK_DISABLED OTEL_TRACES_EXPORTER OTEL_METRICS_EXPORTER OTEL_LOGS_EXPORTER; do
+    if [[ -f "${envf}" ]]; then
+      grep -q "^${var}=" "${envf}" 2>/dev/null && sed -i "s|^${var}=.*|${var}=none|" "${envf}" || true
+    fi
+  done
+  if [[ -f "${envf}" ]] && ! grep -q '^OTEL_SDK_DISABLED=' "${envf}"; then
+    echo 'OTEL_SDK_DISABLED=true' >>"${envf}"
+  fi
+
   [[ -f "${cfg}" ]] || continue
   python3 - "${cfg}" <<'PY'
 import sys

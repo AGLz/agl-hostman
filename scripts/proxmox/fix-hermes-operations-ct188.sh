@@ -19,6 +19,7 @@ bash "${SCRIPTS}/cleanup-hermes-disk-ct188.sh"
 bash "${SCRIPTS}/fix-hermes-cron-perms-ct188.sh" --install-cron
 bash "${SCRIPTS}/fix-hermes-rate-limits-ct188.sh" "${AGL_HOSTMAN}"
 bash "${SCRIPTS}/fix-hermes-langfuse-ct188.sh"
+bash "${SCRIPTS}/fix-hermes-cron-models-ct188.sh"
 bash "${SCRIPTS}/deploy-hermes-health-cron-ct188.sh" "${AGL_HOSTMAN}" --test-run
 
 echo ""

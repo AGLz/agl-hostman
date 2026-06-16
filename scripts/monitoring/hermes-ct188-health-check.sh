@@ -8,9 +8,13 @@ DISK_URGENT_PCT="${DISK_URGENT_PCT:-92}"
 ALERTS=()
 LEVEL="ok"
 
-disk_line="$(df -P / /opt/agl-hermes 2>/dev/null | tail -1)"
+disk_line="$(df -P / 2>/dev/null | tail -1)"
 disk_pct="$(echo "${disk_line}" | awk '{print $5}' | tr -d '%')"
 disk_avail="$(echo "${disk_line}" | awk '{print $4}')"
+if [[ -z "${disk_pct}" ]] || ! [[ "${disk_pct}" =~ ^[0-9]+$ ]]; then
+  echo "WARN: não foi possível ler uso de disco"
+  disk_pct="0"
+fi
 if [[ "${disk_pct}" -ge "${DISK_URGENT_PCT}" ]]; then
   ALERTS+=("DISCO URGENTE: ${disk_pct}% usado (${disk_avail}K livres)")
   LEVEL="urgent"
@@ -26,13 +30,15 @@ if awk "BEGIN {exit !(${tmp_gb} > 2)}"; then
 fi
 
 down=()
-for c in agl-hermes-jarvis agl-hermes-elon agl-hermes-satya agl-hermes-werner; do
-  if ! docker inspect -f '{{.State.Health.Status}}' "${c}" 2>/dev/null | grep -q healthy; then
-    if ! docker ps --format '{{.Names}}' | grep -qx "${c}"; then
-      down+=("${c}")
+if command -v docker >/dev/null 2>&1; then
+  for c in agl-hermes-jarvis agl-hermes-elon agl-hermes-satya agl-hermes-werner; do
+    if ! docker inspect -f '{{.State.Health.Status}}' "${c}" 2>/dev/null | grep -q healthy; then
+      if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "${c}"; then
+        down+=("${c}")
+      fi
     fi
-  fi
-done
+  done
+fi
 if ((${#down[@]})); then
   ALERTS+=("Containers down: ${down[*]}")
   LEVEL="urgent"
