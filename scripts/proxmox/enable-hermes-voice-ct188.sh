@@ -99,7 +99,8 @@ done
 
 echo "=== 4/4 Reiniciar gateways Hermes ==="
 cd "${HERMES_ROOT}"
-docker compose -f docker-compose.aglz-quartet.yml restart hermes-jarvis hermes-elon hermes-satya hermes-werner
+docker compose -f docker-compose.aglz-quartet.yml restart jarvis elon satya werner 2>/dev/null \
+  || docker compose -f docker-compose.aglz-quartet.yml restart
 
 echo "A aguardar jarvis..."
 for _ in $(seq 1 45); do
