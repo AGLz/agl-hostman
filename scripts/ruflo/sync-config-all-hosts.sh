@@ -12,7 +12,8 @@ REPO_PATH_REMOTE="/mnt/overpower/apps/dev/agl/agl-hostman"
 declare -A HOST_IPS
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
-HOST_IPS[agldv05]="100.119.41.63"
+HOST_IPS[agldv05]="100.82.71.49"
+HOST_IPS[agldv07]="100.64.175.89"
 HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 

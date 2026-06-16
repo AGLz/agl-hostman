@@ -6,7 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOSTMAN_ROOT="${HOSTMAN_ROOT_OVERRIDE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 AGL_HOME_SYNC_ROOT="${AGL_HOME_SYNC_ROOT:-/mnt/overpower/apps/dev/agl/agl-home-sync}"
+AGL_HOME_SYNC_ROOT="${AGL_HOME_SYNC_ROOT//$'\r'/}"
 AGL_HOME_USER="${AGL_HOME_USER:-linux-root}"
+AGL_HOME_USER="${AGL_HOME_USER//$'\r'/}"
 LIVE_ROOT="$AGL_HOME_SYNC_ROOT/$AGL_HOME_USER"
 
 FAIL=0

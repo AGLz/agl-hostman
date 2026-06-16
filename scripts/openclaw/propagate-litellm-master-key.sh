@@ -19,7 +19,7 @@ DEFAULT_HOSTS=(
   "root@100.83.51.9"     # fgsrv6 (se IP Tailscale mudar, ajustar ou usar OPENCLAW_KEY_HOSTS)
   "root@100.113.9.98"    # agldv04
   "root@100.71.217.115"  # agldv12
-  "root@100.119.41.63"   # agldv05
+  "root@100.82.71.49"   # agldv05
   "root@100.71.229.12"   # agldv06
 )
 

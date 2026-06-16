@@ -6,6 +6,7 @@ description: >
   connectivity. Covers the AGL WireGuard mesh (10.6.0.0/24) with fgsrv06 as hub (10.6.0.5:51823)
   and nodes: agldv03 (10.6.0.19), agldv04 (10.6.0.24), agldv05 (10.6.0.13), archon/CT183 (10.6.0.21).
 ---
+
 # WireGuard AGL Mesh Network
 
 ## Network Topology
@@ -33,17 +34,17 @@ description: >
    └─────────────┘
 ```
 
-> **agldv07** (**CT547** @ FGSRV7) **não** participa no mesh WG 10.6.0.0/24 — aceder via Tailscale `100.64.139.79` ou LAN FGSRV7 `192.168.70.241`.
+> **agldv07** (**CT547** @ FGSRV7) **não** participa no mesh WG 10.6.0.0/24 — aceder via Tailscale `100.64.175.89` ou LAN FGSRV7 `192.168.70.241`.
 
 ## WireGuard IPs
 
-| Host     | WireGuard IP | Tailscale IP      | Role     |
-|----------|-------------|-------------------|----------|
-| fgsrv06  | 10.6.0.5    | 100.83.51.9       | **HUB**  |
-| agldv03  | 10.6.0.19   | 100.94.221.87     | Node     |
-| agldv04  | 10.6.0.24   | 100.113.9.98      | Node     |
-| agldv05  | 10.6.0.13   | 100.119.41.63     | Node     |
-| archon   | 10.6.0.21   | 100.80.30.59      | Node (CT183) |
+| Host    | WireGuard IP | Tailscale IP  | Role         |
+| ------- | ------------ | ------------- | ------------ |
+| fgsrv06 | 10.6.0.5     | 100.83.51.9   | **HUB**      |
+| agldv03 | 10.6.0.19    | 100.94.221.87 | Node         |
+| agldv04 | 10.6.0.24    | 100.113.9.98  | Node         |
+| agldv05 | 10.6.0.13    | 100.82.71.49  | Node         |
+| archon  | 10.6.0.21    | 100.80.30.59  | Node (CT183) |
 
 ## Configuration Files
 
@@ -59,6 +60,7 @@ description: >
 ```
 
 ### Example wg0.conf (node)
+
 ```ini
 [Interface]
 PrivateKey = <node-private-key>
@@ -73,6 +75,7 @@ PersistentKeepalive = 25
 ```
 
 ### Example wg0.conf (hub - fgsrv06)
+
 ```ini
 [Interface]
 PrivateKey = <hub-private-key>
@@ -103,6 +106,7 @@ AllowedIPs = 10.6.0.21/32
 ## CLI Operations
 
 ### Check WireGuard status
+
 ```bash
 # On any host
 sudo wg show
@@ -115,6 +119,7 @@ sudo wg show interfaces
 ```
 
 ### Check connectivity
+
 ```bash
 # Ping hub from node
 ping -c 3 10.6.0.5
@@ -127,6 +132,7 @@ sudo wg show | grep -A5 "latest handshake"
 ```
 
 ### Start/Stop/Restart WireGuard
+
 ```bash
 # Start
 sudo wg-quick up wg0
@@ -142,12 +148,14 @@ sudo systemctl enable wg-quick@wg0
 ```
 
 ### Check WireGuard service
+
 ```bash
 systemctl status wg-quick@wg0
 journalctl -u wg-quick@wg0 -n 50
 ```
 
 ## Generate Keys
+
 ```bash
 # Generate private key
 wg genkey > private.key
@@ -160,6 +168,7 @@ wg genkey | tee private.key | wg pubkey > public.key
 ```
 
 ## Add New Peer
+
 ```bash
 # On hub (fgsrv06)
 # 1. Get peer's public key
@@ -179,6 +188,7 @@ sudo systemctl restart wg-quick@wg0
 ## Troubleshooting
 
 ### No connectivity
+
 ```bash
 # 1. Check WireGuard is running
 sudo wg show
@@ -195,6 +205,7 @@ sudo iptables -L -n | grep 5182
 ```
 
 ### Handshake failing
+
 ```bash
 # Check endpoint reachability
 ping <endpoint-ip>
@@ -207,6 +218,7 @@ sudo wg show | grep publicKey
 ```
 
 ### WireGuard + Tailscale conflict
+
 ```bash
 # Both can coexist — Tailscale may use WireGuard as transport
 # Check which is being used
@@ -217,6 +229,7 @@ tailscale netcheck
 ```
 
 ### fgsrv06 hub down (CRITICAL)
+
 ```bash
 # If hub is down, ALL WireGuard nodes lose connectivity
 # Check fgsrv06 status
@@ -230,6 +243,7 @@ ssh root@100.83.51.9 "sudo wg show"  # via Tailscale
 ## Monitoring
 
 ### Quick health check
+
 ```bash
 #!/bin/bash
 echo "=== WireGuard Mesh Health ==="
@@ -243,6 +257,7 @@ done
 ```
 
 ### Check handshakes
+
 ```bash
 sudo wg show | grep "latest handshake" | while read line; do
   echo "$line"
@@ -251,6 +266,7 @@ done
 ```
 
 ## Notes
+
 - fgsrv06 is the **single point of failure** for WireGuard mesh
 - WireGuard is legacy — Tailscale is the PRIMARY access method
 - Tailscale may use WireGuard as underlying transport (normal)

@@ -6,6 +6,7 @@ description: >
   AGL hosts. Covers skill creation (~/.qwen/skills/), project skills (.qwen/skills/),
   skill discovery, model configuration via LiteLLM, and Qwen Code CLI commands.
 ---
+
 # Qwen Code — AGL Infrastructure
 
 ## Overview
@@ -15,26 +16,26 @@ modular **Skills** — capabilities packaged as directories with `SKILL.md` file
 
 ## Skill Locations
 
-| Scope     | Path                        | Shared via Git |
-|-----------|-----------------------------|----------------|
-| Personal  | `~/.qwen/skills/<name>/`    | No             |
-| Project   | `.qwen/skills/<name>/`      | Yes            |
-| Extension | `qwen-extension.json` → skills field | Yes  |
+| Scope     | Path                                 | Shared via Git |
+| --------- | ------------------------------------ | -------------- |
+| Personal  | `~/.qwen/skills/<name>/`             | No             |
+| Project   | `.qwen/skills/<name>/`               | Yes            |
+| Extension | `qwen-extension.json` → skills field | Yes            |
 
 ## AGL Qwen Code Setup
 
 ### Hosts with Qwen Code
 
-| Host     | Tailscale IP      | Skills Installed | LiteLLM       |
-|----------|-------------------|------------------|---------------|
-| macOS    | local             | ✅ 44 skills     | Remote        |
-| agldv03  | 100.94.221.87     | ✅ (sync from 03)| Local :4000   |
-| agldv04  | 100.113.9.98      | ✅ (sync from 03)| Local :4000   |
-| agldv05  | 100.119.41.63     | ✅ (sync from 03)| Remote (03)   |
-| agldv06  | 100.71.229.12     | ✅ (sync from 03)| Remote (03)   |
-| agldv07  | 100.64.139.79     | ✅ (sync from 03)| Remote (CT186) |
-| agldv12  | 100.71.217.115    | ✅ (sync from 03)| Local :4000   |
-| fgsrv06  | 100.83.51.9       | ✅ (sync from 03)| Local :4000   |
+| Host    | Tailscale IP   | Skills Installed  | LiteLLM        |
+| ------- | -------------- | ----------------- | -------------- |
+| macOS   | local          | ✅ 44 skills      | Remote         |
+| agldv03 | 100.94.221.87  | ✅ (sync from 03) | Local :4000    |
+| agldv04 | 100.113.9.98   | ✅ (sync from 03) | Local :4000    |
+| agldv05 | 100.82.71.49   | ✅ (sync from 03) | Remote (03)    |
+| agldv06 | 100.71.229.12  | ✅ (sync from 03) | Remote (03)    |
+| agldv07 | 100.64.175.89  | ✅ (sync from 03) | Remote (CT186) |
+| agldv12 | 100.71.217.115 | ✅ (sync from 03) | Local :4000    |
+| fgsrv06 | 100.83.51.9    | ✅ (sync from 03) | Local :4000    |
 
 ### Current macOS Skills (44 installed)
 
@@ -91,23 +92,27 @@ Concrete examples of using this Skill.
 ## Common Operations
 
 ### List available skills
+
 ```bash
 ls ~/.qwen/skills/
 ls .qwen/skills/
 ```
 
 ### Ask Qwen Code about skills
+
 ```
 "What Skills are available?"
 "Show me my installed skills"
 ```
 
 ### Trigger a skill explicitly
+
 ```
 /skills <skill-name>
 ```
 
 ### Create a new skill
+
 ```bash
 mkdir -p ~/.qwen/skills/my-skill
 cat > ~/.qwen/skills/my-skill/SKILL.md << 'EOF'
@@ -123,6 +128,7 @@ EOF
 ```
 
 ### Share skills with team
+
 ```bash
 # Add to project
 cp -r ~/.qwen/skills/my-skill .qwen/skills/
@@ -158,12 +164,14 @@ scp -r ~/.qwen/skills/qemu-agl root@100.94.221.87:~/.qwen/skills/
 ## Debugging
 
 ### Skill not triggering
+
 1. Check description specificity — include exact trigger keywords
 2. Verify file path — `SKILL.md` must exist at correct location
 3. Check YAML syntax — must start/end with `---`, no tabs
 4. Run `qwen --debug` to view loading errors
 
 ### Skills not loading
+
 ```bash
 # Check permissions
 ls -la ~/.qwen/skills/
@@ -173,6 +181,7 @@ python3 -c "import yaml; yaml.safe_load(open('~/.qwen/skills/my-skill/SKILL.md')
 ```
 
 ## References
+
 - https://qwenlm.github.io/qwen-code-docs/en/users/features/skills/
 - `.qwen/skills/` — Project skills in this repo
 - `~/.qwen/skills/` — Personal skills on macOS

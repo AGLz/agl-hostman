@@ -11,10 +11,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOSTMAN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+HOSTMAN_ROOT="${HOSTMAN_ROOT_OVERRIDE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 DOTFILES_ROOT="$HOSTMAN_ROOT/config/dotfiles"
 
 AGL_HOME_SYNC_ROOT="${AGL_HOME_SYNC_ROOT:-/mnt/overpower/apps/dev/agl/agl-home-sync}"
+AGL_HOME_SYNC_ROOT="${AGL_HOME_SYNC_ROOT//$'\r'/}"
 AGL_HOME_USER="${AGL_HOME_USER:-linux-root}"
 DRY_RUN=0
 SKIP_MIGRATE=0
@@ -111,6 +112,7 @@ link_live() {
   local kind="${3:-dir}"
   local live_path="$LIVE_ROOT/$remote_rel"
 
+  ensure_dir "$(dirname "$local_path")"
   migrate_to_live "$local_path" "$live_path" "$kind"
   backup_path "$local_path"
   run ln -sfn "$live_path" "$local_path"

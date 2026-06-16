@@ -4,14 +4,14 @@
 
 ## Resumo
 
-| Nome | VMID | Proxmox | Hostname Tailscale | IP Tailscale | LAN |
-|------|------|---------|-------------------|--------------|-----|
-| **agldv07** | **547** (ex.241) | **FGSRV7** | `fgsrv07-agldv07` | **100.64.139.79** | `192.168.70.241/24` (vmbr70) |
-| **archon** | **183** | **AGLSRV1** | `aglsrv1-archon` | **100.80.30.59** | `192.168.0.183/24` |
+| Nome        | VMID             | Proxmox     | Hostname Tailscale | IP Tailscale      | LAN                          |
+| ----------- | ---------------- | ----------- | ------------------ | ----------------- | ---------------------------- |
+| **agldv07** | **547** (ex.241) | **FGSRV7**  | `fgsrv07-agldv07`  | **100.64.175.89** | `192.168.70.241/24` (vmbr70) |
+| **archon**  | **183**          | **AGLSRV1** | `aglsrv1-archon`   | **100.80.30.59**  | `192.168.0.183/24`           |
 
 ## Implicações operacionais
 
-- Propagação OpenClaw / skills / Six Repos para **agldv07** → **`root@100.64.139.79`** — **não** usar `100.80.30.59` (archon).
+- Propagação OpenClaw / skills / Six Repos para **agldv07** → **`root@100.64.175.89`** — **não** usar `100.80.30.59` (archon).
 - MCP Archon, RAG, UI Archon → **`100.80.30.59`** (CT183), independente de agldv07.
 - WireGuard **10.6.0.21** pertence ao **archon** (CT183), não ao agldv07.
 - **agldv07** (FGSRV7) usa rede **192.168.70.0/24** — regras Tailscale `accept-routes`/`accept-dns` da LAN AGL (`192.168.0.0/24`) **não** se aplicam da mesma forma que em CTs AGLSR1.
@@ -31,7 +31,7 @@
 ssh root@100.109.181.93 'pct start 547 && pct exec 547 -- tailscale ip -4'
 
 # SSH directo (quando CT online)
-ssh root@100.64.139.79
+ssh root@100.64.175.89
 
 # Archon (sempre CT183 AGLSRV1)
 ssh root@100.80.30.59

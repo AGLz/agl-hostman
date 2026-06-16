@@ -13,11 +13,16 @@ HOSTMAN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 AGLDV03_HOST="${AGLDV03_HOST:-root@100.94.221.87}"
 AGLDV04_HOST="${AGLDV04_HOST:-root@100.113.9.98}"
-AGLDV05_HOST="${AGLDV05_HOST:-root@100.119.41.63}"
+AGLDV05_HOST="${AGLDV05_HOST:-root@100.82.71.49}"
 AGLDV06_HOST="${AGLDV06_HOST:-root@100.71.229.12}"
-AGLDV07_HOST="${AGLDV07_HOST:-root@100.64.139.79}"
+AGLDV07_HOST="${AGLDV07_HOST:-root@100.64.175.89}"
 AGLDV12_HOST="${AGLDV12_HOST:-root@100.71.217.115}"
 AGLWK45_VMID="${AGLWK45_VMID:-104}"
+
+# Path canónico no NFS/ZFS overpower; fallback remoto via rsync bundle
+REMOTE_HOSTMAN_DEFAULT="${REMOTE_HOSTMAN_DEFAULT:-/mnt/overpower/apps/dev/agl/agl-hostman}"
+REMOTE_HOSTMAN_FALLBACK="${REMOTE_HOSTMAN_FALLBACK:-/opt/agl-hostman}"
+REMOTE_SYNC_DEFAULT="${REMOTE_SYNC_DEFAULT:-/mnt/overpower/apps/dev/agl/agl-home-sync}"
 
 DRY_RUN=0
 HOST=""
@@ -71,18 +76,112 @@ propagate_one() {
   local local_short
   local_short="$(hostname -s 2>/dev/null || hostname)"
 
-  run_install() {
-    local cmd="cd '$HOSTMAN_ROOT' && (git pull --ff-only || echo '[WARN] git pull falhou') && \
-      ./scripts/dotfiles/install-agl-home-sync.sh && \
-      ./scripts/dotfiles/verify-agl-home-sync.sh"
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      echo "  [dry-run] ssh $target: install+verify"
+  bundle_to_remote() {
+    local ssh_target="$1"
+    local remote_root="$2"
+    log "sync dotfiles bundle -> $ssh_target:$remote_root"
+    "${SSH[@]}" "$ssh_target" "mkdir -p '$remote_root/config' '$remote_root/scripts/dotfiles'"
+    if "${SSH[@]}" "$ssh_target" "command -v rsync >/dev/null 2>&1"; then
+      rsync -az --delete \
+        "$HOSTMAN_ROOT/config/dotfiles/" \
+        "$ssh_target:$remote_root/config/dotfiles/"
+      rsync -az --delete \
+        "$HOSTMAN_ROOT/scripts/dotfiles/" \
+        "$ssh_target:$remote_root/scripts/dotfiles/"
+    else
+      warn "$ssh_target sem rsync — usar tar over ssh"
+      tar -C "$HOSTMAN_ROOT" -czf - config/dotfiles scripts/dotfiles \
+        | "${SSH[@]}" "$ssh_target" "tar -xzf - -C '$remote_root'"
+    fi
+    "${SSH[@]}" "$ssh_target" "chmod +x '$remote_root/scripts/dotfiles/'*.sh 2>/dev/null || true"
+  }
+
+  seed_sync_to_remote() {
+    local ssh_target="$1"
+    local remote_sync="$2"
+    if [[ ! -d "$HOSTMAN_ROOT/../agl-home-sync/linux-root" ]]; then
+      warn "seed sync: fonte local em falta — live isolado até NFS"
       return 0
     fi
-    if [[ "$target" == "local" ]]; then
+    log "sync agl-home-sync seed -> $ssh_target:$remote_sync (pode demorar)"
+    "${SSH[@]}" "$ssh_target" "mkdir -p '$remote_sync'"
+    if "${SSH[@]}" "$ssh_target" "command -v rsync >/dev/null 2>&1"; then
+      rsync -az \
+        "$HOSTMAN_ROOT/../agl-home-sync/" \
+        "$ssh_target:$remote_sync/"
+    else
+      tar -C "$HOSTMAN_ROOT/.." -czf - agl-home-sync \
+        | "${SSH[@]}" "$ssh_target" "tar -xzf - -C '$(dirname "$remote_sync")'"
+    fi
+  }
+
+  run_install() {
+    local install_target="$1"
+    local remote_hostman="$REMOTE_HOSTMAN_DEFAULT"
+    local remote_sync="$REMOTE_SYNC_DEFAULT"
+    local prep_out=""
+
+    if [[ "$install_target" != "local" ]]; then
+      prep_out="$(
+        REMOTE_HOSTMAN_DEFAULT="$REMOTE_HOSTMAN_DEFAULT" \
+        REMOTE_HOSTMAN_FALLBACK="$REMOTE_HOSTMAN_FALLBACK" \
+        REMOTE_SYNC_DEFAULT="$REMOTE_SYNC_DEFAULT" \
+        "${SSH[@]}" "$install_target" 'bash -s' <<'REMOTE_PREP'
+set -euo pipefail
+HM_DEFAULT="${REMOTE_HOSTMAN_DEFAULT:-/mnt/overpower/apps/dev/agl/agl-hostman}"
+HM_FB="${REMOTE_HOSTMAN_FALLBACK:-/opt/agl-hostman}"
+SYNC_DEFAULT="${REMOTE_SYNC_DEFAULT:-/mnt/overpower/apps/dev/agl/agl-home-sync}"
+
+if [[ -d "$HM_DEFAULT/config/dotfiles" ]]; then
+  echo "HOSTMAN=$HM_DEFAULT"
+elif [[ -d "$HM_FB/config/dotfiles" ]]; then
+  echo "HOSTMAN=$HM_FB"
+else
+  echo "HOSTMAN=$HM_FB"
+  echo "NEED_BUNDLE=1"
+fi
+
+if [[ -d "$SYNC_DEFAULT/linux-root" ]]; then
+  echo "SYNC=$SYNC_DEFAULT"
+else
+  echo "SYNC=$SYNC_DEFAULT"
+  echo "NEED_SYNC_SEED=1"
+  mkdir -p "$SYNC_DEFAULT"
+fi
+REMOTE_PREP
+      )" || true
+      if echo "$prep_out" | grep -q NEED_BUNDLE; then
+        bundle_to_remote "$install_target" "$REMOTE_HOSTMAN_FALLBACK"
+        remote_hostman="$REMOTE_HOSTMAN_FALLBACK"
+      else
+        remote_hostman="$(echo "$prep_out" | awk -F= '/^HOSTMAN=/{print $2; exit}')"
+        remote_hostman="${remote_hostman:-$REMOTE_HOSTMAN_DEFAULT}"
+        if [[ "$remote_hostman" == "$REMOTE_HOSTMAN_FALLBACK" ]]; then
+          bundle_to_remote "$install_target" "$REMOTE_HOSTMAN_FALLBACK"
+        fi
+      fi
+      if echo "$prep_out" | grep -q NEED_SYNC_SEED; then
+        seed_sync_to_remote "$install_target" "$remote_sync"
+      else
+        remote_sync="$(echo "$prep_out" | awk -F= '/^SYNC=/{print $2; exit}')"
+        remote_sync="${remote_sync:-$REMOTE_SYNC_DEFAULT}"
+      fi
+    fi
+
+    local cmd="cd '$remote_hostman' && \
+      (test -d .git && git pull --ff-only || echo '[WARN] git pull skip (bundle ou sem git)') && \
+      AGL_HOME_SYNC_ROOT='$remote_sync' HOSTMAN_ROOT_OVERRIDE='$remote_hostman' \
+      ./scripts/dotfiles/install-agl-home-sync.sh && \
+      HOSTMAN_ROOT_OVERRIDE='$remote_hostman' AGL_HOME_SYNC_ROOT='$remote_sync' \
+      ./scripts/dotfiles/verify-agl-home-sync.sh"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] ssh $install_target: install+verify (HOSTMAN=$remote_hostman SYNC=$remote_sync)"
+      return 0
+    fi
+    if [[ "$install_target" == "local" ]]; then
       bash -lc "$cmd" || warn "$name: verify falhou parcialmente"
     else
-      "${SSH[@]}" "$target" "bash -lc $(printf '%q' "$cmd")" || warn "$name: SSH/install falhou (host offline?)"
+      "${SSH[@]}" "$install_target" "bash -lc $(printf '%q' "$cmd")" || warn "$name: SSH/install falhou (host offline?)"
     fi
   }
 

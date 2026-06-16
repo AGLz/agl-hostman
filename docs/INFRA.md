@@ -23,12 +23,12 @@
 
 ### OpenClaw Configuration
 
-| Setting | Value |
-|---------|-------|
-| **Agents** | main (default), infra, storage, harbor, net |
-| **Max Concurrent** | 4 agents, 8 subagents |
-| **Telegram** | Enabled (allowlist: 1272190248) |
-| **Compaction** | Safeguard mode |
+| Setting            | Value                                       |
+| ------------------ | ------------------------------------------- |
+| **Agents**         | main (default), infra, storage, harbor, net |
+| **Max Concurrent** | 4 agents, 8 subagents                       |
+| **Telegram**       | Enabled (allowlist: 1272190248)             |
+| **Compaction**     | Safeguard mode                              |
 
 ### LiteLLM Gateway
 
@@ -44,13 +44,13 @@
 
 ### Agentes dedicados (CT188–190, AGLSRV1)
 
-| VMID | Hostname | IP LAN | Função | Runbook |
-|------|----------|--------|--------|---------|
-| **188** | agl-hermes | `192.168.0.188` | Hermes Agent (Docker `/opt/agl-hermes`, gateway `:8642`) | [`HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md`](HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md) |
-| **189** | agl-evonexus | `192.168.0.189` | EvoNexus hub (Docker `/opt/evonexus`; cutover desde **CT548** fgsrv7, ex.242) | idem + `scripts/evonexus/` |
-| **190** | agl-openhuman | `192.168.0.190` | OpenHuman (install `/opt/openhuman`; UI/desktop) | idem |
-| **191** | agl-gstack | `192.168.0.191` | **Jarvis O** — OpenClaw + GStack (legado agência; ver [`AGLZ-HERMES-ONLY-AGENCY.md`](AGLZ-HERMES-ONLY-AGENCY.md)) | [`AGL-GSTACK-CT191-DEDICATED-LXC.md`](AGL-GSTACK-CT191-DEDICATED-LXC.md) |
-| **192** | agl-honcho | `192.168.0.192` | Honcho self-hosted (memória AGLz Agency) | [`HONCHO-CT192-DEDICATED-LXC.md`](HONCHO-CT192-DEDICATED-LXC.md) |
+| VMID    | Hostname      | IP LAN          | Função                                                                                                            | Runbook                                                                                    |
+| ------- | ------------- | --------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **188** | agl-hermes    | `192.168.0.188` | Hermes Agent (Docker `/opt/agl-hermes`, gateway `:8642`)                                                          | [`HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md`](HERMES-EVONEXUS-OPENHUMAN-DEDICATED-LXC.md) |
+| **189** | agl-evonexus  | `192.168.0.189` | EvoNexus hub (Docker `/opt/evonexus`; cutover desde **CT548** fgsrv7, ex.242)                                     | idem + `scripts/evonexus/`                                                                 |
+| **190** | agl-openhuman | `192.168.0.190` | OpenHuman (install `/opt/openhuman`; UI/desktop)                                                                  | idem                                                                                       |
+| **191** | agl-gstack    | `192.168.0.191` | **Jarvis O** — OpenClaw + GStack (legado agência; ver [`AGLZ-HERMES-ONLY-AGENCY.md`](AGLZ-HERMES-ONLY-AGENCY.md)) | [`AGL-GSTACK-CT191-DEDICATED-LXC.md`](AGL-GSTACK-CT191-DEDICATED-LXC.md)                   |
+| **192** | agl-honcho    | `192.168.0.192` | Honcho self-hosted (memória AGLz Agency)                                                                          | [`HONCHO-CT192-DEDICATED-LXC.md`](HONCHO-CT192-DEDICATED-LXC.md)                           |
 
 **Nota:** usar IP **estático** `.188–.191` — DHCP pode colidir (ex. `.187` com OpenClaw). Gateway LLM: **CT186** `http://192.168.0.186:4000`. **CT191** ≠ **CT187** (produção vs. agência GStack).
 
@@ -85,10 +85,10 @@ tailscale up \
 
 > Runbook completo (cloudflared6 + eth2 + table 52): [`troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md`](troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md)
 
-| Host | TS IP | Interface LAN | Script de alinhamento |
-|------|-------|---------------|------------------------|
-| man6 (AGLSRV6) | 100.98.108.66 | vmbr0 + vmbr2 (192.168.1.202) | `scripts/proxmox/pct-tailscale-align-aglsrv6.sh` |
-| man6c (AGLSRV6C) | 100.124.53.91 | vmbr0 + vmbr2 (192.168.1.233) | `LAN_IF=vmbr0 TS_HOSTNAME=aglsrv6c scripts/proxmox/tailscale-align-proxmox-host.sh` |
+| Host             | TS IP         | Interface LAN                                  | Script de alinhamento                                                                |
+| ---------------- | ------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| man6 (AGLSRV6)   | 100.98.108.66 | vmbr0 + vmbr2 (192.168.1.202)                  | `scripts/proxmox/pct-tailscale-align-aglsrv6.sh`                                     |
+| man6c (AGLSRV6C) | 100.124.53.91 | vmbr0 + vmbr2 (192.168.1.233)                  | `LAN_IF=vmbr0 TS_HOSTNAME=aglsrv6c scripts/proxmox/tailscale-align-proxmox-host.sh`  |
 | man6d (AGLSRV6D) | 100.76.201.83 | enp2s0 (192.168.0.234); anuncia 192.168.0.0/24 | `LAN_IF=enp2s0 TS_HOSTNAME=aglsrv6d scripts/proxmox/tailscale-align-proxmox-host.sh` |
 
 CTs cloudflared (101, 114) com **eth2** em `192.168.1.0/24`: `agl-lan-routes.conf` **não** deve listar `192.168.1.202/233` — tráfego inter-host usa eth2 directamente.
@@ -101,12 +101,12 @@ ip route show table 52 | grep 192.168           # não deve haver 192.168.0.0/24
 curl -sf http://192.168.0.186:4000/health/liveliness
 ```
 
-| CT | Hostname TS | IP Tailscale (ref.) |
-|----|-------------|---------------------|
-| 188 | agl-hermes-ct188 | `100.81.225.22` |
-| 189 | agl-evonexus-ct189 | ver `tailscale ip -4` |
+| CT  | Hostname TS         | IP Tailscale (ref.)   |
+| --- | ------------------- | --------------------- |
+| 188 | agl-hermes-ct188    | `100.81.225.22`       |
+| 189 | agl-evonexus-ct189  | ver `tailscale ip -4` |
 | 190 | agl-openhuman-ct190 | ver `tailscale ip -4` |
-| 191 | agl-gstack-ct191 | ver `tailscale ip -4` |
+| 191 | agl-gstack-ct191    | ver `tailscale ip -4` |
 
 CT186/187 já na tailnet (`aglsrv1-litellm` `100.125.249.8`, `aglsrv1-openclaw` `100.123.184.125`) — **também** `--accept-routes=false` na LAN; não repetir join sem necessidade.
 
@@ -135,17 +135,17 @@ CT186/187 já na tailnet (`aglsrv1-litellm` `100.125.249.8`, `aglsrv1-openclaw` 
 
 ### Network Segments
 
-| Network | CIDR | Purpose | Status |
-|---------|------|---------|--------|
-| WireGuard Mesh | 10.6.0.0/24 | Encrypted inter-site connectivity | ✅ Active (14 nodes) |
-| Local LAN | 192.168.0.0/24 | Primary local network | ✅ Active |
-| Local LAN Alt | 192.168.1.0/24 | Secondary local network | ✅ Active |
-| Tailscale | 100.64.0.0/10 | Cross-site VPN overlay | ✅ Active |
+| Network        | CIDR           | Purpose                           | Status               |
+| -------------- | -------------- | --------------------------------- | -------------------- |
+| WireGuard Mesh | 10.6.0.0/24    | Encrypted inter-site connectivity | ✅ Active (14 nodes) |
+| Local LAN      | 192.168.0.0/24 | Primary local network             | ✅ Active            |
+| Local LAN Alt  | 192.168.1.0/24 | Secondary local network           | ✅ Active            |
+| Tailscale      | 100.64.0.0/10  | Cross-site VPN overlay            | ✅ Active            |
 
 ### Network Infrastructure Devices
 
-| Device | Model | IP | MAC | Purpose | Status |
-|--------|-------|-----|-----|---------|--------|
+| Device          | Model        | IP            | MAC               | Purpose                      | Status    |
+| --------------- | ------------ | ------------- | ----------------- | ---------------------------- | --------- |
 | **SWT-AGLSRV1** | ZX-SWTG124AS | 192.168.0.242 | 1C:2A:A3:1E:86:77 | Network Switch (AGLSRV1 LAN) | ✅ Active |
 
 **ZX-SWTG124AS Details**:
@@ -187,83 +187,83 @@ arp -a | grep 1c:2a:a3:1e:86:77
 
 ### AGLSRV1 Group (10 hosts)
 
-| Tailscale IP | Hostname | OS | Status | Purpose |
-|---|---|---|---|---|
-| 100.107.113.33 | aglsrv1 | linux | Active | Proxmox host node (bare metal) |
-| 100.94.221.87 | aglsrv1-agldv03 | linux | Active | Dev container CT179 (agldv03) — primary dev |
-| 100.113.9.98 | aglsrv1-agldv04 | linux | Idle | Dev container agldv04 |
-| 100.69.187.105 | aglsrv1-aglfs1 | linux | Active | File server / NFS (CT178) |
-| 100.117.146.21 | aglsrv1-aglwk45 | windows | Active | Windows workstation VM |
-| 100.80.30.59 | aglsrv1-archon | linux | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
-| 100.72.66.106 | aglsrv1-dokploy | linux | Active | Dokploy deployment manager (CT180) |
-| 100.105.133.18 | aglsrv1-haos | linux | Offline 158d | Home Assistant OS VM |
-| 100.67.253.52 | aglsrv3-ollama | linux | Active | **Ollama primário** — VM310 AGLSRV3 (2× RX580) |
-| 100.116.57.111 | aglsrv1-ollama | linux | Offline | Legado VM110/CT200 AGLSRV1 — descontinuado |
-| 100.114.66.80 | aglsrv1-pihole | linux | Active | Pi-hole DNS (CT102) |
+| Tailscale IP   | Hostname        | OS      | Status          | Purpose                                                              |
+| -------------- | --------------- | ------- | --------------- | -------------------------------------------------------------------- |
+| 100.107.113.33 | aglsrv1         | linux   | Active          | Proxmox host node (bare metal)                                       |
+| 100.94.221.87  | aglsrv1-agldv03 | linux   | Active          | Dev container CT179 (agldv03) — primary dev                          |
+| 100.113.9.98   | aglsrv1-agldv04 | linux   | Idle            | Dev container agldv04                                                |
+| 100.69.187.105 | aglsrv1-aglfs1  | linux   | Active          | File server / NFS (CT178)                                            |
+| 100.117.146.21 | aglsrv1-aglwk45 | windows | Active          | Windows workstation VM                                               |
+| 100.80.30.59   | aglsrv1-archon  | linux   | Active (direct) | Archon AI Command Center (CT183) — 8181 (API), 8051 (MCP), 3737 (UI) |
+| 100.72.66.106  | aglsrv1-dokploy | linux   | Active          | Dokploy deployment manager (CT180)                                   |
+| 100.105.133.18 | aglsrv1-haos    | linux   | Offline 158d    | Home Assistant OS VM                                                 |
+| 100.67.253.52  | aglsrv3-ollama  | linux   | Active          | **Ollama primário** — VM310 AGLSRV3 (2× RX580)                       |
+| 100.116.57.111 | aglsrv1-ollama  | linux   | Offline         | Legado VM110/CT200 AGLSRV1 — descontinuado                           |
+| 100.114.66.80  | aglsrv1-pihole  | linux   | Active          | Pi-hole DNS (CT102)                                                  |
 
 ### AGLSRV5 Group (7 hosts)
 
-| Tailscale IP | Hostname | OS | Status | Purpose |
-|---|---|---|---|---|
-| 100.119.223.113 | aglsrv5 | linux | Idle | Proxmox host node |
-| 100.119.41.63 | aglsrv5-agldv05 | linux | Idle | Dev container agldv05 |
-| 100.92.46.119 | aglsrv5-aglwk79 | windows | Active | Windows workstation VM |
-| 100.66.136.84 | aglsrv5-fileserver5 | linux | Active | File server / NFS |
-| 100.82.254.91 | aglsrv5-mesh5 | linux | Active | WireGuard mesh node |
-| 100.98.1.119 | aglsrv5-mysql5 | linux | Active | MySQL slave read_only (CT135); ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
-| 100.68.158.60 | aglsrv5-unraid | linux | Active | Unraid NAS storage |
+| Tailscale IP    | Hostname            | OS      | Status | Purpose                                                                        |
+| --------------- | ------------------- | ------- | ------ | ------------------------------------------------------------------------------ |
+| 100.119.223.113 | aglsrv5             | linux   | Idle   | Proxmox host node                                                              |
+| 100.82.71.49    | aglsrv5-agldv05     | linux   | Online | Dev **agldv05** (CT536 @ AGLSRV5)                                              |
+| 100.92.46.119   | aglsrv5-aglwk79     | windows | Active | Windows workstation VM                                                         |
+| 100.66.136.84   | aglsrv5-fileserver5 | linux   | Active | File server / NFS                                                              |
+| 100.82.254.91   | aglsrv5-mesh5       | linux   | Active | WireGuard mesh node                                                            |
+| 100.98.1.119    | aglsrv5-mysql5      | linux   | Active | MySQL slave read_only (CT135); ver `docs/maint/MYSQL-HA-POST-RESET-2026-04.md` |
+| 100.68.158.60   | aglsrv5-unraid      | linux   | Active | Unraid NAS storage                                                             |
 
 ### AGLSRV6 Group (11 hosts)
 
-| Tailscale IP | Hostname | OS | Status | Purpose |
-|---|---|---|---|---|
-| 100.98.108.66 | aglsrv6 | linux | Active | Proxmox host node |
-| 100.71.229.12 | aglsrv6-agldv06 | linux | Idle | Dev container **CT608** agldv06 (ex.108) |
-| 100.120.94.42 | aglsrv6-aglhq26 | windows | Active | Windows workstation |
-| 100.65.189.83 | aglsrv6-aluzdivina | linux | Active | NFS server (CT111) |
-| 100.121.95.88 | aglsrv6-cloudflared6 | linux | Active | Cloudflare Tunnel primary (CT101) |
-| 100.115.195.128 | aglsrv6-cloudflared6b | linux | Active | Cloudflare Tunnel secondary (CT114) |
-| 100.70.155.60 | aglsrv6-pbs | linux | Active | Proxmox Backup Server (CT113) |
-| 100.102.182.100 | aglsrv6-sspadld01 | windows | Offline 26d | Windows server |
-| 100.113.15.100 | aglsrv6-wireguard | linux | Active | WireGuard hub container (CT121) |
-| 100.69.29.38 | aglsrv6b-pbs | linux | Offline 131d | PBS secondary (decommissioned?) |
-| 100.98.119.51 | aglsrv6b | linux | Offline 131d | AGLSRV6B host (decommissioned?) |
+| Tailscale IP    | Hostname              | OS      | Status       | Purpose                                  |
+| --------------- | --------------------- | ------- | ------------ | ---------------------------------------- |
+| 100.98.108.66   | aglsrv6               | linux   | Active       | Proxmox host node                        |
+| 100.71.229.12   | aglsrv6-agldv06       | linux   | Idle         | Dev container **CT608** agldv06 (ex.108) |
+| 100.120.94.42   | aglsrv6-aglhq26       | windows | Active       | Windows workstation                      |
+| 100.65.189.83   | aglsrv6-aluzdivina    | linux   | Active       | NFS server (CT111)                       |
+| 100.121.95.88   | aglsrv6-cloudflared6  | linux   | Active       | Cloudflare Tunnel primary (CT101)        |
+| 100.115.195.128 | aglsrv6-cloudflared6b | linux   | Active       | Cloudflare Tunnel secondary (CT114)      |
+| 100.70.155.60   | aglsrv6-pbs           | linux   | Active       | Proxmox Backup Server (CT113)            |
+| 100.102.182.100 | aglsrv6-sspadld01     | windows | Offline 26d  | Windows server                           |
+| 100.113.15.100  | aglsrv6-wireguard     | linux   | Active       | WireGuard hub container (CT121)          |
+| 100.69.29.38    | aglsrv6b-pbs          | linux   | Offline 131d | PBS secondary (decommissioned?)          |
+| 100.98.119.51   | aglsrv6b              | linux   | Offline 131d | AGLSRV6B host (decommissioned?)          |
 
 ### AGLSRV6C/D + AGLSRV3 (3 hosts)
 
-| Tailscale IP | Hostname | OS | Status | Purpose |
-|---|---|---|---|---|
-| 100.124.53.91 | aglsrv6c | linux | Active | AGLSRV6C extension node |
-| 100.76.201.83 | aglsrv6d | linux | Active | AGLSRV6D extension node |
-| 100.123.5.81 | aglsrv3 | linux | Active | Proxmox host AGLFG (`192.168.15.247`) |
-| *(pendente)* | aglsrv3-pihole | linux | **NeedsLogin** | CT317 Pi-hole @ LAN `192.168.15.117` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) + `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh` |
+| Tailscale IP  | Hostname       | OS    | Status         | Purpose                                                                                                                                            |
+| ------------- | -------------- | ----- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 100.124.53.91 | aglsrv6c       | linux | Active         | AGLSRV6C extension node                                                                                                                            |
+| 100.76.201.83 | aglsrv6d       | linux | Active         | AGLSRV6D extension node                                                                                                                            |
+| 100.123.5.81  | aglsrv3        | linux | Active         | Proxmox host AGLFG (`192.168.15.247`)                                                                                                              |
+| _(pendente)_  | aglsrv3-pihole | linux | **NeedsLogin** | CT317 Pi-hole @ LAN `192.168.15.117` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) + `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh` |
 
 > **AGLSRV3 DNS:** Pi-hole local CT317 @ `192.168.15.117`. Host `resolv.conf` e CTs apontam para este IP.
 
 ### FGSRV Group (7 hosts)
 
-| Tailscale IP | Hostname | OS | Status | Purpose |
-|---|---|---|---|---|
-| 100.67.99.115 | fgsrv03 | linux | Active | Cloud VPS 03 |
-| 100.111.79.2 | fgsrv04 | linux | Active | Cloud VPS 04 |
-| 100.71.107.26 | fgsrv05 | linux | Active | Cloud VPS 05 / NFS server |
-| 100.83.51.9 | fgsrv06 | linux | Idle | Cloud VPS 06 / WireGuard hub |
-| 100.72.240.65 | fgsrv07-cloudflared7 | linux | Active | Cloudflare Tunnel (**CT570**; ex.170) |
-| *(após login no CT171)* | fgsrv07-cloudflared7b | linux | Reauth pendente | CT171 `cloudflared7b` — reset Tailscale: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`; depois `pct exec 171 -- tailscale ip -4` e actualizar esta linha |
-| 100.83.7.16 | fgsrv07-mysql7 | linux | Active | MySQL master / GTID (**CT561**; ex.235) |
-| 100.64.139.79 | fgsrv07-agldv07 | linux | **NeedsLogin** (CT547 running) | Dev **agldv07** (**CT547**; ex.241) — LAN `192.168.70.241`; **≠ CT183 archon** — reauth Tailscale após restore disco |
-| 100.109.181.93 | fgsrv07 | linux | Active | Cloud VPS 07 / Proxmox |
+| Tailscale IP            | Hostname              | OS    | Status          | Purpose                                                                                                                                                               |
+| ----------------------- | --------------------- | ----- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 100.67.99.115           | fgsrv03               | linux | Active          | Cloud VPS 03                                                                                                                                                          |
+| 100.111.79.2            | fgsrv04               | linux | Active          | Cloud VPS 04                                                                                                                                                          |
+| 100.71.107.26           | fgsrv05               | linux | Active          | Cloud VPS 05 / NFS server                                                                                                                                             |
+| 100.83.51.9             | fgsrv06               | linux | Idle            | Cloud VPS 06 / WireGuard hub                                                                                                                                          |
+| 100.72.240.65           | fgsrv07-cloudflared7  | linux | Active          | Cloudflare Tunnel (**CT570**; ex.170)                                                                                                                                 |
+| _(após login no CT171)_ | fgsrv07-cloudflared7b | linux | Reauth pendente | CT171 `cloudflared7b` — reset Tailscale: `scripts/maint/fgsrv07/pct-tailscale-reset-after-clone.sh`; depois `pct exec 171 -- tailscale ip -4` e actualizar esta linha |
+| 100.83.7.16             | fgsrv07-mysql7        | linux | Active          | MySQL master / GTID (**CT561**; ex.235)                                                                                                                               |
+| 100.64.175.89           | fgsrv07-agldv07       | linux | Online          | Dev **agldv07** (CT547 @ FGSRV7) — LAN `192.168.70.241`                                                                                                               |
+| 100.109.181.93          | fgsrv07               | linux | Active          | Cloud VPS 07 / Proxmox                                                                                                                                                |
 
 ### Endpoints & Dispositivos Pessoais (6 hosts)
 
-| Tailscale IP | Hostname | OS | Status | Purpose |
-|---|---|---|---|---|
-| 100.75.205.122 | aglhq11 | windows | Active | AGL HQ workstation (WSL2) |
-| 100.105.84.8 | aglnb11 | windows | Active | AGL notebook |
-| 100.111.113.102 | aglmac08 | macOS | Active | AGL Mac workstation |
-| 100.102.187.120 | aglmac07 | windows | Offline 36d | AGL Mac (Boot Camp) |
-| 100.80.84.69 | aglcel10 | android | Offline 46d | Celular Android |
-| 100.64.43.53 | xiaomi-21121210g | android | Offline 134d | Xiaomi device |
+| Tailscale IP    | Hostname         | OS      | Status       | Purpose                   |
+| --------------- | ---------------- | ------- | ------------ | ------------------------- |
+| 100.75.205.122  | aglhq11          | windows | Active       | AGL HQ workstation (WSL2) |
+| 100.105.84.8    | aglnb11          | windows | Active       | AGL notebook              |
+| 100.111.113.102 | aglmac08         | macOS   | Active       | AGL Mac workstation       |
+| 100.102.187.120 | aglmac07         | windows | Offline 36d  | AGL Mac (Boot Camp)       |
+| 100.80.84.69    | aglcel10         | android | Offline 46d  | Celular Android           |
+| 100.64.43.53    | xiaomi-21121210g | android | Offline 134d | Xiaomi device             |
 
 **Subnet Router Configuration** (if needed):
 
@@ -290,11 +290,11 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 **Type**: Proxmox VE Host
 **Location**: Local (192.168.0.0/24)
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | 192.168.0.245 | vmbr0 | ✅ Primary |
-| WireGuard | 10.6.0.10 | wg0 | ✅ Port 51810 |
-| Tailscale | 100.107.113.33 | tailscale0 | ✅ Active |
+| Network   | Address        | Interface  | Status        |
+| --------- | -------------- | ---------- | ------------- |
+| Local LAN | 192.168.0.245  | vmbr0      | ✅ Primary    |
+| WireGuard | 10.6.0.10      | wg0        | ✅ Port 51810 |
+| Tailscale | 100.107.113.33 | tailscale0 | ✅ Active     |
 
 **Resources**:
 
@@ -330,13 +330,13 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 **Type**: Proxmox VE Host
 **Location**: Remote (behind WireGuard/Tailscale)
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 (PRIMARY) |
-| Tailscale | 100.98.108.66 | tailscale0 | ✅ Fallback |
-| LAN externa | 192.168.0.202/24 | vmbr0 | ✅ Active |
-| LAN interna | 192.168.60.202/24 | vmbr1 | ✅ Active |
-| **LAN inter-host** | **192.168.1.202/24** | **vmbr2** | ✅ **PRIMARY cluster** (man6 ↔ man6c ↔ CTs eth2) |
+| Network            | Address              | Interface  | Status                                           |
+| ------------------ | -------------------- | ---------- | ------------------------------------------------ |
+| WireGuard          | 10.6.0.12            | wg0        | ✅ Port 51812 (PRIMARY)                          |
+| Tailscale          | 100.98.108.66        | tailscale0 | ✅ Fallback                                      |
+| LAN externa        | 192.168.0.202/24     | vmbr0      | ✅ Active                                        |
+| LAN interna        | 192.168.60.202/24    | vmbr1      | ✅ Active                                        |
+| **LAN inter-host** | **192.168.1.202/24** | **vmbr2**  | ✅ **PRIMARY cluster** (man6 ↔ man6c ↔ CTs eth2) |
 
 **Resources**:
 
@@ -361,11 +361,11 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 **Role**: Cluster node with AGLSRV5, Cloudflare Tunnel host
 **Last Optimized**: 2026-02-23
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.93.227 | - | ✅ Internet |
-| Tailscale | 100.109.181.93 | - | ✅ Active |
-| WireGuard | 10.6.0.24 | 51824/UDP | 🔄 Pending |
+| Network   | Address        | Port      | Status      |
+| --------- | -------------- | --------- | ----------- |
+| Public IP | 191.252.93.227 | -         | ✅ Internet |
+| Tailscale | 100.109.181.93 | -         | ✅ Active   |
+| WireGuard | 10.6.0.24      | 51824/UDP | 🔄 Pending  |
 
 **Proxmox**:
 
@@ -382,10 +382,10 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 
 **Network Bridges**:
 
-| Bridge | Type | IP | Purpose |
-|--------|------|-----|---------|
-| vmbr0 | Linux Bridge | 191.252.93.227/24 | Public network |
-| vmbr70 | OVS Bridge | 192.168.70.1/24 | Internal container network |
+| Bridge | Type         | IP                | Purpose                    |
+| ------ | ------------ | ----------------- | -------------------------- |
+| vmbr0  | Linux Bridge | 191.252.93.227/24 | Public network             |
+| vmbr70 | OVS Bridge   | 192.168.70.1/24   | Internal container network |
 
 **DNS**:
 
@@ -403,24 +403,24 @@ tailscale up --advertise-routes=192.168.0.0/24,10.6.0.0/24
 
 **Containers**:
 
-| VMID | Name | Status | Network | Purpose |
-|------|------|--------|---------|---------|
-| 545 | fgsrv7-pbs | running | WAN | Proxmox Backup Server |
-| 546 | fileserver7 | stopped | vmbr70 | Partilha ficheiros (ex.240) |
-| 547 | agldv07 | running | vmbr70 (192.168.70.241) | Dev satélite (ex.241); TS **`fgsrv07-agldv07`** `100.64.139.79` — **NeedsLogin** após restore |
-| 548 | evonexus | running | vmbr70 (192.168.70.242) | EvoNexus (ex.242); **https://evo.aglz.io** |
-| 549 | fg-legacy | running | vmbr70 (192.168.70.243) | Legado (ex.243) |
-| 550 | fg-ngrok | running | vmbr70 (192.168.70.244) | ngrok (ex.244) |
-| 561 | mysql7 | running | vmbr70 (192.168.70.235) | MySQL Master HA (ex.535) |
-| 562 | pihole7 | running | vmbr70 (192.168.70.139) | DNS (ex.539) |
-| 570 | cloudflared7 | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel fgsrv7 (ex.170) |
-| 571 | cloudflared7b | running | vmbr70 (192.168.70.171) | Túnel **fgsrv7b** (ex.171) |
+| VMID | Name          | Status  | Network                 | Purpose                                                    |
+| ---- | ------------- | ------- | ----------------------- | ---------------------------------------------------------- |
+| 545  | fgsrv7-pbs    | running | WAN                     | Proxmox Backup Server                                      |
+| 546  | fileserver7   | stopped | vmbr70                  | Partilha ficheiros (ex.240)                                |
+| 547  | agldv07       | running | vmbr70 (192.168.70.241) | Dev satélite; TS **`fgsrv07-agldv07`** **`100.64.175.89`** |
+| 548  | evonexus      | running | vmbr70 (192.168.70.242) | EvoNexus (ex.242); **https://evo.aglz.io**                 |
+| 549  | fg-legacy     | running | vmbr70 (192.168.70.243) | Legado (ex.243)                                            |
+| 550  | fg-ngrok      | running | vmbr70 (192.168.70.244) | ngrok (ex.244)                                             |
+| 561  | mysql7        | running | vmbr70 (192.168.70.235) | MySQL Master HA (ex.535)                                   |
+| 562  | pihole7       | running | vmbr70 (192.168.70.139) | DNS (ex.539)                                               |
+| 570  | cloudflared7  | running | vmbr70 (192.168.70.170) | Cloudflare Tunnel fgsrv7 (ex.170)                          |
+| 571  | cloudflared7b | running | vmbr70 (192.168.70.171) | Túnel **fgsrv7b** (ex.171)                                 |
 
 **Renumeração VMID (2026-06):** ver `docs/PROXMOX-VMID-RENUMBER-2026-06.md`.
 
 **EvoNexus CT548 (SQLite única):** dashboard, scheduler, telegram e agentes no volume `workspace` devem usar **`/workspace/dashboard/data/evonexus.db`**. Unificação: `scripts/evonexus/unify-single-sqlite-evonexus-db.sh`. Tailscale: `lxc.mount.entry` em `548.conf`.
 
-**EvoNexus — Claude no terminal e LiteLLM:** o `claude-bridge` não herda o `.env` do contentor; injeta apenas `env_vars` do `providers.json` que passam na whitelist em `terminal-server/src/provider-config.js`. No upstream, **`ANTHROPIC_BASE_URL` e `ANTHROPIC_AUTH_TOKEN` não estão na lista** — se o perfil `anthropic` tiver gateway LiteLLM nesses campos, são ignorados e o `claude` arranca sem API key efetiva (mensagem tipo «não estás logado»). Mitigação: montar o overlay **`scripts/evonexus/overlays/terminal-server-provider-config.js`** em `/workspace/dashboard/terminal-server/src/provider-config.js` (ver cabeçalho do ficheiro) e no `providers.json` preencher `env_vars` com `ANTHROPIC_BASE_URL`, **`ANTHROPIC_AUTH_TOKEN`** (Bearer = `LITELLM_MASTER_KEY` no proxy), `DISABLE_LOGIN_COMMAND=1` quando aplicável; reiniciar o serviço `dashboard`. **Claude Code 2.1+:** não definir **`ANTHROPIC_API_KEY` e `ANTHROPIC_AUTH_TOKEN` em simultâneo** para hosts que não sejam `api.anthropic.com` — o cliente avisa *Auth conflict* e o comportamento fica ambíguo; o script **`scripts/evonexus/sync-providers-anthropic-from-env.py`** remove `ANTHROPIC_API_KEY` nesse caso após o merge. O perfil **litellm** com `openclaude` usa `OPENAI_*` (já permitidos); o problema costuma aparecer ao usar o binário **`claude`** com Anthropic + proxy.
+**EvoNexus — Claude no terminal e LiteLLM:** o `claude-bridge` não herda o `.env` do contentor; injeta apenas `env_vars` do `providers.json` que passam na whitelist em `terminal-server/src/provider-config.js`. No upstream, **`ANTHROPIC_BASE_URL` e `ANTHROPIC_AUTH_TOKEN` não estão na lista** — se o perfil `anthropic` tiver gateway LiteLLM nesses campos, são ignorados e o `claude` arranca sem API key efetiva (mensagem tipo «não estás logado»). Mitigação: montar o overlay **`scripts/evonexus/overlays/terminal-server-provider-config.js`** em `/workspace/dashboard/terminal-server/src/provider-config.js` (ver cabeçalho do ficheiro) e no `providers.json` preencher `env_vars` com `ANTHROPIC_BASE_URL`, **`ANTHROPIC_AUTH_TOKEN`** (Bearer = `LITELLM_MASTER_KEY` no proxy), `DISABLE_LOGIN_COMMAND=1` quando aplicável; reiniciar o serviço `dashboard`. **Claude Code 2.1+:** não definir **`ANTHROPIC_API_KEY` e `ANTHROPIC_AUTH_TOKEN` em simultâneo** para hosts que não sejam `api.anthropic.com` — o cliente avisa _Auth conflict_ e o comportamento fica ambíguo; o script **`scripts/evonexus/sync-providers-anthropic-from-env.py`** remove `ANTHROPIC_API_KEY` nesse caso após o merge. O perfil **litellm** com `openclaude` usa `OPENAI_*` (já permitidos); o problema costuma aparecer ao usar o binário **`claude`** com Anthropic + proxy.
 
 **EvoNexus — root, DSP e modelo por defeito:** o bridge original não aplicava `global_settings.dangerouslySkipPermissions` e **nunca** passava `--dangerously-skip-permissions` como root. Overlay **`scripts/evonexus/overlays/claude-bridge.js`** lê o `providers.json`, combina com `IS_SANDBOX=1` no compose do dashboard e repassa `IS_SANDBOX` ao PTY; injeta `--model` a partir de `ANTHROPIC_MODEL` (sync: **`scripts/evonexus/sync-providers-anthropic-from-env.py`**, omissão **`qwen3.5-plus`** quando `.env` não define modelo). Índice: **`scripts/evonexus/overlays/README-evonexus-overlays.md`**.
 
@@ -442,10 +442,10 @@ iptables -t nat -A POSTROUTING -s 192.168.70.0/24 -o vmbr0 -j MASQUERADE
 
 **Cloudflare Tunnel — par HA (FGSRV7):**
 
-| CT | Túnel | Gestão | Conta CF |
-|----|-------|--------|----------|
-| **570** `cloudflared7` | **fgsrv7** `513cec7b-…` | UI web Zero Trust | aglz.io (`cert.pem` agldv03) |
-| **571** `cloudflared7b` | **fgsrv7b** `850f2d28-…` | CLI / API / AI | falg.* (token API dedicado) |
+| CT                      | Túnel                    | Gestão            | Conta CF                     |
+| ----------------------- | ------------------------ | ----------------- | ---------------------------- |
+| **570** `cloudflared7`  | **fgsrv7** `513cec7b-…`  | UI web Zero Trust | aglz.io (`cert.pem` agldv03) |
+| **571** `cloudflared7b` | **fgsrv7b** `850f2d28-…` | CLI / API / AI    | falg.\* (token API dedicado) |
 
 Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname existir nos **dois** túneis. Detalhe: `docs/CLOUDFLARE-TUNNELS.md` (secção FGSRV7 HA).
 
@@ -469,11 +469,11 @@ Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname exi
 **Type**: Proxmox VE Host
 **Role**: WireGuard mesh hub, NFS server, Cloudflare Tunnel host
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 186.202.57.120 | - | ✅ Internet |
-| WireGuard | 10.6.0.5 | 51823/UDP | ✅ Hub |
-| Tailscale | 100.83.51.9 | - | ✅ Active |
+| Network   | Address        | Port      | Status      |
+| --------- | -------------- | --------- | ----------- |
+| Public IP | 186.202.57.120 | -         | ✅ Internet |
+| WireGuard | 10.6.0.5       | 51823/UDP | ✅ Hub      |
+| Tailscale | 100.83.51.9    | -         | ✅ Active   |
 
 **NFS Exports**:
 
@@ -495,11 +495,11 @@ Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname exi
 **Type**: Proxmox VE Host
 **Role**: NFS server, storage backend
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.200.20 | - | ✅ Internet |
-| WireGuard | 10.6.0.11 | 51811/UDP | ✅ Active |
-| Tailscale | 100.71.107.26 | - | ✅ Active |
+| Network   | Address        | Port      | Status      |
+| --------- | -------------- | --------- | ----------- |
+| Public IP | 191.252.200.20 | -         | ✅ Internet |
+| WireGuard | 10.6.0.11      | 51811/UDP | ✅ Active   |
+| Tailscale | 100.71.107.26  | -         | ✅ Active   |
 
 **NFS Exports**:
 
@@ -515,11 +515,11 @@ Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname exi
 **Type**: Ubuntu 22.04 VPS (legado PHP/Nginx — **não** é host Proxmox; ver auditoria 2026-06-11)
 **Descomissionamento**: [`docs/maint/FGSRV04-DECOMMISSION-INVENTORY.md`](maint/FGSRV04-DECOMMISSION-INVENTORY.md) — `www5` migrado para FGSRV07 CT549; domínios principais ainda neste host até cutover DNS.
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.201.108 | - | ✅ Internet |
-| WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active |
-| Tailscale | 100.111.79.2 | - | ✅ Active |
+| Network   | Address         | Port      | Status      |
+| --------- | --------------- | --------- | ----------- |
+| Public IP | 191.252.201.108 | -         | ✅ Internet |
+| WireGuard | 10.6.0.16       | 51816/UDP | ✅ Active   |
+| Tailscale | 100.111.79.2    | -         | ✅ Active   |
 
 **User**: sysadmin (público) / root (Tailscale)
 
@@ -530,11 +530,11 @@ Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname exi
 **Location**: Cloud VPS (191.252.201.205)
 **Type**: Proxmox VE Host
 
-| Network | Address | Port | Status |
-|---------|---------|------|--------|
-| Public IP | 191.252.201.205 | - | ✅ Internet |
-| WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active |
-| Tailscale | 100.67.99.115 | - | ✅ Active |
+| Network   | Address         | Port      | Status      |
+| --------- | --------------- | --------- | ----------- |
+| Public IP | 191.252.201.205 | -         | ✅ Internet |
+| WireGuard | 10.6.0.18       | 51818/UDP | ✅ Active   |
+| Tailscale | 100.67.99.115   | -         | ✅ Active   |
 
 ---
 
@@ -542,22 +542,22 @@ Um túnel por CT; em backup PBS parar um CT — o outro assume se o hostname exi
 
 ### Active Nodes (14 Total)
 
-| Node | IP | Port | Type | Host | Status |
-|------|-----|------|------|------|--------|
-| **FGSRV6** | 10.6.0.5 | 51823 | Hub | Cloud VPS | ✅ Hub |
-| CT120 | 10.6.0.1 | 51820 | Container | AGLSRV1 | ✅ |
-| CT121 | 10.6.0.3 | 51821 | Container | AGLSRV6 | ✅ |
-| AGLSRV1 | 10.6.0.10 | 51810 | Host | Local | ✅ |
-| FGSRV5 | 10.6.0.11 | 51811 | Host | Cloud VPS | ✅ |
-| **AGLSRV6** | 10.6.0.12 | 51812 | Host | Remote | ✅ PRIMARY |
-| AGLSRV6B | 10.6.0.13 | 51813 | Host | Remote | ✅ |
-| CT113 | 10.6.0.14 | 51814 | Container | AGLSRV6 | ✅ |
-| CT172 | 10.6.0.15 | 51815 | Container | AGLSRV6B | ✅ |
-| FGSRV4 | 10.6.0.16 | 51816 | Host | Cloud VPS | ✅ |
-| AGLSRV5 | 10.6.0.17 | 51817 | Host | Remote | ✅ |
-| FGSRV3 | 10.6.0.18 | 51818 | Host | Cloud VPS | ✅ |
-| **CT179** | 10.6.0.19 | 51819 | Container | AGLSRV1 | ✅ Dev |
-| **CT111** | 10.6.0.20 | 51820 | Container | AGLSRV6 | ✅ NFS |
+| Node        | IP        | Port  | Type      | Host      | Status     |
+| ----------- | --------- | ----- | --------- | --------- | ---------- |
+| **FGSRV6**  | 10.6.0.5  | 51823 | Hub       | Cloud VPS | ✅ Hub     |
+| CT120       | 10.6.0.1  | 51820 | Container | AGLSRV1   | ✅         |
+| CT121       | 10.6.0.3  | 51821 | Container | AGLSRV6   | ✅         |
+| AGLSRV1     | 10.6.0.10 | 51810 | Host      | Local     | ✅         |
+| FGSRV5      | 10.6.0.11 | 51811 | Host      | Cloud VPS | ✅         |
+| **AGLSRV6** | 10.6.0.12 | 51812 | Host      | Remote    | ✅ PRIMARY |
+| AGLSRV6B    | 10.6.0.13 | 51813 | Host      | Remote    | ✅         |
+| CT113       | 10.6.0.14 | 51814 | Container | AGLSRV6   | ✅         |
+| CT172       | 10.6.0.15 | 51815 | Container | AGLSRV6B  | ✅         |
+| FGSRV4      | 10.6.0.16 | 51816 | Host      | Cloud VPS | ✅         |
+| AGLSRV5     | 10.6.0.17 | 51817 | Host      | Remote    | ✅         |
+| FGSRV3      | 10.6.0.18 | 51818 | Host      | Cloud VPS | ✅         |
+| **CT179**   | 10.6.0.19 | 51819 | Container | AGLSRV1   | ✅ Dev     |
+| **CT111**   | 10.6.0.20 | 51820 | Container | AGLSRV6   | ✅ NFS     |
 
 ### Configuration Standards
 
@@ -662,20 +662,20 @@ traceroute 10.6.0.5
 
 ### AGLSRV1 Storage Mounts
 
-| Storage | Size | Type | Source | Path | Status |
-|---------|------|------|--------|------|--------|
-| local | 77GB | Local | Disk | - | ✅ |
-| local-zfs | 1.7TB | ZFS | Pool | - | ✅ |
-| fgsrv5-wg | 77GB | NFS | 10.6.0.11:/ | /mnt/pve/fgsrv5-wg | ✅ |
-| fgsrv6-wg | 197GB | NFS | 10.6.0.5:/ | /mnt/pve/fgsrv6-wg | ✅ |
-| ct111-shares | 66GB | NFS | 10.6.0.20:/mnt/shares | /mnt/pve/ct111-shares | ⚠️ CT111 offline bloqueia `pvedaemon` — ver [AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md](AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md) |
-| ct111-sistema | 818GB | NFS | 10.6.0.20:/mnt/sistema | /mnt/pve/ct111-sistema | ⚠️ idem |
-| aglsrv6-bb | 954GB | SSHFS | 10.6.0.12:/mnt/pve/bb | /mnt/pve/aglsrv6-bb | ✅ |
-| aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | ✅ |
-| aglsrv6-pbs | 1.2TB | PBS | - | - | ✅ |
-| aglsrv6b-pbs | 1.0TB | PBS | - | - | ✅ |
-| spark | 7.1TB | Local | Disk | - | ✅ 91.54% used |
-| overpower | 9.8TB | Local | Disk | - | ✅ 92.54% used |
+| Storage        | Size  | Type  | Source                       | Path                    | Status                                                                                                                                 |
+| -------------- | ----- | ----- | ---------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| local          | 77GB  | Local | Disk                         | -                       | ✅                                                                                                                                     |
+| local-zfs      | 1.7TB | ZFS   | Pool                         | -                       | ✅                                                                                                                                     |
+| fgsrv5-wg      | 77GB  | NFS   | 10.6.0.11:/                  | /mnt/pve/fgsrv5-wg      | ✅                                                                                                                                     |
+| fgsrv6-wg      | 197GB | NFS   | 10.6.0.5:/                   | /mnt/pve/fgsrv6-wg      | ✅                                                                                                                                     |
+| ct111-shares   | 66GB  | NFS   | 10.6.0.20:/mnt/shares        | /mnt/pve/ct111-shares   | ⚠️ CT111 offline bloqueia `pvedaemon` — ver [AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md](AGLSRV1-WEBUI-LOGIN-NFS-BLOCK-2026-05-25.md) |
+| ct111-sistema  | 818GB | NFS   | 10.6.0.20:/mnt/sistema       | /mnt/pve/ct111-sistema  | ⚠️ idem                                                                                                                                |
+| aglsrv6-bb     | 954GB | SSHFS | 10.6.0.12:/mnt/pve/bb        | /mnt/pve/aglsrv6-bb     | ✅                                                                                                                                     |
+| aglsrv6-usb4tb | 3.9TB | SSHFS | 10.6.0.12:/mnt/usb4tb-direct | /mnt/pve/aglsrv6-usb4tb | ✅                                                                                                                                     |
+| aglsrv6-pbs    | 1.2TB | PBS   | -                            | -                       | ✅                                                                                                                                     |
+| aglsrv6b-pbs   | 1.0TB | PBS   | -                            | -                       | ✅                                                                                                                                     |
+| spark          | 7.1TB | Local | Disk                         | -                       | ✅ 91.54% used                                                                                                                         |
+| overpower      | 9.8TB | Local | Disk                         | -                       | ✅ 92.54% used                                                                                                                         |
 
 **Total WireGuard Storage**: 6.0 TB
 
@@ -684,9 +684,9 @@ traceroute 10.6.0.5
 
 ### AGLSRV5 Storage Mounts
 
-| Storage | Type | Source | Path | Status |
-|---------|------|--------|------|--------|
-| fileserver5-nfs | NFS | 10.6.0.21 (CT138 fileserver5) | /mnt/pve/fileserver5-nfs | ✅ |
+| Storage         | Type | Source                        | Path                     | Status |
+| --------------- | ---- | ----------------------------- | ------------------------ | ------ |
+| fileserver5-nfs | NFS  | 10.6.0.21 (CT138 fileserver5) | /mnt/pve/fileserver5-nfs | ✅     |
 
 **Rename**: `ct138-nfs` → `fileserver5-nfs` (ver [STORAGE-RENAME-CT138-TO-FILESERVER5](wireguard/STORAGE-RENAME-CT138-TO-FILESERVER5.md))
 
@@ -724,14 +724,14 @@ mount -t nfs -o vers=4.2,rsize=1048576,wsize=1048576,timeo=600,retrans=2,hard,no
 
 **Key Parameters**:
 
-| Option | Value | Purpose |
-|--------|-------|---------|
-| `vers` | 4.2 | NFS v4.2 (sparse files, session trunking) |
+| Option        | Value   | Purpose                                      |
+| ------------- | ------- | -------------------------------------------- |
+| `vers`        | 4.2     | NFS v4.2 (sparse files, session trunking)    |
 | `rsize/wsize` | 1048576 | 1MB read/write blocks - maximizes throughput |
-| `timeo` | 600 | 60s timeout - handles WireGuard latency |
-| `retrans` | 2 | Retry attempts |
-| `hard` | - | Data integrity over responsiveness |
-| `noatime` | - | Disable access time updates |
+| `timeo`       | 600     | 60s timeout - handles WireGuard latency      |
+| `retrans`     | 2       | Retry attempts                               |
+| `hard`        | -       | Data integrity over responsiveness           |
+| `noatime`     | -       | Disable access time updates                  |
 
 **/etc/fstab Entry Example**:
 
@@ -781,14 +781,14 @@ sshfs root@10.6.0.12:/mnt/pve/bb /mnt/pve/aglsrv6-bb \
 
 **Performance Options**:
 
-| Option | Value | Purpose |
-|--------|-------|---------|
-| `reconnect` | - | Auto-reconnect on disconnect |
-| `cache_timeout` | 120 | Cache timeout (seconds) |
-| `kernel_cache` | - | Use kernel page cache |
-| `max_readahead` | 524288 | Read-ahead buffer (512KB) |
-| `big_writes` | - | Enable large packet writes |
-| `compression` | no | Disable on fast networks |
+| Option          | Value  | Purpose                      |
+| --------------- | ------ | ---------------------------- |
+| `reconnect`     | -      | Auto-reconnect on disconnect |
+| `cache_timeout` | 120    | Cache timeout (seconds)      |
+| `kernel_cache`  | -      | Use kernel page cache        |
+| `max_readahead` | 524288 | Read-ahead buffer (512KB)    |
+| `big_writes`    | -      | Enable large packet writes   |
+| `compression`   | no     | Disable on fast networks     |
 
 **/etc/fstab Entry Example**:
 
@@ -824,10 +824,10 @@ Host aglsrv6-wg
 **RAIDZ Disk Count Recommendations**:
 
 | RAIDZ Level | Optimal Disk Counts | Formula |
-|-------------|---------------------|---------|
-| RAIDZ1 | 3, 5, 9, 17 | 2^n + 1 |
-| RAIDZ2 | 4, 6, 10, 18 | 2^n + 2 |
-| RAIDZ3 | 5, 7, 11, 19 | 2^n + 3 |
+| ----------- | ------------------- | ------- |
+| RAIDZ1      | 3, 5, 9, 17         | 2^n + 1 |
+| RAIDZ2      | 4, 6, 10, 18        | 2^n + 2 |
+| RAIDZ3      | 5, 7, 11, 19        | 2^n + 3 |
 
 **Performance Optimization**:
 
@@ -878,87 +878,87 @@ zpool status -v local-zfs
 
 #### Infrastructure & Network
 
-| VMID | Name | IP (LAN) | IP (WG/TS) | Purpose |
-|------|------|----------|------------|---------|
-| 102 | pihole | 192.168.0.102 | TS: 100.114.66.80 | DNS/DHCP |
-| 117 | cloudflared | 192.168.0.117 | - | Cloudflare tunnel |
-| 120 | wireguard | 192.168.0.120 | WG: 10.6.0.1 | WireGuard node |
-| 126 | guac | 192.168.0.126 | - | Guacamole remote |
-| 159 | nginxproxy | 192.168.0.159 | - | Nginx reverse proxy |
-| 162 | meshcentral | 192.168.0.162 | - | Remote management |
-| 176 | iventoy | 192.168.0.176 | - | Network boot |
+| VMID | Name        | IP (LAN)      | IP (WG/TS)        | Purpose             |
+| ---- | ----------- | ------------- | ----------------- | ------------------- |
+| 102  | pihole      | 192.168.0.102 | TS: 100.114.66.80 | DNS/DHCP            |
+| 117  | cloudflared | 192.168.0.117 | -                 | Cloudflare tunnel   |
+| 120  | wireguard   | 192.168.0.120 | WG: 10.6.0.1      | WireGuard node      |
+| 126  | guac        | 192.168.0.126 | -                 | Guacamole remote    |
+| 159  | nginxproxy  | 192.168.0.159 | -                 | Nginx reverse proxy |
+| 162  | meshcentral | 192.168.0.162 | -                 | Remote management   |
+| 176  | iventoy     | 192.168.0.176 | -                 | Network boot        |
 
 #### Media & Automation
 
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 111 | tautulli | 192.168.0.111 | Plex monitoring |
-| 112 | bazarr | 192.168.0.112 | Subtitle automation |
-| 113 | plexmediaserver | 192.168.0.113 | Media server |
-| 121 | qbittorrent | 192.168.0.121 | Torrent client |
-| 122 | jackett | 192.168.0.122 | Torrent indexer |
-| 123 | radarr | 192.168.0.123 | Movie automation |
-| 124 | sonarr | 192.168.0.124 | TV automation |
-| 141 | sabnzbd | 192.168.0.141 | Usenet client |
-| 144 | autobrr | 192.168.0.144 | Torrent automation |
-| 157 | deluge | 192.168.0.157 | Torrent client |
-| 165 | aria2 | 192.168.0.165 | Download manager |
-| 170 | homarr | 192.168.0.170 | Dashboard |
-| 171 | overseerr | 192.168.0.171 | Media requests |
-| 172 | prowlarr | 192.168.0.172 | Indexer manager |
+| VMID | Name            | IP (LAN)      | Purpose             |
+| ---- | --------------- | ------------- | ------------------- |
+| 111  | tautulli        | 192.168.0.111 | Plex monitoring     |
+| 112  | bazarr          | 192.168.0.112 | Subtitle automation |
+| 113  | plexmediaserver | 192.168.0.113 | Media server        |
+| 121  | qbittorrent     | 192.168.0.121 | Torrent client      |
+| 122  | jackett         | 192.168.0.122 | Torrent indexer     |
+| 123  | radarr          | 192.168.0.123 | Movie automation    |
+| 124  | sonarr          | 192.168.0.124 | TV automation       |
+| 141  | sabnzbd         | 192.168.0.141 | Usenet client       |
+| 144  | autobrr         | 192.168.0.144 | Torrent automation  |
+| 157  | deluge          | 192.168.0.157 | Torrent client      |
+| 165  | aria2           | 192.168.0.165 | Download manager    |
+| 170  | homarr          | 192.168.0.170 | Dashboard           |
+| 171  | overseerr       | 192.168.0.171 | Media requests      |
+| 172  | prowlarr        | 192.168.0.172 | Indexer manager     |
 
-**Stack *arr (operação):** [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md). **Grabs activos, downloads parados** (2026-05-29) — [`MEDIA-ARR-MAINTENANCE.md`](MEDIA-ARR-MAINTENANCE.md), `scripts/media/arr-freeze-downloads.sh`.
+**Stack \*arr (operação):** [`MEDIA-ARR-STACK-AGL.md`](MEDIA-ARR-STACK-AGL.md). **Grabs activos, downloads parados** (2026-05-29) — [`MEDIA-ARR-MAINTENANCE.md`](MEDIA-ARR-MAINTENANCE.md), `scripts/media/arr-freeze-downloads.sh`.
 
 #### Development & DevOps
 
-| VMID | Name | IP (LAN) | IP (WG/TS) | RAM | Purpose |
-|------|------|----------|------------|-----|---------|
-| 103 | portainer | 192.168.0.103 | - | - | Docker mgmt |
-| 178 | aglfs1 | 192.168.0.178 | - | - | File server |
-| 179 | agldv03 | 192.168.0.179 | WG: 10.6.0.19, TS: 100.94.221.87 | 48GB | **Primary Dev** |
-| **193** | **agl-obsidian** | **192.168.0.193** | **100.125.112.35** (`agl-obsidian-ct193`) | 2GB | **Obsidian hub 24/7** + CouchDB LiveSync + Git bridge llm-wiki — [`OBSIDIAN-CT-AGL.md`](OBSIDIAN-CT-AGL.md) |
-| 185 | agldv12 | 192.168.0.185 | TS: 100.71.217.115 | - | Turbo Flow v4.0 (clone agldv03) |
-| 180 | dokploy | 192.168.0.180 | - | - | Deployment |
-| 202 | n8n-docker | 192.168.0.202 | - | - | Workflow automation |
+| VMID    | Name             | IP (LAN)          | IP (WG/TS)                                | RAM  | Purpose                                                                                                     |
+| ------- | ---------------- | ----------------- | ----------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
+| 103     | portainer        | 192.168.0.103     | -                                         | -    | Docker mgmt                                                                                                 |
+| 178     | aglfs1           | 192.168.0.178     | -                                         | -    | File server                                                                                                 |
+| 179     | agldv03          | 192.168.0.179     | WG: 10.6.0.19, TS: 100.94.221.87          | 48GB | **Primary Dev**                                                                                             |
+| **193** | **agl-obsidian** | **192.168.0.193** | **100.125.112.35** (`agl-obsidian-ct193`) | 2GB  | **Obsidian hub 24/7** + CouchDB LiveSync + Git bridge llm-wiki — [`OBSIDIAN-CT-AGL.md`](OBSIDIAN-CT-AGL.md) |
+| 185     | agldv12          | 192.168.0.185     | TS: 100.71.217.115                        | -    | Turbo Flow v4.0 (clone agldv03)                                                                             |
+| 180     | dokploy          | 192.168.0.180     | -                                         | -    | Deployment                                                                                                  |
+| 202     | n8n-docker       | 192.168.0.202     | -                                         | -    | Workflow automation                                                                                         |
 
 #### AI & Machine Learning
 
-| VMID | Name | IP (LAN) | IP (TS) | GPU | Purpose |
-|------|------|----------|---------|-----|---------|
-| 183 | archon | 192.168.0.183 | - | - | **AI Command Center** |
-| 200 | ollama | 192.168.0.200 | 100.116.57.111 | — | **Descontinuado** (CT200) |
-| 110 | agl-ollama | 192.168.0.200 | 100.116.57.111 | GTX 1650 | **Parada** — GPU D3cold; ver VM310 |
-| 310 | agl-ollama | 192.168.15.210 | 100.67.253.52 | 2× RX580 | **Ollama primário** (AGLSRV3) |
+| VMID | Name       | IP (LAN)       | IP (TS)        | GPU      | Purpose                            |
+| ---- | ---------- | -------------- | -------------- | -------- | ---------------------------------- |
+| 183  | archon     | 192.168.0.183  | -              | -        | **AI Command Center**              |
+| 200  | ollama     | 192.168.0.200  | 100.116.57.111 | —        | **Descontinuado** (CT200)          |
+| 110  | agl-ollama | 192.168.0.200  | 100.116.57.111 | GTX 1650 | **Parada** — GPU D3cold; ver VM310 |
+| 310  | agl-ollama | 192.168.15.210 | 100.67.253.52  | 2× RX580 | **Ollama primário** (AGLSRV3)      |
 
 #### Databases & Services
 
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 131 | mysql | 192.168.0.131 | MySQL DB |
-| 137 | redis | 192.168.0.137 | Redis cache |
-| 139 | aldsys4 | 192.168.0.139 | System mgmt |
-| 149 | postgresql | 192.168.0.149 | PostgreSQL |
+| VMID | Name       | IP (LAN)      | Purpose     |
+| ---- | ---------- | ------------- | ----------- |
+| 131  | mysql      | 192.168.0.131 | MySQL DB    |
+| 137  | redis      | 192.168.0.137 | Redis cache |
+| 139  | aldsys4    | 192.168.0.139 | System mgmt |
+| 149  | postgresql | 192.168.0.149 | PostgreSQL  |
 
 #### Monitoring & Security
 
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 132 | observium | 192.168.0.132 | Network monitoring |
-| 133 | aping | 192.168.0.133 | Network testing |
+| VMID | Name      | IP (LAN)      | Purpose            |
+| ---- | --------- | ------------- | ------------------ |
+| 132  | observium | 192.168.0.132 | Network monitoring |
+| 133  | aping     | 192.168.0.133 | Network testing    |
 
 #### Game Servers
 
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 161 | gameserver | 192.168.0.161 | Game hosting |
-| 163 | gameserver2 | 192.168.0.163 | Game hosting |
-| 201 | amp-server | 192.168.0.201 | AMP game panel |
+| VMID | Name        | IP (LAN)      | Purpose        |
+| ---- | ----------- | ------------- | -------------- |
+| 161  | gameserver  | 192.168.0.161 | Game hosting   |
+| 163  | gameserver2 | 192.168.0.163 | Game hosting   |
+| 201  | amp-server  | 192.168.0.201 | AMP game panel |
 
 #### Caching & Performance
 
-| VMID | Name | IP (LAN) | Purpose |
-|------|------|----------|---------|
-| 173 | cacheng | 192.168.0.173 | Cache engine |
+| VMID | Name    | IP (LAN)      | Purpose      |
+| ---- | ------- | ------------- | ------------ |
+| 173  | cacheng | 192.168.0.173 | Cache engine |
 
 ---
 
@@ -966,40 +966,40 @@ zpool status -v local-zfs
 
 #### Infrastructure
 
-| VMID | Name | IP (WG/TS) | Purpose |
-|------|------|------------|---------|
-| 101 | cloudflared6 | TS: 100.121.95.88 · eth0 .101 · eth1 .60.101 · eth2 .1.101 | Cloudflare tunnel (aglsrv6) |
-| 102 | meshcentral6 | - | Remote management |
-| 114 | cloudflared6b | TS: 100.115.195.128 · eth0 .114 · eth1 .60.114 · eth2 .1.114 | Cloudflare tunnel (aglsrv6) |
-| **117** | **pihole6** | **LAN: 192.168.0.117** | **Pi-hole DNS** (ex-CT115, 2026-04-04) |
-| 121 | wireguard | WG: 10.6.0.3 | WireGuard node |
+| VMID    | Name          | IP (WG/TS)                                                   | Purpose                                |
+| ------- | ------------- | ------------------------------------------------------------ | -------------------------------------- |
+| 101     | cloudflared6  | TS: 100.121.95.88 · eth0 .101 · eth1 .60.101 · eth2 .1.101   | Cloudflare tunnel (aglsrv6)            |
+| 102     | meshcentral6  | -                                                            | Remote management                      |
+| 114     | cloudflared6b | TS: 100.115.195.128 · eth0 .114 · eth1 .60.114 · eth2 .1.114 | Cloudflare tunnel (aglsrv6)            |
+| **117** | **pihole6**   | **LAN: 192.168.0.117**                                       | **Pi-hole DNS** (ex-CT115, 2026-04-04) |
+| 121     | wireguard     | WG: 10.6.0.3                                                 | WireGuard node                         |
 
 #### Storage & Backup
 
-| VMID | Name | IP (WG/TS) | Purpose |
-|------|------|------------|---------|
-| 111 | aluzdivina | WG: 10.6.0.20, TS: 100.65.189.83 | **NFS Server** |
-| 113 | pbs | WG: 10.6.0.14, TS: 100.70.155.60 | PBS backup |
+| VMID | Name       | IP (WG/TS)                       | Purpose        |
+| ---- | ---------- | -------------------------------- | -------------- |
+| 111  | aluzdivina | WG: 10.6.0.20, TS: 100.65.189.83 | **NFS Server** |
+| 113  | pbs        | WG: 10.6.0.14, TS: 100.70.155.60 | PBS backup     |
 
 #### Development
 
-| VMID | Name | IP (TS) | Purpose |
-|------|------|---------|---------|
-| 108 | agldv06 | 100.71.229.12 | Development |
+| VMID | Name    | IP (TS)       | Purpose     |
+| ---- | ------- | ------------- | ----------- |
+| 108  | agldv06 | 100.71.229.12 | Development |
 
 #### Services
 
-| VMID | Name | Purpose |
-|------|------|---------|
-| 104 | luzdivina | - |
-| 109 | redis6 | Redis server |
-| 110 | mssql6 | SQL Server |
+| VMID | Name      | Purpose      |
+| ---- | --------- | ------------ |
+| 104  | luzdivina | -            |
+| 109  | redis6    | Redis server |
+| 110  | mssql6    | SQL Server   |
 
 #### Kubernetes (Stopped)
 
-| VMID | Name | Status | Purpose |
-|------|------|--------|---------|
-| 107 | kuber601 | Stopped | Kubernetes |
+| VMID | Name     | Status  | Purpose    |
+| ---- | -------- | ------- | ---------- |
+| 107  | kuber601 | Stopped | Kubernetes |
 
 ---
 
@@ -1010,13 +1010,13 @@ zpool status -v local-zfs
 **Available Networks**: Tailscale only
 **Not Available**: WireGuard, Local LAN
 
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33` |
-| CT179 Dev | Tailscale | 100.94.221.87 | `ssh root@100.94.221.87` |
-| CT183 Archon | SSH Jump | Via AGLSRV1 | `ssh -J root@100.107.113.33 root@192.168.0.183` |
-| AGLSRV6 Host | Tailscale | 100.98.108.66 | `ssh root@100.98.108.66` |
-| FGSRV6 Hub | Tailscale | 100.83.51.9 | `ssh root@100.83.51.9` |
+| Target       | Method    | Address        | Example                                         |
+| ------------ | --------- | -------------- | ----------------------------------------------- |
+| AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33`                       |
+| CT179 Dev    | Tailscale | 100.94.221.87  | `ssh root@100.94.221.87`                        |
+| CT183 Archon | SSH Jump  | Via AGLSRV1    | `ssh -J root@100.107.113.33 root@192.168.0.183` |
+| AGLSRV6 Host | Tailscale | 100.98.108.66  | `ssh root@100.98.108.66`                        |
+| FGSRV6 Hub   | Tailscale | 100.83.51.9    | `ssh root@100.83.51.9`                          |
 
 ---
 
@@ -1025,15 +1025,15 @@ zpool status -v local-zfs
 **Available Networks**: LAN, WireGuard, Tailscale (triple-stack)
 **Network Priority**: WireGuard > LAN > Tailscale
 
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| AGLSRV1 Host | LAN | 192.168.0.245 | `ssh root@192.168.0.245` |
-| AGLSRV1 Host | WireGuard | 10.6.0.10 | `ssh root@10.6.0.10` |
-| CT183 Archon | LAN | 192.168.0.183 | `ssh root@192.168.0.183` |
-| AGLSRV6 Host | WireGuard | 10.6.0.12 | `ssh root@10.6.0.12` (FASTEST) |
-| AGLSRV6 Host | Tailscale | 100.98.108.66 | `ssh root@100.98.108.66` |
-| FGSRV6 Hub | WireGuard | 10.6.0.5 | `ssh root@10.6.0.5` |
-| CT111 NFS | WireGuard | 10.6.0.20 | `ls /mnt/pve/ct111-shares` |
+| Target       | Method    | Address       | Example                        |
+| ------------ | --------- | ------------- | ------------------------------ |
+| AGLSRV1 Host | LAN       | 192.168.0.245 | `ssh root@192.168.0.245`       |
+| AGLSRV1 Host | WireGuard | 10.6.0.10     | `ssh root@10.6.0.10`           |
+| CT183 Archon | LAN       | 192.168.0.183 | `ssh root@192.168.0.183`       |
+| AGLSRV6 Host | WireGuard | 10.6.0.12     | `ssh root@10.6.0.12` (FASTEST) |
+| AGLSRV6 Host | Tailscale | 100.98.108.66 | `ssh root@100.98.108.66`       |
+| FGSRV6 Hub   | WireGuard | 10.6.0.5      | `ssh root@10.6.0.5`            |
+| CT111 NFS    | WireGuard | 10.6.0.20     | `ls /mnt/pve/ct111-shares`     |
 
 **Storage Access**:
 
@@ -1051,11 +1051,11 @@ df -h | grep wg            # All WireGuard mounts
 **Available Networks**: Tailscale only
 **Not Available**: WireGuard (not configured)
 
-| Target | Method | Address | Example |
-|--------|--------|---------|---------|
-| CT179 Dev | Tailscale | 100.94.221.87 | `ssh root@100.94.221.87` |
+| Target       | Method    | Address        | Example                   |
+| ------------ | --------- | -------------- | ------------------------- |
+| CT179 Dev    | Tailscale | 100.94.221.87  | `ssh root@100.94.221.87`  |
 | AGLSRV1 Host | Tailscale | 100.107.113.33 | `ssh root@100.107.113.33` |
-| AGLSRV6 Host | Local | 10.6.0.12 | Via host WireGuard |
+| AGLSRV6 Host | Local     | 10.6.0.12      | Via host WireGuard        |
 
 ---
 
@@ -1140,20 +1140,20 @@ docker-compose ps          # Compose stack status
 
 ### Túneis Ativos
 
-| Tunnel | ID | Host | Status | Endpoints |
-|--------|-----|------|--------|-----------|
-| aglsrv1 | `f7ab6239-...` | ? | ✅ 4 conn | - |
-| aglsrv5 | `02d57187-...` | AGLSRV5 (CT130) | ✅ 4 conn | - |
-| **aglsrv5e** | `863fd93d-...` | **FGSRV6** (Docker) | ✅ 4 conn | n8n5e, portainer5e |
-| aglsrv6 | `a00590ff-...` | ? | ✅ 8 conn | - |
-| archon | `908b1097-...` | AGLSRV1 (CT117) | ✅ 4 conn | archon.aglz.io |
-| **fgsrv7** | `513cec7b-...` | **FGSRV7** (CT570) | ✅ 4 conn | man7, evo, mysql-slave |
-| **fgsrv7b** | `850f2d28-...` | **FGSRV7** (CT571) | ✅ 4 conn | **falg.com.br** → CT549 |
+| Tunnel       | ID             | Host                | Status    | Endpoints               |
+| ------------ | -------------- | ------------------- | --------- | ----------------------- |
+| aglsrv1      | `f7ab6239-...` | ?                   | ✅ 4 conn | -                       |
+| aglsrv5      | `02d57187-...` | AGLSRV5 (CT130)     | ✅ 4 conn | -                       |
+| **aglsrv5e** | `863fd93d-...` | **FGSRV6** (Docker) | ✅ 4 conn | n8n5e, portainer5e      |
+| aglsrv6      | `a00590ff-...` | ?                   | ✅ 8 conn | -                       |
+| archon       | `908b1097-...` | AGLSRV1 (CT117)     | ✅ 4 conn | archon.aglz.io          |
+| **fgsrv7**   | `513cec7b-...` | **FGSRV7** (CT570)  | ✅ 4 conn | man7, evo, mysql-slave  |
+| **fgsrv7b**  | `850f2d28-...` | **FGSRV7** (CT571)  | ✅ 4 conn | **falg.com.br** → CT549 |
 
 ### Túneis Inativos
 
-| Tunnel | ID | Status |
-|--------|-----|--------|
+| Tunnel  | ID             | Status     |
+| ------- | -------------- | ---------- |
 | aglsrv2 | `f1fe0665-...` | ❌ Offline |
 | aglsrv3 | `ca4eeb4f-...` | ❌ Offline |
 | aglsrv4 | `1d44ad9b-...` | ❌ Offline |

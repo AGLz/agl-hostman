@@ -9,6 +9,7 @@ description: >
   VMID map: docs/PROXMOX-VMID-RENUMBER-2026-06.md
   Also handles pct unlock, cluster health, storage, and network bridges.
 ---
+
 # Proxmox AGL Infrastructure
 
 ## Credentials
@@ -42,24 +43,26 @@ ssh AGLSRV6          # Tailscale 100.98.108.66
 
 ## Container Inventory (AGL)
 
-| CT   | Host     | Role                          | Tailscale IP      | RAM   |
-|------|----------|-------------------------------|-------------------|-------|
-| 179  | AGLSRV1  | agldv03 - Main dev + LiteLLM  | 100.94.221.87     | 48GB  |
-| 181  | AGLSRV1  | agldv04 - Secondary dev        | 100.113.9.98      | 48GB  |
-| 183  | AGLSRV1  | archon - AI Command Center     | 100.80.30.59      | -     |
-| 185  | AGLSRV1  | agldv12 - Turbo Flow clone     | 100.71.217.115    | -     |
-| 136  | AGLSRV5  | agldv05 - Remote dev           | 100.119.41.63     | 8GB   |
-| 108  | AGLSRV6  | agldv06 - Remote dev           | 100.71.229.12     | -     |
-| 547  | FGSRV7   | agldv07 - Dev satélite         | 100.64.139.79     | 8GB   |
+| CT  | Host    | Role                         | Tailscale IP   | RAM  |
+| --- | ------- | ---------------------------- | -------------- | ---- |
+| 179 | AGLSRV1 | agldv03 - Main dev + LiteLLM | 100.94.221.87  | 48GB |
+| 181 | AGLSRV1 | agldv04 - Secondary dev      | 100.113.9.98   | 48GB |
+| 183 | AGLSRV1 | archon - AI Command Center   | 100.80.30.59   | -    |
+| 185 | AGLSRV1 | agldv12 - Turbo Flow clone   | 100.71.217.115 | -    |
+| 136 | AGLSRV5 | agldv05 - Remote dev         | 100.82.71.49   | 8GB  |
+| 108 | AGLSRV6 | agldv06 - Remote dev         | 100.71.229.12  | -    |
+| 547 | FGSRV7  | agldv07 - Dev satélite       | 100.64.175.89  | 8GB  |
 
 ## Common Operations
 
 ### List all containers on AGLSRV1
+
 ```bash
 ssh AGLSRV1 "pct list"
 ```
 
 ### Start/Stop/Restart a container
+
 ```bash
 # Start (unlock first if locked)
 ssh AGLSRV1 "pct unlock 179 && pct start 179"
@@ -72,22 +75,26 @@ ssh AGLSRV1 "pct stop 179 && sleep 3 && pct start 179"
 ```
 
 ### Execute command inside container
+
 ```bash
 ssh AGLSRV1 "pct exec 179 -- systemctl status openclaw-gateway"
 ssh AGLSRV1 "pct exec 179 -- tailscale status"
 ```
 
 ### Check container status
+
 ```bash
 ssh AGLSRV1 "pct list" | grep -E "CTID|179|181|183|185"
 ```
 
 ### Unlock stuck container
+
 ```bash
 ssh AGLSRV1 "pct unlock <vmid>"
 ```
 
 ### Clone container (CT179 → CT185 pattern)
+
 ```bash
 # Stop source
 ssh AGLSRV1 "pct stop 179"
@@ -100,6 +107,7 @@ ssh AGLSRV1 "pct start 179"
 ```
 
 ### Snapshots
+
 ```bash
 # Create snapshot
 ssh AGLSRV1 "pct snapshot 179 pre-update"
@@ -115,6 +123,7 @@ ssh AGLSRV1 "pct delsnapshot 179 pre-update"
 ```
 
 ### Resource monitoring
+
 ```bash
 # All containers resource usage
 ssh AGLSRV1 "pct list --full"
@@ -125,11 +134,13 @@ ssh AGLSRV1 "free -h && df -h"
 ```
 
 ### Pi-hole CT102 (special case)
+
 ```bash
 ssh AGLSRV1 "pct unlock 102 && pct start 102"
 ```
 
 ### Cloudflared CT117
+
 ```bash
 ssh AGLSRV1 "pct exec 117 -- systemctl restart cloudflared"
 ```
@@ -137,6 +148,7 @@ ssh AGLSRV1 "pct exec 117 -- systemctl restart cloudflared"
 ## Troubleshooting
 
 ### Container won't start
+
 ```bash
 # 1. Unlock
 ssh AGLSRV1 "pct unlock <vmid>"
@@ -149,11 +161,13 @@ ssh AGLSRV1 "df -h"
 ```
 
 ### Container locked
+
 ```bash
 ssh AGLSRV1 "pct unlock <vmid>"
 ```
 
 ### Network issues inside CT
+
 ```bash
 ssh AGLSRV1 "pct exec <vmid> -- ip a"
 ssh AGLSRV1 "pct exec <vmid> -- ip route"
@@ -161,6 +175,7 @@ ssh AGLSRV1 "pct exec <vmid> -- systemctl restart networking"
 ```
 
 ## Notes
+
 - Always prefer `pct unlock` before `pct start` if container is stuck
 - Cloned containers inherit Tailscale identity — must reset after clone
 - agldv12 (CT185) is a clone of agldv03 (CT179) — OpenClaw gateway is disabled
