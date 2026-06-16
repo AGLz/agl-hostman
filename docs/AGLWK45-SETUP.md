@@ -207,7 +207,8 @@ Abra o PowerShell como Administrador e execute:
 [Environment]::SetEnvironmentVariable("DEEPSEEK_API_KEY", "sk-7e5ed90fb4fc44d6b2b440d0cba7f791", "User")
 [Environment]::SetEnvironmentVariable("MOONSHOT_API_KEY", "sk-8yrkMKdWtgsEVEPaq5i0NuDBAg3UTdZJNg2o6R4FMc2bnTG0", "User")
 [Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "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", "User")
-[Environment]::SetEnvironmentVariable("GEMINI_API_KEY", "AIzaSyAt4PG2Bt_D2AWMmDc_XdR5eoklKK21tRM", "User")
+# Chave em https://aistudio.google.com/apikey — NÃO commitar; a anterior foi revogada (403 leaked)
+[Environment]::SetEnvironmentVariable("GEMINI_API_KEY", "SUA_GEMINI_API_KEY_AISTUDIO", "User")
 [Environment]::SetEnvironmentVariable("OPENROUTER_API_KEY", "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", "User")
 [Environment]::SetEnvironmentVariable("DASHSCOPE_API_KEY", "sk-48f612bb16634018a21eec165e13f78a", "User")
 

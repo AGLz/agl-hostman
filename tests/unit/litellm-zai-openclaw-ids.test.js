@@ -27,12 +27,20 @@ test('LiteLLM: IDs zai/glm-* (OpenClaw) em config.yaml', () => {
   assertZaiIds(fs.readFileSync(CONFIG, 'utf8'), 'config.yaml');
 });
 
-test('LiteLLM: rotas OpenAI económicas (gpt-4o-mini, gpt-4.4-mini, gpt-5-mini, gpt-5.4-nano)', () => {
+test('LiteLLM: rotas OpenAI económicas (gpt-4o-mini, gpt-5-mini, gpt-5.4-nano)', () => {
   const yaml = fs.readFileSync(CONFIG, 'utf8');
   assert.match(yaml, /model_name:\s*gpt-4o-mini/, 'config.yaml: gpt-4o-mini');
-  assert.match(yaml, /model_name:\s*gpt-4\.4-mini/, 'config.yaml: gpt-4.4-mini');
+  assert.doesNotMatch(yaml, /model_name:\s*gpt-4\.4-mini/, 'config.yaml: gpt-4.4-mini removido');
   assert.match(yaml, /model_name:\s*gpt-5-mini/, 'config.yaml: gpt-5-mini');
   assert.match(yaml, /model_name:\s*gpt-5\.4-nano/, 'config.yaml: gpt-5.4-nano');
+});
+
+test('LiteLLM: DeepSeek e Gemini API directos removidos de config.yaml', () => {
+  const yaml = fs.readFileSync(CONFIG, 'utf8');
+  assert.doesNotMatch(yaml, /model_name:\s*deepseek\s*$/, 'sem alias deepseek');
+  assert.doesNotMatch(yaml, /model_name:\s*cursor-deepseek/, 'sem cursor-deepseek');
+  assert.doesNotMatch(yaml, /DEEPSEEK_API_KEY/, 'sem DEEPSEEK_API_KEY no model_list');
+  assert.doesNotMatch(yaml, /model_name:\s*gemini-lite/, 'sem gemini-lite');
 });
 
 test('LiteLLM: config-remote.yaml sem Z.AI direto (usa OpenRouter free)', () => {

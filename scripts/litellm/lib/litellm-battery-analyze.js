@@ -46,8 +46,11 @@ function analyzeChatCompletion(body) {
   const content = typeof msg0.content === 'string' ? msg0.content : '';
   const reasoning =
     typeof msg0.reasoning_content === 'string' ? msg0.reasoning_content : '';
-  const hadReasoning = reasoning.length > 2;
-  const contentLength = content.length + reasoning.length;
+  const usage = normalizeUsage(body.usage);
+  const reasoningTokens =
+    usage && typeof usage.reasoning_tokens === 'number' ? usage.reasoning_tokens : 0;
+  const hadReasoning = reasoning.length > 2 || reasoningTokens > 0;
+  const contentLength = content.length + reasoning.length + (reasoningTokens > 0 ? reasoningTokens : 0);
   const finishReason =
     hasChoices && typeof choices[0].finish_reason === 'string'
       ? choices[0].finish_reason
@@ -77,6 +80,12 @@ function normalizeUsage(u) {
   const out = {};
   for (const k of ['prompt_tokens', 'completion_tokens', 'total_tokens']) {
     if (typeof u[k] === 'number' && Number.isFinite(u[k])) out[k] = u[k];
+  }
+  const details = u.completion_tokens_details;
+  if (details !== null && typeof details === 'object') {
+    if (typeof details.reasoning_tokens === 'number' && Number.isFinite(details.reasoning_tokens)) {
+      out.reasoning_tokens = details.reasoning_tokens;
+    }
   }
   return Object.keys(out).length ? out : null;
 }

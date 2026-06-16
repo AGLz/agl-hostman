@@ -3,7 +3,7 @@
 # Executar no host FGSRV7 como root: bash scripts/maint/fgsrv07/ngrok-partner-healthcheck.sh
 set -euo pipefail
 
-CT_VMID="${CT_VMID:-244}"
+CT_VMID="${CT_VMID:-550}"
 ENDPOINTS_FILE="${ENDPOINTS_FILE:-/var/log/ngrok/endpoints.json}"
 
 failures=0

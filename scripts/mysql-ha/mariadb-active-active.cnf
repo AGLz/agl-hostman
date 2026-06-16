@@ -1,0 +1,17 @@
+# MariaDB GTID active-active (circular) — incluir em mariadb.conf.d/ em AMBOS os nós.
+# mysql7 (CT561): server_id=235, auto_increment_offset=1
+# mysql5 (CT535): server_id=135, auto_increment_offset=2
+
+[mysqld]
+log_bin                 = mysql-bin
+binlog_format           = MIXED
+gtid_strict_mode        = ON
+log_bin_trust_function_creators = 1
+log_slave_updates       = ON
+read_only               = OFF
+auto_increment_increment = 2
+bind-address            = 0.0.0.0
+
+# Ajustar por nó (ficheiro 51-active-active-node.cnf):
+# mysql7: auto_increment_offset = 1
+# mysql5: auto_increment_offset = 2

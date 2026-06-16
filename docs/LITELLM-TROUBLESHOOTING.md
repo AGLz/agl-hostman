@@ -151,7 +151,7 @@ grep -E '^[A-Z_]+_API_KEY=' config/litellm/.env
 - `DEEPSEEK_API_KEY` — DeepSeek
 - `ANTHROPIC_API_KEY` — Claude (pode estar vazio)
 - `OPENAI_API_KEY` — GPT (pode estar vazio)
-- `GEMINI_API_KEY` — Gemini (pode estar vazio)
+- `GEMINI_API_KEY` — Google AI Studio ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)); definir em `config/litellm/.env` (local) ou `/opt/agl-litellm/.env` (CT186). Aliases Gemini no proxy só após preencher. Chaves vazadas são revogadas (403).
 
 Modelos que funcionam sem Anthropic/OpenAI: glm, glm-flash, kimi, deepseek, r1.
 

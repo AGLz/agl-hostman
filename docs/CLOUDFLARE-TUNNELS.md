@@ -9,13 +9,14 @@
 
 Em **todos os hosts Proxmox AGL**, o `cloudflared` corre num **CT/LXC dedicado** — **não** no host bare metal nem misturado com workloads de aplicação.
 
-| Host | CT(s) cloudflared | Notas |
-|------|-------------------|--------|
-| AGLSRV1 | **117** | Túnel `archon` |
-| AGLSRV5 | **530** `cloudflared5` | |
-| AGLSRV6 | **101**, **114** | `cloudflared6` + `cloudflared6b` |
-| **FGSRV7** | **570** `cloudflared7`, **571** `cloudflared7b` | Par HA — um túnel por CT; ver [FGSRV7 HA](#fgsrv7--par-ha-cloudflared-ct570--ct571) |
-| FGSRV6 | Docker `cloudflared-tunnel` | Excepção: VPS sem Proxmox |
+| Host        | CT(s) cloudflared                                | Notas                                                                                                                     |
+| ----------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| AGLSRV1     | **117**                                          | Túnel `archon`                                                                                                            |
+| **AGLSRV3** | **304** `cloudflared3a`, **306** `cloudflared3b` | Par HA — túnel `aglsrv3` / **man3.aglz.io**; ver [AGLSRV3 HA](#aglsrv3--par-ha-cloudflared3a--cloudflared3b-ct304--ct306) |
+| AGLSRV5     | **530** `cloudflared5`                           |                                                                                                                           |
+| AGLSRV6     | **101**, **114**                                 | `cloudflared6` + `cloudflared6b`                                                                                          |
+| **FGSRV7**  | **570** `cloudflared7`, **571** `cloudflared7b`  | Par HA — um túnel por CT; ver [FGSRV7 HA](#fgsrv7--par-ha-cloudflared-ct570--ct571)                                       |
+| FGSRV6      | Docker `cloudflared-tunnel`                      | Excepção: VPS sem Proxmox                                                                                                 |
 
 Operação típica: `ssh root@<host-tailscale> 'pct exec <vmid> -- systemctl status cloudflared'`.
 
@@ -23,22 +24,42 @@ Operação típica: `ssh root@<host-tailscale> 'pct exec <vmid> -- systemctl sta
 
 ## 📋 Resumo dos Túneis
 
-| Tunnel ID | Name | Host | Location | Status | Auto-Start |
-|-----------|------|------|----------|--------|------------|
-| `f7ab6239-5cbd-44ef-83b9-ee8bfb4965ce` | aglsrv1 | ? | - | ✅ 4 conexões | ? |
-| `f1fe0665-f7f6-4ce1-9877-b23e9e3e7853` | aglsrv2 | ? | - | ❌ Offline | ? |
-| `ca4eeb4f-a40c-4c2e-8e6f-de65406d75fd` | aglsrv3 | ? | - | ❌ Offline | ? |
-| `1d44ad9b-987d-474e-a50f-3b03ea7db97e` | aglsrv4 | ? | - | ❌ Offline | ? |
-| `02d57187-83ba-4042-a5cc-8bb752a6b65a` | aglsrv5 | AGLSRV5 (**CT530** cloudflared5; ex.130) | gig08, gru17, gru21 | ✅ 4 conexões | ✅ systemd |
-| `863fd93d-73c5-4c3e-90b5-7cbd37643f70` | **aglsrv5e** | **FGSRV6** (Docker) | gru08, gru13, gru20, gru21 | ✅ 4 conexões | ✅ Docker |
-| `a00590ff-2177-48c0-ad13-3abf90b765b9` | aglsrv6 | AGLSRV6 CT101+114 | gru05, gru08, gru17 | ✅ 8 conexões (2 CTs) | ✅ systemd (token) |
-| `908b1097-e182-4725-9960-626ecc003375` | archon | AGLSRV1 (CT117) | gru02, gru07, gru17 | ✅ 4 conexões | ✅ systemd |
-| `513cec7b-754d-4dd8-a69d-d15942180fe4` | **fgsrv7** | **FGSRV7** (**CT570** `cloudflared7`; ex.170) | gru07, gru20, gru21 | ✅ 4 conexões | ✅ systemd |
-| `850f2d28-367f-4bd2-a887-6998240828e3` | **fgsrv7b** | **FGSRV7** (**CT571** `cloudflared7b`; ex.171) | gru11, gru18, gru19, gru20 | ✅ 4 conexões | ✅ systemd (token) |
+| Tunnel ID                              | Name         | Host                                            | Location                   | Status                | Auto-Start         |
+| -------------------------------------- | ------------ | ----------------------------------------------- | -------------------------- | --------------------- | ------------------ |
+| `f7ab6239-5cbd-44ef-83b9-ee8bfb4965ce` | aglsrv1      | ?                                               | -                          | ✅ 4 conexões         | ?                  |
+| `f1fe0665-f7f6-4ce1-9877-b23e9e3e7853` | aglsrv2      | ?                                               | -                          | ❌ Offline            | ?                  |
+| `ca4eeb4f-a40c-4c2e-8e6f-de65406d75fd` | **aglsrv3**  | **AGLSRV3** (**CT304** + **CT306**; ex.104/106) | gru14, gru17, gru19, gru21 | ✅ 2× conectores      | ✅ systemd (token) |
+| `1d44ad9b-987d-474e-a50f-3b03ea7db97e` | aglsrv4      | ?                                               | -                          | ❌ Offline            | ?                  |
+| `02d57187-83ba-4042-a5cc-8bb752a6b65a` | aglsrv5      | AGLSRV5 (**CT530** cloudflared5; ex.130)        | gig08, gru17, gru21        | ✅ 4 conexões         | ✅ systemd         |
+| `863fd93d-73c5-4c3e-90b5-7cbd37643f70` | **aglsrv5e** | **FGSRV6** (Docker)                             | gru08, gru13, gru20, gru21 | ✅ 4 conexões         | ✅ Docker          |
+| `a00590ff-2177-48c0-ad13-3abf90b765b9` | aglsrv6      | AGLSRV6 CT101+114                               | gru05, gru08, gru17        | ✅ 8 conexões (2 CTs) | ✅ systemd (token) |
+| `908b1097-e182-4725-9960-626ecc003375` | archon       | AGLSRV1 (CT117)                                 | gru02, gru07, gru17        | ✅ 4 conexões         | ✅ systemd         |
+| `513cec7b-754d-4dd8-a69d-d15942180fe4` | **fgsrv7**   | **FGSRV7** (**CT570** `cloudflared7`; ex.170)   | gru07, gru20, gru21        | ✅ 4 conexões         | ✅ systemd         |
+| `850f2d28-367f-4bd2-a887-6998240828e3` | **fgsrv7b**  | **FGSRV7** (**CT571** `cloudflared7b`; ex.171)  | gru11, gru18, gru19, gru20 | ✅ 4 conexões         | ✅ systemd (token) |
 
 ---
 
 ## 🏗️ Detalhes por Host
+
+### AGLSRV3 — par HA cloudflared3a + cloudflared3b (CT304 + CT306)
+
+Dois **CT/LXC** no **aglsrv3** (`100.123.5.81`), mesmo túnel Cloudflare **`aglsrv3`** (`ca4eeb4f-…`). HA durante **vzdump** / manutenção de um CT.
+
+| CT                | VMID    | Hostname      | LAN 15.x       | LAN 30.x       |
+| ----------------- | ------- | ------------- | -------------- | -------------- |
+| **cloudflared3a** | **304** | cloudflared3a | 192.168.15.104 | 192.168.30.104 |
+| **cloudflared3b** | **306** | cloudflared3b | 192.168.15.106 | 192.168.30.106 |
+
+- **Ingress:** Zero Trust remoto → `https://192.168.15.247:8006` (**man3.aglz.io**)
+- **Auth:** token (`cloudflared service install`) — reinstalar após rebuild de CT vazio
+- Runbook: [`docs/AGLSRV3-CLOUDFLARED-HA.md`](AGLSRV3-CLOUDFLARED-HA.md)
+
+```bash
+ssh root@100.123.5.81 'pct exec 304 -- systemctl is-active cloudflared; pct exec 306 -- systemctl is-active cloudflared'
+curl -sk -o /dev/null -w "%{http_code}\n" https://man3.aglz.io/
+```
+
+---
 
 ### FGSRV7 — par HA cloudflared (CT570 + CT571)
 
@@ -60,10 +81,10 @@ Dois **CT/LXC dedicados** no host Proxmox FGSRV7 (`100.109.181.93`), cada um com
               CT549 fg-legacy, CT548 evo, …
 ```
 
-| CT | VMID | Túnel | Administração | Conta Cloudflare (API) | Auth no CT |
-|----|------|-------|---------------|------------------------|------------|
-| **cloudflared7** | **570** | **fgsrv7** `513cec7b-…` | **Interface web** Zero Trust (Networks → Tunnels) | **aglz.io** (+ aguileraz.net no mesmo token `cert.pem` agldv03) | `credentials-file` + `config.yml`; config **remota** prevalece |
-| **cloudflared7b** | **571** | **fgsrv7b** `850f2d28-…` | **CLI / API / scripts / AI** (`cloudflared`, `update-fgsrv7b-tunnel-*.sh`) | **falg.com.br**, **falgimoveis.com**, etc. (token API **separado**) | `cloudflared tunnel run --token …` (só config remota) |
+| CT                | VMID    | Túnel                    | Administração                                                              | Conta Cloudflare (API)                                              | Auth no CT                                                     |
+| ----------------- | ------- | ------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **cloudflared7**  | **570** | **fgsrv7** `513cec7b-…`  | **Interface web** Zero Trust (Networks → Tunnels)                          | **aglz.io** (+ aguileraz.net no mesmo token `cert.pem` agldv03)     | `credentials-file` + `config.yml`; config **remota** prevalece |
+| **cloudflared7b** | **571** | **fgsrv7b** `850f2d28-…` | **CLI / API / scripts / AI** (`cloudflared`, `update-fgsrv7b-tunnel-*.sh`) | **falg.com.br**, **falgimoveis.com**, etc. (token API **separado**) | `cloudflared tunnel run --token …` (só config remota)          |
 
 **Failover durante backup (PBS):**
 
@@ -75,10 +96,10 @@ Dois **CT/LXC dedicados** no host Proxmox FGSRV7 (`100.109.181.93`), cada um com
 
 **Tokens (não misturar contas):**
 
-| Uso | Onde | Credencial |
-|-----|------|------------|
-| Túnel **fgsrv7**, DNS **aglz.io** | agldv03 | `~/.cloudflared/cert.pem` → `apiToken` embutido; ou UI web |
-| Túnel **fgsrv7b**, zonas **falg.*** | agldv* (token novo) | `CLOUDFLARE_API_TOKEN` com Tunnel Edit + DNS nas zonas falg |
+| Uso                                  | Onde                 | Credencial                                                  |
+| ------------------------------------ | -------------------- | ----------------------------------------------------------- |
+| Túnel **fgsrv7**, DNS **aglz.io**    | agldv03              | `~/.cloudflared/cert.pem` → `apiToken` embutido; ou UI web  |
+| Túnel **fgsrv7b**, zonas **falg.\*** | agldv\* (token novo) | `CLOUDFLARE_API_TOKEN` com Tunnel Edit + DNS nas zonas falg |
 
 **Comandos rápidos (estado do par):**
 
@@ -181,7 +202,7 @@ ingress:
 - cbapp.aglz.io → backend remoto (Tailscale)
 - man7.aglz.io / man7a.aglz.io → Proxmox Web UI no host (`192.168.70.1:8006`)
 - **evo.aglz.io** → **EvoNexus** (**CT548**; IP `192.168.70.242`): path **`/terminal*`** → `:32352`; resto → `:8080`
-- mysql-ha.falg.com.br, db-ha.falg.com.br, mysql-slave.* → MySQL CT235 (`192.168.70.135:3306`)
+- mysql-ha.falg.com.br, db-ha.falg.com.br, mysql-slave.\* → MySQL CT235 (`192.168.70.135:3306`)
 
 > **Nota (2026-06):** VMIDs renumerados — master **CT561** (ex.535/235), slave **CT535** AGLSRV5 (ex.135). Ver `docs/PROXMOX-VMID-RENUMBER-2026-06.md`.
 
@@ -224,20 +245,20 @@ ssh root@100.109.181.93 '
 
 **Ingress remota (2026-06-11, via `journalctl -u cloudflared`)**:
 
-| Hostname | Serviço | Destino |
-|----------|---------|---------|
-| `falg.com.br` | HTTP | **CT549** `fg-legacy` |
-| `www.falg.com.br` | HTTP | **CT549** (2026-06-11) |
-| `falgimoveis.com` | HTTP | **CT549** (2026-06-11) |
-| `www.falgimoveis.com` | HTTP | **CT549** (2026-06-11) |
-| *(catch-all)* | `http_status:404` | — |
+| Hostname              | Serviço           | Destino                |
+| --------------------- | ----------------- | ---------------------- |
+| `falg.com.br`         | HTTP              | **CT549** `fg-legacy`  |
+| `www.falg.com.br`     | HTTP              | **CT549** (2026-06-11) |
+| `falgimoveis.com`     | HTTP              | **CT549** (2026-06-11) |
+| `www.falgimoveis.com` | HTTP              | **CT549** (2026-06-11) |
+| _(catch-all)_         | `http_status:404` | —                      |
 
 **Stack PHP legado (origin)** — **CT549** @ `192.168.70.243:80`:
 
 - Nginx `server_name`: `falg.com.br`, `www.falg.com.br`, `falgimoveis.com`, `www.falgimoveis.com`, `www5.falg.com.br`, `www5.aglz.io`
 - Webroot: `/var/www/fg_antigo/public_html` (PHP 5.6)
 
-**Actualizar ingress (API / AI)** — credenciais da conta **FGz** (falg.*), **não** AGLz:
+**Actualizar ingress (API / AI)** — credenciais da conta **FGz** (falg.\*), **não** AGLz:
 
 ```bash
 # CTs agldv03–12: bloco em ~/.zshrc (scripts/cloudflare/setup-dual-cf-env-agldv.sh)
@@ -250,7 +271,7 @@ bash scripts/cloudflare/test-dual-cf-dns.sh          # validar AGLz + FGz + DNS
 bash scripts/cloudflare/update-fgsrv7b-tunnel-fg-legacy-ingress.sh  # requer Bearer ou token com Tunnel Edit na conta FGz
 ```
 
-**Nota (2026-06):** chaves `cfk_*` são **Global User API Key** (auth `X-Auth-Email` + `X-Auth-Key`), não Bearer. Para `update-fgsrv7b-tunnel-*.sh` convém um **User API Token** (`cfut_*` ou formato legado) com *Cloudflare Tunnel Edit* na conta FGz.
+**Nota (2026-06):** chaves `cfk_*` são **Global User API Key** (auth `X-Auth-Email` + `X-Auth-Key`), não Bearer. Para `update-fgsrv7b-tunnel-*.sh` convém um **User API Token** (`cfut_*` ou formato legado) com _Cloudflare Tunnel Edit_ na conta FGz.
 
 Depois de alterar **fgsrv7b**, replicar os mesmos hostnames críticos no **fgsrv7** via [UI web](https://one.dash.cloudflare.com) (conta aglz.io) para manter HA no backup do CT571.
 
@@ -401,9 +422,9 @@ ssh root@192.168.0.245 'pct exec 117 -- cat /root/.cloudflared/config.yml'
 
 **Localização**: AGLSRV6 (man6) — CT101 `cloudflared6`, CT114 `cloudflared6b`
 
-| CT | Hostname | Tailscale | eth0 (vmbr0) | eth1 (vmbr1) | eth2 (vmbr2) |
-|----|----------|-----------|--------------|--------------|--------------|
-| 101 | cloudflared6 | 100.121.95.88 | 192.168.0.101/24 | 192.168.60.101/24 | 192.168.1.101/24 |
+| CT  | Hostname      | Tailscale       | eth0 (vmbr0)     | eth1 (vmbr1)      | eth2 (vmbr2)     |
+| --- | ------------- | --------------- | ---------------- | ----------------- | ---------------- |
+| 101 | cloudflared6  | 100.121.95.88   | 192.168.0.101/24 | 192.168.60.101/24 | 192.168.1.101/24 |
 | 114 | cloudflared6b | 100.115.195.128 | 192.168.0.114/24 | 192.168.60.114/24 | 192.168.1.114/24 |
 
 **Configuração**:
@@ -414,11 +435,11 @@ ssh root@192.168.0.245 'pct exec 117 -- cat /root/.cloudflared/config.yml'
 
 **Origins Proxmox (remoto, exemplos):**
 
-| Hostname | Origin |
-|----------|--------|
-| man6.aglz.io | `https://192.168.60.202:8006` |
-| man6c.aglz.io | `https://192.168.1.233:8006` |
-| man6d.aglz.io | `https://192.168.0.234:8006` |
+| Hostname      | Origin                        |
+| ------------- | ----------------------------- |
+| man6.aglz.io  | `https://192.168.60.202:8006` |
+| man6c.aglz.io | `https://192.168.1.233:8006`  |
+| man6d.aglz.io | `https://192.168.0.234:8006`  |
 
 > **eth2 (2026-06):** CTs em `192.168.1.0/24` via vmbr2 para alcançar man6c na LAN inter-host. Requer `agl-lan-routes` **sem** forçar `192.168.1.x` via eth0 — ver runbook abaixo.
 

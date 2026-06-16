@@ -17,9 +17,24 @@ function Write-Log([string]$Line) {
 Remove-Item $LogFile -Force -ErrorAction SilentlyContinue
 Write-Log "=== wk45-mirror-agl-hostman-repo $(Get-Date -Format o) ==="
 
-$Unc = "\\aglfs1\overpower"
+$UncCandidates = @(
+    "\\192.168.0.178\overpower",
+    "\\100.69.187.105\overpower",
+    "\\aglfs1\overpower"
+)
+$Unc = $null
+foreach ($candidate in $UncCandidates) {
+  $probe = cmd /c "dir /b `"$candidate`" 2>nul" 2>&1
+  if ($LASTEXITCODE -eq 0) { $Unc = $candidate; break }
+}
+if (-not $Unc) { $Unc = $UncCandidates[0] }
+
 if (-not (Test-Path "Z:\")) {
-    cmd /c "net use Z: $Unc /persistent:yes" 2>&1 | ForEach-Object { Write-Log $_ }
+    $null = cmd /c "net use Z: `"$Unc`" /user:guest `"`" /persistent:yes" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $null = cmd /c "net use Z: `"$Unc`" /persistent:yes" 2>&1
+    }
+    cmd /c "net use Z:" 2>&1 | ForEach-Object { Write-Log $_ }
 }
 
 if (-not (Test-Path $Source)) {

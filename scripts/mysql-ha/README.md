@@ -2,7 +2,7 @@
 
 Automatic MySQL failover with Cloudflare Tunnel DNS integration.
 
-> **Topologia MariaDB (2026-04, GTID):** **master = CT235 (mysql7, FGSRV7)** · **slave read_only = CT135 (mysql5, AGLSRV5)**. Detalhe operacional, reset `root`, LAN `172.2.2.x` no CT135 e migração `falgimoveis11`: **`docs/maint/MYSQL-HA-POST-RESET-2026-04.md`**.
+> **Topologia MariaDB (2026-06, GTID activo-activo):** **mysql7 = CT561 (FGSRV7)** ↔ **mysql5 = CT535 (AGLSRV5)** — ambos com escrita. Detalhe: **`docs/maint/MYSQL-HA-ACTIVE-ACTIVE.md`**. Migração / reset histórico: **`docs/maint/MYSQL-HA-POST-RESET-2026-04.md`**.
 
 ## Architecture
 
@@ -62,17 +62,19 @@ O script no repositório assume **slave no FGSRV7** a monitorizar o master noutr
 ### Zone: falg.com.br (ID: 01ce76a70c797ca510bb56bf61f3a75e)
 
 ### DNS Records:
-| Name | Type | ID | Content |
-|------|------|-----|---------|
-| mysql-ha | CNAME | c1629d07520b0d5becfddf028c88dd54 | aglsrv5 tunnel |
-| db-ha | CNAME | 9a1a01ec203f16e16ed598ed8532ec44 | aglsrv5 tunnel |
+
+| Name         | Type  | ID                               | Content        |
+| ------------ | ----- | -------------------------------- | -------------- |
+| mysql-ha     | CNAME | c1629d07520b0d5becfddf028c88dd54 | aglsrv5 tunnel |
+| db-ha        | CNAME | 9a1a01ec203f16e16ed598ed8532ec44 | aglsrv5 tunnel |
 | mysql-master | CNAME | c2198a41a98af99cbf9e0edf60421e2f | aglsrv5 tunnel |
-| mysql-slave | CNAME | d2039a6265049f1f5490771bea26d46a | fgsrv7 tunnel |
+| mysql-slave  | CNAME | d2039a6265049f1f5490771bea26d46a | fgsrv7 tunnel  |
 
 ### Tunnels:
-| Name | ID | Location |
-|------|-----|----------|
-| fgsrv7 | 513cec7b-754d-4dd8-a69d-d15942180fe4 | CT570 (FGSRV7; ex.170) |
+
+| Name    | ID                                   | Location                |
+| ------- | ------------------------------------ | ----------------------- |
+| fgsrv7  | 513cec7b-754d-4dd8-a69d-d15942180fe4 | CT570 (FGSRV7; ex.170)  |
 | aglsrv5 | 02d57187-83ba-4042-a5cc-8bb752a6b65a | CT530 (AGLSRV5; ex.130) |
 
 ## Failover Script
@@ -96,6 +98,7 @@ Instalação rápida a partir do repo (no host com `pct` ao CT135, ex. AGLSRV5):
 ## Manual Operations
 
 ### Check Failover Status
+
 ```bash
 # No host AGLSRV5 (CT135 = mysql5)
 ssh root@100.119.223.113
@@ -104,12 +107,14 @@ pct exec 135 -- tail -50 /var/log/mysql-failover.log
 ```
 
 ### Manual Failover Test
+
 ```bash
 # Executar manualmente no CT135 (cuidado: dispara lógica real se master estiver DOWN)
 pct exec 135 -- /usr/local/bin/mysql-failover.sh
 ```
 
 ### Reset DNS to Master
+
 ```bash
 curl -X PUT \
   "https://api.cloudflare.com/client/v4/zones/01ce76a70c797ca510bb56bf61f3a75e/dns_records/c1629d07520b0d5becfddf028c88dd54" \

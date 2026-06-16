@@ -1,0 +1,1668 @@
+# VM310 Ollama dual-GPU — agl-primary @ http://100.67.253.52:11434, agl-primary-strong @ http://100.67.253.52:11435
+# Fallbacks: Groq / Z.AI / OpenRouter após falha local. Ver docs/AGL-OLLAMA-VM310.md
+# Aliases agl-primary / ollama-* → Groq + OpenRouter até VM310 voltar (TS 100.67.253.52:11434).
+# Restaurar: gemma4-qat @ :11434 (agl-primary), qwen3:8b @ :11435 (agl-primary-strong) — ver git history / docs/AGL-OLLAMA-VM310.md
+# VM110 (AGLSRV1) permanece parada (GTX1650 instável). Ver docs/AGL-OLLAMA-VM310.md, scripts/aglsrv3/
+#
+# Z.AI (docs.z.ai): três bases úteis — (1) OpenAI-compat aggregado `https://api.z.ai/api/openai/v1` (entradas zai/glm-* abaixo);
+# (2) PaaS geral `https://api.z.ai/api/paas/v4`; (3) GLM Coding Plan `https://api.z.ai/api/coding/paas/v4` (subscrição Coding; política de uso
+# limita a ferramentas oficiais). Modelo de teste explícito: `zai-coding-glm-4.7`.
+# Claude Code via LiteLLM: usar `zai-glm-5` / `zai-glm-flash` (Anthropic-compat `https://api.z.ai/api/anthropic`) — o OpenAI-compat devolve 404 para GLM.
+# GLM-4.7-Flash / glm-flash: usar Z.AI Anthropic-compat (`api.z.ai/api/anthropic`) — OpenAI-compat e PaaS v4 devolvem 404/rate-limit/ content vazio.
+# Hermes CT188 (2026-05-30): OpenAI quota esgotada até ~2026-06-01 — quartet usa `groq-llama-31-8b`, fallback `or-nemotron-super-free`, aux `zai-glm-flash` (Z.AI Anthropic). Após quota OpenAI: Jarvis `gpt-5-mini`, agentes `glm-4.7-flash`.
+#
+# Política de routing (2026-06): **paid → local → free**. Subscrições/API: Anthropic, OpenAI, Z.AI (incl. Coding Plan), DeepSeek, Kimi, Gemini.
+# Free (Groq, OpenRouter :free, glm-4.7-flash) só como fallback ou burst. Matriz: docs/LITELLM-MODEL-TIERS.md
+#
+# DashScope (Alibaba Cloud): DESACTIVADO 2026-05 (fatura 5k+; ~99% era qwen3-coder-plus).
+# Alias qwen-coder / qwen/qwen-coder → DeepSeek V3.2 (NÃO chamar DashScope). Outros qwen* → Z.AI/Ollama/OpenRouter.
+cache_params:
+  host: 192.168.0.137
+  password: os.environ/REDIS_PASSWORD
+  port: 6379
+  type: redis
+general_settings:
+  allow_client_side_credentials: true
+  cache: true
+  gzip_compression: true
+  minimum_compression_size: 1024
+  database_url: os.environ/DATABASE_URL
+  master_key: os.environ/LITELLM_MASTER_KEY
+litellm_settings:
+  allowed_fails: 2
+  callbacks: custom_callbacks.agl_glm_flash_params.proxy_handler_instance
+  enable_redis_auth_cache: true
+  context_window_fallbacks:
+    - glm:
+        - kimi
+        - kimi-128k
+        - deepseek
+        - glm-flash
+    - glm-5:
+        - kimi
+        - kimi-128k
+        - deepseek
+        - glm-flash
+    - glm-5-turbo:
+        - kimi
+        - kimi-128k
+        - deepseek
+        - glm-flash
+    - glm-flash:
+        - kimi
+        - deepseek
+        - groq-llama-31-8b
+        - gemini
+    - glm-4.7-flash:
+        - groq-llama-31-8b
+        - or-nemotron-super-free
+        - groq-llama-31-8b
+    - zai/glm-4.7-flash:
+        - groq-llama-31-8b
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - zai:
+        - or-mistral-small-free
+        - gemini-lite
+        - or-gemma-3-4b-free
+        - or-nemotron-super-free
+    - zai-glm-5:
+        - agl-primary
+        - glm-5
+        - zai-glm-flash
+        - deepseek
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - zai-glm-flash:
+        - groq-llama-31-8b
+        - or-nemotron-super-free
+        - groq-llama-31-8b
+    - deepseek:
+        - kimi
+        - glm-flash
+        - glm
+        - or-nemotron-super-free
+    - claude-opus:
+        - glm
+        - deepseek
+        - glm-flash
+    - claude-opus-4-7:
+        - glm
+        - deepseek
+        - glm-flash
+    - claude-opus-4-6:
+        - glm
+        - deepseek
+        - glm-flash
+    - claude-sonnet:
+        - glm
+        - deepseek
+        - glm-flash
+        - or-nemotron-super-free
+    - claude-sonnet-4-6:
+        - glm
+        - deepseek
+        - glm-flash
+        - or-nemotron-super-free
+    - claude-sonnet-4-5-20250929:
+        - glm
+        - deepseek
+        - glm-flash
+        - or-nemotron-super-free
+    - qwen3.5-plus:
+        - glm-flash
+        - deepseek
+        - kimi
+        - gemini
+    - qwen-coder:
+        - groq-llama-31-8b
+        - groq-llama-31-8b
+        - or-nemotron-super-free
+        - glm-flash
+  fallbacks:
+    - zai-coding-glm-4.7:
+        - zai-glm-5
+        - agl-primary
+        - glm-5
+        - deepseek
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - zai-glm-5:
+        - agl-primary
+        - glm-5
+        - zai-glm-flash
+        - deepseek
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - agl-primary:
+        - agl-primary-strong
+        - zai-glm-flash
+        - glm-4.7-flash
+        - groq-llama-31-8b
+        - zai-glm-5
+        - deepseek
+        - or-nemotron-super-free
+    - agl-primary-strong:
+        - zai-glm-flash
+        - glm-4.7-flash
+        - groq-llama-31-8b
+        - zai-glm-5
+        - deepseek
+        - or-nemotron-super-free
+    - openai/ollama-qwen3-4b:
+        - glm-4.7-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - ollama-qwen3-4b:
+        - glm-4.7-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - ollama-qwen3-8b:
+        - groq-llama-31-8b
+        - glm-4.7-flash
+        - zai-glm-flash
+    - ollama-qwen3-4b-fast:
+        - groq-llama-31-8b
+        - glm-4.7-flash
+        - zai-glm-flash
+    - ollama-llama31-8b:
+        - groq-llama-31-8b
+        - glm-4.7-flash
+    - ollama-gemma3-4b:
+        - or-gemma-3-4b-free
+        - groq-llama-31-8b
+        - glm-4.7-flash
+    - ollama-gemma4-qat:
+        - or-gemma-3-4b-free
+        - groq-llama-31-8b
+        - glm-4.7-flash
+    - claude-opus:
+        - claude-sonnet
+        - glm-5
+        - gpt-5.4-mini
+        - deepseek
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - claude-opus-4-7:
+        - claude-opus-4-6
+        - claude-sonnet
+        - glm-5
+        - gpt-5.4-mini
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - claude-opus-4-6:
+        - claude-sonnet
+        - glm-5
+        - gpt-5.4-mini
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - claude-sonnet:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - claude-haiku
+        - deepseek
+        - glm-4.7-flash
+    - claude-sonnet-4-6:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - claude-haiku
+        - glm-4.7-flash
+    - claude-sonnet-4-5-20250929:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - claude-haiku
+        - glm-4.7-flash
+    - claude-haiku:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - deepseek
+        - glm-4.7-flash
+    - claude-haiku-4-5-20251001:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - deepseek
+        - glm-4.7-flash
+    - zai/glm-4.5-flash:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - zai/glm-4.7-flash:
+        - groq-llama-31-8b
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - glm-4.7-flash:
+        - groq-llama-31-8b
+        - or-nemotron-super-free
+        - groq-llama-31-8b
+    - zai/glm-5:
+        - gpt-5-nano
+        - gpt-4o-mini
+        - glm-4.7-flash
+    - zai/glm-4.7:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - glm-4.5-flash:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - kimi/moonshot-v1-128k:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - moonshot-v1-128k:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - glm:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - glm-5:
+        - zai-glm-5
+        - gpt-5.4-mini
+        - deepseek
+        - claude-haiku
+        - glm-4.7-flash
+        - or-nemotron-super-free
+    - glm-5-turbo:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - glm-flash:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - glm-air:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - cursor-composer:
+        - zai-glm-5
+        - glm-5
+        - zai-coding-glm-4.7
+        - agl-primary
+        - claude-haiku
+        - cursor-deepseek
+        - glm-4.7-flash
+        - groq-llama-31-8b
+    - cursor-composer-2-fast:
+        - zai-glm-5
+        - glm-5
+        - zai-coding-glm-4.7
+        - agl-primary
+        - claude-haiku
+        - cursor-deepseek
+        - glm-4.7-flash
+        - groq-llama-31-8b
+    - cursor-claude-sonnet:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - cursor-deepseek
+        - glm-4.7-flash
+    - cursor-claude-opus:
+        - cursor-claude-sonnet
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - gpt-5.4-mini
+        - glm-4.7-flash
+    - cursor-glm-5:
+        - zai-glm-5
+        - zai-coding-glm-4.7
+        - agl-primary
+        - gpt-5.4-mini
+        - cursor-deepseek
+        - glm-4.7-flash
+    - deepseek:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - r1:
+        - deepseek
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - kimi:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - kimi-128k:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - gpt:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - gpt-4o:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - gpt-4o-mini:
+        - gpt-5.4-mini
+        - gpt-5-nano
+        - gpt-5-mini
+    - gpt-5-nano:
+        - gpt-4o-mini
+        - gpt-5.4-mini
+        - gpt-5-mini
+    - gpt-5.4-nano:
+        - groq-llama-31-8b
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - openai/gpt-5.4-nano:
+        - groq-llama-31-8b
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - gpt-5.5:
+        - gpt-5-mini
+        - gpt-5.4-mini
+        - gpt-5-nano
+    - gpt-5-mini:
+        - zai-glm-5
+        - glm-5
+        - agl-primary
+        - claude-haiku
+        - glm-4.7-flash
+        - groq-llama-31-8b
+    - groq-llama-31-8b:
+        - or-nemotron-super-free
+        - groq-llama-31-8b
+        - glm-flash
+    - gpt-5.4:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - gpt-5.4-mini:
+        - zai-glm-5
+        - glm-5
+        - zai-coding-glm-4.7
+        - agl-primary
+        - claude-haiku
+        - deepseek
+        - glm-4.7-flash
+        - groq-llama-31-8b
+    - deepseek-4:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - gemini:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - gemini-lite:
+        - glm-flash
+        - glm-flash
+        - or-llama-3.3-70b-free
+        - or-gemma-3-4b-free
+    - qwen3.5:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - qwen3.5-plus:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - qwen3-max:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+    - qwen-plus:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+        - or-llama-3.3-70b-free
+    - qwen-coder:
+        - groq-llama-31-8b
+        - groq-llama-31-8b
+        - or-nemotron-super-free
+        - glm-flash
+    - qwen-turbo:
+        - glm-flash
+        - glm-flash
+        - or-llama-3.3-70b-free
+        - or-gemma-3-4b-free
+    - or-nemotron-super-free:
+        - or-minimax-m2.5-free
+        - or-llama-3.3-70b-free
+        - glm-flash
+        - glm-flash
+    - or-minimax-m2.5-free:
+        - or-llama-3.3-70b-free
+        - or-gemma-3-4b-free
+        - glm-flash
+        - glm-flash
+    - or-llama-3.3-70b-free:
+        - or-gemma-3-4b-free
+        - or-gemma-3-12b-free
+        - glm-flash
+        - glm-flash
+    - or-gemma-3-4b-free:
+        - glm-flash
+        - glm-flash
+        - or-llama-3.3-70b-free
+    - or-gemma-3-12b-free:
+        - glm-flash
+        - glm-flash
+        - or-llama-3.3-70b-free
+    - or-gemma-3-27b-free:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - or-mistral-small-free:
+        - glm-flash
+        - glm-flash
+        - or-llama-3.3-70b-free
+    - or-hermes-free:
+        - glm-flash
+        - glm-flash
+        - or-nemotron-super-free
+    - openrouter/openrouter/free:
+        - zai/glm-4.7-flash
+        - or-llama-3.3-70b-free
+        - or-nemotron-super-free
+        - glm-flash
+    - openrouter-free:
+        - zai/glm-4.7-flash
+        - or-llama-3.3-70b-free
+        - or-nemotron-super-free
+        - glm-flash
+  forward_client_headers_to_llm_api: true
+  num_retries: 2
+  request_timeout: 240
+model_list:
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-5
+      system_prompt: "Você é um especialista em infraestrutura AGL.
+
+        Hosts: agldv03 (dev), aglsrv1 (Proxmox), fgsrv3-6 (MySQL/APIs/WireGuard).
+
+        Ferramentas: Proxmox API, WireGuard, NFS, Tailscale, Cloudflare Tunnels.
+
+        Priorize: alta disponibilidade, monitoramento, alertas de storage.
+
+        Responda em português brasileiro.
+
+        "
+      timeout: 45
+    model_info:
+      access: direct
+      agent_type: infrastructure
+      context_window: 200000
+      input_cost_per_token: 1.0e-06
+      max_tokens: 131072
+      output_cost_per_token: 3.2e-06
+      rpm: 60
+      tpm: 100000
+    model_name: infra-agent
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/gemma4-qat
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "VM310 GPU0 — gemma4-qat (primário local AGL)"
+      output_cost_per_token: 0
+    model_name: agl-primary
+  - litellm_params:
+      api_base: http://100.67.253.52:11435
+      api_key: ollama
+      model: ollama/qwen3:8b
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "VM310 GPU1 — qwen3:8b (secundário forte local)"
+      output_cost_per_token: 0
+    model_name: agl-primary-strong
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      output_cost_per_token: 0
+    model_name: agl-primary-zai-glm-flash
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-opus-4-7
+    model_info:
+      access: direct
+      context_window: 1000000
+      input_cost_per_token: 5.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 2.5e-05
+    model_name: claude-opus
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-opus-4-7
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 1000000
+      input_cost_per_token: 5.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 2.5e-05
+    model_name: claude-opus-4-7
+
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-opus-4-6
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 1000000
+      input_cost_per_token: 5.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 2.5e-05
+    model_name: claude-opus-4-6
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-sonnet-4-6
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 3.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 1.5e-05
+    model_name: claude-sonnet
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-sonnet-4-6
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 3.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 1.5e-05
+    model_name: claude-sonnet-4-6
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-sonnet-4-6
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 3.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 1.5e-05
+    model_name: claude-sonnet-4-5-20250929
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-haiku-4-5-20251001
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 1.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 5.0e-06
+    model_name: claude-haiku
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-haiku-4-5-20251001
+      timeout: 60
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 1.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 5.0e-06
+    model_name: claude-haiku-4-5-20251001
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-5
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 1.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 3.2e-06
+    model_name: glm
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-5
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 200000
+      input_cost_per_token: 1.0e-06
+      max_tokens: 131072
+      output_cost_per_token: 3.2e-06
+    model_name: glm-5
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 203000
+      input_cost_per_token: 6.0e-07
+      max_tokens: 8192
+      output_cost_per_token: 2.2e-06
+    model_name: glm-4.7
+  - litellm_params:
+      api_base: https://api.z.ai/api/anthropic
+      api_key: os.environ/ZAI_API_KEY
+      model: anthropic/glm-4.5-flash
+      max_tokens: 512
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      output_cost_per_token: 0
+      note: glm-flash — Z.AI Anthropic (sem OpenAI quota)
+    model_name: glm-flash
+  - litellm_params:
+      api_key: os.environ/ZAI_API_KEY
+      model: zai/glm-4.5-air
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      input_cost_per_token: 2.0e-07
+      max_tokens: 8192
+      output_cost_per_token: 1.1e-06
+    model_name: glm-air
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-5
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 200000
+      max_tokens: 8192
+    model_name: zai/glm-5
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 203000
+      max_tokens: 8192
+    model_name: zai/glm-4.7
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.5-flash
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+    model_name: zai/glm-4.5-flash
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5-nano
+      max_tokens: 512
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 272000
+      free_tier: true
+      max_tokens: 8192
+      note: zai/glm-4.7-flash — mesmo backend que glm-4.7-flash (gpt-5-nano)
+    model_name: zai/glm-4.7-flash
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.5-flash
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+    model_name: glm-4.5-flash
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5-nano
+      max_tokens: 1024
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 272000
+      max_tokens: 8192
+      note: Hermes agentes (Elon) — alias glm-4.7-flash → GPT-5 nano
+    model_name: glm-4.7-flash
+  - litellm_params:
+      api_base: https://api.z.ai/api/anthropic
+      api_key: os.environ/ZAI_API_KEY
+      model: anthropic/glm-4.5-flash
+      max_tokens: 512
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+      note: zai-glm-5 — glm-5 quota até 2026-06-01; backend glm-4.5-flash Anthropic
+    model_name: zai-glm-5
+  - litellm_params:
+      api_base: https://api.z.ai/api/anthropic
+      api_key: os.environ/ZAI_API_KEY
+      model: anthropic/glm-4.5-flash
+      max_tokens: 512
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+      note: zai-glm-flash — compressão/aux Hermes (Z.AI Anthropic)
+    model_name: zai-glm-flash
+  - litellm_params:
+      api_base: https://api.z.ai/api/coding/paas/v4
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 203000
+      max_tokens: 8192
+      note: GLM Coding Plan — api_base /api/coding/paas/v4 (vs /api/openai/v1 nas outras rotas zai). O modelo pode gastar tokens em reasoning_content; pedidos curtos com max_tokens baixo podem devolver content vazio (finish length) — usar max_tokens maior (ex. 512+) para resposta final. Ver docs.z.ai devpack/overview.
+    model_name: zai-coding-glm-4.7
+  - litellm_params:
+      api_key: os.environ/MOONSHOT_API_KEY
+      model: moonshot/kimi-k2.5
+    model_info:
+      access: direct
+      context_window: 262144
+      input_cost_per_token: 6.0e-07
+      max_tokens: 8192
+      output_cost_per_token: 3.0e-06
+    model_name: kimi
+  - litellm_params:
+      api_key: os.environ/MOONSHOT_API_KEY
+      model: moonshot/moonshot-v1-128k
+    model_info:
+      access: direct
+      context_window: 131072
+      input_cost_per_token: 2.0e-07
+      max_tokens: 8192
+      output_cost_per_token: 2.0e-06
+    model_name: kimi-128k
+  - litellm_params:
+      api_key: os.environ/MOONSHOT_API_KEY
+      model: moonshot/moonshot-v1-128k
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+    model_name: kimi/moonshot-v1-128k
+  - litellm_params:
+      api_key: os.environ/MOONSHOT_API_KEY
+      model: moonshot/moonshot-v1-128k
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+    model_name: moonshot-v1-128k
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-chat
+    model_info:
+      access: direct
+      context_window: 131072
+      input_cost_per_token: 2.8e-07
+      max_tokens: 8192
+      output_cost_per_token: 4.2e-07
+    model_name: deepseek
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-reasoner
+    model_info:
+      access: direct
+      context_window: 131072
+      input_cost_per_token: 2.8e-07
+      max_tokens: 65536
+      output_cost_per_token: 4.2e-07
+    model_name: r1
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-chat
+    model_info:
+      access: direct
+      context_window: 131072
+      input_cost_per_token: 2.8e-07
+      max_tokens: 8192
+      output_cost_per_token: 4.2e-07
+    model_name: deepseek-v3.2
+
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-v4-flash
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: DeepSeek V4 Flash (1M ctx)
+      max_tokens: 16384
+    model_name: deepseek-v4-flash
+
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-v4-pro
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: DeepSeek V4 Pro (1M ctx)
+      max_tokens: 16384
+    model_name: deepseek-v4-pro
+
+  # Alias pedido: "deepseek-4" → mesmo upstream que deepseek-v4-flash (barato, 1M ctx).
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-v4-flash
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: Alias deepseek-4 → DeepSeek V4 Flash
+      max_tokens: 16384
+    model_name: deepseek-4
+
+  # Z.AI GLM-5-Turbo (OpenAI-compat aggregado; mesmo padrão que glm-5 / glm-4.7-flash).
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-5-turbo
+    model_info:
+      access: direct
+      context_window: 202752
+      description: Z.AI GLM-5-Turbo (OpenAI-compat v1)
+      max_tokens: 16384
+    model_name: glm-5-turbo
+
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-sonnet-4-6
+    model_info:
+      access: direct
+      context_window: 200000
+      description: Claude Sonnet 4.6 para Cursor - código
+      input_cost_per_token: 3.0e-06
+      max_tokens: 16384
+      output_cost_per_token: 1.5e-05
+    model_name: cursor-claude-sonnet
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-opus-4-6
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: Claude Opus 4.6 para Cursor - raciocínio complexo
+      input_cost_per_token: 5.0e-06
+      max_tokens: 16384
+      output_cost_per_token: 2.5e-05
+    model_name: cursor-claude-opus-4-6
+
+  - litellm_params:
+      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-opus-4-7
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: Claude Opus 4.7 para Cursor - raciocínio complexo
+      input_cost_per_token: 5.0e-06
+      max_tokens: 16384
+      output_cost_per_token: 2.5e-05
+    model_name: cursor-claude-opus
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-5
+      timeout: 45
+    model_info:
+      access: direct
+      context_window: 200000
+      description: GLM-5 via ZAI - custo reduzido
+      input_cost_per_token: 1.0e-06
+      max_tokens: 8192
+      output_cost_per_token: 3.2e-06
+    model_name: cursor-glm-5
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-chat
+    model_info:
+      access: direct
+      context_window: 131072
+      description: DeepSeek V3.2 - excelente para código
+      input_cost_per_token: 2.8e-07
+      max_tokens: 8192
+      output_cost_per_token: 4.2e-07
+    model_name: cursor-deepseek
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.4-mini
+      max_tokens: 16384
+      timeout: 120
+    model_info:
+      access: direct
+      context_window: 400000
+      description: "Cursor Composer → OpenAI gpt-5.4-mini (subscrição OpenAI API); aliases gpt-5.3-chat-latest"
+      max_tokens: 16384
+      subscription: openai
+      tier: paid
+    model_name: cursor-composer
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.4-mini
+      max_tokens: 16384
+      timeout: 120
+    model_info:
+      access: direct
+      context_window: 400000
+      description: Cursor Composer 2 Fast → OpenAI gpt-5.4-mini (mesmo backend que cursor-composer)
+      max_tokens: 16384
+      subscription: openai
+      tier: paid
+    model_name: cursor-composer-2-fast
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.4
+    model_info:
+      access: direct
+      context_window: 1000000
+      input_cost_per_token: 2.5e-06
+      max_tokens: 16384
+      output_cost_per_token: 1.5e-05
+    model_name: gpt
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-4o
+    model_info:
+      access: direct
+      context_window: 128000
+      input_cost_per_token: 2.5e-06
+      max_tokens: 16384
+      output_cost_per_token: 1.0e-05
+    model_name: gpt-4o
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-4o-mini
+    model_info:
+      access: direct
+      context_window: 128000
+      description: OpenAI GPT-4o mini (baixo custo, visão)
+      input_cost_per_token: 1.5e-07
+      max_tokens: 16384
+      output_cost_per_token: 6.0e-07
+    model_name: gpt-4o-mini
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-4.4-mini
+    model_info:
+      access: direct
+      context_window: 128000
+      description: OpenAI GPT-4.4 mini (custo reduzido)
+      input_cost_per_token: 1.5e-07
+      max_tokens: 16384
+      output_cost_per_token: 6.0e-07
+    model_name: gpt-4.4-mini
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5-mini
+    model_info:
+      access: direct
+      context_window: 272000
+      description: OpenAI GPT-5 mini (custo moderado)
+      input_cost_per_token: 2.5e-07
+      max_tokens: 16384
+      output_cost_per_token: 2.0e-06
+    model_name: gpt-5-mini
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.4-nano
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: OpenAI GPT-5.4 nano (cron OpenClaw CT187; fallback Groq no 429)
+      input_cost_per_token: 5.0e-08
+      max_tokens: 16384
+      output_cost_per_token: 4.0e-07
+      rpm: 120
+      tpm: 200000
+    model_name: gpt-5.4-nano
+
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.5
+      max_tokens: 4096
+      timeout: 120
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: OpenAI GPT-5.5 (frontier; não é o default do Hermes)
+      max_tokens: 16384
+    model_name: gpt-5.5
+
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.4
+    model_info:
+      access: direct
+      context_window: 1000000
+      description: OpenAI GPT-5.4 (alias explícito; mesmo upstream que gpt)
+      max_tokens: 16384
+    model_name: gpt-5.4
+
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5.4-mini
+    model_info:
+      access: direct
+      context_window: 400000
+      description: OpenAI GPT-5.4 mini (código / volume)
+      max_tokens: 16384
+    model_name: gpt-5.4-mini
+
+  - litellm_params:
+      api_key: os.environ/OPENAI_API_KEY
+      model: openai/gpt-5-nano
+    model_info:
+      access: direct
+      context_window: 272000
+      description: OpenAI GPT-5 nano (baixo custo)
+      max_tokens: 16384
+    model_name: gpt-5-nano
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-flash
+    model_info:
+      access: direct
+      context_window: 1048576
+      input_cost_per_token: 3.0e-07
+      max_tokens: 65536
+      output_cost_per_token: 2.5e-06
+    model_name: gemini
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-3.1-pro-preview
+    model_info:
+      access: direct
+      context_window: 1048576
+      input_cost_per_token: 2.0e-06
+      max_tokens: 16384
+      output_cost_per_token: 1.2e-05
+    model_name: gemini-3.1-pro
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-pro
+    model_info:
+      access: direct
+      context_window: 2097152
+      input_cost_per_token: 1.25e-06
+      max_tokens: 65536
+      output_cost_per_token: 1.0e-05
+    model_name: gemini-2.5-pro
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-flash-lite
+    model_info:
+      access: direct
+      context_window: 1048576
+      free_tier: true
+      input_cost_per_token: 1.0e-07
+      max_tokens: 65536
+      output_cost_per_token: 4.0e-07
+    model_name: gemini-lite
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-flash-lite
+    model_info:
+      access: direct
+      context_window: 1048576
+      max_tokens: 65536
+    model_name: google/gemini-2.5-flash-lite
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-flash-lite
+    model_info:
+      access: direct
+      context_window: 1048576
+      free_tier: true
+      max_tokens: 65536
+    model_name: google/gemini-2.5-flash-lite:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/google/gemini-2.5-flash-lite:free
+    model_info:
+      access: openrouter
+      context_window: 1048576
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/google/gemini-2.5-flash-lite:free
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-flash
+    model_info:
+      access: direct
+      context_window: 1048576
+      max_tokens: 65536
+    model_name: google/gemini-2.5-flash
+  - litellm_params:
+      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-2.5-flash
+    model_info:
+      access: direct
+      context_window: 1048576
+      input_cost_per_token: 1.0e-07
+      max_tokens: 8192
+      output_cost_per_token: 4.0e-07
+    model_name: gemini-2.0
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen-turbo — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen-turbo
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen-plus — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen-plus
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen-max — backend Z.AI GLM-4.7-Flash
+    model_name: qwen-max
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-chat
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+      note: Ex-DashScope qwen-coder (qwen3-coder-plus) → DeepSeek V3.2 — evitar faturação Alibaba
+    model_name: qwen-coder
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-chat
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+      note: Pedidos openai/qwen3-coder-plus → DeepSeek (slug legado DashScope)
+    model_name: openai/qwen3-coder-plus
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen3.5 — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen3.5
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen3.5-plus — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen3.5-plus
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen3.5-flash — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen3.5-flash
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen3-max — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen3-max
+  - litellm_params:
+      api_key: os.environ/GROQ_API_KEY
+      model: groq/llama-3.3-70b-versatile
+      timeout: 60
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 32768
+    model_name: groq-llama-33
+  - litellm_params:
+      api_key: os.environ/GROQ_API_KEY
+      model: groq/openai/gpt-oss-120b
+      timeout: 120
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 65536
+    model_name: groq-gpt-oss-120b
+  - litellm_params:
+      api_key: os.environ/GROQ_API_KEY
+      model: groq/llama-3.1-8b-instant
+      timeout: 45
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+    model_name: groq-llama-31-8b
+  - litellm_params:
+      api_key: os.environ/GROQ_API_KEY2
+      model: groq/llama-3.3-70b-versatile
+      timeout: 60
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 32768
+    model_name: groq-llama-33-k2
+  - litellm_params:
+      api_key: os.environ/GROQ_API_KEY2
+      model: groq/openai/gpt-oss-120b
+      timeout: 120
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 65536
+    model_name: groq-gpt-oss-120b-k2
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/qwen3:4b
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias legado → VM310 qwen3:4b :11434"
+      output_cost_per_token: 0
+    model_name: ollama-qwen3-4b
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/qwen3:4b
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias OpenAI-compat → VM310 qwen3:4b"
+      output_cost_per_token: 0
+    model_name: openai/ollama-qwen3-4b
+  - litellm_params:
+      api_base: http://100.67.253.52:11435
+      api_key: ollama
+      model: ollama/qwen3:8b
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias → VM310 qwen3:8b :11435"
+      output_cost_per_token: 0
+    model_name: ollama-qwen3-8b
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/qwen3:4b
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias → VM310 qwen3:4b :11434"
+      output_cost_per_token: 0
+    model_name: ollama-qwen3-4b-fast
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/llama3.1:8b
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias → VM310 llama3.1:8b :11434"
+      output_cost_per_token: 0
+    model_name: ollama-llama31-8b
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/gemma4-qat
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias legado gemma3 → VM310 gemma4-qat :11434"
+      output_cost_per_token: 0
+    model_name: ollama-gemma3-4b
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/gemma4-qat
+      timeout: 120
+      stream: true
+      max_tokens: 8192
+    model_info:
+      access: direct
+      context_window: 8192
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "Alias → VM310 gemma4-qat :11434"
+      output_cost_per_token: 0
+    model_name: ollama-gemma4-qat
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 2048
+      model: openrouter/openrouter/free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+      note: Rotação automática entre modelos gratuitos
+    model_name: openrouter-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/z-ai/glm-4.5-air:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-glm-air-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/meta-llama/llama-3.3-70b-instruct:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-llama-3.3-70b-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/google/gemma-3-4b-it:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-gemma-3-4b-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/google/gemma-3-12b-it:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-gemma-3-12b-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/google/gemma-3-27b-it:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-gemma-3-27b-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/mistralai/mistral-small-3.1-24b-instruct:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-mistral-small-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/nousresearch/hermes-3-llama-3.1-405b:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-hermes-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/minimax/minimax-m2.5:free
+    model_info:
+      access: openrouter
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-minimax-m2.5-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/nvidia/nemotron-3-super-120b-a12b:free
+    model_info:
+      access: openrouter
+      context_window: 262144
+      free_tier: true
+      max_tokens: 8192
+    model_name: or-nemotron-super-free
+  - litellm_params:
+      api_key: os.environ/DEEPSEEK_API_KEY
+      model: deepseek/deepseek-chat
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      max_tokens: 8192
+      note: Ex-DashScope qwen/qwen-coder → DeepSeek V3.2
+    model_name: qwen/qwen-coder
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen/qwen3.5-plus — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen/qwen3.5-plus
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.7-flash
+      max_tokens: 1024
+      timeout: 30
+    model_info:
+      access: direct
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+      note: Alias qwen/qwen-turbo — backend Z.AI GLM-4.7-Flash (DashScope só qwen-coder)
+    model_name: qwen/qwen-turbo
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/nvidia/nemotron-3-super-120b-a12b:free
+    model_info:
+      access: openrouter
+      context_window: 262144
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/nvidia/nemotron-3-super-120b-a12b:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/minimax/minimax-m2.5:free
+    model_info:
+      access: openrouter
+      context_window: 196608
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/minimax/minimax-m2.5:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/meta-llama/llama-3.3-70b-instruct:free
+    model_info:
+      access: openrouter
+      context_window: 65536
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/meta-llama/llama-3.3-70b-instruct:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/google/gemma-3-4b-it:free
+    model_info:
+      access: openrouter
+      context_window: 32768
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/google/gemma-3-4b-it:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/mistralai/mistral-small-3.1-24b-instruct:free
+    model_info:
+      access: openrouter
+      context_window: 32768
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/mistralai/mistral-small-3.1-24b-instruct:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/nousresearch/hermes-3-llama-3.1-405b:free
+    model_info:
+      access: openrouter
+      context_window: 131072
+      free_tier: true
+      max_tokens: 8192
+    model_name: openrouter/nousresearch/hermes-3-llama-3.1-405b:free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      max_tokens: 2048
+      model: openrouter/openrouter/free
+    model_info:
+      access: openrouter
+      context_window: 200000
+      free_tier: true
+      max_tokens: 8192
+      note: Router inteligente que seleciona modelos gratuitos automaticamente
+    model_name: openrouter/openrouter/free

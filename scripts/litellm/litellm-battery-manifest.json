@@ -1,38 +1,1122 @@
 {
   "models": [
-    { "id": "cursor-composer", "runFor": ["quick", "standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
-    { "id": "cursor-composer-2-fast", "runFor": ["standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
-    { "id": "cursor-claude-sonnet", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 24, "expectUsage": true },
-    { "id": "cursor-claude-opus", "runFor": ["standard", "full"], "timeoutSec": 85, "maxTokens": 24, "expectUsage": true },
-    { "id": "cursor-glm-5", "runFor": ["standard", "full"], "timeoutSec": 60, "maxTokens": 24, "expectUsage": true },
-    { "id": "cursor-deepseek", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 24, "expectUsage": true },
-    { "id": "openrouter-free", "runFor": ["standard", "full"], "timeoutSec": 150, "maxTokens": 256, "expectUsage": true, "optional": true },
-    { "id": "or-gemma-3-4b-free", "runFor": ["standard", "full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
-    { "id": "glm", "runFor": ["standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
-    { "id": "glm-flash", "runFor": ["quick", "standard", "full"], "timeoutSec": 55, "maxTokens": 24, "expectUsage": true },
-    { "id": "deepseek", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 24, "expectUsage": true },
-    { "id": "qwen3.5-plus", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 32, "expectUsage": true },
-    { "id": "qwen3-max", "runFor": ["standard", "full"], "timeoutSec": 90, "maxTokens": 32, "expectUsage": true },
-    { "id": "qwen-plus", "runFor": ["standard", "full"], "timeoutSec": 70, "maxTokens": 32, "expectUsage": true },
-
-    { "id": "ollama-nemotron-3-nano-4b", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 32, "expectUsage": false, "optional": true },
-
-    { "id": "zai/glm-4.7-flash", "runFor": ["full"], "timeoutSec": 60, "maxTokens": 32, "expectUsage": true, "optional": true },
-    { "id": "google/gemini-2.5-flash-lite", "runFor": ["full"], "timeoutSec": 75, "maxTokens": 32, "expectUsage": true, "optional": true },
-    { "id": "google/gemini-2.5-flash-lite:free", "runFor": ["full"], "timeoutSec": 90, "maxTokens": 48, "expectUsage": true, "optional": true },
-    { "id": "groq-llama-33", "runFor": ["full"], "timeoutSec": 55, "maxTokens": 32, "expectUsage": true, "optional": true },
-    { "id": "groq-gpt-oss-120b", "runFor": ["full"], "timeoutSec": 95, "maxTokens": 48, "expectUsage": true, "optional": true },
-    { "id": "groq-llama-33-k2", "runFor": ["full"], "timeoutSec": 55, "maxTokens": 32, "expectUsage": true, "optional": true },
-    { "id": "groq-gpt-oss-120b-k2", "runFor": ["full"], "timeoutSec": 95, "maxTokens": 48, "expectUsage": true, "optional": true },
-    { "id": "cerebras-llama-33", "runFor": ["full"], "timeoutSec": 95, "maxTokens": 48, "expectUsage": true, "optional": true },
-    { "id": "cerebras-gpt-oss-120b", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": true, "optional": true },
-    { "id": "agl-primary", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": false, "optional": true },
-    { "id": "agl-primary-strong", "runFor": ["full"], "timeoutSec": 180, "maxTokens": 48, "expectUsage": false, "optional": true },
-    { "id": "ollama-qwen3-4b-fast", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": false, "optional": true },
-    { "id": "ollama-qwen3-8b", "runFor": ["full"], "timeoutSec": 180, "maxTokens": 48, "expectUsage": false, "optional": true },
-    { "id": "ollama-gemma4-qat", "runFor": ["quick", "full"], "timeoutSec": 120, "maxTokens": 48, "expectUsage": false, "optional": true },
-    { "id": "or-glm-4.5-air-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
-    { "id": "or-llama-3.3-70b-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true },
-    { "id": "or-gemma-3-12b-free", "runFor": ["full"], "timeoutSec": 120, "maxTokens": 256, "expectUsage": true, "optional": true }
+    {
+      "id": "agl-primary",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 120,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "agl-primary-strong",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 180,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "agl-primary-zai-glm-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "claude-opus",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-opus-4-7",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-opus-4-6",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-sonnet",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-sonnet-4-5-20250929",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-haiku",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "claude-haiku-4-5-20251001",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "anthropic",
+      "tier": "paid"
+    },
+    {
+      "id": "glm",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "glm-5",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "glm-4.7",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "glm-flash",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "glm-air",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "zai/glm-5",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "zai/glm-4.7",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "zai/glm-4.5-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "zai/glm-4.7-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "glm-4.5-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "glm-4.7-flash",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "zai-glm-5",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "zai-glm-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "zai-coding-glm-4.7",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "kimi",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "moonshot",
+      "tier": "paid"
+    },
+    {
+      "id": "kimi-128k",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "moonshot",
+      "tier": "paid"
+    },
+    {
+      "id": "kimi/moonshot-v1-128k",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "moonshot",
+      "tier": "paid"
+    },
+    {
+      "id": "moonshot-v1-128k",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "moonshot",
+      "tier": "paid"
+    },
+    {
+      "id": "glm-5-turbo",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "zai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-4o",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-4o-mini",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-5-mini",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-5.4-nano",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-5.5",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-5.4",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-5.4-mini",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 90,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gpt-5-nano",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": false,
+      "provider": "openai",
+      "tier": "paid"
+    },
+    {
+      "id": "gemini",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "paid"
+    },
+    {
+      "id": "gemini-3.1-pro",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "paid"
+    },
+    {
+      "id": "gemini-2.5-pro",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "paid"
+    },
+    {
+      "id": "gemini-lite",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "free"
+    },
+    {
+      "id": "google/gemini-2.5-flash-lite",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "paid"
+    },
+    {
+      "id": "google/gemini-2.5-flash-lite:free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "free"
+    },
+    {
+      "id": "google/gemini-2.5-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "paid"
+    },
+    {
+      "id": "gemini-2.0",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 75,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "google",
+      "tier": "paid"
+    },
+    {
+      "id": "openrouter/google/gemini-2.5-flash-lite:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "qwen-turbo",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen-plus",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen-max",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen3.5",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen3.5-plus",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen3.5-flash",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen3-max",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "groq-llama-33",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 55,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "groq",
+      "tier": "free"
+    },
+    {
+      "id": "groq-gpt-oss-120b",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 95,
+      "maxTokens": 512,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "groq",
+      "tier": "free"
+    },
+    {
+      "id": "groq-llama-31-8b",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 55,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "groq",
+      "tier": "free"
+    },
+    {
+      "id": "groq-llama-33-k2",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 55,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "groq",
+      "tier": "free"
+    },
+    {
+      "id": "groq-gpt-oss-120b-k2",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 95,
+      "maxTokens": 512,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "groq",
+      "tier": "free"
+    },
+    {
+      "id": "ollama-qwen3-4b",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 120,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "openai/ollama-qwen3-4b",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 120,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "ollama-qwen3-8b",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 180,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "ollama-qwen3-4b-fast",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 120,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "ollama-llama31-8b",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 180,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "ollama-gemma3-4b",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 120,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "ollama-gemma4-qat",
+      "runFor": [
+        "quick",
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 120,
+      "maxTokens": 48,
+      "expectUsage": false,
+      "optional": true,
+      "provider": "ollama",
+      "tier": "local"
+    },
+    {
+      "id": "openrouter-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-glm-air-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-llama-3.3-70b-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-gemma-3-4b-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-gemma-3-12b-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-gemma-3-27b-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-mistral-small-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-hermes-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-minimax-m2.5-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "or-nemotron-super-free",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "qwen/qwen3.5-plus",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "qwen/qwen-turbo",
+      "runFor": [
+        "standard",
+        "full"
+      ],
+      "timeoutSec": 70,
+      "maxTokens": 32,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "zai",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/minimax/minimax-m2.5:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/google/gemma-3-4b-it:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/mistralai/mistral-small-3.1-24b-instruct:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/nousresearch/hermes-3-llama-3.1-405b:free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    },
+    {
+      "id": "openrouter/openrouter/free",
+      "runFor": [
+        "full"
+      ],
+      "timeoutSec": 150,
+      "maxTokens": 256,
+      "expectUsage": true,
+      "optional": true,
+      "provider": "openrouter",
+      "tier": "free"
+    }
   ]
 }

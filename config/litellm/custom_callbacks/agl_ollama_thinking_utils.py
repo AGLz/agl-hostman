@@ -52,9 +52,24 @@ def ollama_uses_thinking(model: Optional[str], data: dict) -> bool:
 def normalize_ollama_message_content(message: Any) -> None:
     if message is None:
         return
-    content = getattr(message, "content", None)
-    reasoning = getattr(message, "reasoning_content", None)
+    content = _message_field(message, "content")
     if content and str(content).strip():
         return
-    if reasoning and str(reasoning).strip():
-        message.content = str(reasoning).strip()
+    for key in ("reasoning_content", "thinking"):
+        fallback = _message_field(message, key)
+        if fallback and str(fallback).strip():
+            _set_message_field(message, "content", str(fallback).strip())
+            return
+
+
+def _message_field(message: Any, key: str) -> Any:
+    if isinstance(message, dict):
+        return message.get(key)
+    return getattr(message, key, None)
+
+
+def _set_message_field(message: Any, key: str, value: str) -> None:
+    if isinstance(message, dict):
+        message[key] = value
+    else:
+        setattr(message, key, value)

@@ -3,10 +3,14 @@
 Benchmark comparativo: Ollama GPU (directo) vs providers LiteLLM.
 Gera JSON + Markdown para docs/LITELLM-PROVIDER-BENCHMARK.md
 
+Modelos: auto-descobertos de config/litellm/config.yaml (filtrados por keys disponíveis).
+
 Uso (agldv03 ou host com LiteLLM):
   LITELLM_URL=http://127.0.0.1:4000 \\
   LITELLM_KEY=sk-... \\
-  OLLAMA_URL=http://100.67.253.52:11434 \\
+  LITELLM_ENV_FILE=/opt/agl-litellm/.env \\
+  BENCH_PROVIDERS=groq,openrouter,zai,anthropic,openai,ollama \\
+  BENCH_PROMPTS=latency \\
   python3 scripts/litellm/benchmark-provider-comparison.py
 """
 from __future__ import annotations
@@ -21,6 +25,17 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPT_DIR))
+
+from litellm_config_models import (  # noqa: E402
+    DEFAULT_CONFIG,
+    load_env_file,
+    load_models,
+    models_for_benchmark_tuple,
+    ollama_direct_targets,
+)
 
 LITELLM_URL = os.environ.get(
     "LITELLM_URL", "http://127.0.0.1:4000").rstrip("/")
@@ -59,36 +74,14 @@ PROMPTS = {
     },
 }
 
-LITELLM_MODELS = [
-    # (model, label, provider, tier) — tier: local | paid | free
-    ("agl-primary", "Ollama local", "ollama", "local"),
-    ("ollama-qwen3-4b", "Ollama alias", "ollama", "local"),
-    ("claude-sonnet", "Anthropic Sonnet 4.6", "anthropic", "paid"),
-    ("claude-haiku", "Anthropic Haiku 4.5", "anthropic", "paid"),
-    ("claude-opus", "Anthropic Opus 4.7", "anthropic", "paid"),
-    ("gpt-5.4-mini", "OpenAI GPT-5.4 mini", "openai", "paid"),
-    ("gpt-5-mini", "OpenAI GPT-5 mini", "openai", "paid"),
-    ("gpt-5.4", "OpenAI GPT-5.4", "openai", "paid"),
-    ("glm-5", "Z.AI GLM-5", "zai", "paid"),
-    ("zai-glm-5", "Z.AI GLM-5 Anthropic-compat", "zai", "paid"),
-    ("zai-coding-glm-4.7", "Z.AI Coding Plan GLM-4.7", "zai", "paid"),
-    ("deepseek", "DeepSeek V3.2", "deepseek", "paid"),
-    ("kimi", "Moonshot Kimi", "moonshot", "paid"),
-    ("cursor-composer", "Cursor Composer → OpenAI", "openai", "paid"),
-    ("cursor-claude-sonnet", "Cursor Claude Sonnet", "anthropic", "paid"),
-    ("gemini-3.1-pro", "Google Gemini 3.1 Pro", "google", "paid"),
-    ("glm-4.7-flash", "Z.AI GLM Flash (free tier)", "zai", "free"),
-    ("glm-flash", "Z.AI Anthropic-compat flash", "zai", "free"),
-    ("groq-llama-31-8b", "Groq Llama 3.1 8B", "groq", "free"),
-    ("gemini-lite", "Google Gemini Flash Lite", "google", "free"),
-    ("qwen-coder", "DeepSeek V3.2 (alias coder)", "deepseek", "paid"),
-    ("or-nemotron-super-free", "OpenRouter Nemotron free", "openrouter", "free"),
-    ("or-mistral-small-free", "OpenRouter Mistral free", "openrouter", "free"),
-    ("openrouter-free", "OpenRouter rotação free", "openrouter", "free"),
-]
-
+BENCH_CONFIG = Path(os.environ.get("BENCH_CONFIG", str(DEFAULT_CONFIG)))
 BENCH_TIER = os.environ.get("BENCH_TIER", "all").lower()
 BENCH_PROMPTS = os.environ.get("BENCH_PROMPTS", "").strip()
+BENCH_PROVIDERS = os.environ.get("BENCH_PROVIDERS", "").strip()
+BENCH_REQUIRE_KEYS = os.environ.get(
+    "BENCH_REQUIRE_KEYS", "1").lower() not in ("0", "false", "no")
+BENCH_DELAY_SEC = float(os.environ.get("BENCH_DELAY_SEC", "0.5"))
+BENCH_ENV_FILE = os.environ.get("LITELLM_ENV_FILE", "/opt/agl-litellm/.env")
 
 
 @dataclass
@@ -142,7 +135,14 @@ def _post_json(url: str, payload: dict, headers: dict | None = None, timeout: in
         return 0, {"error": {"message": str(e.reason)[:300]}}
 
 
-def bench_ollama_direct(model: str, prompt_id: str, spec: dict) -> BenchResult:
+def bench_ollama_direct(
+    model: str,
+    prompt_id: str,
+    spec: dict,
+    *,
+    ollama_url: str | None = None,
+) -> BenchResult:
+    base = (ollama_url or OLLAMA_URL).rstrip("/")
     t0 = time.perf_counter()
     payload = {
         "model": model,
@@ -150,7 +150,7 @@ def bench_ollama_direct(model: str, prompt_id: str, spec: dict) -> BenchResult:
         "stream": False,
         "options": {"num_predict": spec["max_tokens"], "temperature": 0.1},
     }
-    status, data = _post_json(f"{OLLAMA_URL}/api/generate", payload)
+    status, data = _post_json(f"{base}/api/generate", payload)
     latency = int((time.perf_counter() - t0) * 1000)
     if status != 200 or data.get("error"):
         return BenchResult(
@@ -255,8 +255,21 @@ def bench_litellm(model: str, provider: str, tier: str, prompt_id: str, spec: di
     )
 
 
+def _provider_filter() -> set[str] | None:
+    if not BENCH_PROVIDERS:
+        return None
+    return {p.strip().lower() for p in BENCH_PROVIDERS.split(",") if p.strip()}
+
+
 def models_for_benchmark() -> list[tuple[str, str, str, str]]:
-    models = LITELLM_MODELS
+    tier = BENCH_TIER if BENCH_TIER in ("paid", "free", "local") else None
+    entries = load_models(
+        BENCH_CONFIG,
+        providers=_provider_filter(),
+        tier=tier,
+        require_keys=BENCH_REQUIRE_KEYS,
+    )
+    models = models_for_benchmark_tuple(entries)
     if BENCH_TIER in ("paid", "free", "local"):
         models = [m for m in models if m[3] == BENCH_TIER]
     return models
@@ -289,13 +302,16 @@ def build_markdown(meta: RunMeta, results: list[BenchResult]) -> str:
     lat.sort(key=lambda r: r.latency_ms)
 
     lines = [
-        "# Benchmark comparativo — LiteLLM providers vs Ollama GPU (qwen3:4b)",
+        "# Benchmark comparativo — LiteLLM providers vs Ollama GPU (VM310)",
         "",
         f"**Gerado:** {meta.started_at}  ",
         f"**LiteLLM:** `{meta.litellm_url}`  ",
         f"**Ollama directo:** `{meta.ollama_url}`  ",
+        f"**Config:** `{BENCH_CONFIG}`  ",
         f"**Host benchmark:** `{meta.host}`  ",
         f"**Filtro tier:** `{BENCH_TIER}`  ",
+        f"**Filtro providers:** `{BENCH_PROVIDERS or 'all'}`  ",
+        f"**Modelos LiteLLM:** `{len({r.model for r in results if r.target == 'litellm'})}`  ",
         "",
         "## Resumo executivo",
         "",
@@ -359,7 +375,7 @@ def build_markdown(meta: RunMeta, results: list[BenchResult]) -> str:
         "",
         "| Provider | Modelo(s) AGL | Limites típicos | Custo |",
         "|----------|---------------|-----------------|-------|",
-        "| **Ollama VM110 GPU** | `qwen3:4b` | Sem rate limit; 1 modelo, 4 GB VRAM, `OLLAMA_MAX_LOADED_MODELS=1` | Grátis (hardware local) |",
+        "| **Ollama VM310 dual-GPU** | `gemma4-qat`, `qwen3:8b` | Sem rate limit; GPU0+GPU1 RX580 | Grátis (hardware local) |",
         "| **Z.AI** | `glm-4.7-flash`, `glm-flash` | GLM-4.7-Flash API grátis; Coding Plan ~$18/mês com quotas 5h+7d; pico 14–18h UTC+8 consome 2–3× | Flash free; resto pay-per-token ou plano |",
         "| **Groq** | `groq-llama-31-8b` | ~30 RPM, 6K–12K TPM, 1K–14.4K RPD (por modelo) | Free tier |",
         "| **OpenRouter** | `or-*-free`, `openrouter-free` | 20 RPM; 50 RPD (sem créditos) ou 1000 RPD após $10 | Free variants |",
@@ -389,6 +405,10 @@ def build_markdown(meta: RunMeta, results: list[BenchResult]) -> str:
 def main() -> int:
     import socket
 
+    env_path = Path(BENCH_ENV_FILE)
+    if env_path.is_file():
+        load_env_file(env_path)
+
     if not LITELLM_KEY:
         for path in ("/opt/litellm/.env", os.path.expanduser("~/.hermes/config.yaml")):
             if not os.path.isfile(path):
@@ -412,19 +432,32 @@ def main() -> int:
 
     print(f"Ollama directo: {OLLAMA_URL}")
     print(f"LiteLLM: {LITELLM_URL}")
+    print(f"Config: {BENCH_CONFIG}")
     print(f"Tier filter: {BENCH_TIER}")
+    print(f"Providers filter: {BENCH_PROVIDERS or 'all'}")
+    print(f"Require keys: {BENCH_REQUIRE_KEYS}")
     print()
 
     prompt_set = prompts_for_benchmark()
     bench_models = models_for_benchmark()
+    print(f"Modelos a testar: {len(bench_models)}")
+    if not bench_models:
+        print("AVISO: nenhum modelo — verificar BENCH_PROVIDERS / keys em LITELLM_ENV_FILE")
+        return 1
 
     for prompt_id, spec in prompt_set.items():
         print(f"=== Prompt: {prompt_id} ({spec['label']}) ===")
-        if BENCH_TIER in ("all", "local"):
-            r = bench_ollama_direct("qwen3:4b", prompt_id, spec)
-            results.append(r)
-            print(
-                f"  ollama-direct/qwen3:4b: {'OK' if r.ok else 'FAIL'} {r.latency_ms}ms {r.preview[:50]}")
+        if BENCH_TIER in ("all", "local") and (
+            not BENCH_PROVIDERS or "ollama" in BENCH_PROVIDERS or "local" in BENCH_PROVIDERS
+        ):
+            for ollama_model, ollama_base, gpu_label in ollama_direct_targets():
+                r = bench_ollama_direct(
+                    ollama_model, prompt_id, spec, ollama_url=ollama_base,
+                )
+                results.append(r)
+                tag = f"ollama-direct/{ollama_model}@{gpu_label}"
+                print(
+                    f"  {tag}: {'OK' if r.ok else 'FAIL'} {r.latency_ms}ms {r.preview[:50]}")
 
         for model, _label, provider, tier in bench_models:
             r = bench_litellm(model, provider, tier, prompt_id, spec)
@@ -432,7 +465,8 @@ def main() -> int:
             status = "OK" if r.ok else "FAIL"
             print(
                 f"  {model}: {status} {r.latency_ms}ms {r.preview[:40] if r.ok else r.error[:40]}")
-            time.sleep(0.5)
+            if BENCH_DELAY_SEC > 0:
+                time.sleep(BENCH_DELAY_SEC)
 
     meta_dict = {
         "started_at": meta.started_at,

@@ -1,0 +1,2272 @@
+{
+  "gateway": "http://100.125.249.8:4000",
+  "tier": "full",
+  "concurrency": 6,
+  "startedAt": "2026-06-16T01:30:00.712Z",
+  "manifest": "/mnt/overpower/apps/dev/agl/agl-hostman/scripts/litellm/litellm-battery-manifest.json",
+  "modelsPlanned": 86,
+  "health": {
+    "http": 401,
+    "ms": 76,
+    "ok": false,
+    "error": null
+  },
+  "readiness": {
+    "http": 200,
+    "ms": 43,
+    "ok": true,
+    "error": null
+  },
+  "modelList": {
+    "http": 200,
+    "ms": 37,
+    "count": 86,
+    "ok": true,
+    "error": null
+  },
+  "contextStats": null,
+  "chats": [
+    {
+      "id": "agl-primary",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120002,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "agl-primary-strong",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 180,
+      "httpStatus": 0,
+      "ms": 180001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "agl-primary-zai-glm-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1737,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-d9e11f22-cc3e-4d00-8cba-3ffdedd75b86\",\"created\":1781573402,\"model\":\"agl-primary-zai-glm-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"re",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "agl-primary-zai-glm-flash"
+    },
+    {
+      "id": "claude-opus",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 2598,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-6dd940b6-e987-4080-8053-dd5930d91139\",\"created\":1781573403,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-opus-4-7",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 3930,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-a075e0e5-60c7-46bd-b4f4-2e1449136ace\",\"created\":1781573404,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-opus-4-6",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 21234,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-939d46f5-1af1-45bd-8358-177263a17787\",\"created\":1781573422,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-sonnet",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1264,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-0db68875-a05a-4f00-a859-e1862b9932a5\",\"created\":1781573403,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 4396,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-4c92bd53-1e6d-4a36-9290-3e875f086ba9\",\"created\":1781573407,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-sonnet-4-5-20250929",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 2907,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-47113983-c68c-4b12-bf98-4d603942a4c9\",\"created\":1781573406,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-haiku",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1154,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-e39aa1d3-5d60-4df1-9b15-9a90492aeb8f\",\"created\":1781573405,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "claude-haiku-4-5-20251001",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1268,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-be6a39b5-0df4-4928-bd30-38beb44ce98b\",\"created\":1781573407,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "glm",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 7512,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-684a1578-6017-4a41-96d9-df847517f48a\",\"created\":1781573414,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "glm-5",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 7949,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-e539820f-bf80-45f0-b9e5-8d95cf394fc4\",\"created\":1781573415,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "glm-4.7",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 10335,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 1880,
+        "usage": {
+          "prompt_tokens": 20,
+          "completion_tokens": 435,
+          "total_tokens": 455
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": true
+      },
+      "rawSnippet": "{\"id\":\"202606160930081c5a2af6591145c0\",\"created\":1781573417,\"model\":\"glm-4.7\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"reasoning_content\":\"\\n1.  **Analyze the Request:** The user is asking me to respond with *only* the word \\\"OK\\\", without punctuation and without explanation. The language is Portuguese (\\\"Responde apenas ",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.7"
+    },
+    {
+      "id": "glm-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 2640,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-7ebc5778-730a-42fe-a58b-9089a2940d19\",\"created\":1781573416,\"model\":\"glm-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-flash"
+    },
+    {
+      "id": "glm-air",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1884,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 126,
+        "usage": {
+          "prompt_tokens": 20,
+          "completion_tokens": 32,
+          "total_tokens": 52
+        },
+        "finishReason": "length",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": true
+      },
+      "rawSnippet": "{\"id\":\"20260616093015d3a4f4507bc14351\",\"created\":1781573416,\"model\":\"glm-air\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"length\",\"index\":0,\"message\":{\"content\":\"\",\"role\":\"assistant\",\"reasoning_content\":\"\\nHmm, o usuário está pedindo uma resposta muito específica: apenas a palavra \\\"OK\\\" sem pontuação ou explicação. Parece um teste\",\"provider_specific_fields\":{\"refusal\":null,\"reasoning",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-air"
+    },
+    {
+      "id": "zai/glm-5",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 23116,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-c48d9986-c4c1-42b8-88ee-1f70bacfe8b9\",\"created\":1781573439,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "zai/glm-4.7",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 7703,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 1117,
+        "usage": {
+          "prompt_tokens": 20,
+          "completion_tokens": 300,
+          "total_tokens": 320
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": true
+      },
+      "rawSnippet": "{\"id\":\"202606160930171f60e7ae0ccf4b8e\",\"created\":1781573424,\"model\":\"zai/glm-4.7\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"reasoning_content\":\"\\n1.  **Analyze the user's request:** The user is asking for a very specific response: \\\"Responde apenas com a palavra OK, sem pontuação nem explicação.\\\" (Respond only with the wo",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "zai/glm-4.7"
+    },
+    {
+      "id": "zai/glm-4.5-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6816,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-f8eb98dd-c6c7-4923-948d-ed0125dfd15d\",\"created\":1781573424,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "zai/glm-4.7-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6634,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-eca36826-0923-4cf4-b950-3154e8f4c21f\",\"created\":1781573428,\"model\":\"llama-3.1-8b-instant\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_e2c608b1d6\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.150687587,\"prompt_time\":0.003300742,\"completion_time\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "llama-3.1-8b-instant"
+    },
+    {
+      "id": "glm-4.5-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6959,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-4b5a924f-2d6a-4a20-a8f5-efa9522843e3\",\"created\":1781573431,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"ok\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "glm-4.7-flash",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 5305,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-3e940d39-14e0-434d-abfe-b28340655051\",\"created\":1781573430,\"model\":\"llama-3.1-8b-instant\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_e2c608b1d6\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.15091373,\"prompt_time\":0.002917185,\"completion_time\":0",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "llama-3.1-8b-instant"
+    },
+    {
+      "id": "zai-glm-5",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1123,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-cd4600e0-e759-4a1c-9298-a0ed91bdb54c\",\"created\":1781573429,\"model\":\"zai-glm-5\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "zai-glm-5"
+    },
+    {
+      "id": "zai-glm-flash",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1057,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-ac6cc709-da7f-4663-a6a8-d07e4f3f7aee\",\"created\":1781573430,\"model\":\"zai-glm-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "zai-glm-flash"
+    },
+    {
+      "id": "zai-coding-glm-4.7",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 996,
+      "listed": false,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-a214978a-4e52-45d0-8772-b7457899f37a\",\"created\":1781573431,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "kimi",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 7640,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-149a8ec0-f7ee-4eab-a1a7-45d82fbb6310\",\"created\":1781573438,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "kimi-128k",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6033,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-c0a972b2-8c23-4fa7-ae82-053c37a70692\",\"created\":1781573437,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "kimi/moonshot-v1-128k",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6833,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-28f0514f-3273-4c7e-9cb4-eb48a4b23bf6\",\"created\":1781573438,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "moonshot-v1-128k",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6781,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-f7c9fc4e-0889-46e1-a2ce-aa673ead6c96\",\"created\":1781573444,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "glm-5-turbo",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 8550,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-31778b74-d427-4982-a8db-971978ee733f\",\"created\":1781573447,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6408,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-ba888ed9-2c55-42ed-9f06-559c33737bd5\",\"created\":1781573444,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-4o",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 6307,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-520d03ec-940c-4617-8810-0a392df3f5ca\",\"created\":1781573446,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"ok\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-4o-mini",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 11197,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-e622614a-8b8a-4c33-813f-58eb45251e48\",\"created\":1781573455,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-5-mini",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 5886,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-3756780b-c0d7-442d-9f0d-2da1b055e08f\",\"created\":1781573450,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-5.4-nano",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 5800,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-d7db20f8-87bf-42df-a668-de42968a9bef\",\"created\":1781573452,\"model\":\"llama-3.1-8b-instant\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_020e283281\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.151400487,\"prompt_time\":0.006842717,\"completion_time\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "llama-3.1-8b-instant"
+    },
+    {
+      "id": "gpt-5.5",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 11407,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-31d05270-a1b0-49c4-97df-65d0470390a3\",\"created\":1781573458,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-5.4",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 5857,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-70c3d7d9-a77d-4555-b7bb-de3d2fc39f0f\",\"created\":1781573456,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-5.4-mini",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 90,
+      "httpStatus": 200,
+      "ms": 7001,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-ebdd899d-e4b7-49dc-a73a-46d7b8f3764a\",\"created\":1781573459,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gpt-5-nano",
+      "optional": false,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 19609,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-4b3dca5a-7f63-44cb-9b29-36d1892e8df5\",\"created\":1781573474,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "gemini",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 11539,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 27,
+          "total_tokens": 41
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"W6cwaqenJ7--trIP5rSG8Q4\",\"created\":1781573456,\"model\":\"gemini\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"images\":[],\"thinking_blocks\":[]}}],\"usage\":{\"completion_tokens\":27,\"prompt_tokens\":14,\"total_tokens\":41,\"completion_tokens_details\":{\"reasoning_tokens\":26,\"text_tokens\":1},\"prompt_tokens_details\":{\"text_tokens\":1",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "gemini"
+    },
+    {
+      "id": "gemini-3.1-pro",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 1947,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 28,
+          "total_tokens": 42
+        },
+        "finishReason": "length",
+        "errorMessage": "sem content/reasoning útil",
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"UqcwavWVJdiIlOAP_IDigQg\",\"created\":1781573458,\"model\":\"gemini-3.1-pro\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"length\",\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":null}}],\"usage\":{\"completion_tokens\":28,\"prompt_tokens\":14,\"total_tokens\":42,\"completion_tokens_details\":{\"reasoning_tokens\":28,\"text_tokens\":0},\"prompt_tokens_details\":{\"text_tokens\":14}},\"vertex_ai_groundin",
+      "ok": false,
+      "softWarn": false,
+      "modelReturned": "gemini-3.1-pro"
+    },
+    {
+      "id": "gemini-2.5-pro",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 11834,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 27,
+          "total_tokens": 41
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"XacwaoPdPLvn88AP0oCumQc\",\"created\":1781573459,\"model\":\"gemini-2.5-pro\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"images\":[],\"thinking_blocks\":[]}}],\"usage\":{\"completion_tokens\":27,\"prompt_tokens\":14,\"total_tokens\":41,\"completion_tokens_details\":{\"reasoning_tokens\":26,\"text_tokens\":1},\"prompt_tokens_details\":{\"text_t",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "gemini-2.5-pro"
+    },
+    {
+      "id": "gemini-lite",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 11431,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 1,
+          "total_tokens": 15
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"X6cwauGHDpi_gLUP2IKsiQ4\",\"created\":1781573460,\"model\":\"gemini-lite\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"images\":[],\"thinking_blocks\":[]}}],\"usage\":{\"completion_tokens\":1,\"prompt_tokens\":14,\"total_tokens\":15,\"completion_tokens_details\":{\"text_tokens\":1},\"prompt_tokens_details\":{\"text_tokens\":14}},\"vertex_ai_gro",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "gemini-lite"
+    },
+    {
+      "id": "google/gemini-2.5-flash-lite",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 433,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 1,
+          "total_tokens": 15
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"XKcwaq-jFP27trIP9ajTuQc\",\"created\":1781573468,\"model\":\"google/gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"images\":[],\"thinking_blocks\":[]}}],\"usage\":{\"completion_tokens\":1,\"prompt_tokens\":14,\"total_tokens\":15,\"completion_tokens_details\":{\"text_tokens\":1},\"prompt_tokens_details\":{\"text_tokens\":14",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "google/gemini-2.5-flash-lite"
+    },
+    {
+      "id": "google/gemini-2.5-flash-lite:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 687,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 1,
+          "total_tokens": 15
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"XacwarHTAemPtPUPn5-w8Ac\",\"created\":1781573468,\"model\":\"google/gemini-2.5-flash-lite:free\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"images\":[],\"thinking_blocks\":[]}}],\"usage\":{\"completion_tokens\":1,\"prompt_tokens\":14,\"total_tokens\":15,\"completion_tokens_details\":{\"text_tokens\":1},\"prompt_tokens_details\":{\"text_token",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "google/gemini-2.5-flash-lite:free"
+    },
+    {
+      "id": "google/gemini-2.5-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 645,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 29,
+          "total_tokens": 43
+        },
+        "finishReason": "length",
+        "errorMessage": "sem content/reasoning útil",
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"XacwarfsGoyDtrIPuauq-As\",\"created\":1781573469,\"model\":\"google/gemini-2.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"length\",\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":null}}],\"usage\":{\"completion_tokens\":29,\"prompt_tokens\":14,\"total_tokens\":43,\"completion_tokens_details\":{\"reasoning_tokens\":29,\"text_tokens\":0},\"prompt_tokens_details\":{\"text_tokens\":14}},\"vertex_ai",
+      "ok": false,
+      "softWarn": false,
+      "modelReturned": "google/gemini-2.5-flash"
+    },
+    {
+      "id": "gemini-2.0",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 75,
+      "httpStatus": 200,
+      "ms": 927,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 14,
+          "completion_tokens": 28,
+          "total_tokens": 42
+        },
+        "finishReason": "length",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"XqcwaqPXB_C5trIPlKHPsAc\",\"created\":1781573469,\"model\":\"gemini-2.0\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"length\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"images\":[],\"thinking_blocks\":[]}}],\"usage\":{\"completion_tokens\":28,\"prompt_tokens\":14,\"total_tokens\":42,\"completion_tokens_details\":{\"reasoning_tokens\":27,\"text_tokens\":1},\"prompt_tokens_details\":{\"text_tok",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "gemini-2.0"
+    },
+    {
+      "id": "openrouter/google/gemini-2.5-flash-lite:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 394,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/google/gemini-2.5-flash-lite:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/google/gemini-2.5-flash-lite:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/google/gemini-2.5-flash-lite:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/google/gemini-2.5-flash-lite:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', '",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "qwen-turbo",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 2455,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-b8892410-1e09-42b4-9c22-deddea4d5c14\",\"created\":1781573473,\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\"",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen-turbo"
+    },
+    {
+      "id": "qwen-plus",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 2087,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-eebf0b97-30d9-4a50-aa6d-ee62042679a9\",\"created\":1781573473,\"model\":\"qwen-plus\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen-plus"
+    },
+    {
+      "id": "qwen-max",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 3639,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-8a069a83-03df-4ac5-9a82-90214df007eb\",\"created\":1781573475,\"model\":\"qwen-max\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\":0",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen-max"
+    },
+    {
+      "id": "qwen3.5",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 1082,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-8d47e8ed-2ba5-4cb0-9960-7e11d0c5b1d3\",\"created\":1781573474,\"model\":\"qwen3.5\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\":0,",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen3.5"
+    },
+    {
+      "id": "qwen3.5-plus",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 918,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-0205ed2b-7eeb-4ed5-bb2a-658577daae5d\",\"created\":1781573474,\"model\":\"qwen3.5-plus\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_token",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen3.5-plus"
+    },
+    {
+      "id": "qwen3.5-flash",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 2264,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-508582d4-4bda-40a4-ae52-4be64246a40d\",\"created\":1781573476,\"model\":\"qwen3.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen3.5-flash"
+    },
+    {
+      "id": "qwen3-max",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 923,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-b9a49ca2-676a-4e01-957a-3221a0e73336\",\"created\":1781573475,\"model\":\"qwen3-max\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_tokens\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen3-max"
+    },
+    {
+      "id": "groq-llama-33",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 55,
+      "httpStatus": 200,
+      "ms": 285,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-18a1d2f8-4664-46af-9244-444088a80a8e\",\"created\":1781573475,\"model\":\"groq-llama-33\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_f8b414701e\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.242351208,\"prompt_time\":0.002207193,\"completion_time\":0.00690",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "groq-llama-33"
+    },
+    {
+      "id": "groq-gpt-oss-120b",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 512,
+      "timeoutSec": 95,
+      "httpStatus": 200,
+      "ms": 348,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 86,
+          "completion_tokens": 29,
+          "total_tokens": 115
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-eb26c796-2d7c-4e2a-9545-029f1bd18cf5\",\"created\":1781573475,\"model\":\"groq-gpt-oss-120b\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_49bfac06f1\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"reasoning\":\"User asks to respond only with word OK, no punctuation, no explanation. Must obey.\"}}],\"usage\":{\"completion_tokens\":29,\"prompt_tok",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "groq-gpt-oss-120b"
+    },
+    {
+      "id": "groq-llama-31-8b",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 55,
+      "httpStatus": 200,
+      "ms": 227,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-fdc6555b-cbc8-431e-bd73-a7e65cee1a89\",\"created\":1781573475,\"model\":\"groq-llama-31-8b\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_e2c608b1d6\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.151441304,\"prompt_time\":0.00481113,\"completion_time\":0.005",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "groq-llama-31-8b"
+    },
+    {
+      "id": "groq-llama-33-k2",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 55,
+      "httpStatus": 200,
+      "ms": 263,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-33a48d3b-c3f2-40d8-a913-8a685c3e22a3\",\"created\":1781573475,\"model\":\"groq-llama-33-k2\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_0761e44d7b\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.19280541,\"prompt_time\":0.002482371,\"completion_time\":0.007",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "groq-llama-33-k2"
+    },
+    {
+      "id": "groq-gpt-oss-120b-k2",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 512,
+      "timeoutSec": 95,
+      "httpStatus": 200,
+      "ms": 331,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 86,
+          "completion_tokens": 24,
+          "total_tokens": 110
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-d8be1787-07f7-4f73-ad6f-60c7b1cd447e\",\"created\":1781573475,\"model\":\"groq-gpt-oss-120b-k2\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_854fa9be4c\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"reasoning\":\"User wants \\\"OK\\\" only, no punctuation. Must comply.\"}}],\"usage\":{\"completion_tokens\":24,\"prompt_tokens\":86,\"total_tokens\":110,",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "groq-gpt-oss-120b-k2"
+    },
+    {
+      "id": "ollama-qwen3-4b",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120000,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openai/ollama-qwen3-4b",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "ollama-qwen3-8b",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 180,
+      "httpStatus": 0,
+      "ms": 180000,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "ollama-qwen3-4b-fast",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "ollama-llama31-8b",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 180,
+      "httpStatus": 0,
+      "ms": 180001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "ollama-gemma3-4b",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "ollama-gemma4-qat",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 5637,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-b55c1f0e-0fd9-4e4b-a034-98d41831e4ec\",\"created\":1781573601,\"model\":\"llama-3.1-8b-instant\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_e2c608b1d6\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.14955481,\"prompt_time\":0.003272702,\"completion_time\":0",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "llama-3.1-8b-instant"
+    },
+    {
+      "id": "or-glm-air-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 169,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=or-glm-air-free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=or-glm-air-free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=or-glm-air-free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=or-glm-air-free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "or-llama-3.3-70b-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1420,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-1bccd51c-bc0b-4be4-af37-9e051c2ccc47\",\"created\":1781573598,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"ok\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-gemma-3-4b-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 972,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-7a40e6f0-5fb7-4281-9af8-e77a0b031ccf\",\"created\":1781573599,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-gemma-3-12b-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1083,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-cac3690b-87c3-49d7-bf45-0fa0a6550ec1\",\"created\":1781573600,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-gemma-3-27b-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1147,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-73c3f8fb-ad98-4e11-8b2a-c00624717ada\",\"created\":1781573601,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-mistral-small-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1148,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-f485147e-252d-4963-8e8c-b0ef3afb8036\",\"created\":1781573602,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-hermes-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1480,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-8499cd68-97c8-4999-8254-7ddc4cd35b71\",\"created\":1781573602,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-minimax-m2.5-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1394,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-827c3806-d67f-4c03-ac06-d864ba212686\",\"created\":1781573603,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "or-nemotron-super-free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 1485,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-6cdda07b-bc6f-46a5-85c9-8c077bc381a2\",\"created\":1781573604,\"model\":\"glm-4.5-flash\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_toke",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "glm-4.5-flash"
+    },
+    {
+      "id": "qwen/qwen3.5-plus",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 851,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-535ba17e-c5f6-43d8-981d-f4c8dde53fc9\",\"created\":1781573604,\"model\":\"qwen/qwen3.5-plus\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen/qwen3.5-plus"
+    },
+    {
+      "id": "qwen/qwen-turbo",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 32,
+      "timeoutSec": 70,
+      "httpStatus": 200,
+      "ms": 907,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 37,
+          "completion_tokens": 3,
+          "total_tokens": 40
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-0a0ce337-b0d7-4c87-97c8-37ce9e8c3708\",\"created\":1781573605,\"model\":\"qwen/qwen-turbo\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\",\"provider_specific_fields\":{\"citations\":null,\"thinking_blocks\":null}}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":37,\"total_tokens\":40,\"completion_tokens_details\":{\"reasoning_to",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "qwen/qwen-turbo"
+    },
+    {
+      "id": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 163,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/nvidia/nemotron-3-super-120b-a12b:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/nvidia/nemotron-3-super-120b-a12b:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/nvidia/nemotron-3-super-120b-a12b:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/nvidia/nemotron-3-super-120b-a12b:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primar",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter/minimax/minimax-m2.5:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 154,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/minimax/minimax-m2.5:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/minimax/minimax-m2.5:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/minimax/minimax-m2.5:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/minimax/minimax-m2.5:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', ",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 163,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/meta-llama/llama-3.3-70b-instruct:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/meta-llama/llama-3.3-70b-instruct:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/meta-llama/llama-3.3-70b-instruct:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/meta-llama/llama-3.3-70b-instruct:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primar",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter/google/gemma-3-4b-it:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 298,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/google/gemma-3-4b-it:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/google/gemma-3-4b-it:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/google/gemma-3-4b-it:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/google/gemma-3-4b-it:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', ",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter/mistralai/mistral-small-3.1-24b-instruct:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 291,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/mistralai/mistral-small-3.1-24b-instruct:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/mistralai/mistral-small-3.1-24b-instruct:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/mistralai/mistral-small-3.1-24b-instruct:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/mistralai/mistral-small-3.1-24b-instruct:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter/nousresearch/hermes-3-llama-3.1-405b:free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 401,
+      "ms": 211,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/nousresearch/hermes-3-llama-3.1-405b:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]. Received Model Group=openrouter/nousresearch/hermes-3-llama-3.1-405b:free\nAvailable Model Group Fallbacks=None\nError doing the fallback: litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\"error\":{\"message\":\"User not found.\",\"code\":401}}No fallback model group found for original model_group=openrouter/nousresearch/hermes-3-llama-3.1-405b:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-primary', 'glm-5', 'zai-glm-flash', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'agl-primary': ['agl-primary-strong', 'zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'agl-primary-strong': ['zai-glm-flash', 'glm-4.7-flash', 'groq-llama-31-8b', 'zai-glm-5', 'or-nemotron-super-free']}, {'openai/ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-4b': ['glm-4.7-flash', 'glm-flash', 'or-nemotron-super-free']}, {'ollama-qwen3-8b': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-qwen3-4b-fast': ['groq-llama-31-8b', 'glm-4.7-flash', 'zai-glm-flash']}, {'ollama-llama31-8b': ['groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma3-4b': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'ollama-gemma4-qat': ['or-gemma-3-4b-free', 'groq-llama-31-8b', 'glm-4.7-flash']}, {'claude-opus': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-7': ['claude-opus-4-6', 'claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-opus-4-6': ['claude-sonnet', 'glm-5', 'gpt-5.4-mini', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'claude-sonnet': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-6': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-sonnet-4-5-20250929': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash']}, {'claude-haiku': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'claude-haiku-4-5-20251001': ['zai-glm-5', 'glm-5', 'agl-primary', 'gpt-5.4-mini', 'glm-4.7-flash']}, {'zai/glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'zai/glm-4.7-flash': ['groq-llama-31-8b', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-4.7-flash': ['groq-llama-31-8b', 'or-nemotron-super-free', 'groq-llama-31-8b']}, {'zai/glm-5': ['gpt-5-nano', 'gpt-4o-mini', 'glm-4.7-flash']}, {'zai/glm-4.7': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-4.5-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi/moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'moonshot-v1-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'glm': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-5': ['zai-glm-5', 'gpt-5.4-mini', 'claude-haiku', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'glm-5-turbo': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'glm-flash': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'glm-air': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'kimi': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'kimi-128k': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'gpt': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-4o-mini': ['gpt-5.4-mini', 'gpt-5-nano', 'gpt-5-mini']}, {'gpt-5-nano': ['gpt-4o-mini', 'gpt-5.4-mini', 'gpt-5-mini']}, {'gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'openai/gpt-5.4-nano': ['groq-llama-31-8b', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'gpt-5.5': ['gpt-5-mini', 'gpt-5.4-mini', 'gpt-5-nano']}, {'gpt-5-mini': ['zai-glm-5', 'glm-5', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'groq-llama-31-8b': ['or-nemotron-super-free', 'groq-llama-31-8b', 'glm-flash']}, {'gpt-5.4': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'gpt-5.4-mini': ['zai-glm-5', 'glm-5', 'zai-coding-glm-4.7', 'agl-primary', 'claude-haiku', 'glm-4.7-flash', 'groq-llama-31-8b']}, {'qwen3.5': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3.5-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen3-max': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-minimax-m2.5-free']}, {'qwen-plus': ['glm-flash', 'glm-flash', 'or-nemotron-super-free', 'or-llama-3.3-70b-free']}, {'qwen-turbo': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free', 'or-gemma-3-4b-free']}, {'or-nemotron-super-free': ['or-minimax-m2.5-free', 'or-llama-3.3-70b-free', 'glm-flash', 'glm-flash']}, {'or-minimax-m2.5-free': ['or-llama-3.3-70b-free', 'or-gemma-3-4b-free', 'glm-flash', 'glm-flash']}, {'or-llama-3.3-70b-free': ['or-gemma-3-4b-free', 'or-gemma-3-12b-free', 'glm-flash', 'glm-flash']}, {'or-gemma-3-4b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-12b-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-gemma-3-27b-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'or-mistral-small-free': ['glm-flash', 'glm-flash', 'or-llama-3.3-70b-free']}, {'or-hermes-free': ['glm-flash', 'glm-flash', 'or-nemotron-super-free']}, {'openrouter/openrouter/free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}, {'openrouter-free': ['zai/glm-4.7-flash', 'or-llama-3.3-70b-free', 'or-nemotron-super-free', 'glm-flash']}]",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"error\":{\"message\":\"litellm.AuthenticationError: AuthenticationError: OpenrouterException - {\\\"error\\\":{\\\"message\\\":\\\"User not found.\\\",\\\"code\\\":401}}No fallback model group found for original model_group=openrouter/nousresearch/hermes-3-llama-3.1-405b:free. Fallbacks=[{'zai-coding-glm-4.7': ['zai-glm-5', 'agl-primary', 'glm-5', 'glm-4.7-flash', 'or-nemotron-super-free']}, {'zai-glm-5': ['agl-pri",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "openrouter/openrouter/free",
+      "optional": true,
+      "expectUsage": true,
+      "maxTokens": 256,
+      "timeoutSec": 150,
+      "httpStatus": 200,
+      "ms": 5465,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 2,
+          "total_tokens": 52
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-d0a1f77a-09f8-485b-9889-8b4c3bd48fe9\",\"created\":1781573610,\"model\":\"llama-3.1-8b-instant\",\"object\":\"chat.completion\",\"system_fingerprint\":\"fp_020e283281\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":50,\"total_tokens\":52,\"queue_time\":0.150408893,\"prompt_time\":0.003121868,\"completion_time\":",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "llama-3.1-8b-instant"
+    }
+  ],
+  "summary": {
+    "pass": 67,
+    "fail": 2,
+    "warn": 17
+  }
+}

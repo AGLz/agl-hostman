@@ -36,9 +36,10 @@ test('tier full inclui todas as entradas do manifest', () => {
   assert.strictEqual(nFull, models.length);
 });
 
-test('tier standard inclui núcleo cursor-composer e glm-flash', () => {
+test('tier standard inclui núcleo glm-flash e gpt-5.4-mini', () => {
   const { models } = load();
   const std = models.filter((m) => matchTier(m, 'standard')).map((m) => m.id);
-  assert.ok(std.includes('cursor-composer'));
   assert.ok(std.includes('glm-flash'));
+  assert.ok(std.includes('gpt-5.4-mini'));
+  assert.ok(!std.includes('cursor-composer'), 'cursor-composer removido');
 });

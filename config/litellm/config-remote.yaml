@@ -179,58 +179,10 @@ model_list:
   # V3.2 (Mar 2026): 671B params (37B active), 128K ctx, MIT license
   # V4 esperado: 1T params, 1M ctx, multimodal nativo
   # Cache: 90% discount ($0.028/M cache hit)
-  - model_name: "deepseek"
-    litellm_params:
-      model: "deepseek/deepseek-chat"
-      api_key: os.environ/DEEPSEEK_API_KEY
-    model_info:
-      max_tokens: 8192
-      input_cost_per_token: 0.00000028  # $0.28/1M
-      output_cost_per_token: 0.00000042  # $0.42/1M
-      context_window: 131072
-      access: direct
 
-  - model_name: "r1"
-    litellm_params:
-      model: "deepseek/deepseek-reasoner"
-      api_key: os.environ/DEEPSEEK_API_KEY
-    model_info:
-      max_tokens: 65536  # 64K output for reasoner
-      input_cost_per_token: 0.00000028  # $0.28/1M (unificado)
-      output_cost_per_token: 0.00000042  # $0.42/1M
-      context_window: 131072
-      access: direct
 
-  - model_name: "deepseek-v3.2"
-    litellm_params:
-      model: "deepseek/deepseek-chat"
-      api_key: os.environ/DEEPSEEK_API_KEY
-    model_info:
-      max_tokens: 8192
-      input_cost_per_token: 0.00000028
-      output_cost_per_token: 0.00000042
-      context_window: 131072
-      access: direct
 
-  - model_name: "deepseek-v4-flash"
-    litellm_params:
-      model: "deepseek/deepseek-v4-flash"
-      api_key: os.environ/DEEPSEEK_API_KEY
-    model_info:
-      max_tokens: 16384
-      context_window: 1000000
-      access: direct
 
-  - model_name: "deepseek-v4-pro"
-    litellm_params:
-      model: "deepseek/deepseek-v4-pro"
-      api_key: os.environ/DEEPSEEK_API_KEY
-    model_info:
-      max_tokens: 16384
-      context_window: 1000000
-      access: direct
-
-  # === OpenAI (apenas aliases com quota OK no ultimo teste) ===
   - model_name: "gpt"
     litellm_params:
       model: "openai/gpt-5.4"
@@ -269,14 +221,6 @@ model_list:
       context_window: 400000
       access: direct
 
-  - model_name: "deepseek-4"
-    litellm_params:
-      model: "deepseek/deepseek-v4-flash"
-      api_key: os.environ/DEEPSEEK_API_KEY
-    model_info:
-      max_tokens: 16384
-      context_window: 1000000
-      access: direct
 
   - model_name: "gpt-5-nano"
     litellm_params:
@@ -300,70 +244,10 @@ model_list:
 
   # === Google Gemini (Flash / Lite — variantes Pro removidas por quota 429) ===
   # Flash / Flash-Lite mantidos; variantes Pro Google removidas (quota 429 no teste 2026-03)
-  - model_name: "gemini"
-    litellm_params:
-      model: "gemini/gemini-2.5-flash"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 65536
-      input_cost_per_token: 0.0000003  # $0.30/1M
-      output_cost_per_token: 0.0000025  # $2.50/1M
-      context_window: 1048576
-      access: direct
 
-  - model_name: "gemini-3.1-pro"
-    litellm_params:
-      model: "gemini/gemini-3.1-pro-preview"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 16384
-      input_cost_per_token: 0.000002  # $2.00/1M (<=200K)
-      output_cost_per_token: 0.000012  # $12.00/1M
-      context_window: 1048576
-      access: direct
 
-  - model_name: "gemini-2.5-pro"
-    litellm_params:
-      model: "gemini/gemini-2.5-pro"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 65536
-      input_cost_per_token: 0.00000125  # $1.25/1M (<=200K)
-      output_cost_per_token: 0.00001  # $10/1M
-      context_window: 2097152  # 2M
-      access: direct
 
-  - model_name: "gemini-lite"
-    litellm_params:
-      model: "gemini/gemini-2.5-flash-lite"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 65536
-      input_cost_per_token: 0.0000001  # $0.10/1M
-      output_cost_per_token: 0.0000004  # $0.40/1M
-      context_window: 1048576
-      access: direct
-      free_tier: true
 
-  # OpenClaw (provider google/*) -> mesma rota Gemini API
-  - model_name: "google/gemini-2.5-flash-lite"
-    litellm_params:
-      model: "gemini/gemini-2.5-flash-lite"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 65536
-      context_window: 1048576
-      access: direct
-
-  - model_name: "google/gemini-2.5-flash-lite:free"
-    litellm_params:
-      model: "gemini/gemini-2.5-flash-lite"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 65536
-      context_window: 1048576
-      access: direct
-      free_tier: true
 
   - model_name: "openrouter/google/gemini-2.5-flash-lite:free"
     litellm_params:
@@ -375,40 +259,6 @@ model_list:
       access: openrouter
       free_tier: true
 
-  - model_name: "google/gemini-2.5-flash"
-    litellm_params:
-      model: "gemini/gemini-2.5-flash"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 65536
-      context_window: 1048576
-      access: direct
-
-  # Alias legado: Gemini 2.0 Flash descontinuado -> roteado para 2.5 Flash (ai.google.dev deprecations)
-  - model_name: "gemini-2.0"
-    litellm_params:
-      model: "gemini/gemini-2.5-flash"
-      api_key: os.environ/GEMINI_API_KEY
-    model_info:
-      max_tokens: 8192
-      input_cost_per_token: 0.0000001  # $0.10/1M
-      output_cost_per_token: 0.0000004  # $0.40/1M
-      context_window: 1048576
-      access: direct
-
-  # === Qwen aliases — sem DashScope; qwen-coder → DeepSeek ===
-  # Qwen3.5-Flash: MoE 35B-A3B, 1M ctx, $0.10/$0.50 per M — NEW DEFAULT
-  # Qwen-Flash: ultra-cheap, $0.07/$0.35 per M
-  # Qwen3-Coder-Flash: faster/cheaper coding variant
-  # QwQ-Plus: reasoning/thinking model
-  # Qwen3.5 Plus: snapshot API compat OpenAI qwen3.5-plus-2026-02-15
-  # Qwen3-Coder: qwen3-coder-plus (serie Coder documentada DashScope)
-  # Documentao: https://www.alibabacloud.com/help/en/model-studio/qwen-coder
-  # Free Tier: https://www.alibabacloud.com/help/en/model-studio/new-free-quota
-  # Obter key: https://dashscope.console.aliyun.com/ (Singapore region)
-  # NOTA: Free tier disponivel APENAS na regiao Singapore (dashscope-intl)
-
-  # qwen3.5-flash — NEW DEFAULT (MoE 35B-A3B, 1M ctx, $0.10/$0.50 per M)
   - model_name: "qwen3.5-flash"
     litellm_params:
       model: "openrouter/z-ai/glm-4.5-air:free"
@@ -501,19 +351,6 @@ model_list:
       context_window: 262144
       access: direct
 
-  - model_name: "qwen-coder"
-    litellm_params:
-      model: "deepseek/deepseek-chat"
-      api_key: os.environ/DEEPSEEK_API_KEY
-      timeout: 90
-    model_info:
-      max_tokens: 8192
-      context_window: 203000
-      access: direct
-      note: Ex-DashScope — Z.AI Coding Plan (sem DASHSCOPE_API_KEY)
-      note: Ex-DashScope qwen-coder → DeepSeek V3.2
-
-  # Aliases para compatibilidade
   - model_name: "qwen3.5"
     litellm_params:
       model: "openrouter/z-ai/glm-4.5-air:free"
@@ -723,60 +560,54 @@ litellm_settings:
   # ============================================================
   # Latencia referencia: qwen3.5-flash ~0.6s, qwen-flash ~0.5s, qwen-coder ~0.9s, deepseek ~1.4s
   fallbacks:
-    - agl-primary: [or-glm-air-free, groq-llama-31-8b, deepseek, openrouter-free]
-    - openai/ollama-qwen3-4b: [or-glm-air-free, deepseek, openrouter-free]
-    - ollama-qwen3-4b: [or-glm-air-free, deepseek, openrouter-free]
+    - agl-primary: [or-glm-air-free, groq-llama-31-8b, openrouter-free]
+    - openai/ollama-qwen3-4b: [or-glm-air-free, openrouter-free]
+    - ollama-qwen3-4b: [or-glm-air-free, openrouter-free]
 
-    - claude-opus: [or-glm-air-free, deepseek, gemini]
-    - claude-opus-4-7: [or-glm-air-free, deepseek, gemini]
-    - claude-opus-4-6: [or-glm-air-free, deepseek, gemini]
-    - claude-sonnet: [or-glm-air-free, deepseek, gemini]
-    - claude-sonnet-4-6: [or-glm-air-free, deepseek, gemini]
-    - claude-sonnet-4-5-20250929: [or-glm-air-free, deepseek, gemini]
-    - claude-haiku: [or-glm-air-free, deepseek, gemini]
-    - claude-haiku-4-5-20251001: [or-glm-air-free, deepseek, gemini]
+    - claude-opus: [or-glm-air-free]
+    - claude-opus-4-7: [or-glm-air-free]
+    - claude-opus-4-6: [or-glm-air-free]
+    - claude-sonnet: [or-glm-air-free]
+    - claude-sonnet-4-6: [or-glm-air-free]
+    - claude-sonnet-4-5-20250929: [or-glm-air-free]
+    - claude-haiku: [or-glm-air-free]
+    - claude-haiku-4-5-20251001: [or-glm-air-free]
 
-    - kimi/moonshot-v1-128k: [or-glm-air-free, deepseek, kimi]
-    - moonshot-v1-128k: [or-glm-air-free, deepseek, kimi]
+    - kimi/moonshot-v1-128k: [or-glm-air-free, kimi]
+    - moonshot-v1-128k: [or-glm-air-free, kimi]
 
-    - deepseek: [or-glm-air-free, groq-llama-31-8b, gemini, gpt-4o]
-    - r1: [deepseek, or-glm-air-free, kimi, gpt-4o]
 
-    - kimi: [or-glm-air-free, deepseek, gemini]
-    - kimi-128k: [or-glm-air-free, deepseek, kimi]
+    - kimi: [or-glm-air-free]
+    - kimi-128k: [or-glm-air-free, kimi]
 
-    - gpt: [or-glm-air-free, deepseek, gemini]
-    - gpt-4o: [or-glm-air-free, deepseek, gemini]
+    - gpt: [or-glm-air-free]
+    - gpt-4o: [or-glm-air-free]
 
-    - gemini: [or-glm-air-free, deepseek, kimi]
 
-    - qwen3.5: [or-glm-air-free, deepseek, gemini, gpt-4o]
-    - qwen3.5-plus: [or-glm-air-free, deepseek, gemini, gpt-4o]
-    - qwen3.5-flash: [or-glm-air-free, deepseek, gemini, gpt-4o]
-    - qwen3-max: [or-glm-air-free, deepseek, gemini, gpt-4o]
-    - qwen-plus: [or-glm-air-free, deepseek, gemini, gpt-4o]
-    - qwen-coder: [or-glm-air-free, deepseek, gemini, gpt-4o]
-    - qwen-flash: [or-glm-air-free, deepseek, gemini]
-    - qwen3-coder-flash: [deepseek, or-glm-air-free, gemini]
-    - qwq-plus: [or-glm-air-free, deepseek, gemini]
+    - qwen3.5: [or-glm-air-free, gpt-4o]
+    - qwen3.5-plus: [or-glm-air-free, gpt-4o]
+    - qwen3.5-flash: [or-glm-air-free, gpt-4o]
+    - qwen3-max: [or-glm-air-free, gpt-4o]
+    - qwen-plus: [or-glm-air-free, gpt-4o]
+    - qwen-flash: [or-glm-air-free]
+    - qwen3-coder-flash: [or-glm-air-free]
+    - qwq-plus: [or-glm-air-free]
 
-    - openrouter/openrouter/free: [or-glm-air-free, deepseek, gpt-4o]
-    - openrouter-free: [or-glm-air-free, deepseek, gpt-4o]
+    - openrouter/openrouter/free: [or-glm-air-free, gpt-4o]
+    - openrouter-free: [or-glm-air-free, gpt-4o]
 
   # Fallback por contexto excedido (qwen3.5-flash/qwen-coder first)
   context_window_fallbacks:
-    - deepseek: [or-glm-air-free, groq-llama-31-8b, kimi]
-    - claude-opus: [or-glm-air-free, deepseek, gemini]
-    - claude-opus-4-7: [or-glm-air-free, deepseek, gemini]
-    - claude-opus-4-6: [or-glm-air-free, deepseek, gemini]
-    - claude-sonnet: [or-glm-air-free, deepseek, gemini]
-    - claude-sonnet-4-6: [or-glm-air-free, deepseek, gemini]
-    - claude-sonnet-4-5-20250929: [or-glm-air-free, deepseek, gemini]
-    - qwen3.5-plus: [or-glm-air-free, deepseek, kimi, gemini]
-    - qwen3.5-flash: [or-glm-air-free, deepseek, kimi]
-    - qwen-plus: [or-glm-air-free, deepseek, kimi]
-    - qwen-coder: [or-glm-air-free, deepseek, kimi]
-    - qwq-plus: [or-glm-air-free, deepseek, kimi]
+    - claude-opus: [or-glm-air-free]
+    - claude-opus-4-7: [or-glm-air-free]
+    - claude-opus-4-6: [or-glm-air-free]
+    - claude-sonnet: [or-glm-air-free]
+    - claude-sonnet-4-6: [or-glm-air-free]
+    - claude-sonnet-4-5-20250929: [or-glm-air-free]
+    - qwen3.5-plus: [or-glm-air-free, kimi]
+    - qwen3.5-flash: [or-glm-air-free, kimi]
+    - qwen-plus: [or-glm-air-free, kimi]
+    - qwq-plus: [or-glm-air-free, kimi]
 
 
 general_settings:

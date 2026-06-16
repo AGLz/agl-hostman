@@ -15,12 +15,16 @@ VMID="${AGLWK45_VMID:-104}"
 WK45_REPO="${WK45_REPO_WIN:-C:/Users/Administrator/apps/dev/agl/agl-hostman}"
 HOME_SYNC="${WK45_HOME_SYNC:-Z:/apps/dev/agl/agl-home-sync}"
 HOME_USER="${AGL_HOME_USER:-linux-root}"
+GUEST_DOTFILES="C:/Windows/Temp/agl-dotfiles"
+BUNDLED_REPO="${GUEST_DOTFILES}/agl-hostman"
 
 PS1_GUEST="$REPO_ROOT/scripts/dotfiles/wk45-propagate-dotfiles-guest.ps1"
 INSTALL_PS1="$REPO_ROOT/scripts/dotfiles/install-agl-home-sync.ps1"
+VERIFY_SH="$REPO_ROOT/scripts/dotfiles/verify-agl-home-sync.sh"
+MIRROR_PS1="$REPO_ROOT/scripts/skills/wk45-mirror-agl-hostman-repo.ps1"
 HELPER="$REPO_ROOT/scripts/openclaw/vm104_guest_exec_ps1.py"
 
-for f in "$PS1_GUEST" "$INSTALL_PS1" "$HELPER"; do
+for f in "$PS1_GUEST" "$INSTALL_PS1" "$VERIFY_SH" "$HELPER"; do
   [[ -f "$f" ]] || { echo "Erro: em falta $f" >&2; exit 1; }
 done
 
@@ -35,18 +39,74 @@ fi
 echo "=== AGLSRV1 $AGLSRV — dotfiles VM $VMID (guest agent) ==="
 ssh -o BatchMode=yes -o ConnectTimeout=25 "$AGLSRV" "qm agent ${VMID} ping" >/dev/null
 
-scp -q "$PS1_GUEST" "$INSTALL_PS1" "$HELPER" "${AGLSRV}:/tmp/"
+# Garantir repo actualizado no NFS (wk45 lê Z:\apps\dev\agl\agl-hostman)
+git -c safe.directory="$REPO_ROOT" -C "$REPO_ROOT" pull --ff-only 2>/dev/null || true
 
-ssh -o BatchMode=yes "$AGLSRV" bash -s "$VMID" "$WK45_REPO" "$HOME_SYNC" "$HOME_USER" <<'REMOTE'
+scp -q "$PS1_GUEST" "$INSTALL_PS1" "$VERIFY_SH" "$HELPER" "${AGLSRV}:/tmp/"
+if [[ -f "$MIRROR_PS1" ]]; then
+  scp -q "$MIRROR_PS1" "${AGLSRV}:/tmp/"
+fi
+
+# Mirror Z:\ → C:\ (repo local no guest) quando possível
+if [[ -f "$MIRROR_PS1" && "${SKIP_MIRROR:-0}" != "1" ]]; then
+  echo "=== Mirror repo agl-hostman no guest ==="
+  ssh -o BatchMode=yes "$AGLSRV" \
+    "python3 /tmp/vm104_guest_exec_ps1.py ${VMID} /tmp/wk45-mirror-agl-hostman-repo.ps1" \
+    2>&1 | tail -15 || echo "WARN: mirror falhou — continuar com UNC/temp"
+fi
+
+# Empacotar config/dotfiles para upload ao guest (SYSTEM não precisa de repo completo)
+DOTFILES_TAR="/tmp/agl-dotfiles-config.tar"
+tar -C "$REPO_ROOT" -cf "$DOTFILES_TAR" config/dotfiles
+scp -q "$DOTFILES_TAR" "${AGLSRV}:/tmp/agl-dotfiles-config.tar"
+
+# Copiar scripts + config/dotfiles para guest
+ssh -o BatchMode=yes "$AGLSRV" bash -s "$VMID" "$BUNDLED_REPO" <<'REMOTE'
 set -euo pipefail
 VMID="$1"
-WK45_REPO="$2"
-HOME_SYNC="$3"
-HOME_USER="$4"
+BUNDLED_REPO="$2"
+python3 - "$VMID" "$BUNDLED_REPO" <<'PY'
+import pathlib
+import sys
+import time
 
-python3 /tmp/vm104_guest_exec_ps1.py "$VMID" /tmp/wk45-propagate-dotfiles-guest.ps1 \
-  -RepoRoot "$WK45_REPO" -HomeSyncRoot "$HOME_SYNC" -HomeUser "$HOME_USER"
+sys.path.insert(0, "/tmp")
+from vm104_guest_exec_ps1 import upload_b64_file, qm_powershell
+
+vmid, bundled_repo = sys.argv[1], sys.argv[2]
+guest_dir = "C:/Windows/Temp/agl-dotfiles"
+qm_powershell(vmid, f"New-Item -ItemType Directory -Force -Path '{guest_dir}' | Out-Null")
+qm_powershell(vmid, f"New-Item -ItemType Directory -Force -Path '{bundled_repo}' | Out-Null")
+
+for name in ("install-agl-home-sync.ps1", "wk45-propagate-dotfiles-guest.ps1", "verify-agl-home-sync.sh"):
+    local = pathlib.Path("/tmp") / name
+    out = f"{guest_dir}/{name}"
+    upload_b64_file(vmid, local.read_bytes(), f"{out}.b64", out)
+    print(f"OK uploaded {name}")
+    time.sleep(2)
+
+tar_path = pathlib.Path("/tmp/agl-dotfiles-config.tar")
+guest_tar = f"{guest_dir}/agl-dotfiles-config.tar"
+upload_b64_file(vmid, tar_path.read_bytes(), f"{guest_tar}.b64", guest_tar)
+print("OK uploaded config tarball")
+time.sleep(2)
+
+extract_cmd = (
+    f"tar -xf '{guest_tar}' -C '{bundled_repo}' 2>&1; "
+    f"if (Test-Path '{bundled_repo}/config/dotfiles/manifest.yaml') {{ Write-Output OK_TAR_EXTRACT }} "
+    f"else {{ Write-Output FAIL_TAR_EXTRACT; exit 1 }}"
+)
+r = qm_powershell(vmid, extract_cmd)
+print(r.stdout or "")
+if r.returncode != 0:
+    sys.exit(r.returncode)
+PY
 REMOTE
+
+ssh -o BatchMode=yes "$AGLSRV" \
+  "python3 /tmp/vm104_guest_exec_ps1.py ${VMID} /tmp/wk45-propagate-dotfiles-guest.ps1 \
+    -RepoRoot '${WK45_REPO}' -HomeSyncRoot '${HOME_SYNC}' -HomeUser '${HOME_USER}' \
+    -BundledRepo '${BUNDLED_REPO}'"
 
 echo ""
 echo "=== A aguardar dotfiles no guest (poll até 20 min) ==="
@@ -75,7 +135,7 @@ ssh -o BatchMode=yes "$AGLSRV" \
 echo ""
 echo "=== Verificação rápida symlinks ==="
 ssh -o BatchMode=yes "$AGLSRV" \
-  "qm guest exec ${VMID} -- powershell -NoProfile -Command \"\$c=Get-Item C:\\Users\\Administrator\\.cursor\\chats -ErrorAction SilentlyContinue; if (\$c.LinkType) { Write-Output ('CHATS_SYMLINK ' + \$c.Target) } else { Write-Output CHATS_MISSING }\"" \
+  "qm guest exec ${VMID} -- powershell -NoProfile -Command \"\$c=Get-Item 'C:\\Users\\Administrator\\.cursor\\chats' -ErrorAction SilentlyContinue; if (\$c -and \$c.LinkType) { Write-Output ('CHATS_SYMLINK ' + (\$c.Target -join ',')) } else { Write-Output CHATS_MISSING }\"" \
   2>&1 | tail -5
 
 echo ""

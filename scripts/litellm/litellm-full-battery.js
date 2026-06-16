@@ -17,6 +17,11 @@ const {
   looksLikeRateLimit,
   summarizeModelListItem,
 } = require('./lib/litellm-battery-analyze.js');
+const {
+  exportBatteryTimings,
+  writeBatteryMarkdownSummary,
+  stampFromRunAt,
+} = require('./lib/litellm-battery-export.js');
 
 const REPO_ROOT = path.join(__dirname, '../..');
 const DEFAULT_MANIFEST = path.join(__dirname, 'litellm-battery-manifest.json');
@@ -41,6 +46,8 @@ function parseArgs(argv) {
   let jsonOut = false;
   let dryProbe = false;
   let manifestPath = DEFAULT_MANIFEST;
+  let exportDir = process.env.LITELLM_BATTERY_EXPORT_DIR || path.join(REPO_ROOT, 'docs/litellm-battery');
+  let filterProvider = '';
 
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
@@ -56,8 +63,14 @@ function parseArgs(argv) {
       dryProbe = true;
     } else if (a === '--manifest' && argv[i + 1]) {
       manifestPath = path.resolve(argv[++i]);
+    } else if (a === '--export-dir' && argv[i + 1]) {
+      exportDir = path.resolve(argv[++i]);
+    } else if (a === '--no-export') {
+      exportDir = '';
+    } else if (a === '--filter-provider' && argv[i + 1]) {
+      filterProvider = argv[++i].trim().toLowerCase();
     } else if (a === '--help' || a === '-h') {
-      console.log(`Usage: node litellm-full-battery.js [--base URL] [--tier quick|standard|full] [--concurrency N] [--json] [--manifest path] [--dry-probe]`);
+      console.log(`Usage: node litellm-full-battery.js [--base URL] [--tier quick|standard|full] [--concurrency N] [--json] [--manifest path] [--export-dir path] [--no-export] [--filter-provider name] [--dry-probe]`);
       process.exit(0);
     }
   }
@@ -71,7 +84,7 @@ function parseArgs(argv) {
   const chatUrl = baseTrim.endsWith('/v1') ? `${baseTrim}/chat/completions` : `${baseTrim}/v1/chat/completions`;
   const modelsUrl = baseTrim.endsWith('/v1') ? `${baseTrim}/models` : `${baseTrim}/v1/models`;
 
-  return { base: baseTrim, chatUrl, modelsUrl, tier, concurrency, jsonOut, dryProbe, manifestPath };
+  return { base: baseTrim, chatUrl, modelsUrl, tier, concurrency, jsonOut, dryProbe, manifestPath, exportDir, filterProvider };
 }
 
 function matchTier(row, tier) {
@@ -145,7 +158,9 @@ async function main() {
     'Responde apenas com a palavra OK, sem pontuação nem explicação.';
 
   const manifest = loadManifest(opts.manifestPath);
-  const modelsToRun = manifest.filter((r) => matchTier(r, opts.tier));
+  const modelsToRun = manifest
+    .filter((r) => matchTier(r, opts.tier))
+    .filter((r) => !opts.filterProvider || (r.provider || '').toLowerCase() === opts.filterProvider);
 
   const report = {
     gateway: opts.base,
@@ -225,6 +240,7 @@ async function main() {
     /** @type {Record<string, unknown>} */
     const row = {
       id: spec.id,
+      provider: spec.provider || 'unknown',
       optional: !!spec.optional,
       expectUsage: spec.expectUsage !== false,
       maxTokens: spec.maxTokens,
@@ -319,6 +335,15 @@ async function main() {
 
   report.chats = chatResults;
 
+  report.responseTimes = chatResults.map((c) => ({
+    modelId: c.id,
+    provider: c.provider,
+    latencyMs: c.ms,
+    httpStatus: c.httpStatus,
+    ok: c.ok,
+    softWarn: c.softWarn,
+  }));
+
   for (const c of chatResults) {
     if (c.ok && c.softWarn) report.summary.warn++;
     else if (c.ok) report.summary.pass++;
@@ -359,6 +384,20 @@ async function main() {
     );
   } else {
     console.log(JSON.stringify(report, null, 2));
+  }
+
+  if (opts.exportDir && !opts.dryProbe) {
+    const exported = exportBatteryTimings(report, manifest, opts.exportDir);
+    const stamp = stampFromRunAt(report.startedAt);
+    const mdPath = path.join(opts.exportDir, `battery-${stamp}.md`);
+    writeBatteryMarkdownSummary(report, mdPath);
+    if (!opts.jsonOut) {
+      console.log(`Tempos guardados: ${exported.csvPath}`);
+      console.log(`Latest CSV: ${exported.latestPath}`);
+      console.log(`Histórico JSONL: ${exported.historyPath}`);
+      console.log(`Relatório MD: ${mdPath}`);
+    }
+    report.export = exported;
   }
 
   process.exit(report.summary.fail > 0 ? 1 : 0);

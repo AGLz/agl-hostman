@@ -52,3 +52,14 @@ def test_normalize_empty_content_from_reasoning() -> None:
     msg = Msg()
     _mod.normalize_ollama_message_content(msg)
     assert msg.content == "Resposta final aqui."
+
+
+def test_normalize_empty_content_from_thinking() -> None:
+    class Msg:
+        content = ""
+        reasoning_content = None
+        thinking = "OK"
+
+    msg = Msg()
+    _mod.normalize_ollama_message_content(msg)
+    assert msg.content == "OK"

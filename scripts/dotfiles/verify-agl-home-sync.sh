@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOSTMAN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+HOSTMAN_ROOT="${HOSTMAN_ROOT_OVERRIDE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 AGL_HOME_SYNC_ROOT="${AGL_HOME_SYNC_ROOT:-/mnt/overpower/apps/dev/agl/agl-home-sync}"
 AGL_HOME_USER="${AGL_HOME_USER:-linux-root}"
@@ -57,7 +57,9 @@ echo "live: $LIVE_ROOT"
 echo ""
 
 echo "-- NFS live root --"
-if [[ -d "$AGL_HOME_SYNC_ROOT" ]]; then
+if [[ -f "$AGL_HOME_SYNC_ROOT/.agl-local-fallback" ]]; then
+  warn "live sync local (SMB/NFS indisponível — ver install no RDP com Z:)"
+elif [[ -d "$AGL_HOME_SYNC_ROOT" ]]; then
   pass "AGL_HOME_SYNC_ROOT existe ($AGL_HOME_SYNC_ROOT)"
 else
   fail "AGL_HOME_SYNC_ROOT em falta ($AGL_HOME_SYNC_ROOT)"

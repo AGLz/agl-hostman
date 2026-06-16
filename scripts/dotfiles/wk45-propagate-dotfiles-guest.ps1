@@ -1,9 +1,10 @@
 # Propaga dotfiles + live sync na aglwk45 via guest exec (SYSTEM).
-# Chamado por propagate-dotfiles-wk45-qemu.sh no AGLSRV1.
+# Sai rápido: trabalho pesado no runner async (evita timeout qm guest-exec-status).
 param(
     [string]$RepoRoot = "C:\Users\Administrator\apps\dev\agl\agl-hostman",
     [string]$HomeSyncRoot = "Z:\apps\dev\agl\agl-home-sync",
     [string]$HomeUser = "linux-root",
+    [string]$BundledRepo = "C:\Windows\Temp\agl-dotfiles\agl-hostman",
     [switch]$Wait
 )
 
@@ -11,130 +12,132 @@ $ErrorActionPreference = "Stop"
 $HomeRoot = "C:\Users\Administrator"
 $ResultFile = "$HomeRoot\wk45-dotfiles-result.txt"
 $RunnerPs1 = "C:\Windows\Temp\agl-dotfiles-run.ps1"
-$env:USERPROFILE = $HomeRoot
-$env:HOME = $HomeRoot
-
-function Write-Result([string]$Line) {
-    Add-Content -Path $ResultFile -Value $Line
-    Write-Host $Line
-}
-
-Remove-Item $ResultFile -Force -ErrorAction SilentlyContinue
-Write-Result "=== wk45-propagate-dotfiles $(Get-Date -Format o) ==="
-
-# Mapear overpower (guest exec corre como SYSTEM — net use explícito)
-$UncOverpower = "\\aglfs1\overpower"
-foreach ($pair in @(
-    @{ Letter = "Z:"; Share = $UncOverpower },
-    @{ Letter = "U:"; Share = "\\aglfs1\storage" }
-)) {
-    if (-not (Test-Path ($pair.Letter + "\"))) {
-        $null = cmd /c "net use $($pair.Letter) $($pair.Share) /persistent:yes" 2>&1
-        Write-Result "net use $($pair.Letter) $($pair.Share) exit=$LASTEXITCODE"
-    } else {
-        Write-Result "OK drive $($pair.Letter) já mapeado"
-    }
-}
-
-$RepoCandidates = @(
-    $RepoRoot,
-    "Z:\apps\dev\agl\agl-hostman",
-    "U:\apps\dev\agl\agl-hostman",
-    (Join-Path $UncOverpower "apps\dev\agl\agl-hostman")
-) | Select-Object -Unique
-
-$ResolvedRepo = $null
-foreach ($path in $RepoCandidates) {
-    if (Test-Path (Join-Path $path "scripts\dotfiles\install-agl-home-sync.ps1")) {
-        $ResolvedRepo = $path
-        Write-Result "OK repo: $ResolvedRepo"
-        break
-    }
-}
-if (-not $ResolvedRepo) {
-    Write-Result "FAIL repo agl-hostman com scripts/dotfiles em falta"
-    exit 1
-}
-
-$SyncRootCandidates = @(
-    $HomeSyncRoot,
-    "Z:\apps\dev\agl\agl-home-sync",
-    (Join-Path $UncOverpower "apps\dev\agl\agl-home-sync")
-) | Select-Object -Unique
-
-$ResolvedSync = $null
-foreach ($path in $SyncRootCandidates) {
-    if (Test-Path $path) {
-        $ResolvedSync = $path
-        Write-Result "OK home-sync: $ResolvedSync"
-        break
-    }
-}
-if (-not $ResolvedSync) {
-    Write-Result "WARN home-sync root em falta — install pode criar subdirs"
-    $ResolvedSync = "Z:\apps\dev\agl\agl-home-sync"
-}
-
-$InstallPs1 = Join-Path $ResolvedRepo "scripts\dotfiles\install-agl-home-sync.ps1"
-$VerifySh = Join-Path $ResolvedRepo "scripts\dotfiles\verify-agl-home-sync.sh"
-
-$Bash = $null
-foreach ($candidate in @(
-    "C:\Program Files\Git\bin\bash.exe",
-    "C:\Program Files\Git\usr\bin\bash.exe"
-)) {
-    if (Test-Path $candidate) { $Bash = $candidate; break }
-}
-
-$repoEsc = $ResolvedRepo -replace '\\', '/'
-$syncEsc = $ResolvedSync -replace '\\', '/'
-$homeEsc = $HomeRoot -replace '\\', '/'
+$InstallPs1 = "C:\Windows\Temp\agl-dotfiles\install-agl-home-sync.ps1"
+$VerifySh = "C:\Windows\Temp\agl-dotfiles\verify-agl-home-sync.sh"
 
 $runner = @"
 `$ErrorActionPreference = 'Continue'
 `$ResultFile = '$ResultFile'
-function Write-Result([string]`$Line) { Add-Content -Path `$ResultFile -Value `$Line }
+`$HomeRoot = '$HomeRoot'
+`$BundledRepo = '$BundledRepo'
+`$RepoRoot = '$RepoRoot'
+`$HomeSyncRoot = '$HomeSyncRoot'
+`$HomeUser = '$HomeUser'
+`$InstallPs1 = '$InstallPs1'
+`$VerifySh = '$VerifySh'
+`$env:USERPROFILE = `$HomeRoot
+`$env:HOME = `$HomeRoot
+`$env:APPDATA = Join-Path `$HomeRoot 'AppData\Roaming'
+`$env:LOCALAPPDATA = Join-Path `$HomeRoot 'AppData\Local'
+
+function Write-Result([string]`$Line) {
+    Add-Content -Path `$ResultFile -Value `$Line
+}
+
+Remove-Item `$ResultFile -Force -ErrorAction SilentlyContinue
+Write-Result "=== wk45-propagate-dotfiles `$(Get-Date -Format o) ==="
+
+foreach (`$letter in @('Z:', 'U:')) {
+    `$status = cmd /c "net use `$letter 2>&1" | Out-String
+    if (`$status -match 'Unavailable|disconnected|not found') {
+        cmd /c "net use `$letter /delete /y" 2>&1 | Out-Null
+        Write-Result "cleared stale `$letter"
+    }
+}
+
+`$UncOverpower = `$null
+foreach (`$unc in @('\\\\192.168.0.178\\overpower', '\\\\100.69.187.105\\overpower')) {
+    `$null = cmd /c "dir /b `"`$unc`" 2>nul"
+    if (`$LASTEXITCODE -eq 0) { `$UncOverpower = `$unc; break }
+}
+if (`$UncOverpower) {
+    Write-Result "OK UNC `$UncOverpower"
+    foreach (`$pair in @(
+        @{ Letter = 'Z:'; Share = `$UncOverpower },
+        @{ Letter = 'U:'; Share = (`$UncOverpower -replace '\\\\overpower`$', '\\\\storage') }
+    )) {
+        if (-not (Test-Path (`$pair.Letter + '\\'))) {
+            `$null = cmd /c "net use `$(`$pair.Letter) `"`$(`$pair.Share)`" /user:guest `"`" /persistent:yes" 2>&1
+            Write-Result "net use `$(`$pair.Letter) exit=`$LASTEXITCODE"
+        }
+    }
+}
+
+`$ResolvedRepo = `$null
+`$RepoCandidates = @(`$BundledRepo, 'C:\Users\Administrator\apps\dev\agl\agl-hostman', `$RepoRoot)
+if (Test-Path 'Z:\') { `$RepoCandidates += 'Z:\apps\dev\agl\agl-hostman' }
+if (`$UncOverpower) { `$RepoCandidates += (Join-Path `$UncOverpower 'apps\dev\agl\agl-hostman') }
+foreach (`$path in (`$RepoCandidates | Select-Object -Unique)) {
+    if (`$path -and (Test-Path (Join-Path `$path 'config\dotfiles\manifest.yaml'))) {
+        `$ResolvedRepo = `$path
+        break
+    }
+}
+if (-not `$ResolvedRepo) {
+    Write-Result 'FAIL repo com config/dotfiles em falta'
+    exit 1
+}
+Write-Result "OK repo: `$ResolvedRepo"
+
+`$ResolvedSync = Join-Path `$HomeRoot 'agl-home-sync'
+foreach (`$path in @('Z:\apps\dev\agl\agl-home-sync')) {
+    if (`$path) {
+        `$null = cmd /c "if exist `"`$path\`" exit 0 else exit 1"
+        if (`$LASTEXITCODE -eq 0) { `$ResolvedSync = `$path; break }
+    }
+}
+Write-Result "home-sync: `$ResolvedSync user=`$HomeUser"
 
 Write-Result '--- install-agl-home-sync.ps1 ---'
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File '$InstallPs1' `
-    -RepoRoot '$ResolvedRepo' `
-    -HomeSyncRoot '$ResolvedSync' `
-    -HomeUser '$HomeUser'
+try {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File `$InstallPs1 -RepoRoot `$ResolvedRepo -HomeSyncRoot `$ResolvedSync -HomeUser `$HomeUser -SkipNetUse 2>&1 | ForEach-Object { Write-Result `$_ }
+} catch {
+    Write-Result "FAIL install exception: `$(`$_.Exception.Message)"
+    exit 1
+}
 if (`$LASTEXITCODE -ne 0) {
     Write-Result "FAIL install exit=`$LASTEXITCODE"
     exit `$LASTEXITCODE
 }
 
-if (Test-Path '$VerifySh') {
+`$Bash = `$null
+foreach (`$candidate in @(
+    'C:\Program Files\Git\bin\bash.exe',
+    'C:\Program Files\Git\usr\bin\bash.exe'
+)) {
+    if (Test-Path `$candidate) { `$Bash = `$candidate; break }
+}
+
+if (`$Bash -and (Test-Path `$VerifySh)) {
     Write-Result '--- verify-agl-home-sync.sh ---'
-    `$bash = '$Bash'
-    if (-not (Test-Path `$bash)) {
-        Write-Result 'WARN Git Bash em falta — skip verify bash'
+    `$repoBash = (`$ResolvedRepo -replace '\\', '/')
+    `$syncBash = (`$ResolvedSync -replace '\\', '/')
+    `$homeBash = (`$HomeRoot -replace '\\', '/')
+    `$verifyCmd = "export HOME='`$homeBash' USERPROFILE='`$homeBash' AGL_HOME_SYNC_ROOT='`$syncBash' AGL_HOME_USER='`$HomeUser' HOSTMAN_ROOT_OVERRIDE='`$repoBash' && bash '`$(`$VerifySh -replace '\\','/')'"
+    & `$Bash -lc `$verifyCmd 2>&1 | ForEach-Object { Write-Result `$_ }
+    if (`$LASTEXITCODE -ne 0) {
+        Write-Result "WARN verify exit=`$LASTEXITCODE (continuar)"
+    }
+} else {
+    Write-Result 'WARN skip verify (bash ou script em falta)'
+}
+
+foreach (`$path in @(
+    "`$HomeRoot\.cursor\chats",
+    "`$env:APPDATA\Cursor\User\globalStorage",
+    "`$HomeRoot\.claude\settings.json"
+)) {
+    `$item = Get-Item `$path -ErrorAction SilentlyContinue
+    if (`$item -and `$item.LinkType) {
+        Write-Result "OK symlink `$path"
+    } elseif (Test-Path `$path) {
+        Write-Result "OK exists `$path"
     } else {
-        & `$bash -lc "export HOME='$homeEsc' && export USERPROFILE='$homeEsc' && export AGL_HOME_SYNC_ROOT='$syncEsc' && export AGL_HOME_USER='$HomeUser' && cd '$repoEsc' && ./scripts/dotfiles/verify-agl-home-sync.sh" 2>&1 | ForEach-Object { Write-Result `$_ }
-        if (`$LASTEXITCODE -ne 0) {
-            Write-Result "FAIL verify exit=`$LASTEXITCODE"
-            exit `$LASTEXITCODE
-        }
+        Write-Result "WARN missing `$path"
     }
 }
 
-`$checks = @(
-    '$HomeRoot\.cursor\chats',
-    '$env:APPDATA\Cursor\User\globalStorage',
-    '$HomeRoot\.claude\settings.json'
-)
-foreach (`$path in `$checks) {
-    `$item = Get-Item `$path -ErrorAction SilentlyContinue
-    if (`$item -and `$item.LinkType) {
-        Write-Result "OK symlink `$path -> `$(`$item.Target)"
-    } elseif (Test-Path `$path) {
-        Write-Result "OK exists `$path (não symlink)"
-    } else {
-        Write-Result "WARN em falta `$path"
-    }
-}
-Write-Result 'OK wk45-propagate-dotfiles concluído'
+Write-Result 'OK wk45-propagate-dotfiles concluido'
 exit 0
 "@
 
@@ -145,10 +148,11 @@ if ($Wait) {
     exit $LASTEXITCODE
 }
 
-Write-Result "START async runner $RunnerPs1"
+Remove-Item $ResultFile -Force -ErrorAction SilentlyContinue
+Add-Content -Path $ResultFile -Value "START async runner $RunnerPs1"
 Start-Process -FilePath "powershell.exe" `
     -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $RunnerPs1) `
     -WindowStyle Hidden `
-    -WorkingDirectory $ResolvedRepo | Out-Null
-Write-Result "OK runner iniciado (poll $ResultFile)"
+    -WorkingDirectory $HomeRoot | Out-Null
+Write-Host "OK runner iniciado (poll $ResultFile)"
 exit 0

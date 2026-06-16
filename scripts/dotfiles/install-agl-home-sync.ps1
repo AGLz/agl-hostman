@@ -11,10 +11,51 @@ param(
 
 $ErrorActionPreference = "Stop"
 $HomeRoot = $env:USERPROFILE
-$LiveRoot = Join-Path $HomeSyncRoot $HomeUser
+$env:APPDATA = Join-Path $HomeRoot "AppData\Roaming"
+$env:LOCALAPPDATA = Join-Path $HomeRoot "AppData\Local"
+$UsedLocalLiveFallback = $false
+
+function Test-RemotePath([string]$Path) {
+    if ($Path -match '^\\\\') {
+        $null = cmd /c "dir /b `"$Path`" 2>nul"
+        return $LASTEXITCODE -eq 0
+    }
+    if ($Path -match '^[A-Za-z]:\\') {
+        $drive = $Path.Substring(0, 2)
+        $null = cmd /c "if exist ${drive}\ exit 0 else exit 1"
+        if ($LASTEXITCODE -ne 0) { return $false }
+    }
+    return Test-Path $Path
+}
+
+function Clear-StaleNetUse {
+    foreach ($letter in @("Z:", "U:")) {
+        $status = cmd /c "net use $letter 2>&1" | Out-String
+        if ($status -match 'Unavailable|disconnected|not found') {
+            cmd /c "net use $letter /delete /y" 2>&1 | Out-Null
+        }
+    }
+}
 
 function Write-Step([string]$Msg) {
     Write-Host "[OK] $Msg"
+}
+
+function Enable-DeveloperSymlinks {
+    if ($DryRun) { return }
+    $key = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App ModelUnlock"
+    if (-not (Test-Path $key)) {
+        New-Item -Path $key -Force | Out-Null
+    }
+    Set-ItemProperty -Path $key -Name AllowDevelopmentWithoutDevLicense -Value 1 -Type DWord -Force
+    Write-Step "Developer Mode symlinks activado"
+}
+
+function Invoke-Mklink([string]$ArgsLine) {
+    $output = cmd /c "mklink $ArgsLine" 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) {
+        throw "mklink $ArgsLine falhou: $output"
+    }
 }
 
 function Ensure-Dir([string]$Path) {
@@ -25,26 +66,32 @@ function Ensure-Dir([string]$Path) {
 }
 
 function Backup-IfExists([string]$Path) {
-    if (-not (Test-Path $Path)) { return }
+    if (-not (Test-Path $Path)) { return $true }
     $item = Get-Item $Path -Force -ErrorAction SilentlyContinue
-    if ($item.LinkType) { return }
+    if ($item.LinkType) { return $true }
     $bak = "$Path.bak.$(Get-Date -Format 'yyyyMMddHHmmss')"
-    if ($DryRun) { Write-Host "[dry-run] backup $Path -> $bak"; return }
-    Move-Item $Path $bak -Force
-    Write-Step "backup $Path"
+    if ($DryRun) { Write-Host "[dry-run] backup $Path -> $bak"; return $true }
+    try {
+        Move-Item $Path $bak -Force -ErrorAction Stop
+        Write-Step "backup $Path"
+        return $true
+    } catch {
+        Write-Host "[WARN] backup ignorado ($Path): $($_.Exception.Message)"
+        return $false
+    }
 }
 
 function Link-LiveDir([string]$Local, [string]$RemoteRel) {
     $Target = Join-Path $LiveRoot $RemoteRel
     Ensure-Dir (Split-Path $Target -Parent)
     Ensure-Dir $Target
-    Backup-IfExists $Local
+    if (-not (Backup-IfExists $Local)) { return }
     if ($DryRun) {
         Write-Host "[dry-run] mklink /D `"$Local`" `"$Target`""
         return
     }
     if (Test-Path $Local) { Remove-Item $Local -Force -Recurse -ErrorAction SilentlyContinue }
-    cmd /c mklink /D "$Local" "$Target" | Out-Null
+    Invoke-Mklink "/D `"$Local`" `"$Target`""
     Write-Step "$Local -> $Target"
 }
 
@@ -55,13 +102,13 @@ function Link-LiveFile([string]$Local, [string]$RemoteRel) {
         if ($DryRun) { Write-Host "[dry-run] touch $Target" }
         else { New-Item -ItemType File -Path $Target -Force | Out-Null }
     }
-    Backup-IfExists $Local
+    if (-not (Backup-IfExists $Local)) { return }
     if ($DryRun) {
         Write-Host "[dry-run] mklink `"$Local`" `"$Target`""
         return
     }
     if (Test-Path $Local) { Remove-Item $Local -Force -ErrorAction SilentlyContinue }
-    cmd /c mklink "$Local" "$Target" | Out-Null
+    Invoke-Mklink "`"$Local`" `"$Target`""
     Write-Step "$Local -> $Target"
 }
 
@@ -72,38 +119,66 @@ function Link-GitFile([string]$Local, [string]$RelSource) {
         return
     }
     Ensure-Dir (Split-Path $Local -Parent)
-    Backup-IfExists $Local
+    if (-not (Backup-IfExists $Local)) { return }
     if ($DryRun) {
         Write-Host "[dry-run] mklink `"$Local`" `"$Source`""
         return
     }
     if (Test-Path $Local) { Remove-Item $Local -Force -ErrorAction SilentlyContinue }
-    cmd /c mklink "$Local" "$Source" | Out-Null
+    Invoke-Mklink "`"$Local`" `"$Source`""
     Write-Step "git $Local -> $Source"
 }
 
 Write-Host "=== install-agl-home-sync Windows user=$HomeUser ==="
 
+Clear-StaleNetUse
+
 if (-not $SkipNetUse) {
-    $UncOverpower = "\\aglfs1\overpower"
-    foreach ($pair in @(
-        @{ Letter = "Z:"; Share = $UncOverpower },
-        @{ Letter = "U:"; Share = "\\aglfs1\storage" }
-    )) {
-        if (-not (Test-Path ($pair.Letter + "\"))) {
-            if ($DryRun) {
-                Write-Host "[dry-run] net use $($pair.Letter) $($pair.Share)"
-            } else {
-                $null = cmd /c "net use $($pair.Letter) $($pair.Share) /persistent:yes" 2>&1
-                Write-Step "net use $($pair.Letter)"
+    $UncCandidates = @(
+        "\\192.168.0.178\overpower",
+        "\\100.69.187.105\overpower",
+        "\\aglfs1\overpower"
+    )
+    $UncOverpower = $null
+    foreach ($unc in $UncCandidates) {
+        $null = cmd /c "dir /b `"$unc`" 2>nul"
+        if ($LASTEXITCODE -eq 0) { $UncOverpower = $unc; break }
+    }
+    if ($UncOverpower) {
+        foreach ($pair in @(
+            @{ Letter = "Z:"; Share = $UncOverpower },
+            @{ Letter = "U:"; Share = ($UncOverpower -replace '\\overpower$', '\storage') }
+        )) {
+            if (-not $pair.Share) { continue }
+            if (-not (Test-Path ($pair.Letter + "\"))) {
+                if ($DryRun) {
+                    Write-Host "[dry-run] net use $($pair.Letter) $($pair.Share)"
+                } else {
+                    $null = cmd /c "net use $($pair.Letter) `"$($pair.Share)`" /user:guest `"`" /persistent:yes" 2>&1
+                    if ($LASTEXITCODE -ne 0) {
+                        $null = cmd /c "net use $($pair.Letter) `"$($pair.Share)`" /persistent:yes" 2>&1
+                    }
+                    Write-Step "net use $($pair.Letter)"
+                }
             }
         }
     }
 }
 
+if (-not (Test-RemotePath $HomeSyncRoot)) {
+    $HomeSyncRoot = Join-Path $HomeRoot "agl-home-sync"
+    $UsedLocalLiveFallback = $true
+    Write-Host "[WARN] SMB/NFS live indisponivel - fallback local: $HomeSyncRoot"
+    Write-Host "[WARN] Re-correr install com Z: ou UNC quando rede ao aglfs1 estiver OK"
+}
+
+$LiveRoot = Join-Path $HomeSyncRoot $HomeUser
+
 # Resolver RepoRoot se Z: indisponível
-if (-not (Test-Path (Join-Path $RepoRoot "config\dotfiles\manifest.yaml"))) {
+$manifest = Join-Path $RepoRoot "config\dotfiles\manifest.yaml"
+if (-not (Test-Path $manifest)) {
     foreach ($alt in @(
+        "C:\Windows\Temp\agl-dotfiles\agl-hostman",
         "C:\Users\Administrator\apps\dev\agl\agl-hostman",
         "U:\apps\dev\agl\agl-hostman"
     )) {
@@ -116,6 +191,9 @@ if (-not (Test-Path (Join-Path $RepoRoot "config\dotfiles\manifest.yaml"))) {
 }
 
 Ensure-Dir $LiveRoot
+if ($UsedLocalLiveFallback) {
+    Set-Content -Path (Join-Path $HomeSyncRoot ".agl-local-fallback") -Value "guest-or-offline $(Get-Date -Format o)"
+}
 Ensure-Dir (Join-Path $LiveRoot "cursor\globalStorage")
 Ensure-Dir (Join-Path $LiveRoot "cursor\dot-cursor\chats")
 Ensure-Dir (Join-Path $LiveRoot "cursor\dot-cursor\projects")
@@ -123,6 +201,8 @@ Ensure-Dir (Join-Path $LiveRoot "claude\file-history")
 
 $AppDataCursor = Join-Path $env:APPDATA "Cursor\User"
 Ensure-Dir $AppDataCursor
+
+Enable-DeveloperSymlinks
 
 Link-LiveDir "$AppDataCursor\globalStorage" "cursor\globalStorage"
 Link-LiveDir "$HomeRoot\.cursor\chats" "cursor\dot-cursor\chats"
@@ -145,4 +225,4 @@ if (-not (Test-Path $McpLocal) -and (Test-Path $McpExample)) {
 }
 
 Write-Host ""
-Write-Host "OK install — fechar Cursor antes de sync globalStorage; correr verify-agl-home-sync.sh"
+Write-Host "OK install - fechar Cursor antes de sync globalStorage; correr verify-agl-home-sync.sh"

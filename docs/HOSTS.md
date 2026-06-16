@@ -7,19 +7,19 @@
 
 ## 📊 Host Summary
 
-| Host | Type | Location | Status | Proxmox | Containers | Networks |
-|------|------|----------|--------|---------|------------|----------|
-| **AGLSRV1** | Production | AGLHQ | ✅ Active | 8.4.14 | 68 (42 running) | LAN + WG + TS |
-| **AGLSRV3** | Remote | AGLFG | ✅ Active | 8.4.14 | 2 CTs | LAN + WG + TS |
-| **AGLSRV5** | Remote | AGLFG | ✅ Active | 8.4.14 | 8 (7 running) | LAN + WG + TS |
-| **AGLSRV6** | Remote | AGLALD | ✅ Active | TBD | 11 containers | WG + TS |
-| **AGLSRV6B** | Dead | AGLALD | ❌ Dead | - | CT172 offline | ❌ None |
-| **AGLSRV6C** | Remote | AGLALD | ✅ Active | 9.0 | 0 (ready) | LAN + WG + TS |
-| **AGLSRV6D** | Remote | AGLALD | ✅ Active | 9.0.11 | 0 (ready) | LAN + WG + TS |
-| **FGSRV3** | Cloud VPS | AGLFG-VPS | ✅ Active | TBD | TBD | Public + WG + TS |
-| **FGSRV4** | Cloud VPS | AGLFG-VPS | ✅ Active | TBD | TBD | WG + TS |
-| **FGSRV5** | Cloud VPS | AGLFG-VPS | ✅ Active | TBD | TBD | Public + WG + TS |
-| **FGSRV6** | Cloud VPS | AGLFG-VPS | ✅ **Hub** | TBD | TBD | Public + WG + TS |
+| Host         | Type       | Location  | Status     | Proxmox   | Containers      | Networks         |
+| ------------ | ---------- | --------- | ---------- | --------- | --------------- | ---------------- |
+| **AGLSRV1**  | Production | AGLHQ     | ✅ Active  | 8.4.14    | 68 (42 running) | LAN + WG + TS    |
+| **AGLSRV3**  | Remote     | AGLFG     | ✅ Active  | **9.2.3** | 5 CTs + VM310   | LAN + WG + TS    |
+| **AGLSRV5**  | Remote     | AGLFG     | ✅ Active  | 8.4.14    | 8 (7 running)   | LAN + WG + TS    |
+| **AGLSRV6**  | Remote     | AGLALD    | ✅ Active  | TBD       | 11 containers   | WG + TS          |
+| **AGLSRV6B** | Dead       | AGLALD    | ❌ Dead    | -         | CT172 offline   | ❌ None          |
+| **AGLSRV6C** | Remote     | AGLALD    | ✅ Active  | 9.0       | 0 (ready)       | LAN + WG + TS    |
+| **AGLSRV6D** | Remote     | AGLALD    | ✅ Active  | 9.0.11    | 0 (ready)       | LAN + WG + TS    |
+| **FGSRV3**   | Cloud VPS  | AGLFG-VPS | ✅ Active  | TBD       | TBD             | Public + WG + TS |
+| **FGSRV4**   | Cloud VPS  | AGLFG-VPS | ✅ Active  | TBD       | TBD             | WG + TS          |
+| **FGSRV5**   | Cloud VPS  | AGLFG-VPS | ✅ Active  | TBD       | TBD             | Public + WG + TS |
+| **FGSRV6**   | Cloud VPS  | AGLFG-VPS | ✅ **Hub** | TBD       | TBD             | Public + WG + TS |
 
 ---
 
@@ -32,11 +32,11 @@
 
 ### Network Configuration
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| Local LAN | 192.168.0.245 | vmbr0 | ✅ Primary |
-| WireGuard | 10.6.0.10 | wg0 | ✅ Port 51810 |
-| Tailscale | 100.107.113.33 | tailscale0 | ✅ Active |
+| Network   | Address        | Interface  | Status        |
+| --------- | -------------- | ---------- | ------------- |
+| Local LAN | 192.168.0.245  | vmbr0      | ✅ Primary    |
+| WireGuard | 10.6.0.10      | wg0        | ✅ Port 51810 |
+| Tailscale | 100.107.113.33 | tailscale0 | ✅ Active     |
 
 ### Resources
 
@@ -50,13 +50,13 @@
 
 ### Key Services
 
-| Category | Containers | Notes |
-|----------|------------|-------|
-| DNS/DHCP | CT102 (pihole) | Primary DNS server |
-| Media | CT113 (plex), CT121-124 (arr stack) | Media automation |
-| Development | CT179 (agldv03), CT180 (dokploy) | 48GB dev container |
-| AI | CT183 (archon), CT186 (LiteLLM), CT187 (OpenClaw), CT202 (n8n); Ollama → VM310 AGLSRV3 | Gateway LLM + OpenClaw; ver `LITELLM-MODEL-TIERS.md` |
-| Monitoring | CT132 (observium), CT162 (meshcentral) | Infrastructure monitoring |
+| Category    | Containers                                                                             | Notes                                                |
+| ----------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| DNS/DHCP    | CT102 (pihole)                                                                         | Primary DNS server                                   |
+| Media       | CT113 (plex), CT121-124 (arr stack)                                                    | Media automation                                     |
+| Development | CT179 (agldv03), CT180 (dokploy)                                                       | 48GB dev container                                   |
+| AI          | CT183 (archon), CT186 (LiteLLM), CT187 (OpenClaw), CT202 (n8n); Ollama → VM310 AGLSRV3 | Gateway LLM + OpenClaw; ver `LITELLM-MODEL-TIERS.md` |
+| Monitoring  | CT132 (observium), CT162 (meshcentral)                                                 | Infrastructure monitoring                            |
 
 ### Connection Commands
 
@@ -76,25 +76,25 @@ ssh root@10.6.0.10
 ## 🖥️ AGLSRV3 (Proxmox VE Host)
 
 **Hostname**: aglsrv3
-**Type**: Proxmox VE 8.4.14 (pve-manager 8.4.14) on Debian 12 (bookworm)
+**Type**: Proxmox VE **9.2.3** (pve-manager 9.2.3) on Debian 13 (trixie)
 **Physical Location**: **AGLFG** (site remoto — segmento `192.168.15.0/24`, **não** co-localizado com AGLSRV1/AGLHQ)
 **Status**: ✅ **Active**
 
 ### Network Configuration
 
-| Network | Address | Interface | Status | Purpose |
-|---------|---------|-----------|--------|---------|
-| Local LAN | 192.168.15.247/24 | vmbr0 | ✅ Active | LAN principal (site remoto) |
-| WireGuard | 10.6.0.24/24 | wg0 | ✅ Port 51824 | Mesh connectivity |
-| Tailscale | 100.123.5.81 | tailscale0 | ✅ Active | Acesso remoto (host) |
+| Network   | Address           | Interface  | Status        | Purpose                     |
+| --------- | ----------------- | ---------- | ------------- | --------------------------- |
+| Local LAN | 192.168.15.247/24 | vmbr0      | ✅ Active     | LAN principal (site remoto) |
+| WireGuard | 10.6.0.24/24      | wg0        | ✅ Port 51824 | Mesh connectivity           |
+| Tailscale | 100.123.5.81      | tailscale0 | ✅ Active     | Acesso remoto (host)        |
 
 **Additional Bridges** (vmbr0–vmbr3):
 
-| Bridge | Subnet | Notas |
-|--------|--------|--------|
-| vmbr1 | 192.168.30.247/24 | OVS |
-| vmbr2 | 192.168.80.247/24 | OVS |
-| vmbr3 | 192.168.1.247/24 | VLAN-aware |
+| Bridge | Subnet            | Notas      |
+| ------ | ----------------- | ---------- |
+| vmbr1  | 192.168.30.247/24 | OVS        |
+| vmbr2  | 192.168.80.247/24 | OVS        |
+| vmbr3  | 192.168.1.247/24  | VLAN-aware |
 
 > **Nota histórica:** documentação anterior referia `192.168.0.247/24` (AGLHQ). O host está operacional em **`192.168.15.247/24`** — mesma faixa LAN que AGLSRV5 (AGLFG), **sem rota directa** para Pi-hole AGLHQ `192.168.0.102`.
 
@@ -113,15 +113,15 @@ search aglz.io
 
 - **CPU**: Intel Xeon E5-2690 v3 @ 2.60GHz (12 cores, 24 threads)
 - **RAM**: 16GB
-- **Kernel**: 6.8.12-15-pve (x86_64)
+- **Kernel**: 7.0.6-2-pve (x86_64) — pós-upgrade PVE 9 (2026-06)
 
 ### Storage Configuration
 
-| Storage | Size | Type | Status |
-|---------|------|------|--------|
-| local | ~96GB | Directory | ✅ ~30% used |
-| local-lvm | ~330GB thin | LVM-Thin | ✅ CTs/VMs (sdf SSD sistema) |
-| *(planeado)* | 4×1TB + 1×2TB HDD | ZFS | Auditoria 2026-05-30 — ver mapa |
+| Storage      | Size              | Type      | Status                          |
+| ------------ | ----------------- | --------- | ------------------------------- |
+| local        | ~96GB             | Directory | ✅ ~30% used                    |
+| local-lvm    | ~330GB thin       | LVM-Thin  | ✅ CTs/VMs (sdf SSD sistema)    |
+| _(planeado)_ | 4×1TB + 1×2TB HDD | ZFS       | Auditoria 2026-05-30 — ver mapa |
 
 **Mapa completo de discos** (SMART, partições, wipe/ZFS, by-id): [`docs/AGLSRV3-DISKS.md`](AGLSRV3-DISKS.md).
 
@@ -131,13 +131,13 @@ NFS remoto para CT178 (AGLSRV1) documentado historicamente; confirmar mounts act
 
 **Containers**:
 
-| VMID | Name | LAN | Tailscale | Notas |
-|------|------|-----|-----------|--------|
-| **317** | **pihole3** | **192.168.15.117/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28) |
-| **304** | **cloudflared3a** | **192.168.15.104/24** | — | Túnel `aglsrv3` (HA) |
-| **306** | **cloudflared3b** | **192.168.15.106/24** | — | Túnel `aglsrv3` (HA) |
-| **318** | **aglsrv3-pbs** | **192.168.15.118/24** | — | PBS local |
-| **338** | **aglfs3** | **192.168.15.138/24** | — | File server |
+| VMID    | Name              | LAN                   | Tailscale                                   | Notas                                      |
+| ------- | ----------------- | --------------------- | ------------------------------------------- | ------------------------------------------ |
+| **317** | **pihole3**       | **192.168.15.117/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28) |
+| **304** | **cloudflared3a** | **192.168.15.104/24** | —                                           | Túnel `aglsrv3` (HA)                       |
+| **306** | **cloudflared3b** | **192.168.15.106/24** | —                                           | Túnel `aglsrv3` (HA)                       |
+| **318** | **aglsrv3-pbs**   | **192.168.15.118/24** | —                                           | PBS local                                  |
+| **338** | **aglfs3**        | **192.168.15.138/24** | —                                           | File server                                |
 
 **Virtual Machines**: VM101–108 (Windows / Truenas / OPNsense — maior parte stopped); **VM310** `agl-ollama` (Ollama primário, 2× RX580, TS `100.67.253.52`, LAN `192.168.15.210`) — [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 
@@ -185,13 +185,13 @@ http://192.168.15.117/admin
 
 ### Network Configuration
 
-| Network | Address | Interface | Status | Purpose |
-|---------|---------|-----------|--------|---------|
-| Local LAN | 192.168.0.202 | vmbr0 | ✅ Active | External access |
-| Proxmox Internal | 192.168.60.202 | vmbr1 | ✅ Active | Corosync/cluster |
-| **Inter-host LAN** | **192.168.1.202** | **vmbr2** | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
-| WireGuard | 10.6.0.12 | wg0 | ✅ Port 51812 | Remote access |
-| Tailscale | 100.98.108.66 | tailscale0 | ✅ Active | Fallback |
+| Network            | Address           | Interface  | Status         | Purpose                      |
+| ------------------ | ----------------- | ---------- | -------------- | ---------------------------- |
+| Local LAN          | 192.168.0.202     | vmbr0      | ✅ Active      | External access              |
+| Proxmox Internal   | 192.168.60.202    | vmbr1      | ✅ Active      | Corosync/cluster             |
+| **Inter-host LAN** | **192.168.1.202** | **vmbr2**  | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
+| WireGuard          | 10.6.0.12         | wg0        | ✅ Port 51812  | Remote access                |
+| Tailscale          | 100.98.108.66     | tailscale0 | ✅ Active      | Fallback                     |
 
 ### Resources
 
@@ -204,12 +204,12 @@ http://192.168.15.117/admin
 
 ### Key Services
 
-| Service | Container | Details |
-|---------|-----------|---------|
-| Storage | CT111 (aluzdivina) | NFS server (10.6.0.20) |
-| Backup | CT113 (PBS), CT172 (PBS) | Proxmox Backup Server |
-| Development | **CT608** (agldv06; ex.108) | Tailscale-only dev container |
-| Infrastructure | CT101 (cloudflared), CT102 (meshcentral) | Remote access |
+| Service        | Container                                | Details                      |
+| -------------- | ---------------------------------------- | ---------------------------- |
+| Storage        | CT111 (aluzdivina)                       | NFS server (10.6.0.20)       |
+| Backup         | CT113 (PBS), CT172 (PBS)                 | Proxmox Backup Server        |
+| Development    | **CT608** (agldv06; ex.108)              | Tailscale-only dev container |
+| Infrastructure | CT101 (cloudflared), CT102 (meshcentral) | Remote access                |
 
 ### Connection Commands
 
@@ -242,12 +242,12 @@ https://192.168.1.202:8006  # Inter-host LAN
 
 ### Network Configuration
 
-| Network | Address | Interface | Status |
-|---------|---------|-----------|--------|
-| LAN (Primary) | 192.168.15.222/24 | vmbr0 | ✅ Active |
-| LAN (Secondary) | 172.2.2.222/24 | vmbr1 | ✅ Active |
-| WireGuard | 10.6.0.17/24 | wg0 | ✅ Port 51817 |
-| Tailscale | 100.119.223.113 | tailscale0 | ✅ Active |
+| Network         | Address           | Interface  | Status        |
+| --------------- | ----------------- | ---------- | ------------- |
+| LAN (Primary)   | 192.168.15.222/24 | vmbr0      | ✅ Active     |
+| LAN (Secondary) | 172.2.2.222/24    | vmbr1      | ✅ Active     |
+| WireGuard       | 10.6.0.17/24      | wg0        | ✅ Port 51817 |
+| Tailscale       | 100.119.223.113   | tailscale0 | ✅ Active     |
 
 ### Hardware
 
@@ -264,29 +264,29 @@ https://192.168.1.202:8006  # Inter-host LAN
 
 ### Storage Pools
 
-| Storage | Type | Total | Used | Available | Usage |
-|---------|------|-------|------|-----------|-------|
-| base | zfspool | 1.75TB | 1.23TB | 533MB | 70% PRIMARY |
-| bkp | dir | 593MB | 60MB | 533MB | 10% |
-| **ct138-nfs** | **nfs** | **15GB** | **1.7GB** | **12GB** | **11% NFS** |
-| games | dir | 65GB | 36GB | 29GB | 55% |
-| local | dir | 65GB | 36GB | 29GB | 55% |
-| local-lvm | lvmthin | 130GB | 12GB | 117GB | 9% |
-| shares | dir | 65GB | 36GB | 29GB | 55% |
+| Storage       | Type    | Total    | Used      | Available | Usage       |
+| ------------- | ------- | -------- | --------- | --------- | ----------- |
+| base          | zfspool | 1.75TB   | 1.23TB    | 533MB     | 70% PRIMARY |
+| bkp           | dir     | 593MB    | 60MB      | 533MB     | 10%         |
+| **ct138-nfs** | **nfs** | **15GB** | **1.7GB** | **12GB**  | **11% NFS** |
+| games         | dir     | 65GB     | 36GB      | 29GB      | 55%         |
+| local         | dir     | 65GB     | 36GB      | 29GB      | 55%         |
+| local-lvm     | lvmthin | 130GB    | 12GB      | 117GB     | 9%          |
+| shares        | dir     | 65GB     | 36GB      | 29GB      | 55%         |
 
 ### Containers (AGLSRV5 — VMIDs 530–540 pós-renumber 2026-06)
 
-| VMID | Name | Status |
-|------|------|--------|
+| VMID  | Name         | Status     |
+| ----- | ------------ | ---------- |
 | CT530 | cloudflared5 | ✅ Running |
-| CT532 | plex5 | ✅ Running |
-| CT533 | mesh5 | ✅ Running |
-| CT534 | ipmitool5 | ✅ Running |
-| CT535 | mysql5 | ✅ Running |
-| CT536 | agldv05 | ✅ Running |
-| CT538 | fileserver5 | ✅ Running |
-| CT539 | pihole5 | ✅ Running |
-| CT540 | aglsrv5-pbs | ✅ Running |
+| CT532 | plex5        | ✅ Running |
+| CT533 | mesh5        | ✅ Running |
+| CT534 | ipmitool5    | ✅ Running |
+| CT535 | mysql5       | ✅ Running |
+| CT536 | agldv05      | ✅ Running |
+| CT538 | fileserver5  | ✅ Running |
+| CT539 | pihole5      | ✅ Running |
+| CT540 | aglsrv5-pbs  | ✅ Running |
 
 Ver mapa legado: `docs/PROXMOX-VMID-RENUMBER-2026-06.md` (ex. CT130→530, CT136→536).
 
@@ -334,12 +334,12 @@ ssh root@10.6.0.17  # ⚠️ Known issue - NOT RECOMMENDED
 
 ### Network Configuration
 
-| Network | Address | Interface | Status | Purpose |
-|---------|---------|-----------|--------|---------|
-| Local LAN | 192.168.0.233 | vmbr0 | ✅ Active | External access |
-| **Inter-host LAN** | **192.168.1.233** | **vmbr2** | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
-| WireGuard | 10.6.0.22 | wg0 | ✅ Port 51822 | Remote access |
-| Tailscale | 100.124.53.91 | tailscale0 | ✅ Active | Fallback |
+| Network            | Address           | Interface  | Status         | Purpose                      |
+| ------------------ | ----------------- | ---------- | -------------- | ---------------------------- |
+| Local LAN          | 192.168.0.233     | vmbr0      | ✅ Active      | External access              |
+| **Inter-host LAN** | **192.168.1.233** | **vmbr2**  | ✅ **PRIMARY** | **AGLSRV6 ↔ AGLSRV6C ↔ CTs** |
+| WireGuard          | 10.6.0.22         | wg0        | ✅ Port 51822  | Remote access                |
+| Tailscale          | 100.124.53.91     | tailscale0 | ✅ Active      | Fallback                     |
 
 **Tailscale (2026-06):** `accept-dns=false`, `accept-routes=false`, `--ssh`; `agl-lan-routes.service` com `LAN_IF=vmbr0`. Alinhar com `scripts/proxmox/tailscale-align-proxmox-host.sh`. Ver [`troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md`](troubleshooting/AGLSRV6-CLOUDFLARED6-ETH2-TAILSCALE-2026-06.md).
 
@@ -359,16 +359,19 @@ ssh root@10.6.0.17  # ⚠️ Known issue - NOT RECOMMENDED
 ### Configuration Details
 
 **Persistent Interface Fix**:
+
 - systemd service (`force-interfaces-up.service`) forces eno8303/eno8403 UP on boot
 - Solves issue where interfaces start DOWN despite physical cable connection
 - Service runs before `networking.service` using `WantedBy=sysinit.target`
 
 **Dual-Network Setup**:
+
 - vmbr0 (192.168.0.233) with gateway - Primary network
 - vmbr2 (192.168.1.233) no gateway - Secondary network
 - DNS: Google DNS (8.8.8.8, 8.8.4.4)
 
 **Security**:
+
 - fail2ban active for SSH protection
 - SSH hardening applied (MaxAuthTries 3, X11Forwarding disabled)
 - unattended-upgrades configured for automatic security updates
@@ -392,6 +395,7 @@ ssh root@10.6.0.17  # ⚠️ Known issue - NOT RECOMMENDED
 - **PersistentKeepalive**: 25
 
 **Mesh Connectivity** (verified with 0% packet loss):
+
 - FGSRV6 (10.6.0.5): 14-16ms latency
 - AGLSRV1 (10.6.0.10): 29-38ms latency
 - AGLSRV6 (10.6.0.12): 34-41ms latency
@@ -414,15 +418,19 @@ ssh root@10.6.0.22
 ```
 
 # Via Jump Host (AGLSRV6 Tailscale)
+
 ssh -J root@100.98.108.66 root@192.168.1.233
 
 # Via Jump Host (AGLSRV6 WireGuard)
+
 ssh -J root@10.6.0.12 root@192.168.1.233
 
 # Proxmox Web Interface
-https://192.168.0.233:8006  # External LAN
-https://192.168.1.233:8006  # Inter-host LAN
-```
+
+https://192.168.0.233:8006 # External LAN
+https://192.168.1.233:8006 # Inter-host LAN
+
+````
 
 ### Documentation
 
@@ -492,7 +500,7 @@ ssh root@10.6.0.23
 
 # Proxmox Web Interface
 https://192.168.0.234:8006
-```
+````
 
 ---
 
@@ -505,11 +513,11 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status | Priority |
-|---------|---------|------|--------|----------|
-| Tailscale | 100.83.51.9 | - | ✅ Active | **PRIMARY** |
-| Public IP | 186.202.57.120 | - | ✅ Internet | Secondary |
-| WireGuard | 10.6.0.5 | 51823/UDP | ✅ **Hub** | Legacy |
+| Network   | Address        | Port      | Status      | Priority    |
+| --------- | -------------- | --------- | ----------- | ----------- |
+| Tailscale | 100.83.51.9    | -         | ✅ Active   | **PRIMARY** |
+| Public IP | 186.202.57.120 | -         | ✅ Internet | Secondary   |
+| WireGuard | 10.6.0.5       | 51823/UDP | ✅ **Hub**  | Legacy      |
 
 ### NFS Exports
 
@@ -533,11 +541,11 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status | Priority |
-|---------|---------|------|--------|----------|
-| Tailscale | 100.71.107.26 | - | ✅ Active | **PRIMARY** |
-| Public IP | 191.252.200.20 | - | ✅ Internet | Secondary |
-| WireGuard | 10.6.0.11 | 51811/UDP | ✅ Active | Legacy |
+| Network   | Address        | Port      | Status      | Priority    |
+| --------- | -------------- | --------- | ----------- | ----------- |
+| Tailscale | 100.71.107.26  | -         | ✅ Active   | **PRIMARY** |
+| Public IP | 191.252.200.20 | -         | ✅ Internet | Secondary   |
+| WireGuard | 10.6.0.11      | 51811/UDP | ✅ Active   | Legacy      |
 
 ### NFS Exports
 
@@ -559,10 +567,10 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status | Priority |
-|---------|---------|------|--------|----------|
-| Tailscale | 100.111.79.2 | - | ✅ Active | **PRIMARY** |
-| WireGuard | 10.6.0.16 | 51816/UDP | ✅ Active | Legacy |
+| Network   | Address      | Port      | Status    | Priority    |
+| --------- | ------------ | --------- | --------- | ----------- |
+| Tailscale | 100.111.79.2 | -         | ✅ Active | **PRIMARY** |
+| WireGuard | 10.6.0.16    | 51816/UDP | ✅ Active | Legacy      |
 
 ### Access
 
@@ -578,11 +586,11 @@ https://192.168.0.234:8006
 
 ### Network Configuration
 
-| Network | Address | Port | Status | Priority |
-|---------|---------|------|--------|----------|
-| Tailscale | 100.67.99.115 | - | ✅ Active | **PRIMARY** |
-| Public IP | 191.252.201.205 | - | ✅ Internet | Secondary |
-| WireGuard | 10.6.0.18 | 51818/UDP | ✅ Active | Legacy |
+| Network   | Address         | Port      | Status      | Priority    |
+| --------- | --------------- | --------- | ----------- | ----------- |
+| Tailscale | 100.67.99.115   | -         | ✅ Active   | **PRIMARY** |
+| Public IP | 191.252.201.205 | -         | ✅ Internet | Secondary   |
+| WireGuard | 10.6.0.18       | 51818/UDP | ✅ Active   | Legacy      |
 
 ---
 
@@ -603,4 +611,5 @@ https://192.168.0.234:8006
 **Maintainer**: Claude Code (agl-hostman project)
 
 **Version Notes**:
+
 - **v1.1.0** (2025-11-08): Added complete network configurations for AGLSRV5 (dual LAN) and AGLSRV6 (triple network)
