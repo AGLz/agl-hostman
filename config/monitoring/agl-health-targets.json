@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "updated": "2026-06-16",
+  "description": "Alvos para scripts/infra/verify-agl-health.sh — rede, LiteLLM, Ollama VM110/VM310, satélites AGLSRV1.",
+  "hosts": {
+    "aglsrv1": {
+      "tailscale": "100.107.113.33",
+      "lan": "192.168.0.245",
+      "ssh": "root@100.107.113.33"
+    },
+    "aglsrv3": {
+      "tailscale": "100.123.5.81",
+      "lan": "192.168.15.247",
+      "ssh": "root@100.123.5.81"
+    },
+    "agldv03": { "tailscale": "100.94.221.87", "lan": "192.168.0.179" }
+  },
+  "litellm": {
+    "readiness_primary": "http://100.125.249.8:4000/health/readiness",
+    "readiness_lan": "http://192.168.0.186:4000/health/readiness",
+    "liveliness": "http://100.125.249.8:4000/health/liveliness",
+    "smoke_model": "agl-primary",
+    "ollama_smoke_models": [
+      "agl-primary",
+      "agl-primary-strong",
+      "ollama-qwen3-4b"
+    ]
+  },
+  "ollama": {
+    "vm110": {
+      "vmid": 110,
+      "host": "aglsrv1",
+      "tailscale_api": "http://100.74.118.51:11434",
+      "expected_models": ["qwen3:4b"],
+      "gpu_check": "nvidia"
+    },
+    "vm310": {
+      "vmid": 310,
+      "host": "aglsrv3",
+      "tailscale_gpu0": "http://100.67.253.52:11434",
+      "tailscale_gpu1": "http://100.67.253.52:11435",
+      "expected_models_gpu0": ["gemma4-qat:latest"],
+      "expected_models_gpu1": ["qwen3:8b"],
+      "gpu_check": "amdgpu"
+    }
+  },
+  "services": [
+    {
+      "id": "openclaw-ct187",
+      "name": "OpenClaw gateway",
+      "url": "http://100.123.184.125:28789/healthz",
+      "severity": "warn"
+    },
+    {
+      "id": "n8n-ct202",
+      "name": "n8n",
+      "url": "http://192.168.0.202:5678/healthz",
+      "severity": "warn"
+    }
+  ],
+  "proxmox_vms": [
+    { "id": "vm110", "host": "aglsrv1", "vmid": 110, "expect": "running" },
+    { "id": "vm310", "host": "aglsrv3", "vmid": 310, "expect": "running" }
+  ]
+}

@@ -23,3 +23,5 @@ def test_patches_agl_primary_to_gemma4_qat() -> None:
     assert "model: ollama/gemma4-qat" in out
     assert "model: ollama/qwen3:8b" in out
     assert "model_name: agl-primary" in out
+    assert "think: false" in out
+    assert out.count("think: false") >= 3

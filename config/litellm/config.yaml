@@ -1,4 +1,6 @@
-# VM110 Ollama — agl-primary / ollama-* @ http://100.74.118.51:11434 (qwen3:4b; VM310 offline)
+# VM310 Ollama dual-GPU — agl-primary @ http://100.67.253.52:11434, agl-primary-strong @ http://100.67.253.52:11435
+# Fallbacks: Groq / Z.AI / OpenRouter após falha local. Ver docs/AGL-OLLAMA-VM310.md
+# Fallbacks: Groq / Z.AI / OpenRouter após falha local. Ver docs/AGL-OLLAMA-VM310.md
 # Restaurar VM310: scripts/litellm/apply-litellm-vm310-ollama.sh
 # LiteLLM: prefixo gemini/ + api_base publishers/google (NÃO vertex_ai/ — exige ADC).
 # VERTEXAI_PROJECT / VERTEXAI_LOCATION em config/litellm/.env (billing; não passar ao proxy).
@@ -429,26 +431,25 @@ model_list:
       tpm: 100000
     model_name: infra-agent
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
-      model: ollama/qwen3:4b
+      model: ollama/gemma4-qat
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "VM110 GTX 1650 — qwen3:4b (failover VM310 offline)"
+      note: "VM310 GPU0 — gemma4-qat (primário local AGL)"
       output_cost_per_token: 0
     model_name: agl-primary
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11435
       api_key: ollama
-      model: ollama/qwen3:4b
+      model: ollama/qwen3:8b
       timeout: 120
       stream: true
       max_tokens: 8192
@@ -459,7 +460,7 @@ model_list:
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "VM110 — qwen3:4b (mesmo endpoint até VM310 GPU1)"
+      note: "VM310 GPU1 — qwen3:8b (secundário forte local)"
       output_cost_per_token: 0
     model_name: agl-primary-strong
   - litellm_params:
@@ -1108,7 +1109,7 @@ model_list:
       max_tokens: 65536
     model_name: groq-gpt-oss-120b-k2
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
       model: ollama/qwen3:4b
       timeout: 120
@@ -1121,11 +1122,11 @@ model_list:
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM110 qwen3:4b"
+      note: "Alias legado → VM310 qwen3:4b :11434"
       output_cost_per_token: 0
     model_name: ollama-qwen3-4b
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
       model: ollama/qwen3:4b
       timeout: 120
@@ -1138,13 +1139,13 @@ model_list:
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias OpenAI-compat → VM110 qwen3:4b"
+      note: "Alias OpenAI-compat → VM310 qwen3:4b"
       output_cost_per_token: 0
     model_name: openai/ollama-qwen3-4b
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11435
       api_key: ollama
-      model: ollama/qwen3:4b
+      model: ollama/qwen3:8b
       timeout: 120
       stream: true
       max_tokens: 8192
@@ -1155,11 +1156,11 @@ model_list:
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM110 qwen3:4b"
+      note: "Alias → VM310 qwen3:8b :11435"
       output_cost_per_token: 0
     model_name: ollama-qwen3-8b
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
       model: ollama/qwen3:4b
       timeout: 120
@@ -1172,58 +1173,55 @@ model_list:
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM110 qwen3:4b"
+      note: "Alias → VM310 qwen3:4b :11434"
       output_cost_per_token: 0
     model_name: ollama-qwen3-4b-fast
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
-      model: ollama/qwen3:4b
+      model: ollama/llama3.1:8b
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias legado → VM110 qwen3:4b"
+      note: "Alias → VM310 llama3.1:8b :11434"
       output_cost_per_token: 0
     model_name: ollama-llama31-8b
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
-      model: ollama/qwen3:4b
+      model: ollama/gemma4-qat
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias legado gemma3 → VM110 qwen3:4b"
+      note: "Alias legado gemma3 → VM310 gemma4-qat :11434"
       output_cost_per_token: 0
     model_name: ollama-gemma3-4b
   - litellm_params:
-      api_base: http://100.74.118.51:11434
+      api_base: http://100.67.253.52:11434
       api_key: ollama
-      model: ollama/qwen3:4b
+      model: ollama/gemma4-qat
       timeout: 120
       stream: true
       max_tokens: 8192
-      think: false
     model_info:
       access: direct
       context_window: 8192
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias legado → VM110 qwen3:4b (gemma4-qat indisponível)"
+      note: "Alias → VM310 gemma4-qat :11434"
       output_cost_per_token: 0
     model_name: ollama-gemma4-qat
   - litellm_params:

@@ -66,16 +66,19 @@ PATCHES: dict[str, str] = {
         "ollama/qwen3:4b",
         VM310_GPU0,
         "Alias → VM310 qwen3:4b :11434",
+        think=False,
     ),
     "ollama-qwen3-4b": _block(
         "ollama/qwen3:4b",
         VM310_GPU0,
         "Alias legado → VM310 qwen3:4b :11434",
+        think=False,
     ),
     "openai/ollama-qwen3-4b": _block(
         "ollama/qwen3:4b",
         VM310_GPU0,
         "Alias OpenAI-compat → VM310 qwen3:4b",
+        think=False,
     ),
     "ollama-llama31-8b": _block(
         "ollama/llama3.1:8b",
