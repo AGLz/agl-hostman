@@ -1,12 +1,27 @@
 #!/usr/bin/env bash
 # Gera token aglsrv5e via CT117 (AGLSRV1) e instala no CT575 cloudflared6.
+# Token nunca passa na linha de comando remota — só via ficheiro temp + pct push.
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib-cloudflared-envfile-install.sh
+source "${SCRIPT_DIR}/lib-cloudflared-envfile-install.sh"
 
 AGLSRV1="${AGLSRV1:-root@100.107.113.33}"
 FGSRV7="${FGSRV7:-root@100.109.181.93}"
 CT117=117
 TUNNEL_ID="${AGLSRV5E_TUNNEL_ID:-863fd93d-73c5-4c3e-90b5-7cbd37643f70}"
 VMID=575
+
+LOCAL_ENV="$(mktemp)"
+REMOTE_ENV="/root/cloudflared575-token.$$.env"
+REMOTE_LIB="/root/lib-cloudflared-envfile-install.$$.sh"
+
+cleanup() {
+    rm -f "$LOCAL_ENV"
+    ssh -o BatchMode=yes "${FGSRV7}" "rm -f '${REMOTE_ENV}' '${REMOTE_LIB}'" 2>/dev/null || true
+}
+trap cleanup EXIT
 
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 
@@ -17,41 +32,24 @@ if [[ ${#TOKEN} -lt 100 ]]; then
     exit 1
 fi
 
-log "Instalar token no CT575 (via pct mount)"
-ssh -o BatchMode=yes "${FGSRV7}" bash -s <<REMOTE
+printf 'TUNNEL_TOKEN=%s\n' "$TOKEN" >"$LOCAL_ENV"
+chmod 600 "$LOCAL_ENV"
+unset TOKEN
+
+log "Copiar env + helper para FGSRV7 e instalar via pct push"
+scp -o BatchMode=yes "$LOCAL_ENV" "${FGSRV7}:${REMOTE_ENV}"
+scp -o BatchMode=yes "${SCRIPT_DIR}/lib-cloudflared-envfile-install.sh" "${FGSRV7}:${REMOTE_LIB}"
+
+ssh -o BatchMode=yes "${FGSRV7}" bash -s -- "$VMID" "$REMOTE_ENV" "$REMOTE_LIB" <<'REMOTE'
 set -euo pipefail
-printf 'TUNNEL_TOKEN=%s\n' '${TOKEN}' > /tmp/cloudflared575.env
-chmod 600 /tmp/cloudflared575.env
-pct status ${VMID} | grep -qi running || pct start ${VMID}
-sleep 2
-pct mount ${VMID}
-mnt="/var/lib/lxc/${VMID}/rootfs"
-mkdir -p "\${mnt}/etc/default" "\${mnt}/etc/systemd/system"
-install -m 600 /tmp/cloudflared575.env "\${mnt}/etc/default/cloudflared"
-cat > "\${mnt}/etc/systemd/system/cloudflared.service" <<'UNIT'
-[Unit]
-Description=cloudflared tunnel aglsrv5e (FGSRV7)
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-EnvironmentFile=/etc/default/cloudflared
-ExecStart=/usr/bin/cloudflared tunnel run
-Restart=on-failure
-RestartSec=5s
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-chown 100000:100000 "\${mnt}/etc/default/cloudflared" "\${mnt}/etc/systemd/system/cloudflared.service"
-pct unmount ${VMID}
-pct exec ${VMID} -- systemctl daemon-reload
-pct exec ${VMID} -- systemctl enable cloudflared
-pct exec ${VMID} -- systemctl restart cloudflared
-sleep 5
-pct exec ${VMID} -- systemctl is-active cloudflared
-pct exec ${VMID} -- journalctl -u cloudflared -n 3 --no-pager | grep -E 'Registered|ERR|invalid' || true
+VMID="$1"
+REMOTE_ENV="$2"
+REMOTE_LIB="$3"
+# shellcheck source=/dev/null
+source "$REMOTE_LIB"
+cloudflared_install_from_envfile "$VMID" "$REMOTE_ENV" "cloudflared tunnel aglsrv5e (FGSRV7)"
+rm -f "$REMOTE_ENV" "$REMOTE_LIB"
+cloudflared_verify_active "$VMID"
 REMOTE
 
-log "Concluído — validar: pct exec 575 -- journalctl -u cloudflared -n 5"
+log "Concluído — validar: ssh ${FGSRV7} pct exec ${VMID} -- journalctl -u cloudflared -n 5"

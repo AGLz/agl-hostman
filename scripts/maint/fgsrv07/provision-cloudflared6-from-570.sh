@@ -17,6 +17,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib-cloudflared-envfile-install.sh
+source "${SCRIPT_DIR}/lib-cloudflared-envfile-install.sh"
+
 SOURCE_VMID="${SOURCE_VMID:-570}"
 NEW_VMID="${NEW_VMID:-575}"
 NEW_HOSTNAME="${NEW_HOSTNAME:-cloudflared6}"
@@ -88,8 +92,14 @@ fi
 echo "==> Remover credenciais/config do túnel fgsrv7"
 pct exec "${NEW_VMID}" -- bash -c 'rm -f /etc/cloudflared/*.json /etc/cloudflared/config.yml /etc/default/cloudflared 2>/dev/null; rm -rf /etc/systemd/system/cloudflared.service.d 2>/dev/null; systemctl daemon-reload 2>/dev/null || true'
 
-echo "==> cloudflared service install (token aglsrv5e)"
-pct exec "${NEW_VMID}" -- bash -c "cloudflared service install $(printf %q "${CF_TUNNEL_TOKEN}")"
+ENV_TMP="$(mktemp)"
+trap 'rm -f "$ENV_TMP"' EXIT
+printf 'TUNNEL_TOKEN=%s\n' "${CF_TUNNEL_TOKEN}" >"$ENV_TMP"
+chmod 600 "$ENV_TMP"
+unset CF_TUNNEL_TOKEN
+
+echo "==> Instalar cloudflared (EnvironmentFile + pct push — sem token em ps)"
+cloudflared_install_from_envfile "${NEW_VMID}" "$ENV_TMP" "cloudflared tunnel aglsrv5e (FGSRV7)"
 
 echo "==> Estado do serviço (não activar cutover até ingress actualizado)"
 pct exec "${NEW_VMID}" -- systemctl --no-pager --full status cloudflared || true
