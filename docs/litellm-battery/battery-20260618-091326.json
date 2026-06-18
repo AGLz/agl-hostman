@@ -1,0 +1,356 @@
+{
+  "gateway": "http://100.125.249.8:4000",
+  "tier": "full",
+  "concurrency": 2,
+  "startedAt": "2026-06-18T09:13:26.297Z",
+  "manifest": "/mnt/overpower/apps/dev/agl/agl-hostman/scripts/litellm/litellm-battery-manifest.json",
+  "modelsPlanned": 9,
+  "health": {
+    "http": 401,
+    "ms": 73,
+    "ok": false,
+    "error": null
+  },
+  "readiness": {
+    "http": 200,
+    "ms": 33,
+    "ok": true,
+    "error": null
+  },
+  "modelList": {
+    "http": 200,
+    "ms": 31,
+    "count": 86,
+    "ok": true,
+    "error": null
+  },
+  "contextStats": null,
+  "chats": [
+    {
+      "id": "agl-primary",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 200,
+      "ms": 717,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 3,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 3,
+          "total_tokens": 31
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-0b053fe7-155d-446a-9ac2-c7733fb5eea9\",\"created\":1781774007,\"model\":\"agl-primary\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\\n\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":28,\"total_tokens\":31}}",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "agl-primary"
+    },
+    {
+      "id": "agl-primary-strong",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 180,
+      "httpStatus": 200,
+      "ms": 706,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 34,
+          "completion_tokens": 2,
+          "total_tokens": 36
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-38008555-963e-4638-a66d-6c640055ed75\",\"created\":1781774007,\"model\":\"agl-primary-strong\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":34,\"total_tokens\":36}}",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "agl-primary-strong"
+    },
+    {
+      "id": "ollama-qwen3-4b",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 200,
+      "ms": 56712,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 229,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 48,
+          "total_tokens": 76
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-c81b68c6-0f29-4150-b361-1db6c22e1e76\",\"created\":1781774063,\"model\":\"ollama-qwen3-4b\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Okay, the user wants me to respond only with the word \\\"OK\\\" without any punctuation or explanation. Let me check the instructions again.\\n\\nThey said \\\"Responde apenas com a palavra OK, sem pontuação nem ",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "ollama-qwen3-4b"
+    },
+    {
+      "id": "openai/ollama-qwen3-4b",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 200,
+      "ms": 56735,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 224,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 48,
+          "total_tokens": 76
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-5c6298a3-de89-4a44-b14a-b0612a648415\",\"created\":1781774063,\"model\":\"openai/ollama-qwen3-4b\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Okay, the user wants me to respond with just \\\"OK\\\" without any punctuation or explanation. Let me check the instructions again. They said \\\"Responde apenas com a palavra OK, sem pontuação nem expli",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "openai/ollama-qwen3-4b"
+    },
+    {
+      "id": "ollama-qwen3-8b",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 180,
+      "httpStatus": 200,
+      "ms": 1761,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 34,
+          "completion_tokens": 2,
+          "total_tokens": 36
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-56e39b99-496a-4e93-bf9c-87ce9ff44b9d\",\"created\":1781774065,\"model\":\"ollama-qwen3-8b\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":34,\"total_tokens\":36}}",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "ollama-qwen3-8b"
+    },
+    {
+      "id": "ollama-qwen3-4b-fast",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 200,
+      "ms": 1527,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 224,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 48,
+          "total_tokens": 76
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-bd215c5d-a099-4e17-b5e6-533825f52ccb\",\"created\":1781774065,\"model\":\"ollama-qwen3-4b-fast\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Okay, the user wants me to respond with just \\\"OK\\\" without any punctuation or explanation. Let me check the instructions again.\\n\\nThey said: \\\"Responde apenas com a palavra OK, sem pontuação nem exp",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "ollama-qwen3-4b-fast"
+    },
+    {
+      "id": "ollama-llama31-8b",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 180,
+      "httpStatus": 200,
+      "ms": 56735,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 2,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 2,
+          "total_tokens": 30
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-ac2154c5-c17a-46c1-8fef-275385407b07\",\"created\":1781774122,\"model\":\"ollama-llama31-8b\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":28,\"total_tokens\":30}}",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "ollama-llama31-8b"
+    },
+    {
+      "id": "ollama-gemma3-4b",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 0,
+      "ms": 120001,
+      "listed": true,
+      "analysis": {
+        "ok": false,
+        "contentLength": 0,
+        "usage": null,
+        "finishReason": null,
+        "errorMessage": "timeout",
+        "hasChoices": false,
+        "hadReasoning": false
+      },
+      "rawSnippet": "",
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "id": "ollama-gemma4-qat",
+      "provider": "ollama",
+      "optional": true,
+      "expectUsage": false,
+      "maxTokens": 48,
+      "timeoutSec": 120,
+      "httpStatus": 200,
+      "ms": 80954,
+      "listed": true,
+      "analysis": {
+        "ok": true,
+        "contentLength": 3,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 3,
+          "total_tokens": 31
+        },
+        "finishReason": "stop",
+        "errorMessage": null,
+        "hasChoices": true,
+        "hadReasoning": false
+      },
+      "rawSnippet": "{\"id\":\"chatcmpl-113b191e-1c22-41c4-aa7e-831d311e6c6b\",\"created\":1781774203,\"model\":\"ollama-gemma4-qat\",\"object\":\"chat.completion\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"OK\\n\",\"role\":\"assistant\"}}],\"usage\":{\"completion_tokens\":3,\"prompt_tokens\":28,\"total_tokens\":31}}",
+      "ok": true,
+      "softWarn": false,
+      "modelReturned": "ollama-gemma4-qat"
+    }
+  ],
+  "summary": {
+    "pass": 8,
+    "fail": 0,
+    "warn": 1
+  },
+  "responseTimes": [
+    {
+      "modelId": "agl-primary",
+      "provider": "ollama",
+      "latencyMs": 717,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "agl-primary-strong",
+      "provider": "ollama",
+      "latencyMs": 706,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "ollama-qwen3-4b",
+      "provider": "ollama",
+      "latencyMs": 56712,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "openai/ollama-qwen3-4b",
+      "provider": "ollama",
+      "latencyMs": 56735,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "ollama-qwen3-8b",
+      "provider": "ollama",
+      "latencyMs": 1761,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "ollama-qwen3-4b-fast",
+      "provider": "ollama",
+      "latencyMs": 1527,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "ollama-llama31-8b",
+      "provider": "ollama",
+      "latencyMs": 56735,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    },
+    {
+      "modelId": "ollama-gemma3-4b",
+      "provider": "ollama",
+      "latencyMs": 120001,
+      "httpStatus": 0,
+      "ok": true,
+      "softWarn": true
+    },
+    {
+      "modelId": "ollama-gemma4-qat",
+      "provider": "ollama",
+      "latencyMs": 80954,
+      "httpStatus": 200,
+      "ok": true,
+      "softWarn": false
+    }
+  ]
+}

@@ -134,7 +134,7 @@ def patch_config(text: str) -> str:
         "# Fallbacks: Groq / Z.AI / OpenRouter após falha local. Ver docs/AGL-OLLAMA-VM310.md\n"
     )
     if text.startswith("#"):
-        text = re.sub(r"^#.*\n", header, text, count=1)
+        text = re.sub(r"^(?:#.*\n)+", header, text, count=1)
     else:
         text = header + text
     return text
