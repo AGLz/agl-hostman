@@ -72,7 +72,7 @@ cfg = {
         "backup": {"enabled": True, "keep": 5},
     },
     "terminal": {"env_passthrough": ["WIKI_PATH"]},
-    "approvals": {"mode": "auto", "cron_mode": "allow"},
+    "approvals": {"mode": "off", "cron_mode": "approve"},
     "cron": {"wrap_response": True},
     "_config_version": 24,
 }

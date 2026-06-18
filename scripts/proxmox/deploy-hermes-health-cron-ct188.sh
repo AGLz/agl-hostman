@@ -49,14 +49,14 @@ else:
 print(f"OK removido job LLM antigo ({old_id}), restam {len(new_jobs)} jobs")
 PY
 chown "${HERMES_UID}:${HERMES_GID}" "${HERMES_ROOT}/data/cron/jobs.json" 2>/dev/null || true
-chmod 640 "${HERMES_ROOT}/data/cron/jobs.json" 2>/dev/null || true
+chmod 644 "${HERMES_ROOT}/data/cron/jobs.json" 2>/dev/null || true
 
-docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" \
+docker exec -u hermes -e HERMES_HOME=/opt/data "${CONTAINER}" \
   /opt/hermes/.venv/bin/hermes cron list 2>/dev/null | grep -q "${JOB_NAME}" && \
-  docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" \
+  docker exec -u hermes -e HERMES_HOME=/opt/data "${CONTAINER}" \
     /opt/hermes/.venv/bin/hermes cron remove "${JOB_NAME}" 2>/dev/null || true
 
-docker exec -e HERMES_HOME=/opt/data -e HERMES_ACCEPT_HOOKS=1 "${CONTAINER}" \
+docker exec -u hermes -e HERMES_HOME=/opt/data -e HERMES_ACCEPT_HOOKS=1 "${CONTAINER}" \
   /opt/hermes/.venv/bin/hermes cron create \
   --name "${JOB_NAME}" \
   --no-agent \
@@ -70,10 +70,10 @@ chmod 640 "${HERMES_ROOT}/data/cron/jobs.json" 2>/dev/null || true
 docker restart "${CONTAINER}"
 sleep 20
 
-docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" /opt/hermes/.venv/bin/hermes cron list
+docker exec -u hermes -e HERMES_HOME=/opt/data "${CONTAINER}" /opt/hermes/.venv/bin/hermes cron list
 
 if [[ "${TEST_RUN}" == "--test-run" ]]; then
-  docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" \
+  docker exec -u hermes -e HERMES_HOME=/opt/data "${CONTAINER}" \
     /opt/hermes/.venv/bin/hermes cron run "${JOB_NAME}" || true
 fi
 

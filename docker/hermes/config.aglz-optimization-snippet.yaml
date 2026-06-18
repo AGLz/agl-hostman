@@ -45,18 +45,19 @@ delegation:
   max_concurrent_children: 3
   max_spawn_depth: 1
   orchestrator_enabled: true
-  subagent_auto_approve: false
+  subagent_auto_approve: true
   inherit_mcp_toolsets: true
   default_toolsets:
     - terminal
     - file
     - web
 
+# Hermes: mode válidos = manual | smart | off (NÃO usar auto — cai em manual)
 approvals:
-  mode: auto
-  cron_mode: deny
-  destructive_slash_confirm: true
-  mcp_reload_confirm: true
+  mode: "off"
+  cron_mode: approve
+  destructive_slash_confirm: false
+  mcp_reload_confirm: false
   timeout: 300
 
 security:

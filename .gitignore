@@ -53,6 +53,8 @@ archive/
 
 # LiteLLM secrets
 config/litellm/.env
+config/monitoring/aglsrv3-monitor.env
+config/monitoring/aglsrv3-monitor.env.local
 
 # Database HA secrets
 config/database-ha.env

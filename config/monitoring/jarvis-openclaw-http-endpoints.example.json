@@ -31,6 +31,14 @@
       "primary": "http://100.94.221.87:4000/health/readiness",
       "fallbacks": ["http://192.168.0.179:4000/health/readiness"],
       "notes": "DESCONTINUADO CT179 (2026-06-05): stack removida; porta 4000 inactiva. Usar cutoverDedicatedLxc → litellm-ct186-lan (http://192.168.0.186:4000/health/readiness) ou TS http://100.125.249.8:4000/health/readiness."
+    },
+    {
+      "id": "man3-aglsrv3",
+      "name": "man3.aglz.io",
+      "hostRole": "Cloudflare tunnel AGLSRV3 CT304/306",
+      "primary": "https://man3.aglz.io/",
+      "fallbacks": [],
+      "notes": "GET HTTP 200. Monitor cron: scripts/monitoring/aglsrv3-health-check.sh (agldv03)."
     }
   ],
   "cutoverDedicatedLxc": {

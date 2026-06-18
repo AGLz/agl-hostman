@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "updated": "2026-06-17",
+  "description": "Alvos para scripts/monitoring/aglsrv3-health-check.sh — host AGLFG remoto.",
+  "host": {
+    "name": "aglsrv3",
+    "tailscale": "100.123.5.81",
+    "lan": "192.168.15.247",
+    "ssh": "root@100.123.5.81"
+  },
+  "antiFlapping": {
+    "consecutiveFailuresBeforeAlert": 2,
+    "minMinutesBetweenRepeatAlert": 30,
+    "stateDir": "/var/lib/agl-hostman/aglsrv3-monitor"
+  },
+  "containers": [
+    { "vmid": 304, "name": "cloudflared3a", "systemd": "cloudflared" },
+    { "vmid": 306, "name": "cloudflared3b", "systemd": "cloudflared" },
+    { "vmid": 317, "name": "pihole3", "systemd": "pihole-FTL" },
+    { "vmid": 318, "name": "aglsrv3-pbs" },
+    { "vmid": 338, "name": "aglfs3" }
+  ],
+  "vms": [{ "vmid": 310, "name": "agl-ollama", "expect": "running" }],
+  "http": [
+    {
+      "id": "man3-public",
+      "name": "man3.aglz.io",
+      "url": "https://man3.aglz.io/",
+      "method": "GET",
+      "expect_code": 200,
+      "severity": "critical"
+    }
+  ],
+  "ollama": {
+    "tailscale_api": "http://100.67.253.52:11434",
+    "expected_models": ["gemma4-qat:latest"]
+  },
+  "zfs": {
+    "pool": "aglsrv3-tb",
+    "warn_capacity_pct": 85
+  },
+  "storage": {
+    "local_lvm_warn_pct": 85
+  },
+  "dns": {
+    "server": "192.168.15.117",
+    "query": "google.com",
+    "record_type": "A"
+  }
+}

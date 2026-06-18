@@ -18,8 +18,9 @@ INSTALL_CRON="${1:-}"
 fix_once() {
   install -d -m 700 -o "${HERMES_UID}" -g "${HERMES_GID}" "${CRON_DIR}"
   if [[ -f "${JOBS_FILE}" ]]; then
-    chown "${HERMES_UID}:${HERMES_GID}" "${JOBS_FILE}"
-    chmod 640 "${JOBS_FILE}"
+    chown "${HERMES_UID}:${HERMES_GID}" "${JOBS_FILE}" 2>/dev/null || true
+    # Gateway hermes (UID 10000) precisa ler; o scheduler às vezes regrava como root:600
+    chmod 644 "${JOBS_FILE}"
   fi
   if [[ -d "${CRON_DIR}/output" ]]; then
     chown -R "${HERMES_UID}:${HERMES_GID}" "${CRON_DIR}/output"
@@ -39,12 +40,8 @@ fix_once
 
 if [[ "${INSTALL_CRON}" == "--install-cron" ]]; then
   SCRIPT_PATH="$(readlink -f "$0")"
-  LINE="*/15 * * * * root ${SCRIPT_PATH} >/var/log/hermes-cron-perms.log 2>&1"
-  if ! grep -qF "${SCRIPT_PATH}" /etc/cron.d/hermes-cron-perms 2>/dev/null; then
-    printf '%s\n' "${LINE}" > /etc/cron.d/hermes-cron-perms
-    chmod 644 /etc/cron.d/hermes-cron-perms
-    echo "OK instalado /etc/cron.d/hermes-cron-perms (cada 15 min)"
-  else
-    echo "OK cron.d já instalado"
-  fi
+  LINE="* * * * * root ${SCRIPT_PATH} >/var/log/hermes-cron-perms.log 2>&1"
+  printf '%s\n' "${LINE}" > /etc/cron.d/hermes-cron-perms
+  chmod 644 /etc/cron.d/hermes-cron-perms
+  echo "OK instalado /etc/cron.d/hermes-cron-perms (cada minuto)"
 fi

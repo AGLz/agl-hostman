@@ -27,9 +27,9 @@ for j in jobs:
     prompt = re.sub(r"(?im)^Model:.*$", "Model: agl-primary", prompt)
     prompt = re.sub(r"(?im)^Usar toolsets:.*$", "Usar toolsets: terminal", prompt)
     if "Resposta curta" not in prompt:
-        prompt = prompt.rstrip() + "\n\nResposta curta (máx 1500 caracteres). Sem toolsets pesados.\n"
+        prompt = prompt.rstrip() + "\n\n[SEM FERRAMENTAS] Resposta só texto pt-BR (máx 1200 chars). NÃO usar terminal/tools.\n"
     j["prompt"] = prompt
-    j["enabled_toolsets"] = ["terminal"]
+    j["enabled_toolsets"] = []
 
 if isinstance(data, list):
     path.write_text(json.dumps(jobs, indent=2))
@@ -40,7 +40,7 @@ print(f"OK {len(jobs)} jobs LLM → agl-primary")
 PY
 
 chown "${HERMES_UID}:${HERMES_UID}" "${JOBS}" 2>/dev/null || true
-chmod 640 "${JOBS}"
+chmod 644 "${JOBS}"
 
 docker restart agl-hermes-jarvis
 sleep 15
