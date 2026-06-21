@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\DailyMemoryApiController;
-use App\Http\Controllers\Auth\WorkOSController;
 use App\Http\Controllers\N8NController;
 use App\Http\Controllers\WebhookController;
 use Illuminate\Http\Request;
@@ -26,6 +25,7 @@ Route::prefix('daily-memory')->group(function () {
 });
 
 require __DIR__ . '/api/hermes.php';
+require __DIR__ . '/api/harness.php';
 require __DIR__ . '/api/openclaw.php';
 
 // N8N Integration routes

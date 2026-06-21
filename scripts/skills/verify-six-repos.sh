@@ -191,6 +191,71 @@ else
 fi
 
 echo ""
+echo "-- 7b. harness-router (agl-* skills) --"
+for hs in agl-harness-router agl-claude-code-agent agl-cursor-agent agl-verdent-agent agl-ruflo-orchestrator; do
+  check_skill "${hs} (hostman)" "$HOSTMAN_ROOT/.claude/skills/${hs}"
+done
+check_skill "agl-harness-router (claude global)" "$HOME/.claude/skills/agl-harness-router"
+check_skill "agl-cursor-agent (hostman-cursor)" "$HOSTMAN_ROOT/.cursor/skills/agl-cursor-agent"
+if [[ -x "$HOSTMAN_ROOT/scripts/agl/sync-harness-skills.sh" ]]; then
+  pass "sync-harness-skills.sh executável"
+else
+  warn "sync-harness-skills.sh em falta"
+fi
+for envf in claude-max.env.example litellm-default.env.example litellm-free.env.example cursor-pro.env.example; do
+  if [[ -f "$HOSTMAN_ROOT/config/harness/${envf}" ]]; then
+    pass "config/harness/${envf}"
+  else
+    warn "config/harness/${envf} em falta"
+  fi
+done
+if [[ -x "$HOSTMAN_ROOT/scripts/agl/harness-dispatch.sh" ]]; then
+  pass "harness-dispatch.sh executável"
+else
+  warn "harness-dispatch.sh em falta ou não executável"
+fi
+if [[ -x "$HOSTMAN_ROOT/scripts/litellm/quota-governor.sh" ]]; then
+  pass "quota-governor.sh executável"
+else
+  warn "quota-governor.sh em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/config/litellm/virtual-keys-manifest.example.json" ]]; then
+  pass "virtual-keys-manifest.example.json"
+else
+  warn "virtual-keys-manifest.example.json em falta"
+fi
+if [[ -x "$HOSTMAN_ROOT/scripts/agl/agent-os-ruflo-dispatch.sh" ]]; then
+  pass "agent-os-ruflo-dispatch.sh executável"
+else
+  warn "agent-os-ruflo-dispatch.sh em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/config/ruflo/agent-os-swarm.yml" ]]; then
+  pass "config/ruflo/agent-os-swarm.yml"
+else
+  warn "agent-os-swarm.yml em falta"
+fi
+if [[ -x "$HOSTMAN_ROOT/scripts/agl/export-harness-snapshot.sh" ]]; then
+  pass "export-harness-snapshot.sh executável"
+else
+  warn "export-harness-snapshot.sh em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/src/routes/api/harness.php" ]]; then
+  pass "API route src/routes/api/harness.php"
+else
+  warn "API harness.php em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/config/monitoring/quota-governor-state.example.json" ]]; then
+  pass "quota-governor-state.example.json"
+else
+  warn "quota-governor-state.example.json em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/src/resources/js/pages/MissionControlHarness.jsx" ]]; then
+  pass "Mission Control Harness UI"
+else
+  warn "MissionControlHarness.jsx em falta"
+fi
+
+echo ""
 echo "-- 8. llm-wiki segundo cérebro (agl-hostman Cursor) --"
 if [[ -f "$HOSTMAN_ROOT/.cursor/rules/llm-wiki-second-brain.mdc" ]]; then
   pass "agl-hostman .cursor/rules/llm-wiki-second-brain.mdc"

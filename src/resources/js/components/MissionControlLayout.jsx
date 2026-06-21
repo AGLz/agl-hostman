@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
     LayoutDashboard,
     Kanban,
@@ -23,45 +23,75 @@ import {
     Monitor,
     ChevronDown,
     ExternalLink,
+    Route,
     Building2,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 // Main navigation sections
 const navSections = [
     {
-        label: 'Dashboards',
+        label: "Dashboards",
         items: [
-            { name: 'Mission Control', href: '/mission-control', icon: LayoutDashboard },
-            { name: 'Infrastructure', href: '/infrastructure', icon: Server },
-            { name: 'Dokploy', href: '/dokploy', icon: Monitor },
-            { name: 'AI Command', href: '/archon', icon: Brain },
-            { name: 'Monitoring', href: '/monitoring', icon: Activity },
-            { name: 'RBAC', href: '/admin/roles', icon: Shield },
+            {
+                name: "Mission Control",
+                href: "/mission-control",
+                icon: LayoutDashboard,
+            },
+            { name: "Infrastructure", href: "/infrastructure", icon: Server },
+            { name: "Dokploy", href: "/dokploy", icon: Monitor },
+            { name: "AI Command", href: "/archon", icon: Brain },
+            { name: "Monitoring", href: "/monitoring", icon: Activity },
+            { name: "RBAC", href: "/admin/roles", icon: Shield },
         ],
     },
     {
-        label: 'Mission Control',
+        label: "Mission Control",
         items: [
-            { name: 'Minions Kanban', href: '/mission-control/minions', icon: Kanban },
-            { name: 'Claw3D Studio', href: '/mission-control/studio', icon: Brain },
-            { name: 'AI Team', href: '/mission-control/team', icon: Users },
-            { name: 'Teams', href: '/mission-control/teams', icon: Building2 },
-            { name: 'Memory', href: '/mission-control/memory', icon: Database },
-            { name: 'Calendar', href: '/mission-control/calendar', icon: Calendar },
-            { name: 'Contacts', href: '/mission-control/contacts', icon: BookOpen },
-            { name: 'Settings', href: '/mission-control/settings', icon: Settings },
+            {
+                name: "Minions Kanban",
+                href: "/mission-control/minions",
+                icon: Kanban,
+            },
+            {
+                name: "Harness Router",
+                href: "/mission-control/harness",
+                icon: Route,
+            },
+            {
+                name: "Claw3D Studio",
+                href: "/mission-control/studio",
+                icon: Brain,
+            },
+            { name: "AI Team", href: "/mission-control/team", icon: Users },
+            { name: "Teams", href: "/mission-control/teams", icon: Building2 },
+            { name: "Memory", href: "/mission-control/memory", icon: Database },
+            {
+                name: "Calendar",
+                href: "/mission-control/calendar",
+                icon: Calendar,
+            },
+            {
+                name: "Contacts",
+                href: "/mission-control/contacts",
+                icon: BookOpen,
+            },
+            {
+                name: "Settings",
+                href: "/mission-control/settings",
+                icon: Settings,
+            },
         ],
     },
 ];
@@ -73,49 +103,56 @@ export default function MissionControlLayout({ children }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
-        fetch('/api/user')
-            .then(res => {
+        fetch("/api/user")
+            .then((res) => {
                 if (res.status === 401) {
-                    window.location.href = '/auth/login';
+                    window.location.href = "/auth/login";
                     return null;
                 }
                 return res.json();
             })
-            .then(data => {
+            .then((data) => {
                 if (data) setUser(data);
             })
-            .catch(err => console.error('Failed to fetch user:', err));
+            .catch((err) => console.error("Failed to fetch user:", err));
 
         // Fetch agent status
-        fetch('/api/agent-status')
-            .then(res => res.json())
-            .then(data => setAgentStatus(data))
+        fetch("/api/agent-status")
+            .then((res) => res.json())
+            .then((data) => setAgentStatus(data))
             .catch(() => setAgentStatus({ active: 0, total: 0 }));
     }, []);
 
     const isActive = (path) => {
-        if (path === '/mission-control') return location.pathname === '/mission-control';
+        if (path === "/mission-control")
+            return location.pathname === "/mission-control";
         return location.pathname.startsWith(path);
     };
 
     // Check if any nav item is active
     const isNavActive = (href) => {
-        if (href === '/mission-control') return location.pathname === '/mission-control';
-        return location.pathname === href || (href !== '/' && location.pathname.startsWith(href));
+        if (href === "/mission-control")
+            return location.pathname === "/mission-control";
+        return (
+            location.pathname === href ||
+            (href !== "/" && location.pathname.startsWith(href))
+        );
     };
 
     const handleLogout = async () => {
         try {
-            await fetch('/auth/logout', {
-                method: 'POST',
+            await fetch("/auth/logout", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN":
+                        document.querySelector('meta[name="csrf-token"]')
+                            ?.content || "",
                 },
             });
-            window.location.href = '/auth/login';
+            window.location.href = "/auth/login";
         } catch (error) {
-            console.error('Logout failed:', error);
+            console.error("Logout failed:", error);
         }
     };
 
@@ -129,8 +166,12 @@ export default function MissionControlLayout({ children }) {
                         <Zap className="text-white w-4 h-4" />
                     </div>
                     <div>
-                        <span className="font-bold text-sm tracking-tight">Mission Control</span>
-                        <p className="text-[10px] text-white/40 -mt-1">AGL Infrastructure</p>
+                        <span className="font-bold text-sm tracking-tight">
+                            Mission Control
+                        </span>
+                        <p className="text-[10px] text-white/40 -mt-1">
+                            AGL Infrastructure
+                        </p>
                     </div>
                 </div>
 
@@ -138,17 +179,24 @@ export default function MissionControlLayout({ children }) {
                 <div className="px-4 py-3 border-b border-white/5">
                     <div className="flex items-center justify-between text-xs">
                         <span className="text-white/50">Agents</span>
-                        <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-none text-[10px]">
+                        <Badge
+                            variant="secondary"
+                            className="bg-green-500/10 text-green-400 border-none text-[10px]"
+                        >
                             {agentStatus.active}/{agentStatus.total} active
                         </Badge>
                     </div>
                     <div className="mt-2 flex gap-1">
-                        {Array.from({ length: Math.min(agentStatus.total, 12) }).map((_, i) => (
+                        {Array.from({
+                            length: Math.min(agentStatus.total, 12),
+                        }).map((_, i) => (
                             <div
                                 key={i}
                                 className={cn(
                                     "h-1 flex-1 rounded-full transition-all duration-300",
-                                    i < agentStatus.active ? "bg-green-500" : "bg-white/10"
+                                    i < agentStatus.active
+                                        ? "bg-green-500"
+                                        : "bg-white/10",
                                 )}
                             />
                         ))}
@@ -171,15 +219,21 @@ export default function MissionControlLayout({ children }) {
                                             "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group text-sm font-medium",
                                             isNavActive(item.href)
                                                 ? "bg-white/10 text-white shadow-sm"
-                                                : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                                                : "text-white/50 hover:bg-white/5 hover:text-white/80",
                                         )}
                                     >
-                                        <item.icon className={cn(
-                                            "w-4 h-4",
-                                            isNavActive(item.href) ? "text-white" : "group-hover:text-white/80"
-                                        )} />
+                                        <item.icon
+                                            className={cn(
+                                                "w-4 h-4",
+                                                isNavActive(item.href)
+                                                    ? "text-white"
+                                                    : "group-hover:text-white/80",
+                                            )}
+                                        />
                                         {item.name}
-                                        {isNavActive(item.href) && <ChevronRight className="ml-auto w-3 h-3 text-white/40" />}
+                                        {isNavActive(item.href) && (
+                                            <ChevronRight className="ml-auto w-3 h-3 text-white/40" />
+                                        )}
                                     </Link>
                                 ))}
                             </div>
@@ -192,12 +246,16 @@ export default function MissionControlLayout({ children }) {
                     <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8 border border-white/10">
                             <AvatarFallback className="bg-white/10 text-white/60 text-xs">
-                                {user?.name?.charAt(0) || 'U'}
+                                {user?.name?.charAt(0) || "U"}
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate text-white/80">{user?.name || 'Loading...'}</p>
-                            <p className="text-[10px] text-white/40 truncate">{user?.email}</p>
+                            <p className="text-xs font-medium truncate text-white/80">
+                                {user?.name || "Loading..."}
+                            </p>
+                            <p className="text-[10px] text-white/40 truncate">
+                                {user?.email}
+                            </p>
                         </div>
                         <Button
                             variant="ghost"
@@ -219,8 +277,17 @@ export default function MissionControlLayout({ children }) {
                     </div>
                     <span className="font-bold text-sm">Mission Control</span>
                 </div>
-                <Button variant="ghost" size="icon" className="text-white/60" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                    {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white/60"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                    {isMobileMenuOpen ? (
+                        <X className="w-5 h-5" />
+                    ) : (
+                        <Menu className="w-5 h-5" />
+                    )}
                 </Button>
             </header>
 
@@ -238,12 +305,14 @@ export default function MissionControlLayout({ children }) {
                                         <Link
                                             key={item.name}
                                             to={item.href}
-                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setIsMobileMenuOpen(false)
+                                            }
                                             className={cn(
                                                 "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium",
                                                 isNavActive(item.href)
                                                     ? "bg-white/10 text-white"
-                                                    : "text-white/50 hover:bg-white/5"
+                                                    : "text-white/50 hover:bg-white/5",
                                             )}
                                         >
                                             <item.icon className="w-5 h-5" />
@@ -263,31 +332,50 @@ export default function MissionControlLayout({ children }) {
                 <header className="hidden lg:flex items-center justify-between px-8 py-4 sticky top-0 bg-[#0a0a0f]/80 backdrop-blur-md z-30 border-b border-white/5">
                     <div className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-green-400" />
-                        <span className="text-sm text-white/60">All systems operational</span>
+                        <span className="text-sm text-white/60">
+                            All systems operational
+                        </span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" className="relative text-white/60 hover:text-white">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative text-white/60 hover:text-white"
+                        >
                             <Bell className="w-4 h-4" />
                             <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="flex items-center gap-2 text-white/80 hover:text-white">
+                                <Button
+                                    variant="ghost"
+                                    className="flex items-center gap-2 text-white/80 hover:text-white"
+                                >
                                     <Avatar className="w-7 h-7 border border-white/10">
                                         <AvatarFallback className="bg-white/10 text-white/60 text-xs">
-                                            {user?.name?.charAt(0) || 'U'}
+                                            {user?.name?.charAt(0) || "U"}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <span className="text-sm">{user?.name?.split(' ')[0]}</span>
+                                    <span className="text-sm">
+                                        {user?.name?.split(" ")[0]}
+                                    </span>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-[#1a1a24] border-white/10">
+                            <DropdownMenuContent
+                                align="end"
+                                className="bg-[#1a1a24] border-white/10"
+                            >
                                 <DropdownMenuLabel className="text-white/80">
                                     {user?.name}
-                                    <p className="text-xs text-white/40 font-normal">{user?.email}</p>
+                                    <p className="text-xs text-white/40 font-normal">
+                                        {user?.email}
+                                    </p>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator className="bg-white/10" />
-                                <DropdownMenuItem className="text-white/60" onClick={handleLogout}>
+                                <DropdownMenuItem
+                                    className="text-white/60"
+                                    onClick={handleLogout}
+                                >
                                     <LogOut className="w-3.5 h-3.5 mr-2" />
                                     Sign out
                                 </DropdownMenuItem>

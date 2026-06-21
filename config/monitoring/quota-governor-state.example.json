@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-06-20T12:00:00Z",
+  "gateway": "http://100.125.249.8:4000",
+  "gateway_ok": true,
+  "action": "ok",
+  "reason": "Exemplo Mission Control — substituir por quota-governor.sh",
+  "global_spend": "42.50",
+  "hermes_applied": false,
+  "hermes_tier": "paid",
+  "tiers": {
+    "T3": {
+      "ok": 2,
+      "quota": 0,
+      "fail": 1,
+      "detail": "zai-glm-5:OK,gpt-5.4-mini:OK,claude-haiku:FAIL:401"
+    },
+    "T4": {
+      "ok": 1,
+      "quota": 0,
+      "fail": 1,
+      "detail": "agl-primary:OK,agl-primary-vm110:FAIL:000"
+    },
+    "T5": {
+      "ok": 2,
+      "quota": 0,
+      "fail": 0,
+      "detail": "glm-4.7-flash:OK,groq-llama-31-8b:OK"
+    }
+  }
+}

@@ -20,6 +20,18 @@
 
 **Nota:** subscrições **Cursor Pro**, **Claude Max**, **ChatGPT Plus** não substituem API keys — o LiteLLM consome **billing das plataformas API** (Anthropic/OpenAI/Z.AI/etc.).
 
+## Matriz harness ↔ virtual key (CT186)
+
+| Harness / consumidor | Team LiteLLM           | Key alias                  | Env local harness                    |
+| -------------------- | ---------------------- | -------------------------- | ------------------------------------ |
+| Cursor Ask/Plan      | `team-cursor`          | `team-cursor-key`          | `config/harness/litellm-default.env` |
+| Claude Code fallback | `team-claude-fallback` | `team-claude-fallback-key` | `config/harness/litellm-default.env` |
+| Verdent              | `team-verdent`         | `team-verdent-key`         | `config/harness/litellm-default.env` |
+| Hermes CT188         | `team-hermes`          | `team-hermes-key`          | crons / `apply-agent-model-tier.sh`  |
+| Burst / governor     | —                      | master ou free aliases     | `config/harness/litellm-free.env`    |
+
+Manifest: `config/litellm/virtual-keys-manifest.example.json` · provision: `bash scripts/litellm/provision-virtual-keys.sh --dry-run` · governor: `bash scripts/litellm/quota-governor.sh --dry-run --skip-probe`
+
 ## Tiers de modelos
 
 ### Local (hardware AGL — VM310 AGLSRV3, 2× RX580 16 GB VRAM, TS `100.67.253.52:11434`)
@@ -162,6 +174,7 @@ Detalhe: [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 ## Referências
 
 - [`docs/CURSOR-LITELLM-INTEGRATION.md`](CURSOR-LITELLM-INTEGRATION.md)
+- [`docs/HARNESS-ROUTER.md`](HARNESS-ROUTER.md) — matriz harness ↔ virtual key team
 - [`docs/AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 - [`docs/LITELLM-MULTI-HOST-DEPLOYMENT.md`](LITELLM-MULTI-HOST-DEPLOYMENT.md)
 - [`docs/PROVIDERS-MULTIAGENT-2026.md`](PROVIDERS-MULTIAGENT-2026.md)
