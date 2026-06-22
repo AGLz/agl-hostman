@@ -46,7 +46,7 @@ load_env() {
     source "$gov_file"
     set +a
   fi
-  if [[ -f "$ENV_FILE" ]]; then
+  if [[ -f "$ENV_FILE" && -z "${LITELLM_MASTER_KEY:-}" ]]; then
     set -a
     # shellcheck source=/dev/null
     source "$ENV_FILE"

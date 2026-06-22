@@ -49,6 +49,10 @@ if [[ ! -f "$ENV_FILE" && -f "$REPO_ROOT/config/monitoring/quota-governor.env.ex
   echo "AVISO: editar $ENV_FILE (LITELLM_MASTER_KEY, GOVERNOR_*)"
 fi
 
+if [[ -x "$REPO_ROOT/scripts/agl/sync-quota-governor-env.sh" ]]; then
+  GOVERNOR_ENV_FILE="$ENV_FILE" bash "$REPO_ROOT/scripts/agl/sync-quota-governor-env.sh" || true
+fi
+
 cat >"$CRON_FILE" <<EOF
 # AGL Hostman — Harness snapshot + quota governor (Mission Control)
 # Repo: $REPO_ROOT

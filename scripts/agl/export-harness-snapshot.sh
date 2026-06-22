@@ -26,7 +26,9 @@ done
 mkdir -p "$STORAGE_DIR"
 
 if [[ "$RUN_GOVERNOR" -eq 1 ]]; then
-  GOVERNOR_STATE_FILE="$STATE_FILE" bash "$REPO_ROOT/scripts/litellm/quota-governor.sh" --json --skip-probe >/dev/null || true
+  GOVERNOR_ENV="${GOVERNOR_ENV:-/etc/agl-hostman/quota-governor.env}" \
+    GOVERNOR_STATE_FILE="$STATE_FILE" \
+    bash "$REPO_ROOT/scripts/litellm/quota-governor.sh" --json >/dev/null || true
 elif [[ ! -f "$STATE_FILE" ]]; then
   cp "$REPO_ROOT/config/monitoring/quota-governor-state.example.json" "$STATE_FILE"
   echo "[export-harness] seed example state → $STATE_FILE"
