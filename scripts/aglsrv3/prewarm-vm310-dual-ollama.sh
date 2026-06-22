@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-warm gemma4-qat (GPU0 :11434) + qwen3:8b (GPU1 :11435 só se activa).
+# Pre-warm qwen3:4b (GPU0 primário ctx-long) + gemma4-qat (fast) + qwen3:8b (GPU1 se activa).
 set -euo pipefail
 
 GPU0="${OLLAMA_GPU0:-http://100.67.253.52:11434}"
@@ -26,6 +26,7 @@ KEEP="$2"
 qm guest exec "$VMID" -- bash -lc "
 set -e
 warm() { curl -sf --max-time 300 \"\$1/api/chat\" -d \"{\\\"model\\\":\\\"\$2\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"ok\\\"}],\\\"stream\\\":false,\\\"think\\\":false,\\\"keep_alive\\\":\\\"\$3\\\",\\\"options\\\":{\\\"num_predict\\\":8}}\" >/dev/null; }
+warm http://127.0.0.1:11434 qwen3:4b '$KEEP'
 warm http://127.0.0.1:11434 gemma4-qat '$KEEP'
 if curl -sf --max-time 3 http://127.0.0.1:11435/api/tags >/dev/null 2>&1; then
   warm http://127.0.0.1:11435 qwen3:8b '$KEEP'
@@ -44,6 +45,7 @@ main() {
     warm_remote
     return
   fi
+  warm_one "$GPU0" "qwen3:4b"
   warm_one "$GPU0" "gemma4-qat"
   if curl -sf --max-time 3 "${GPU1}/api/tags" >/dev/null 2>&1; then
     warm_one "$GPU1" "qwen3:8b"

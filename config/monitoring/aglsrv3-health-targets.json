@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-06-17",
+  "updated": "2026-06-19",
   "description": "Alvos para scripts/monitoring/aglsrv3-health-check.sh — host AGLFG remoto.",
   "host": {
     "name": "aglsrv3",
@@ -18,7 +18,7 @@
     { "vmid": 306, "name": "cloudflared3b", "systemd": "cloudflared" },
     { "vmid": 317, "name": "pihole3", "systemd": "pihole-FTL" },
     { "vmid": 318, "name": "aglsrv3-pbs" },
-    { "vmid": 338, "name": "aglfs3" }
+    { "vmid": 338, "name": "aglfs3", "systemd": "smbd" }
   ],
   "vms": [{ "vmid": 310, "name": "agl-ollama", "expect": "running" }],
   "http": [
@@ -46,5 +46,8 @@
     "server": "192.168.15.117",
     "query": "google.com",
     "record_type": "A"
+  },
+  "tailscale": {
+    "aglfs3": "100.89.170.85"
   }
 }

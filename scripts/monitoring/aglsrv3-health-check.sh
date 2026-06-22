@@ -289,6 +289,14 @@ check_zfs() {
     [[ -z "$state" ]] && state="UNKNOWN"
   fi
   cap="$(ssh_run "zpool list -H -o capacity $ZFS_POOL 2>/dev/null" | tr -d '%[:space:]')"
+  if [[ "$state" == "DEGRADED" ]]; then
+    local removed
+    removed="$(ssh_run "zpool status $ZFS_POOL 2>/dev/null | grep -c REMOVED" || echo 0)"
+    if [[ "${removed:-0}" -gt 0 ]]; then
+      record "WARN" "$id" "DEGRADED — disco(s) REMOVED; cap=${cap:-?}% (intervir no site AGLFG)"
+      return 0
+    fi
+  fi
   if [[ "$state" != "ONLINE" ]]; then
     fails="$(bump_failure "$id")"
     record "FAIL" "$id" "pool state=$state falhas=$fails"

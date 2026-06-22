@@ -104,6 +104,17 @@ meshagent_leaks="\$(ps aux | grep meshagent | grep -v grep | awk -v lim="\${MESH
 meshagent_leak_n="\$(ps aux | grep meshagent | grep -v grep | awk -v lim="\${MESHAGENT_LEAK_RSS_KB}" '{if (\$6 > lim) c++} END{print c+0}')"
 meshagent_leak_rss_mb="\$(ps aux | grep meshagent | grep -v grep | awk -v lim="\${MESHAGENT_LEAK_RSS_KB}" '{if (\$6 > lim) s+=\$6} END{print int(s/1024)}')"
 
+uptime_min="\$(awk '{print int(\$1/60)}' /proc/uptime)"
+mce_since_boot="\$(journalctl -b --no-pager 2>/dev/null | grep -c 'Machine check' || echo 0)"
+onboot_stopped="\$(pct list 2>/dev/null | awk 'NR>1 && \$2==\"stopped\" {print \$1}' | while read -r ct; do
+  ob=\$(pct config \"\${ct}\" 2>/dev/null | awk -F': ' '/^onboot:/{print \$2; exit}')
+  [[ \"\${ob}\" == \"1\" ]] && echo \"\${ct}\"
+done | paste -sd, -)"
+onboot_stopped_n=0
+[[ -n \"\${onboot_stopped}\" ]] && onboot_stopped_n=\$(printf '%s' \"\${onboot_stopped}\" | tr ',' '\n' | grep -c . || true)
+overpower_pct="\$(pvesm status 2>/dev/null | awk '/^overpower /{gsub(/%/,\"\",\$7); print \$7; exit}')"
+overpower_avail="\$(zfs list -H -o avail overpower 2>/dev/null || echo n/a)"
+
 kvm_pid="\$(pgrep -f "kvm.*-id \${VMID} " | head -1 || true)"
 kvm_psr="n/a"
 if [[ -n "\${kvm_pid}" ]]; then
@@ -133,7 +144,13 @@ printf '%s\n' \
   "meshagent_leak_n=\${meshagent_leak_n}" \
   "meshagent_leaks=\${meshagent_leaks}" \
   "meshagent_leak_rss_mb=\${meshagent_leak_rss_mb}" \
-  "host_cores=\${HOST_CORES}"
+  "host_cores=\${HOST_CORES}" \
+  "uptime_min=\${uptime_min}" \
+  "mce_since_boot=\${mce_since_boot}" \
+  "onboot_stopped=\${onboot_stopped}" \
+  "onboot_stopped_n=\${onboot_stopped_n}" \
+  "overpower_pct=\${overpower_pct}" \
+  "overpower_avail=\${overpower_avail}"
 EOS
 
 mapfile -t kv < <(remote bash -s -- "${VMID}" "${VM_LAN_IP}" "${HOST_CORES}" "${MESHAGENT_LEAK_RSS_KB}" <<<"${REMOTE_SCRIPT}")
@@ -201,6 +218,20 @@ if [[ "${M[meshagent_leak_n]:-0}" =~ ^[0-9]+$ ]] && [[ "${M[meshagent_leak_n]}" 
   add_issue "🚨 meshagent LEAK: ${M[meshagent_leak_n]} proc, ${M[meshagent_leak_rss_mb]:-?}MB RSS — ${M[meshagent_leaks]:-?}"
 fi
 
+if [[ "${M[onboot_stopped_n]:-0}" =~ ^[0-9]+$ ]] && [[ "${M[onboot_stopped_n]}" -gt 0 ]]; then
+  add_issue "🚨 CTs onboot parados: ${M[onboot_stopped]:-?} — correr scripts/infra/aglsrv1-boot-resilience.sh --verify-only"
+fi
+
+if [[ "${M[overpower_pct]:-0}" =~ ^[0-9]+$ ]] && [[ "${M[overpower_pct]}" -ge 96 ]]; then
+  add_issue "⚠️ pool overpower ${M[overpower_pct]}% (avail ${M[overpower_avail]:-?}) — rever dump/Orphaned"
+fi
+
+if [[ "${M[mce_since_boot]:-0}" =~ ^[0-9]+$ ]] && [[ "${M[uptime_min]:-0}" =~ ^[0-9]+$ ]]; then
+  if [[ "${M[uptime_min]}" -lt 360 ]] && [[ "${M[mce_since_boot]}" -gt 50 ]]; then
+    add_issue "⚠️ MCE desde boot: ${M[mce_since_boot]} (uptime ${M[uptime_min]}min) — ver docs/AGLSRV1-NUMA-QPI-OPTIMIZATION.md"
+  fi
+fi
+
 # Sem falhas → silêncio (Hermes --no-agent não envia Telegram)
 if [[ ${#issues[@]} -eq 0 ]]; then
   exit 0
@@ -235,6 +266,8 @@ fi
   echo "• swap: ${M[swap_line]:-?} (${M[swap_pct]:-0}% usado)"
   echo "• microcode: ${M[microcode]:-?}"
   echo "• meshagent: ${M[meshagent_count]:-0} processos"
+  echo "• overpower: ${M[overpower_pct]:-?}% usado (avail ${M[overpower_avail]:-?})"
+  echo "• boot: uptime ${M[uptime_min]:-?}min | MCE ${M[mce_since_boot]:-0} | onboot stopped ${M[onboot_stopped_n]:-0}"
   echo
   echo "Runbook: docs/AGLSRV1-TROUBLESHOOTING.md"
 }

@@ -1,12 +1,13 @@
 # VM310 agl-ollama — AGLSRV3 (2× RX 580)
 
-**Data:** 2026-06-12 (tiering agl-primary + dual-GPU)  
+**Data:** 2026-06-20 (agl-primary → qwen3:4b ctx 32k)  
 **Host:** AGLSRV3 (`192.168.15.247`, Tailscale `100.123.5.81`)  
 **VM:** 310 — `agl-ollama`  
 **LAN:** `192.168.15.210/24`  
-**Primário:** `gemma4-qat` @ GPU0 `:11434` — alias LiteLLM **`agl-primary`** (~46 tok/s JSON)  
-**Secundário:** `qwen3:8b` @ GPU1 `:11435` (planeado) — alias **`agl-primary-strong`** (~26 tok/s)  
-**Fallback:** `qwen3:4b` @ `:11434` — alias **`ollama-qwen3-4b-fast`**  
+**Primário:** `qwen3:4b` @ GPU0 `:11434` — alias LiteLLM **`agl-primary`** (`OLLAMA_CONTEXT_LENGTH=32768`, `num_ctx=32768`)  
+**Rápido:** `gemma4-qat` @ GPU0 — alias **`agl-primary-fast`** (ctx 8192, ~46 tok/s)  
+**Secundário:** `qwen3:8b` @ GPU1 `:11435` — alias **`agl-primary-strong`** (`OLLAMA_CONTEXT_LENGTH=16384`)  
+**Tuning:** `bash scripts/aglsrv3/tune-vm310-ollama-context.sh` → `apply-vm310-ollama-context.sh`  
 **GPU:** 2× AMD RX 580 2048SP — passthrough `hostpci0` + `hostpci1` (`rombar=0`)
 
 > **2026-06-12:** AGLSRV3 travado (resolvido 2026-06-15). LiteLLM mantém Groq primário; Ollama VM310 como fallback.
@@ -31,14 +32,14 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 
 ## Resumo
 
-| Item                              | Valor                                                                                                                                                                                                                      |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| VM301 AGLHQ10                     | **Parada**, `onboot 0`, GPU removida                                                                                                                                                                                       |
-| Storage VM310                     | **`aglsrv3-tb`** (após rebuild) ou `local-lvm`                                                                                                                                                                             |
-| RAM VM310                         | 16 GB (balloon 24 GB)                                                                                                                                                                                                      |
-| LiteLLM                           | TS guest `100.67.253.52:11434` (GPU0), `:11435` (GPU1 quando VBIOS OK)                                                                                                                                                     |
-| Aliases LiteLLM                   | **`agl-primary`** (gemma4-qat), **`agl-primary-strong`** (qwen3:8b), **`ollama-qwen3-4b-fast`**, `ollama-gemma4-qat` (legado), `ollama-qwen3-8b`, `ollama-llama31-8b`; `ollama-gemma3-4b` → redireccionado para gemma4-qat |
-| **Modelos em disco (2026-06-12)** | `gemma4-qat`, `qwen3:8b`, `qwen3:4b`, `llama3.1:8b` (4 modelos, ~15 GB)                                                                                                                                                    |
+| Item                              | Valor                                                                                                                                                                                                       |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VM301 AGLHQ10                     | **Parada**, `onboot 0`, GPU removida                                                                                                                                                                        |
+| Storage VM310                     | **`aglsrv3-tb`** (após rebuild) ou `local-lvm`                                                                                                                                                              |
+| RAM VM310                         | 16 GB (balloon 24 GB)                                                                                                                                                                                       |
+| LiteLLM                           | TS guest `100.67.253.52:11434` (GPU0), `:11435` (GPU1 quando VBIOS OK)                                                                                                                                      |
+| Aliases LiteLLM                   | **`agl-primary`** (qwen3:4b ctx 32k), **`agl-primary-fast`** (gemma4-qat), **`agl-primary-strong`** (qwen3:8b ctx 16k), `ollama-qwen3-4b-fast`, `ollama-gemma4-qat`, `ollama-qwen3-8b`, `ollama-llama31-8b` |
+| **Modelos em disco (2026-06-12)** | `gemma4-qat`, `qwen3:8b`, `qwen3:4b`, `llama3.1:8b` (4 modelos, ~15 GB)                                                                                                                                     |
 
 ---
 

@@ -231,12 +231,13 @@ arp -a | grep 1c:2a:a3:1e:86:77
 
 ### AGLSRV6C/D + AGLSRV3 (3 hosts)
 
-| Tailscale IP  | Hostname       | OS    | Status         | Purpose                                                                                                                                            |
-| ------------- | -------------- | ----- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 100.124.53.91 | aglsrv6c       | linux | Active         | AGLSRV6C extension node                                                                                                                            |
-| 100.76.201.83 | aglsrv6d       | linux | Active         | AGLSRV6D extension node                                                                                                                            |
-| 100.123.5.81  | aglsrv3        | linux | Active         | Proxmox host AGLFG (`192.168.15.247`)                                                                                                              |
-| _(pendente)_  | aglsrv3-pihole | linux | **NeedsLogin** | CT317 Pi-hole @ LAN `192.168.15.117` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md) + `scripts/proxmox/pct-tailscale-up-aglsrv3-pihole.sh` |
+| Tailscale IP  | Hostname       | OS    | Status | Purpose                                                                                                                 |
+| ------------- | -------------- | ----- | ------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 100.124.53.91 | aglsrv6c       | linux | Active | AGLSRV6C extension node                                                                                                 |
+| 100.76.201.83 | aglsrv6d       | linux | Active | AGLSRV6D extension node                                                                                                 |
+| 100.123.5.81  | aglsrv3        | linux | Active | Proxmox host AGLFG (`192.168.15.247`)                                                                                   |
+| 100.89.170.85 | aglsrv3-aglfs3 | linux | Active | File server CT338 (`aglfs3`) — clone CT178; LAN `192.168.15.138` — [`AGLSRV3-AGLFS3-CLONE.md`](AGLSRV3-AGLFS3-CLONE.md) |
+| 100.114.66.80 | aglsrv3-pihole | linux | Active | CT317 Pi-hole @ LAN `192.168.15.117` — [`AGLSRV3-PIHOLE-CLONE.md`](AGLSRV3-PIHOLE-CLONE.md)                             |
 
 > **AGLSRV3 DNS:** Pi-hole local CT317 @ `192.168.15.117`. Host `resolv.conf` e CTs apontam para este IP.
 

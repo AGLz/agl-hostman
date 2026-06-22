@@ -369,6 +369,7 @@ Log: `/var/log/aglsrv3-pve9-preupgrade.log`
 - [x] **VM310:** operacional — Ollama 2× RX580, TS `100.67.253.52`.
 - [x] **CTs 304/306/317/318/338:** dual LAN (15.x + 30.x), IPs estáticos; cloudflared3a/b; Pi-hole **192.168.15.117**.
 - [x] **Migrar CTs + VM310** para `aglsrv3-tb`; limpar `unused0` VM310 — `local-lvm` **~32%** (2026-06-15).
+- [ ] **Disco `X6KLT31FT` REMOVED** (2026-06-19): pool **DEGRADED** 4/5 discos; sem erros de dados. Repor cabo/disco no site AGLFG ou `zpool replace`. Watcher: `/usr/local/sbin/aglsrv3-zfs-disk-watch.sh` (cron 15 min).
 - [ ] **`local-lvm`:** ainda sem margem no VG (VFree ~4 MB); VMs stopped ocupam ~568G thin — considerar migrar/remover vm-302/303/305/308 se não forem necessárias.
 - [ ] **sdj** (6WS2Q6QR): monitorizar UDMA_CRC; só leitura de arquivo.
 - [ ] VM303 opnsense — disco ~99% cheio (stopped).

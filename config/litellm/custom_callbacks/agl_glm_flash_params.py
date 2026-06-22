@@ -15,6 +15,7 @@ from .agl_ollama_thinking_utils import (
 )
 
 MIN_MAX_TOKENS = 512
+MAX_GLM_FLASH_TOKENS = 8192
 
 _GLM_FLASH_PATTERN = re.compile(
     r"(^|/)(glm-4\.7-flash|glm-flash|zai-glm-flash|zai/glm-4\.7-flash|openai/glm-4\.7-flash|agl-primary-zai-glm-flash)$",
@@ -49,10 +50,21 @@ class AglGlmFlashParamsHandler(CustomLogger):
         model = data.get("model") or data.get("litellm_model_name") or ""
         model_str = str(model)
 
+        for key in ("max_tokens", "max_completion_tokens"):
+            val = data.get(key)
+            if val is None:
+                continue
+            if not isinstance(val, int) or val < 1:
+                data[key] = MIN_MAX_TOKENS
+            elif _is_glm_flash_route(model_str) and val > MAX_GLM_FLASH_TOKENS:
+                data[key] = MAX_GLM_FLASH_TOKENS
+
         if _is_glm_flash_route(model_str):
             current = data.get("max_tokens")
-            if current is None or (isinstance(current, int) and current < MIN_MAX_TOKENS):
+            if current is None or not isinstance(current, int) or current < MIN_MAX_TOKENS:
                 data["max_tokens"] = MIN_MAX_TOKENS
+            elif current > MAX_GLM_FLASH_TOKENS:
+                data["max_tokens"] = MAX_GLM_FLASH_TOKENS
 
             deployment = str(
                 data.get("litellm_metadata", {}).get("deployment", ""))

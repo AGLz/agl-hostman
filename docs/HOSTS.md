@@ -131,13 +131,13 @@ NFS remoto para CT178 (AGLSRV1) documentado historicamente; confirmar mounts act
 
 **Containers**:
 
-| VMID    | Name              | LAN                   | Tailscale                                   | Notas                                      |
-| ------- | ----------------- | --------------------- | ------------------------------------------- | ------------------------------------------ |
-| **317** | **pihole3**       | **192.168.15.117/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28) |
-| **304** | **cloudflared3a** | **192.168.15.104/24** | —                                           | Túnel `aglsrv3` (HA)                       |
-| **306** | **cloudflared3b** | **192.168.15.106/24** | —                                           | Túnel `aglsrv3` (HA)                       |
-| **318** | **aglsrv3-pbs**   | **192.168.15.118/24** | —                                           | PBS local                                  |
-| **338** | **aglfs3**        | **192.168.15.138/24** | —                                           | File server                                |
+| VMID    | Name              | LAN                   | Tailscale                                   | Notas                                                              |
+| ------- | ----------------- | --------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
+| **317** | **pihole3**       | **192.168.15.117/24** | **aglsrv3-pihole** (join pendente até auth) | Clone vzdump de AGLSRV1 CT102 (2026-05-28)                         |
+| **304** | **cloudflared3a** | **192.168.15.104/24** | —                                           | Túnel `aglsrv3` (HA)                                               |
+| **306** | **cloudflared3b** | **192.168.15.106/24** | —                                           | Túnel `aglsrv3` (HA)                                               |
+| **318** | **aglsrv3-pbs**   | **192.168.15.118/24** | —                                           | PBS local                                                          |
+| **338** | **aglfs3**        | **192.168.15.138/24** | **aglsrv3-aglfs3** (`100.89.170.85`)        | Clone CT178 — [`AGLSRV3-AGLFS3-CLONE.md`](AGLSRV3-AGLFS3-CLONE.md) |
 
 **Virtual Machines**: VM101–108 (Windows / Truenas / OPNsense — maior parte stopped); **VM310** `agl-ollama` (Ollama primário, 2× RX580, TS `100.67.253.52`, LAN `192.168.15.210`) — [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md)
 

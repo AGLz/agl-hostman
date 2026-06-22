@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Provisiona fileserver AGLSRV3 (CT538 aglfs3) inspirado em AGLSRV1 CT178 (aglfs1).
+# DEPRECATED: usar pct-clone-aglfs3-from-ct178.sh (--apply --replace) para clone real CT178→338.
+# Este script criava CT338 Debian vazio; mantido só como referência histórica.
+#
+# Provisiona fileserver AGLSRV3 (CT338 aglfs3) inspirado em AGLSRV1 CT178 (aglfs1).
 # Fase posterior ao PBS + renumber — NÃO executar sem autorização (mounts locais SRV3).
 #
 # Uso:
