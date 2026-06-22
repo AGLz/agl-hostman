@@ -51,6 +51,7 @@ if grep -Eq 'consecutiveErrors=[1-9]|lastRunStatus=error|192[.]168[.]32[.]|cron_
   echo "WEEKLY_REFLECTION_FINDINGS"
   echo "Report: $REPORT"
   grep -E 'consecutiveErrors=[1-9]|lastRunStatus=error|192[.]168[.]32[.]|cron_cli_error' "$REPORT" | head -12 || true
+  exit 1
 else
   echo "HEARTBEAT_OK"
 fi

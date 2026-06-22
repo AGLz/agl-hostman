@@ -64,4 +64,5 @@ if [ "$fail" -eq 0 ]; then
   echo HEARTBEAT_OK
 else
   echo "SYSTEM AUDIT issue list:$issues"
+  exit 1
 fi
