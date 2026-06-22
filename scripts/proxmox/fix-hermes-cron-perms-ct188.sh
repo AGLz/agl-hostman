@@ -34,6 +34,13 @@ fix_once() {
     find "${logs_dir}" -maxdepth 1 -type f -name '*.log' -exec chmod 644 {} \; 2>/dev/null || true
   done
   echo "OK logs perms (UID ${HERMES_UID})"
+
+  # Backups diários (--no-agent) correm como hermes no contentor
+  local backup_dir="${HERMES_ROOT}/data/backups/daily"
+  install -d -m 755 -o "${HERMES_UID}" -g "${HERMES_GID}" "${backup_dir}"
+  chown "${HERMES_UID}:${HERMES_GID}" "${backup_dir}" 2>/dev/null || true
+  find "${HERMES_ROOT}/data/backups" -type f -name 'hermes-ct188-*.tar.gz' -exec chmod 644 {} \; 2>/dev/null || true
+  echo "OK backup dir: ${backup_dir} ($(stat -c '%U:%G %a' "${backup_dir}" 2>/dev/null || echo missing))"
 }
 
 fix_once

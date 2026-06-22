@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crons LLM: glm-5 (output longo); agl-primary reservado para scripts --no-agent.
+# Crons LLM: glm-5 (output longo); Ollama (agl-primary-vm110) só burst — evitar timeout 90s.
 #
 # Uso (root no CT188):
 #   bash fix-hermes-cron-models-ct188.sh
@@ -9,7 +9,7 @@ set -euo pipefail
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 JOBS="${HERMES_ROOT}/data/cron/jobs.json"
 HERMES_UID="${HERMES_UID:-10000}"
-CRON_MODEL="${CRON_MODEL:-agl-primary-vm110}"
+CRON_MODEL="${CRON_MODEL:-glm-5}"
 
 python3 - "${JOBS}" "${CRON_MODEL}" <<'PY'
 import json, sys, re

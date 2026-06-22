@@ -18,7 +18,7 @@ if [[ ! -d "${CURATOR_DIR}" ]] && [[ -d "${HERMES_ROOT}/data/profiles/curator" ]
   CURATOR_DIR="${HERMES_ROOT}/data/profiles/curator"
 fi
 CURATOR_SKILLS="${CURATOR_DIR}/skills/research"
-JOBS_JSON="${HERMES_ROOT}/data/cron/jobs.json"
+JOBS_JSON="${CURATOR_DIR}/cron/jobs.json"
 JOB_ID="${CURATOR_CRON_JOB_ID:-e54ffa964a1f}"
 
 SKILL_SRC="${HERMES_ROOT}/data/skills/research/llm-wiki"
@@ -73,22 +73,25 @@ import sys
 from pathlib import Path
 
 path, job_id, prompt = sys.argv[1:4]
-data = json.loads(Path(path).read_text())
+path_obj = Path(path)
+if not path_obj.is_file():
+    raise SystemExit(f"jobs.json em falta — correr setup-hermes-curator-crons-ct188.sh ({path})")
+data = json.loads(path_obj.read_text())
 updated = False
 for job in data.get("jobs", []):
-    if job.get("id") != job_id:
+    if job.get("id") != job_id and job.get("name") != "curator-maintenance":
         continue
     job["prompt"] = prompt
     job["skills"] = ["llm-wiki"]
     job["skill"] = "llm-wiki"
     updated = True
-    print(f"OK updated cron prompt: {job.get('name')} ({job_id})")
+    print(f"OK updated cron prompt: {job.get('name')} ({job.get('id')})")
     break
 if not updated:
-    raise SystemExit(f"job {job_id} não encontrado em {path}")
-Path(path).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    raise SystemExit(f"job curator-maintenance não encontrado em {path} — correr setup-hermes-curator-crons-ct188.sh")
+path_obj.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 PY
 
 chown "${HERMES_UID}:${HERMES_GID}" "${JOBS_JSON}"
-chmod 600 "${JOBS_JSON}"
+chmod 644 "${JOBS_JSON}"
 echo "OK ${JOBS_JSON}"
