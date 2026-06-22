@@ -239,6 +239,11 @@ if [[ -x "$HOSTMAN_ROOT/scripts/agl/export-harness-snapshot.sh" ]]; then
 else
   warn "export-harness-snapshot.sh em falta"
 fi
+if [[ -x "$HOSTMAN_ROOT/scripts/agl/install-harness-snapshot-cron.sh" ]]; then
+  pass "install-harness-snapshot-cron.sh executável"
+else
+  warn "install-harness-snapshot-cron.sh em falta"
+fi
 if [[ -f "$HOSTMAN_ROOT/src/routes/api/harness.php" ]]; then
   pass "API route src/routes/api/harness.php"
 else

@@ -26,7 +26,7 @@ final class HarnessSnapshotService
 
             return [
                 'checked_at' => now()->toIso8601String(),
-                'source' => $governor['source'] ?? 'fallback',
+                'source' => $governor['source'],
                 'litellm_gateway_url' => config('harness.litellm_gateway_url'),
                 'governor' => $governor['data'],
                 'teams' => $teams,
@@ -59,7 +59,7 @@ final class HarnessSnapshotService
                 (string) config('harness.governor_state_fallback'),
             ] as $path
         ) {
-            if (! is_string($path) || $path === '' || ! File::isFile($path)) {
+            if ($path === '' || ! File::isFile($path)) {
                 continue;
             }
 
@@ -103,7 +103,7 @@ final class HarnessSnapshotService
                 'harness' => $team['harness'] ?? '',
                 'max_budget_usd' => $team['max_budget_usd'] ?? null,
                 'keys' => array_map(
-                    static fn(array $key): array => [
+                    static fn (array $key): array => [
                         'key_alias' => $key['key_alias'] ?? '',
                         'models_count' => is_array($key['models'] ?? null) ? count($key['models']) : 0,
                     ],
@@ -139,7 +139,7 @@ final class HarnessSnapshotService
      */
     private function loadAgentOsQueue(): array
     {
-        $root = rtrim((string) config('harness.repo_root'), '/') . '/agent-os/specs';
+        $root = rtrim((string) config('harness.repo_root'), '/').'/agent-os/specs';
         if (! File::isDirectory($root)) {
             return [];
         }
@@ -153,17 +153,17 @@ final class HarnessSnapshotService
             $content = (string) File::get($file->getPathname());
             $open = preg_match_all('/^\s*-\s+\[ \]/m', $content) ?: 0;
             $done = preg_match_all('/^\s*-\s+\[[xX]\]/m', $content) ?: 0;
-            $relative = Str::after($file->getPath(), $root . '/');
+            $relative = Str::after($file->getPath(), $root.'/');
 
             $specs[] = [
-                'path' => 'agent-os/specs/' . $relative . '/tasks.md',
+                'path' => 'agent-os/specs/'.$relative.'/tasks.md',
                 'slug' => basename($relative),
                 'tasks_open' => $open,
                 'tasks_done' => $done,
             ];
         }
 
-        usort($specs, static fn(array $a, array $b): int => $b['tasks_open'] <=> $a['tasks_open']);
+        usort($specs, static fn (array $a, array $b): int => $b['tasks_open'] <=> $a['tasks_open']);
 
         return $specs;
     }
@@ -183,7 +183,7 @@ final class HarnessSnapshotService
 
     private function commandExists(string $command): bool
     {
-        $result = Process::run(['bash', '-lc', 'command -v ' . escapeshellarg($command)]);
+        $result = Process::run(['bash', '-lc', 'command -v '.escapeshellarg($command)]);
 
         return $result->successful() && trim($result->output()) !== '';
     }

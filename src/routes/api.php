@@ -24,9 +24,9 @@ Route::prefix('daily-memory')->group(function () {
     });
 });
 
-require __DIR__ . '/api/hermes.php';
-require __DIR__ . '/api/harness.php';
-require __DIR__ . '/api/openclaw.php';
+require __DIR__.'/api/hermes.php';
+require __DIR__.'/api/harness.php';
+require __DIR__.'/api/openclaw.php';
 
 // N8N Integration routes
 Route::prefix('n8n')->group(function () {
@@ -605,7 +605,7 @@ Route::prefix('monitoring')->middleware('auth:sanctum')->group(function () {
 });
 
 // ========== Agent OS v3 API Routes ==========
-require __DIR__ . '/agent-os.php';
+require __DIR__.'/agent-os.php';
 
 // ========== RBAC API Routes ==========
 Route::prefix('rbac')->middleware('auth:sanctum')->group(function () {

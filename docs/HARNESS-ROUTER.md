@@ -39,5 +39,6 @@ Fase 5 ✅ Mission Control dashboard quota (`/mission-control/harness`):
 ```bash
 bash scripts/agl/export-harness-snapshot.sh
 bash scripts/agl/export-harness-snapshot.sh --run-governor
-# API: GET /api/harness/snapshot
+sudo bash scripts/agl/install-harness-snapshot-cron.sh --test-run
+# API: GET /api/harness/snapshot (auth:sanctum)
 ```
