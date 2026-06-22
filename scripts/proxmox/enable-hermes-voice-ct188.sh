@@ -14,10 +14,10 @@ MARKER="# hermes-voice-ct188"
 
 profile_dirs() {
   echo "${HERMES_ROOT}/data"
-  for agent in elon satya werner; do
+  for agent in elon satya werner curator orion; do
     echo "${HERMES_ROOT}/profiles/${agent}"
   done
-  # Curator vive sob data/profiles (gateway no jarvis, não contentor separado)
+  # Legado curator
   echo "${HERMES_ROOT}/data/profiles/curator"
 }
 

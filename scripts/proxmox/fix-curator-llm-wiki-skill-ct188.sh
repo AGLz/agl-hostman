@@ -13,7 +13,10 @@ set -euo pipefail
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 HERMES_UID="${HERMES_UID:-10000}"
 HERMES_GID="${HERMES_GID:-10000}"
-CURATOR_DIR="${HERMES_ROOT}/data/profiles/curator"
+CURATOR_DIR="${HERMES_ROOT}/profiles/curator"
+if [[ ! -d "${CURATOR_DIR}" ]] && [[ -d "${HERMES_ROOT}/data/profiles/curator" ]]; then
+  CURATOR_DIR="${HERMES_ROOT}/data/profiles/curator"
+fi
 CURATOR_SKILLS="${CURATOR_DIR}/skills/research"
 JOBS_JSON="${HERMES_ROOT}/data/cron/jobs.json"
 JOB_ID="${CURATOR_CRON_JOB_ID:-e54ffa964a1f}"

@@ -28,7 +28,7 @@ echo "=== Jarvis API ==="
 curl -sf -m5 http://127.0.0.1:8642/health | grep -q hermes-agent && ok ":8642" || fail ":8642"
 
 echo "=== Telegram (gateway_state) ==="
-for agent in jarvis elon satya werner; do
+for agent in jarvis elon satya werner curator orion; do
   if [[ "${agent}" == jarvis ]]; then
     f="${HERMES_ROOT}/data/gateway_state.json"
   else
@@ -50,17 +50,34 @@ echo "=== llm-wiki no contentor (jarvis) ==="
 docker exec agl-hermes-jarvis test -r /opt/llm-wiki/wiki/index.md && ok "mount /opt/llm-wiki" || fail "mount /opt/llm-wiki"
 
 echo "=== Curator profile ==="
-if [[ -f "${HERMES_ROOT}/data/profiles/curator/config.yaml" ]]; then
+CURATOR_CFG="${HERMES_ROOT}/profiles/curator/config.yaml"
+[[ -f "${CURATOR_CFG}" ]] || CURATOR_CFG="${HERMES_ROOT}/data/profiles/curator/config.yaml"
+if [[ -f "${CURATOR_CFG}" ]]; then
   ok "curator config.yaml"
 else
-  fail "curator config.yaml — correr bootstrap-hermes-curator-profile-ct188.sh"
+  fail "curator — bootstrap-hermes-curator-profile-ct188.sh"
 fi
-if [[ -f "${HERMES_ROOT}/data/profiles/curator/skills/research/llm-wiki/SKILL.md" ]] \
-  || [[ -L "${HERMES_ROOT}/data/profiles/curator/skills/research/llm-wiki" ]]; then
+CURATOR_SKILL="${HERMES_ROOT}/profiles/curator/skills/research/llm-wiki"
+[[ -e "${CURATOR_SKILL}" ]] || CURATOR_SKILL="${HERMES_ROOT}/data/profiles/curator/skills/research/llm-wiki"
+if [[ -f "${CURATOR_SKILL}/SKILL.md" ]] || [[ -L "${CURATOR_SKILL}" ]]; then
   ok "curator skill llm-wiki"
 else
-  fail "curator llm-wiki — correr fix-curator-llm-wiki-skill-ct188.sh"
+  fail "curator llm-wiki — fix-curator-llm-wiki-skill-ct188.sh"
 fi
+
+echo "=== Orion profile ==="
+if [[ -f "${HERMES_ROOT}/profiles/orion/config.yaml" ]]; then
+  ok "orion config.yaml"
+else
+  fail "orion — bootstrap-hermes-orion-profile-ct188.sh"
+fi
+if [[ -f "${HERMES_ROOT}/profiles/orion/skills/agl-media/SKILL.md" ]]; then
+  ok "orion skill agl-media"
+else
+  fail "orion agl-media skill"
+fi
+docker ps --format '{{.Names}}' | grep -q agl-hermes-curator && ok "container agl-hermes-curator" || fail "container curator — configure-hermes-curator-orion-ct188.sh"
+docker ps --format '{{.Names}}' | grep -q agl-hermes-orion && ok "container agl-hermes-orion" || fail "container orion — configure-hermes-curator-orion-ct188.sh"
 
 echo "=== NFS dev tree (jarvis) ==="
 docker exec agl-hermes-jarvis test -d /mnt/overpower/apps/dev/agl && ok "mount /mnt/overpower/apps/dev" || fail "mount /mnt/overpower/apps/dev"
@@ -83,7 +100,7 @@ if docker exec agl-hermes-jarvis /opt/hermes/.venv/bin/edge-tts --voice pt-BR-Fr
 else
   fail "edge-tts synthesis"
 fi
-if grep -q 'auto_tts: true' "${HERMES_ROOT}/data/profiles/curator/config.yaml" 2>/dev/null; then
+if grep -q 'auto_tts: true' "${CURATOR_CFG}" 2>/dev/null; then
   ok "curator auto_tts=true"
 else
   fail "curator auto_tts — correr enable-hermes-voice-ct188.sh"

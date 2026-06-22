@@ -39,8 +39,8 @@ terminal:
     - WIKI_PATH
 
 approvals:
-  mode: auto
-  cron_mode: allow
+  mode: off
+  cron_mode: approve
 
 cron:
   wrap_response: true

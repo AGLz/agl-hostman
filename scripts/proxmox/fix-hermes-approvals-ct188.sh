@@ -45,6 +45,7 @@ CONFIGS=(
   "${DATA}/profiles/satya/config.yaml"
   "${DATA}/profiles/werner/config.yaml"
   "${DATA}/profiles/curator/config.yaml"
+  "${HERMES_ROOT}/profiles/curator/config.yaml"
 )
 
 echo "=== Hermes CT188 — approvals permissivos (mode=${APPROVAL_MODE}) ==="

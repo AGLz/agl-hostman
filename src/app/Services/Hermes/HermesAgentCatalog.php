@@ -32,6 +32,18 @@ final class HermesAgentCatalog
             'group' => 'Infrastructure',
             'profile' => 'werner',
         ],
+        'curator' => [
+            'name' => 'Curator',
+            'role' => 'KB Steward — llm-wiki ingest, lint, index',
+            'group' => 'Knowledge',
+            'profile' => 'curator',
+        ],
+        'orion' => [
+            'name' => 'Orion',
+            'role' => 'VP Media — *arr stack, grabs, media-grabber',
+            'group' => 'Media',
+            'profile' => 'orion',
+        ],
     ];
 
     /**

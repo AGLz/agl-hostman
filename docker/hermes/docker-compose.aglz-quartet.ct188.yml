@@ -1,4 +1,4 @@
-# AGLz Agency — 4 profiles Hermes (1 gateway + 1 bot Telegram cada)
+# AGLz Agency — 6 agentes Hermes (Jarvis + quartet + Curator + Orion)
 
 # Hermes 0.14.x: multi-bot = profiles separados (PR #25660 / #10452 ainda não mergeados)
 
@@ -10,10 +10,7 @@
 
 #   docker compose -f docker-compose.aglz-quartet.ct188.yml up -d --build
 
-
-
 x-hermes-health-api: &hermes-health-api
-
   test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8642/health || exit 1"]
 
   interval: 30s
@@ -24,10 +21,7 @@ x-hermes-health-api: &hermes-health-api
 
   start_period: 90s
 
-
-
 x-hermes-health-process: &hermes-health-process
-
   test: ["CMD-SHELL", "pgrep -f 'hermes gateway run' >/dev/null || exit 1"]
 
   interval: 30s
@@ -38,14 +32,10 @@ x-hermes-health-process: &hermes-health-process
 
   start_period: 90s
 
-
-
 x-hermes-gateway: &hermes-gateway
-
   image: ${HERMES_IMAGE:-agl-hermes-agency:latest}
 
   build:
-
     context: .
 
     dockerfile: Dockerfile.aglz-agency
@@ -65,21 +55,16 @@ x-hermes-gateway: &hermes-gateway
   # Para DooD: HERMES_DOCKER_SOCK=1 e LXC privileged ou host com group_add suportado.
 
   environment: &hermes-env
-
     TZ: ${HERMES_TZ:-America/Sao_Paulo}
 
     HERMES_DASHBOARD: "0"
 
   command:
-
     - gateway
 
     - run
 
-
-
 x-hermes-volumes: &hermes-volumes
-
   - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
 
   - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
@@ -88,12 +73,8 @@ x-hermes-volumes: &hermes-volumes
 
   - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
-
-
 services:
-
   hermes-jarvis:
-
     <<: *hermes-gateway
 
     container_name: agl-hermes-jarvis
@@ -102,7 +83,6 @@ services:
       - ${JARVIS_DATA_DIR:-./data}/.env
 
     environment:
-
       <<: *hermes-env
 
       HERMES_DASHBOARD: ${HERMES_DASHBOARD_JARVIS:-1}
@@ -116,7 +96,6 @@ services:
       API_SERVER_KEY: ${API_SERVER_KEY:-}
 
     volumes:
-
       - ${JARVIS_DATA_DIR:-./data}:/opt/data
 
       - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
@@ -128,7 +107,6 @@ services:
       - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
     ports:
-
       - ${HERMES_GATEWAY_PORT:-8642}:8642
 
       - ${HERMES_DASHBOARD_PORT:-9119}:9119
@@ -139,10 +117,7 @@ services:
       - default
       - langfuse
 
-
-
   hermes-elon:
-
     <<: *hermes-gateway
 
     container_name: agl-hermes-elon
@@ -151,7 +126,6 @@ services:
       - ${ELON_DATA_DIR:-./profiles/elon}/.env
 
     volumes:
-
       - ${ELON_DATA_DIR:-./profiles/elon}:/opt/data
 
       - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
@@ -168,10 +142,7 @@ services:
       - default
       - langfuse
 
-
-
   hermes-satya:
-
     <<: *hermes-gateway
 
     container_name: agl-hermes-satya
@@ -180,7 +151,6 @@ services:
       - ${SATYA_DATA_DIR:-./profiles/satya}/.env
 
     volumes:
-
       - ${SATYA_DATA_DIR:-./profiles/satya}:/opt/data
 
       - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
@@ -197,10 +167,7 @@ services:
       - default
       - langfuse
 
-
-
   hermes-werner:
-
     <<: *hermes-gateway
 
     container_name: agl-hermes-werner
@@ -209,8 +176,57 @@ services:
       - ${WERNER_DATA_DIR:-./profiles/werner}/.env
 
     volumes:
-
       - ${WERNER_DATA_DIR:-./profiles/werner}:/opt/data
+
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+
+      - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
+
+      - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
+
+      - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
+
+    healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
+
+  hermes-curator:
+    <<: *hermes-gateway
+
+    container_name: agl-hermes-curator
+
+    env_file:
+      - ${CURATOR_DATA_DIR:-./profiles/curator}/.env
+
+    volumes:
+      - ${CURATOR_DATA_DIR:-./profiles/curator}:/opt/data
+
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+
+      - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
+
+      - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
+
+      - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
+
+    healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
+
+  hermes-orion:
+    <<: *hermes-gateway
+
+    container_name: agl-hermes-orion
+
+    env_file:
+      - ${ORION_DATA_DIR:-./profiles/orion}/.env
+
+    volumes:
+      - ${ORION_DATA_DIR:-./profiles/orion}:/opt/data
 
       - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
 
@@ -321,9 +337,7 @@ services:
       retries: 5
       start_period: 180s
 
-
 networks:
   langfuse:
     external: true
     name: agl-langfuse_default
-

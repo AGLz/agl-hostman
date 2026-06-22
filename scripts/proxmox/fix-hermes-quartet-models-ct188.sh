@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Corrige modelos Hermes Quartet no CT188 quando gpt-5.5 / zai-glm-flash falham.
 #
-# Política (2026-06): Z.AI quota maior → OpenAI → Anthropic; Ollama GPU (agl-primary) para contexto longo / burst sem limites.
-#   primário Jarvis: zai-glm-5 | agentes: zai-coding-glm-4.7 | fallback: agl-primary | aux: glm-5
-# Modo legado --quota: Groq free (só se Z.AI/OpenAI indisponíveis)
+# Política (2026-06-20): paid com output longo; Ollama só burst/crons (agl-primary qwen3:4b ctx 32k).
+#   Jarvis: glm-5 | agentes: zai-coding-glm-4.7 | fallback: gpt-5.4-mini | aux: glm-5
+# Modo legado --quota: Groq + Ollama local (sem OpenAI/Z.AI paid)
+#   --free-tier: Z.AI flash + Ollama VM110 (melhor qualidade sem OpenAI quota)
 #
 # Uso (root no CT188):
 #   bash fix-hermes-quartet-models-ct188.sh
@@ -18,9 +19,9 @@ MODE="${1:-quota}"
 
 case "${MODE}" in
   --paid-tier|"" )
-    JARVIS_MODEL="zai-glm-5"
+    JARVIS_MODEL="glm-5"
     AGENT_MODEL="zai-coding-glm-4.7"
-    FALLBACK_MODEL="agl-primary"
+    FALLBACK_MODEL="gpt-5.4-mini"
     AUXILIARY_MODEL="glm-5"
     ;;
   --restore-openai)
@@ -31,41 +32,56 @@ case "${MODE}" in
     ;;
   --coding-exhausted|--resilient)
     # Z.AI Coding Plan quota esgotada OU sessões longas: evitar Groq (TPM 6k).
-    JARVIS_MODEL="zai-glm-5"
-    AGENT_MODEL="zai-glm-5"
-    FALLBACK_MODEL="agl-primary"
-    AUXILIARY_MODEL="glm-4.7-flash"
+    JARVIS_MODEL="zai-glm-flash"
+    AGENT_MODEL="glm-4.7-flash"
+    FALLBACK_MODEL="agl-primary-vm110"
+    AUXILIARY_MODEL="groq-llama-31-8b"
+    ;;
+  --free-tier|--no-quota)
+    JARVIS_MODEL="zai-glm-flash"
+    AGENT_MODEL="glm-4.7-flash"
+    CURATOR_MODEL="glm-4.7-flash"
+    ORION_MODEL="glm-4.7-flash"
+    FALLBACK_MODEL="agl-primary-vm110"
+    AUXILIARY_MODEL="groq-llama-31-8b"
     ;;
   quota|--quota)
     JARVIS_MODEL="groq-llama-31-8b"
     AGENT_MODEL="groq-llama-31-8b"
-    FALLBACK_MODEL="or-nemotron-super-free"
-    AUXILIARY_MODEL="groq-llama-31-8b"
+    FALLBACK_MODEL="agl-primary-vm110"
+    AUXILIARY_MODEL="or-nemotron-super-free"
     ;;
   *)
-    echo "Uso: $0 [--paid-tier|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
+    echo "Uso: $0 [--paid-tier|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
     exit 1
     ;;
 esac
+
+profile_cfg() {
+  local agent="$1"
+  if [[ "${agent}" == "jarvis" ]]; then
+    echo "${HERMES_ROOT}/data/config.yaml"
+  elif [[ "${agent}" == "curator" ]]; then
+    echo "${HERMES_ROOT}/profiles/curator/config.yaml"
+  elif [[ "${agent}" == "orion" ]]; then
+    echo "${HERMES_ROOT}/profiles/orion/config.yaml"
+  else
+    echo "${HERMES_ROOT}/profiles/${agent}/config.yaml"
+  fi
+}
 
 declare -A PRIMARY=(
   [jarvis]="${JARVIS_MODEL}"
   [elon]="${AGENT_MODEL}"
   [satya]="${AGENT_MODEL}"
   [werner]="${AGENT_MODEL}"
+  [curator]="${CURATOR_MODEL:-${AGENT_MODEL}}"
+  [orion]="${ORION_MODEL:-${AGENT_MODEL}}"
 )
 
-profile_cfg() {
-  local agent="$1"
-  if [[ "${agent}" == "jarvis" ]]; then
-    echo "${HERMES_ROOT}/data/config.yaml"
-  else
-    echo "${HERMES_ROOT}/profiles/${agent}/config.yaml"
-  fi
-}
-
-for agent in jarvis elon satya werner; do
+for agent in jarvis elon satya werner curator orion; do
   cfg="$(profile_cfg "${agent}")"
+  [[ -f "${cfg}" ]] || continue
   primary="${PRIMARY[$agent]}"
   python3 - "${cfg}" "${primary}" "${FALLBACK_MODEL}" "${AUXILIARY_MODEL}" "${LITELLM_TS}" <<'PY'
 import sys
@@ -92,6 +108,7 @@ patch_urls(cfg)
 m = cfg.setdefault("model", {})
 m["default"] = primary
 m["fallback"] = fallback_model
+m["max_tokens"] = int(m.get("max_tokens") or 16384)
 m["provider"] = m.get("provider") or "custom"
 m["base_url"] = litellm.rstrip("/")
 

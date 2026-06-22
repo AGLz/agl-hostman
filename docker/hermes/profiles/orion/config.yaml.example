@@ -1,0 +1,51 @@
+# Perfil Orion — media *arr / media-grabber (AGLSRV1)
+# Deploy: scripts/proxmox/bootstrap-hermes-orion-profile-ct188.sh
+
+model:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  default: glm-4.7-flash
+  fallback: agl-primary-vm110
+  max_tokens: 8192
+  api_key: REPLACE_WITH_LITELLM_SK
+
+providers:
+  custom:
+    base_url: http://100.125.249.8:4000
+
+fallback_model:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  model: agl-primary-vm110
+  api_key: REPLACE_WITH_LITELLM_SK
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2750
+  user_char_limit: 2750
+
+skills:
+  default:
+    - agl-media
+
+orion:
+  enabled: true
+  aglsrv1_ssh: root@100.107.113.33
+  media_mode: grabs-only
+  verify_cron_hours: 24
+
+terminal:
+  env_passthrough:
+    - AGL_HOSTMAN
+    - AGLSRV1
+
+approvals:
+  mode: off
+  cron_mode: approve
+  timeout: 300
+
+cron:
+  wrap_response: true
+
+_config_version: 24

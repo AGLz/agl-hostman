@@ -6,11 +6,12 @@
 
 Repositório **agl-hostman**: automação, documentação operacional e APIs de apoio à infraestrutura AGL (Proxmox, containers, redes, LiteLLM, integrações). Convivem **API Node (Fastify)** e **aplicação Laravel** no ramo `src/`, mais configs e Docker na raiz.
 
-**Stack (resumo)**  
-- Node.js 18+ — API em `src/api/` (Fastify, SQLite onde aplicável)  
-- PHP / Laravel 12 — app principal em `src/` (Inertia **React**, Pest, Horizon, etc.; convénções em `.cursor/rules/laravel-boost.mdc`)  
-- LiteLLM — `config/litellm/config.yaml` (+ `config-remote.yaml`); integração Cursor: `docs/CURSOR-LITELLM-INTEGRATION.md`  
-- Docker / Compose — `docker/`, `docker-compose*.yml` na raiz  
+**Stack (resumo)**
+
+- Node.js 18+ — API em `src/api/` (Fastify, SQLite onde aplicável)
+- PHP / Laravel 12 — app principal em `src/` (Inertia **React**, Pest, Horizon, etc.; convénções em `.cursor/rules/laravel-boost.mdc`)
+- LiteLLM — `config/litellm/config.yaml` (+ `config-remote.yaml`); integração Cursor: `docs/CURSOR-LITELLM-INTEGRATION.md`
+- Docker / Compose — `docker/`, `docker-compose*.yml` na raiz
 
 **Última revisão deste ficheiro**: 2026-03-19
 
@@ -26,17 +27,17 @@ Laravel (subpasta `src/`): ver `src/README.md`, `composer install`, `php artisan
 
 ## Estrutura útil (não esgotativa)
 
-| Caminho | Conteúdo |
-|---------|----------|
-| `src/api/` | Servidor Fastify (`server.js`, rotas) |
-| `src/app`, `src/routes`, `resources/` | Laravel (árvore clássica sob `src/`) |
-| `config/litellm/` | Modelos, proxy OpenAI/Anthropic, rota `/cursor` para IDE |
-| `docker/` | Stacks (ex.: LiteLLM, monitoring) |
-| `docs/` | INFRA, troubleshooting, integrações |
-| `scripts/` | Automação (backup, litellm, agency, etc.) |
-| `tests/api`, `tests/unit`, `tests/integration/` | Testes Node |
-| `ai-docs/`, `agent-os/` | Planeamento e specs quando existirem |
-| `.cursor/rules/` | Regras Cursor (Laravel Boost, guia primário PT) |
+| Caminho                                             | Conteúdo                                                          |
+| --------------------------------------------------- | ----------------------------------------------------------------- |
+| `src/api/`                                          | Servidor Fastify (`server.js`, rotas)                             |
+| `src/app`, `src/routes`, `resources/`               | Laravel (árvore clássica sob `src/`)                              |
+| `config/litellm/`                                   | Modelos, proxy OpenAI/Anthropic, rota `/cursor` para IDE          |
+| `docker/`                                           | Stacks (ex.: LiteLLM, monitoring)                                 |
+| `docs/`                                             | INFRA, troubleshooting, integrações                               |
+| `scripts/`                                          | Automação (backup, litellm, agency, etc.)                         |
+| `tests/api`, `tests/unit`, `tests/integration/`     | Testes Node                                                       |
+| `ai-docs/`, `agent-os/`                             | Planeamento e specs quando existirem                              |
+| `.cursor/rules/`                                    | Regras Cursor (Laravel Boost, guia primário PT)                   |
 | `/mnt/overpower/apps/dev/agl/agl-hostman` (agldv03) | Clone do mesmo repo via NFS overpower (espelho de `U:\…` na wk45) |
 
 ## Six Repos (skills multi-harness)
@@ -59,10 +60,10 @@ bash scripts/skills/propagate-six-repos.sh --host all   # agldv03, ct188, aglwk4
 
 ### Swarm (quando aplicável)
 
-| Definição | Valor |
-|-----------|--------|
-| Topology | `hierarchical` |
-| Max agents | 8 |
+| Definição  | Valor                   |
+| ---------- | ----------------------- |
+| Topology   | `hierarchical`          |
+| Max agents | 8                       |
 | Estratégia | especializada por papel |
 
 **Usar swarm / decomposição:** alterações em 3+ ficheiros, features novas, refactor transversal, APIs com testes, segurança, performance.  
@@ -74,13 +75,13 @@ Referência: `.agents/skills/`, `.claude/skills/`. Exemplos: orquestração de s
 
 ### Papéis típicos
 
-| Tipo | Foco |
-|------|------|
+| Tipo       | Foco                |
+| ---------- | ------------------- |
 | researcher | Âmbito e requisitos |
-| architect | Desenho e limites |
-| coder | Implementação |
-| tester | Testes e regressões |
-| reviewer | Qualidade e risco |
+| architect  | Desenho e limites   |
+| coder      | Implementação       |
+| tester     | Testes e regressões |
+| reviewer   | Qualidade e risco   |
 
 ## Normas de código
 
@@ -133,24 +134,28 @@ ruflo memory search --query "termos" --namespace patterns
 
 Resumo — detalhe em `docs/INFRA.md`:
 
-| Tema | Nota |
-|------|------|
-| Restart CT | Preferir **host** ou outra máquina, não de dentro do CT (ex. CT179) |
-| CT locked | `pct unlock <vmid>` antes de `pct start` |
-| Pi-hole CT102 | `pct unlock 102 && pct start 102` |
-| Cloudflared CT117 | `pct exec 117 -- systemctl restart cloudflared` |
-| AGLz Agency CT188 | Hermes quarteto — via AGLSRV1 `pct exec 188` |
+| Tema              | Nota                                                                |
+| ----------------- | ------------------------------------------------------------------- |
+| Restart CT        | Preferir **host** ou outra máquina, não de dentro do CT (ex. CT179) |
+| CT locked         | `pct unlock <vmid>` antes de `pct start`                            |
+| Pi-hole CT102     | `pct unlock 102 && pct start 102`                                   |
+| Cloudflared CT117 | `pct exec 117 -- systemctl restart cloudflared`                     |
+| AGLz Agency CT188 | Hermes quarteto — via AGLSRV1 `pct exec 188`                        |
 
-### AGLz Agency — Hermes Quarteto (Maio 2026)
+### AGLz Agency — Hermes (6 agentes, Maio 2026)
 
-4 agentes Hermes em Docker no CT188 (agl-hermes), imagem custom `Dockerfile.aglz-agency`:
+6 agentes Hermes em Docker no CT188 (agl-hermes), imagem custom `Dockerfile.aglz-agency`:
 
-| Agente | Papel | Bot Telegram | Profile |
-|--------|-------|-------------|---------|
-| Jarvis | CEO | @hermes_jarvis_h_bot | /opt/agl-hermes/profiles/jarvis/ |
-| Elon | CPO/CRO | @hermes_jarvis_h_elon_bot | /opt/agl-hermes/profiles/elon/ |
-| Satya | COO | @hermes_jarvis_h_satya_bot | /opt/agl-hermes/profiles/satya/ |
-| Werner | VP Infra | @hermes_jarvis_h_werner_bot | /opt/agl-hermes/profiles/werner/ |
+| Agente      | Papel                 | Bot Telegram                 | Profile                           |
+| ----------- | --------------------- | ---------------------------- | --------------------------------- |
+| Jarvis      | CEO                   | @hermes_jarvis_h_bot         | /opt/agl-hermes/profiles/jarvis/  |
+| Elon        | CPO/CRO               | @hermes_jarvis_h_elon_bot    | /opt/agl-hermes/profiles/elon/    |
+| Satya       | COO                   | @hermes_jarvis_h_satya_bot   | /opt/agl-hermes/profiles/satya/   |
+| Werner      | VP Infra              | @hermes_jarvis_h_werner_bot  | /opt/agl-hermes/profiles/werner/  |
+| **Curator** | KB Steward (llm-wiki) | @hermes_jarvis_h_curator_bot | /opt/agl-hermes/profiles/curator/ |
+| **Orion**   | VP Media (\*arr)      | @hermes_jarvis_h_orion_bot   | /opt/agl-hermes/profiles/orion/   |
+
+**Doc canónica:** [`docs/HERMES-AGENCY-AGENTS.md`](docs/HERMES-AGENCY-AGENTS.md)
 
 **Stack**: LiteLLM CT186 (`100.125.249.8`, gpt-5.5) · Honcho CT192 (workspace `aglz-agency`, memória durável) · Linear (teams AGLDV/CBDEV/AGLZ, backlog) · llm-wiki (KB curado, montado ro nos containers)
 
@@ -169,6 +174,7 @@ Resumo — detalhe em `docs/INFRA.md`:
 **Causa raiz recorrente**: meshagent memory leak no host AGLSRV1 (30+ instâncias, 3 podem vazar para 10-22GB cada).
 
 **Diagnóstico rápido** (SSH via Tailscale `100.107.113.33`):
+
 ```bash
 # 1. Verificar VM
 qm status 104 && qm agent 104 ping
@@ -191,11 +197,12 @@ O modelo **Composer 2** na Cursor é proprietário; no proxy, **`cursor-composer
 
 ## Ligações
 
-- Ruflo (orquestração): https://github.com/ruvnet/ruflo  
-- Claude Flow (histórico / MCP): https://github.com/ruvnet/claude-flow  
-- LiteLLM Cursor: https://docs.litellm.ai/docs/tutorials/cursor_integration  
+- Ruflo (orquestração): https://github.com/ruvnet/ruflo
+- Claude Flow (histórico / MCP): https://github.com/ruvnet/claude-flow
+- LiteLLM Cursor: https://docs.litellm.ai/docs/tutorials/cursor_integration
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:full hash:d4f96305 -->
+
 ## Issue tracking (bd / beads)
 
 **IMPORTANTE:** Usar **bd** para acompanhamento de trabalho orientado a issues. Evitar TODOs em markdown como sistema único de tracking.
@@ -217,10 +224,10 @@ bd close <id> --reason "..." --json
 
 Trabalho considerado fechado apenas com **push** bem-sucedido quando há remoto Git:
 
-1. Registar follow-up em bd se necessário  
-2. Testes / lint após mudanças de código (`npm test`, `php artisan test` no Laravel afetado)  
-3. `git pull --rebase` → `bd dolt push` (quando usas Dolt remoto) → `git push`  
-4. `git status`: **up to date** com `origin`  
-5. Não deixar alterações críticas só locais sem issue associada  
+1. Registar follow-up em bd se necessário
+2. Testes / lint após mudanças de código (`npm test`, `php artisan test` no Laravel afetado)
+3. `git pull --rebase` → `bd dolt push` (quando usas Dolt remoto) → `git push`
+4. `git status`: **up to date** com `origin`
+5. Não deixar alterações críticas só locais sem issue associada
 
 <!-- END BEADS INTEGRATION -->

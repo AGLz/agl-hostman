@@ -49,6 +49,12 @@ bash "${SCRIPTS}/bootstrap-hermes-curator-profile-ct188.sh" "${AGL_HOSTMAN}"
 echo "=== 3/5 Curator llm-wiki skill + cron prompt ==="
 bash "${SCRIPTS}/fix-curator-llm-wiki-skill-ct188.sh"
 
+echo "=== 3b/5 Orion profile + media crons ==="
+bash "${SCRIPTS}/bootstrap-hermes-orion-profile-ct188.sh" "${AGL_HOSTMAN}" || true
+if [[ -x "${SCRIPTS}/configure-hermes-curator-orion-ct188.sh" ]]; then
+  bash "${SCRIPTS}/configure-hermes-curator-orion-ct188.sh" "${AGL_HOSTMAN}" || true
+fi
+
 echo "=== 4/5 Cron permissions (+ cron.d 15min) ==="
 bash "${SCRIPTS}/fix-hermes-cron-perms-ct188.sh" --install-cron
 

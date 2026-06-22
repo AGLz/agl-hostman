@@ -12,12 +12,22 @@ HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 HERMES_UID="${HERMES_UID:-10000}"
 HERMES_GID="${HERMES_GID:-10000}"
 JARVIS_CFG="${HERMES_ROOT}/data/config.yaml"
-CURATOR_DIR="${HERMES_ROOT}/data/profiles/curator"
+CURATOR_DIR="${HERMES_ROOT}/profiles/curator"
 CURATOR_CFG="${CURATOR_DIR}/config.yaml"
 CURATOR_ENV="${CURATOR_DIR}/.env"
 LITELLM_LAN="${LITELLM_LAN:-http://100.125.249.8:4000}"
 PRIMARY_MODEL="${CURATOR_MODEL:-groq-llama-31-8b}"
 FALLBACK_MODEL="${CURATOR_FALLBACK:-or-nemotron-super-free}"
+
+migrate_curator_legacy() {
+  local legacy="${HERMES_ROOT}/data/profiles/curator"
+  if [[ -d "${legacy}" ]] && [[ ! -f "${CURATOR_DIR}/config.yaml" ]]; then
+    echo "=== Migrar curator legado data/profiles → profiles/curator ==="
+    install -d -m 700 -o "${HERMES_UID}" -g "${HERMES_GID}" "${CURATOR_DIR}"
+    cp -a "${legacy}/." "${CURATOR_DIR}/"
+  fi
+}
+migrate_curator_legacy
 
 test -f "${JARVIS_CFG}" || { echo "ERRO: falta ${JARVIS_CFG}" >&2; exit 1; }
 
@@ -33,6 +43,11 @@ PY
 )"
 
 install -d -m 700 -o "${HERMES_UID}" -g "${HERMES_GID}" "${CURATOR_DIR}"
+
+if [[ -f "${AGL_HOSTMAN}/docker/hermes/profiles/curator/SOUL.md" ]]; then
+  install -m 0600 -o "${HERMES_UID}" -g "${HERMES_GID}" \
+    "${AGL_HOSTMAN}/docker/hermes/profiles/curator/SOUL.md" "${CURATOR_DIR}/SOUL.md"
+fi
 
 python3 - "${CURATOR_CFG}" "${API_KEY}" "${LITELLM_LAN}" "${PRIMARY_MODEL}" "${FALLBACK_MODEL}" <<'PY'
 import sys
@@ -111,6 +126,6 @@ echo "=== curator doctor (profile) ==="
 docker exec -e HERMES_HOME=/opt/data agl-hermes-jarvis \
   /opt/hermes/.venv/bin/hermes doctor 2>&1 | grep -i curator || true
 
-echo ""
-echo "Curator profile: ${CURATOR_CFG}"
-echo "Reiniciar jarvis se o gateway curator não arrancar: docker restart agl-hermes-jarvis"
+echo "Curator profile: ${CURATOR_DIR}"
+echo "Integrar contentor: bash configure-hermes-curator-orion-ct188.sh"
+echo "Reiniciar: docker restart agl-hermes-curator 2>/dev/null || docker restart agl-hermes-jarvis"
