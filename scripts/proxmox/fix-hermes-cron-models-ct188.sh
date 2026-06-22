@@ -3,7 +3,7 @@
 #
 # Uso (root no CT188):
 #   bash fix-hermes-cron-models-ct188.sh
-#   CRON_MODEL=zai-glm-5 CRON_FALLBACK=gpt-5.4-mini bash fix-hermes-cron-models-ct188.sh
+#   CRON_MODEL=zai-glm-5 CRON_FALLBACK=zai-glm-flash bash fix-hermes-cron-models-ct188.sh
 
 set -euo pipefail
 
@@ -12,7 +12,7 @@ JOBS="${HERMES_ROOT}/data/cron/jobs.json"
 CFG="${HERMES_ROOT}/data/config.yaml"
 HERMES_UID="${HERMES_UID:-10000}"
 CRON_MODEL="${CRON_MODEL:-zai-glm-5}"
-CRON_FALLBACK="${CRON_FALLBACK:-gpt-5.4-mini}"
+CRON_FALLBACK="${CRON_FALLBACK:-zai-glm-flash}"
 
 python3 - "${JOBS}" "${CRON_MODEL}" <<'PY'
 import json, sys, re
@@ -49,22 +49,26 @@ else:
 print(f"OK {llm} jobs LLM → {cron_model} (sem tools)")
 PY
 
-python3 - "${CFG}" "${CRON_FALLBACK}" <<'PY'
+python3 - "${HERMES_ROOT}" "${CRON_FALLBACK}" <<'PY'
 import sys
 from pathlib import Path
 import yaml
 
-path, fallback = sys.argv[1:3]
-cfg = yaml.safe_load(Path(path).read_text()) or {}
-m = cfg.setdefault("model", {})
-m["fallback"] = fallback
-fb = cfg.setdefault("fallback_model", {})
-fb["model"] = fallback
-fb["provider"] = fb.get("provider") or "custom"
-if m.get("api_key"):
-    fb["api_key"] = m["api_key"]
-Path(path).write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
-print(f"OK jarvis fallback → {fallback} (evita Ollama em retry de cron)")
+root, fallback = Path(sys.argv[1]), sys.argv[2]
+paths = [root / "data" / "config.yaml", *sorted((root / "profiles").glob("*/config.yaml"))]
+for path in paths:
+    if not path.is_file():
+        continue
+    cfg = yaml.safe_load(path.read_text()) or {}
+    m = cfg.setdefault("model", {})
+    m["fallback"] = fallback
+    fb = cfg.setdefault("fallback_model", {})
+    fb["model"] = fallback
+    fb["provider"] = fb.get("provider") or "custom"
+    if m.get("api_key"):
+        fb["api_key"] = m["api_key"]
+    path.write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
+    print(f"OK fallback {fallback} → {path.relative_to(root)}")
 PY
 
 chown "${HERMES_UID}:${HERMES_UID}" "${JOBS}" "${CFG}" 2>/dev/null || true

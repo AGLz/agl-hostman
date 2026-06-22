@@ -10,6 +10,7 @@
 #   bash fix-hermes-quartet-models-ct188.sh
 #   bash fix-hermes-quartet-models-ct188.sh --paid-tier
 #   bash fix-hermes-quartet-models-ct188.sh --restore-openai   # após quota OpenAI repor
+#   bash fix-hermes-quartet-models-ct188.sh --openai-exhausted # quota OpenAI esgotada (fallback Z.AI)
 
 set -euo pipefail
 
@@ -29,6 +30,13 @@ case "${MODE}" in
     AGENT_MODEL="zai-coding-glm-4.7"
     FALLBACK_MODEL="agl-primary"
     AUXILIARY_MODEL="zai-glm-5"
+    ;;
+  --openai-exhausted)
+    # OpenAI quota esgotada (gpt-5.4-mini) ou glm-5 devolve vazio — fallback só Z.AI/Groq
+    JARVIS_MODEL="zai-glm-5"
+    AGENT_MODEL="zai-coding-glm-4.7"
+    FALLBACK_MODEL="zai-glm-flash"
+    AUXILIARY_MODEL="glm-4.7-flash"
     ;;
   --coding-exhausted|--resilient)
     # Z.AI Coding Plan quota esgotada OU sessões longas: evitar Groq (TPM 6k).
@@ -52,7 +60,7 @@ case "${MODE}" in
     AUXILIARY_MODEL="or-nemotron-super-free"
     ;;
   *)
-    echo "Uso: $0 [--paid-tier|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
+    echo "Uso: $0 [--paid-tier|--openai-exhausted|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
     exit 1
     ;;
 esac
