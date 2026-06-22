@@ -55,7 +55,6 @@ cat >"$CRON_FILE" <<EOF
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 GOVERNOR_ENV=$ENV_FILE
-GOVERNOR_STATE_FILE=$REPO_ROOT/src/storage/app/harness/quota-governor-state.json
 HARNESS_STORAGE_DIR=$REPO_ROOT/src/storage/app/harness
 $SCHEDULE root cd $REPO_ROOT && bash $EXPORT_SCRIPT --run-governor >> $LOG_DIR/harness-snapshot.log 2>&1
 EOF
@@ -71,13 +70,7 @@ if [[ "$TEST_RUN" -eq 1 ]]; then
   echo ""
   echo "=== Test run (export + governor skip-probe se env em falta) ==="
   cd "$REPO_ROOT"
-  if [[ -f "$ENV_FILE" ]]; then
-    set -a
-    # shellcheck source=/dev/null
-    source "$ENV_FILE"
-    set +a
-  fi
-  bash "$EXPORT_SCRIPT" --run-governor
+  HARNESS_STORAGE_DIR="$REPO_ROOT/src/storage/app/harness" bash "$EXPORT_SCRIPT" --run-governor
   echo ""
   echo "=== Snapshot head ==="
   head -c 400 "$REPO_ROOT/src/storage/app/harness/quota-governor-state.json" 2>/dev/null || true

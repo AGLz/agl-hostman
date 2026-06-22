@@ -9,7 +9,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 STORAGE_DIR="${HARNESS_STORAGE_DIR:-$REPO_ROOT/src/storage/app/harness}"
-STATE_FILE="${GOVERNOR_STATE_FILE:-$STORAGE_DIR/quota-governor-state.json}"
+STATE_FILE="${HARNESS_STATE_FILE:-$STORAGE_DIR/quota-governor-state.json}"
 RUN_GOVERNOR=0
 
 while [[ $# -gt 0 ]]; do
