@@ -1,8 +1,22 @@
+# WireGuard Peer Setup — orchestration (Agent-OS × Ruflo)
+swarm:
+  topology: hierarchical
+  max_agents: 6
+  strategy: specialized
+  consensus: raft
+  queen_type: tactical
 task_groups:
   - name: pre-deployment-validation
+    ruflo_worker: Researcher
   - name: key-generation-config
+    ruflo_worker: Coder
   - name: hub-registration
+    ruflo_worker: Coder
   - name: peer-activation
+    ruflo_worker: Coder
   - name: verification-testing
+    ruflo_worker: Tester
   - name: documentation-update
+    ruflo_worker: Documenter
   - name: troubleshooting
+    ruflo_worker: Researcher

@@ -53,6 +53,11 @@ archive/
 
 # LiteLLM secrets
 config/litellm/.env
+config/litellm/virtual-keys-manifest.json
+config/litellm/.generated-*.secret
+config/monitoring/quota-governor.env
+config/harness/*.env
+!config/harness/*.env.example
 config/monitoring/aglsrv3-monitor.env
 config/monitoring/aglsrv3-monitor.env.local
 
@@ -118,7 +123,17 @@ logs/mcp-monitoring/
 !.claude/settings.json
 *.bak.*
 .claude/settings.json.bak*
-.claude/skills/
+.claude/skills/*
+!.claude/skills/agl-harness-router/
+!.claude/skills/agl-harness-router/**
+!.claude/skills/agl-claude-code-agent/
+!.claude/skills/agl-claude-code-agent/**
+!.claude/skills/agl-cursor-agent/
+!.claude/skills/agl-cursor-agent/**
+!.claude/skills/agl-verdent-agent/
+!.claude/skills/agl-verdent-agent/**
+!.claude/skills/agl-ruflo-orchestrator/
+!.claude/skills/agl-ruflo-orchestrator/**
 
 # Clones locais de git worktree (não versionar)
 .claude/worktrees/

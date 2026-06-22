@@ -1,0 +1,31 @@
+# Agent-OS × Ruflo swarm template (AGL Harness Router Fase 4)
+topology: hierarchical
+max_agents: 6
+strategy: specialized
+consensus: raft
+queen_type: tactical
+
+# Defaults por worker role
+worker_defaults:
+  Researcher:
+    harness: claude-code
+    auth: max-direct
+  Architect:
+    harness: claude-code
+    auth: max-direct
+  Coder:
+    harness: claude-code
+    auth: litellm
+  Tester:
+    harness: claude-code
+    auth: litellm
+  Reviewer:
+    harness: claude-code
+    auth: max-direct
+  Documenter:
+    harness: cursor
+    auth: litellm
+
+post_task_hooks:
+  - scripts/agl/agent-os-post-task-hook.sh
+verifier_agent: .claude/agents/agent-os/implementation-verifier.md

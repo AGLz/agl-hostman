@@ -31,7 +31,7 @@ Sincroniza repos GitHub (plano Six Repos) para harnesses locais.
 Options:
   --dry-run              Mostrar acções sem executar
   --method copy|symlink  Método para skills (default: copy)
-  --repo <name|all>      obsidian|superpowers|ecc|ruflo|open-design|karpathy|content-skills|humanizer|fact-check|prompt-improver|all
+  --repo <name|all>      obsidian|superpowers|ecc|ruflo|open-design|karpathy|harness-router|content-skills|humanizer|fact-check|prompt-improver|all
   --harness <csv|all>    claude,cursor,codex,verdent,llm-wiki,hostman (default: all)
   -h, --help
 
@@ -408,6 +408,20 @@ JSON
   log_info "Design systems disponíveis em $target/design-systems/ (referência local; daemon OD opcional)"
 }
 
+sync_harness_router() {
+  log_info "=== harness-router (skills AGL agl-*) ==="
+  local script="$HOSTMAN_ROOT/scripts/agl/sync-harness-skills.sh"
+  if [[ ! -x "$script" ]]; then
+    chmod +x "$script" 2>/dev/null || true
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "  [dry-run] bash $script --dry-run --harness $HARNESS"
+    return 0
+  fi
+  bash "$script" --harness "$HARNESS"
+  log_ok "harness-router: skills agl-* sincronizadas"
+}
+
 sync_karpathy() {
   log_info "=== karpathy-skills ==="
   local repo_dir="$TEMP_BASE/andrej-karpathy-skills"
@@ -553,6 +567,7 @@ should_run ecc && sync_ecc
 should_run ruflo && sync_ruflo
 should_run open-design && sync_open_design
 should_run karpathy && sync_karpathy
+should_run harness-router && sync_harness_router
 
 if should_run_content humanizer && should_run_content fact-check && should_run_content prompt-improver; then
   if [[ "$REPOS" == "content-skills" || "$REPOS" == "all" ]]; then

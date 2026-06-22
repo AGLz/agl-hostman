@@ -1,0 +1,77 @@
+{
+  "gateway": "http://100.125.249.8:4000",
+  "teams": [
+    {
+      "team_alias": "team-cursor",
+      "max_budget_usd": 50,
+      "harness": "cursor",
+      "keys": [
+        {
+          "key_alias": "team-cursor-key",
+          "models": [
+            "cursor-composer",
+            "cursor-composer-2-fast",
+            "cursor-claude-sonnet",
+            "cursor-glm-5",
+            "cursor-deepseek"
+          ]
+        }
+      ]
+    },
+    {
+      "team_alias": "team-claude-fallback",
+      "max_budget_usd": 80,
+      "harness": "claude-code",
+      "keys": [
+        {
+          "key_alias": "team-claude-fallback-key",
+          "models": [
+            "claude-sonnet",
+            "claude-haiku",
+            "claude-opus",
+            "zai-glm-5",
+            "gpt-5.4-mini",
+            "agl-primary"
+          ]
+        }
+      ]
+    },
+    {
+      "team_alias": "team-verdent",
+      "max_budget_usd": 40,
+      "harness": "verdent",
+      "keys": [
+        {
+          "key_alias": "team-verdent-key",
+          "models": [
+            "gpt-5.4-mini",
+            "zai-glm-5",
+            "glm-5",
+            "cursor-composer",
+            "agl-primary"
+          ]
+        }
+      ]
+    },
+    {
+      "team_alias": "team-hermes",
+      "max_budget_usd": 120,
+      "harness": "hermes",
+      "keys": [
+        {
+          "key_alias": "team-hermes-key",
+          "models": [
+            "glm-5",
+            "zai-coding-glm-4.7",
+            "zai-glm-5",
+            "gpt-5.4-mini",
+            "glm-4.7-flash",
+            "agl-primary",
+            "agl-primary-vm110",
+            "groq-llama-31-8b"
+          ]
+        }
+      ]
+    }
+  ]
+}
