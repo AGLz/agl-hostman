@@ -157,7 +157,7 @@ Resumo — detalhe em `docs/INFRA.md`:
 
 **Doc canónica:** [`docs/HERMES-AGENCY-AGENTS.md`](docs/HERMES-AGENCY-AGENTS.md)
 
-**Stack**: LiteLLM CT186 (`100.125.249.8`, gpt-5.5) · Honcho CT192 (workspace `aglz-agency`, memória durável) · Linear (teams AGLDV/CBDEV/AGLZ, backlog) · llm-wiki (KB curado, montado ro nos containers)
+**Stack**: LiteLLM CT186 (`100.125.249.8`, gpt-5.5) · Honcho CT192 (workspace `aglz-agency`, memória durável) · Linear (teams AGLDV/CBDEV/AGLZ, backlog) · llm-wiki (KB curado, montado **rw** nos containers)
 
 **Rede**: Tailscale (inter-hosts) + Docker bridge (inter-containers)
 

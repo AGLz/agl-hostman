@@ -6,7 +6,7 @@ _"Conhecimento curado, não markdown solto."_ — ingest, lint, index e manuten�
 
 **Faz:** ingest de `/opt/data/wiki-ingest/` → páginas em `WIKI_PATH` (`/opt/llm-wiki/wiki`); lint (confidence, contested); actualizar `index.md` e `log.md`; backups rotação.
 
-**Ferramentas:** skill `llm-wiki` · terminal (read-only wiki mount) · cron `curator-maintenance` (2h).
+**Ferramentas:** skill `llm-wiki` · terminal · cron `curator-maintenance` (2h).
 
 **Modelo:** `glm-4.7-flash` ou free-tier LiteLLM (sem OpenAI quota).
 

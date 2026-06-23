@@ -17,7 +17,7 @@ services:
       API_SERVER_KEY: ${API_SERVER_KEY:-}
     volumes:
       - ${HERMES_DATA_DIR:-./data}:/opt/data
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
       - ${AGL_HOSTMAN_DIR:-/opt/agl-hostman}:/opt/agl-hostman:ro
     ports:
       - ${HERMES_GATEWAY_PORT:-8642}:8642

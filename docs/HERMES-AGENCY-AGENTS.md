@@ -44,7 +44,7 @@ Manter o vault **llm-wiki** curado: ingest de `/opt/data/wiki-ingest/`, lint, `i
 └── cron/jobs.json          # curator-maintenance (2h) — migrar do Jarvis
 ```
 
-**Mount:** `/opt/llm-wiki` (**rw** — único agente com escrita) · `/opt/agl-hostman` (ro)
+**Mount:** `/opt/llm-wiki` (**rw**) · `/opt/agl-hostman` (ro)
 
 ### Cron `curator-maintenance`
 

@@ -46,15 +46,16 @@ for agent in jarvis elon satya werner curator orion; do
   fi
 done
 
-echo "=== llm-wiki no contentor (jarvis ro) ==="
-docker exec agl-hermes-jarvis test -r /opt/llm-wiki/wiki/index.md && ok "mount /opt/llm-wiki" || fail "mount /opt/llm-wiki"
-
-echo "=== llm-wiki no contentor (curator rw) ==="
-if docker exec -u hermes agl-hermes-curator sh -c 'touch /opt/llm-wiki/wiki/.curator-rw-smoke && rm -f /opt/llm-wiki/wiki/.curator-rw-smoke'; then
-  ok "curator escreve em /opt/llm-wiki/wiki"
-else
-  fail "curator sem rw — docker-compose curator :rw + recreate agl-hermes-curator"
-fi
+echo "=== llm-wiki no contentor (rw) ==="
+docker exec agl-hermes-jarvis test -r /opt/llm-wiki/wiki/index.md && ok "mount /opt/llm-wiki (jarvis read)" || fail "mount /opt/llm-wiki"
+for agent in jarvis elon satya werner curator orion; do
+  c="agl-hermes-${agent}"
+  if docker exec -u hermes "${c}" sh -c 'touch /opt/llm-wiki/wiki/.rw-smoke && rm -f /opt/llm-wiki/wiki/.rw-smoke' 2>/dev/null; then
+    ok "${agent} escreve em /opt/llm-wiki/wiki"
+  else
+    fail "${agent} sem rw em /opt/llm-wiki — compose :rw + recreate"
+  fi
+done
 
 echo "=== Curator profile ==="
 CURATOR_CFG="${HERMES_ROOT}/profiles/curator/config.yaml"

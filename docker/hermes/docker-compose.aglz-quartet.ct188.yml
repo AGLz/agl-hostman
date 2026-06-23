@@ -67,7 +67,7 @@ x-hermes-gateway: &hermes-gateway
     - run
 
 x-hermes-volumes: &hermes-volumes
-  - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+  - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
   - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 
@@ -100,7 +100,7 @@ services:
     volumes:
       - ${JARVIS_DATA_DIR:-./data}:/opt/data
 
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
       - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 
@@ -130,7 +130,7 @@ services:
     volumes:
       - ${ELON_DATA_DIR:-./profiles/elon}:/opt/data
 
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
       - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 
@@ -155,7 +155,7 @@ services:
     volumes:
       - ${SATYA_DATA_DIR:-./profiles/satya}:/opt/data
 
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
       - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 
@@ -180,7 +180,7 @@ services:
     volumes:
       - ${WERNER_DATA_DIR:-./profiles/werner}:/opt/data
 
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
       - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 
@@ -230,7 +230,7 @@ services:
     volumes:
       - ${ORION_DATA_DIR:-./profiles/orion}:/opt/data
 
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
       - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 

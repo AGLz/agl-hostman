@@ -43,7 +43,7 @@ Clone read-mostly no CT188, montado no contentor:
 
 | Host (CT188)        | Contentor       | Modo                                        |
 | ------------------- | --------------- | ------------------------------------------- |
-| `/opt/agl-llm-wiki` | `/opt/llm-wiki` | `ro` (Jarvis/quartet/Orion); **`rw` só Curator** |
+| `/opt/agl-llm-wiki` | `/opt/llm-wiki` | **`rw`** (todos os agentes Hermes) |
 
 ```bash
 # No CT188 (root)
