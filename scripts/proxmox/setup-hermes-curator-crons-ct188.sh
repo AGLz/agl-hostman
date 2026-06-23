@@ -41,8 +41,9 @@ Run the wiki lint procedure from the skill. Save summary to:
 ## 5. Report issues
 Include any pages with confidence: low or contested: true in your report (cron delivers automatically — do not call send_message).
 
-## 6. Git commit if configured
-If /opt/data/wiki-repo exists, commit wiki changes with a dated message.
+## 6. Git commit + push (llm-wiki)
+Repo em `/opt/llm-wiki`. Usar `HOME=/opt/data` (`.gitconfig` no perfil).
+Após ingest/lint: `git add -A`, commit datado, `git push origin main` se houver alterações.
 
 If nothing to ingest and no lint findings, respond with exactly [SILENT].
 PROMPT

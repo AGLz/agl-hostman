@@ -174,4 +174,10 @@ if [[ -f "${FIX_CURATOR}" ]]; then
   bash "${FIX_CURATOR}" "${AGL_HOSTMAN}" || true
 fi
 
+WIKI_GIT="${AGL_HOSTMAN}/scripts/proxmox/setup-hermes-wiki-git-ct188.sh"
+if [[ -f "${WIKI_GIT}" ]]; then
+  echo "=== llm-wiki git (perfis Hermes) ==="
+  bash "${WIKI_GIT}" --test || echo "AVISO: wiki git — correr setup-hermes-wiki-git-ct188.sh no CT188" >&2
+fi
+
 echo "OK second brain bidireccional — skill llm-wiki + WIKI_PATH em todos os perfis"

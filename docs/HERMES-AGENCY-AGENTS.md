@@ -65,6 +65,8 @@ Protocolo partilhado: `docker/hermes/profiles/SECOND-BRAIN.md`
 
 ```bash
 bash scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman
+bash scripts/proxmox/setup-hermes-wiki-git-ct188.sh --test   # git safe + credentials nos perfis
+bash scripts/proxmox/setup-hermes-wiki-git-ct188.sh --push     # push origin main (requer gh root)
 bash scripts/proxmox/smoke-hermes-aglz-quartet.sh
 ```
 
