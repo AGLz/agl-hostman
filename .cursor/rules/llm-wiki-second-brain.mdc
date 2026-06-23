@@ -10,13 +10,13 @@ O repositório **[llm-wiki](https://github.com/AGLz/llm-wiki)** é a **fonte de 
 
 ## Paths (agldv03 / NFS)
 
-| Camada | Path |
-|--------|------|
-| Vault | `/mnt/overpower/apps/dev/agl/llm-wiki` |
+| Camada   | Path                                                          |
+| -------- | ------------------------------------------------------------- |
+| Vault    | `/mnt/overpower/apps/dev/agl/llm-wiki`                        |
 | Catálogo | `llm-wiki/wiki/index.md` — **começar sempre aqui** em queries |
-| Wiki | `llm-wiki/wiki/` |
-| Fontes | `llm-wiki/raw/` — **só leitura** (imutável) |
-| Schema | `llm-wiki/AGENTS.md` |
+| Wiki     | `llm-wiki/wiki/`                                              |
+| Fontes   | `llm-wiki/raw/` — **só leitura** (imutável)                   |
+| Schema   | `llm-wiki/AGENTS.md`                                          |
 
 ## Antes de implementar (agl-hostman)
 
@@ -34,11 +34,13 @@ Quando alterares infra, deploy, integrações ou decisões de arquitectura:
 
 ## Ferramentas Cursor
 
-| Ferramenta | Uso |
-|------------|-----|
-| MCP `llm-wiki-fs` | Leitura/escrita em `wiki/` e `raw/` via filesystem MCP |
-| Skill `obsidian-cli` | Operações vault (search, append, daily) — requer Obsidian 1.12+ desktop + CLI no PATH |
-| `scripts/skills/setup-obsidian-cli-llm-wiki.sh` | Verificar/pré-requisitos Obsidian CLI |
+| Ferramenta                                      | Uso                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
+| MCP `llm-wiki-fs`                               | Leitura/escrita em `wiki/` e `raw/` via filesystem MCP                                |
+| Skill `obsidian-cli`                            | Operações vault (search, append, daily) — requer Obsidian 1.12+ desktop + CLI no PATH |
+| `scripts/skills/setup-obsidian-cli-llm-wiki.sh` | Verificar/pré-requisitos Obsidian CLI                                                 |
+| `scripts/cursor/sync-cursor-to-wiki.sh`         | Export incremental conversas → `raw/cursor/live/`                                     |
+| `/llm-wiki-ingest`                              | Comando + skill — export + síntese wiki                                               |
 
 ## Referências
 

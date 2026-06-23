@@ -9,11 +9,11 @@ Substitui o **RAG do Archon (CT183)** para conhecimento curado. **Não** substit
 
 ## Três camadas (não confundir)
 
-| Sistema | O quê | Quem escreve | Exemplo |
-|---------|--------|--------------|---------|
-| **[llm-wiki](https://github.com/AGLz/llm-wiki)** | Factos, runbooks, síntese, entidades | Agentes mantêm `wiki/`; humanos colocam fontes em `raw/` | Página `[[Dokploy]]`, `[[Archon]]`, índice |
-| **Honcho (CT192)** | Memória episódica, conclusões, contexto entre chats | Deriver + peers `jarvis`/`elon`/`satya`/`werner` | "Sr.Big preferiu Tailscale em CT188" |
-| **Linear** | Backlog, estados, entrega | Humanos + agentes via MCP/CLI | Issue `AGL-42` *In Progress* |
+| Sistema                                          | O quê                                               | Quem escreve                                             | Exemplo                                    |
+| ------------------------------------------------ | --------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------ |
+| **[llm-wiki](https://github.com/AGLz/llm-wiki)** | Factos, runbooks, síntese, entidades                | Agentes mantêm `wiki/`; humanos colocam fontes em `raw/` | Página `[[Dokploy]]`, `[[Archon]]`, índice |
+| **Honcho (CT192)**                               | Memória episódica, conclusões, contexto entre chats | Deriver + peers `jarvis`/`elon`/`satya`/`werner`         | "Sr.Big preferiu Tailscale em CT188"       |
+| **Linear**                                       | Backlog, estados, entrega                           | Humanos + agentes via MCP/CLI                            | Issue `AGL-42` _In Progress_               |
 
 **Archon CT183:** legado — descontinuar para a agência após cutover (Linear + llm-wiki). O script `scripts/sync-archon-kb.sh` fica obsoleto para este fluxo.
 
@@ -41,8 +41,8 @@ Fluxos definidos em `AGENTS.md` do repo:
 
 Clone read-mostly no CT188, montado no contentor:
 
-| Host (CT188) | Contentor | Modo |
-|--------------|-----------|------|
+| Host (CT188)        | Contentor       | Modo                                        |
+| ------------------- | --------------- | ------------------------------------------- |
 | `/opt/agl-llm-wiki` | `/opt/llm-wiki` | `ro` para gateway; `rw` só se ingest activo |
 
 ```bash
@@ -60,12 +60,12 @@ Variável no compose: `LLM_WIKI_DIR=/opt/agl-llm-wiki` (ver `docker/hermes/docke
 
 ## Integração Hermes por agente
 
-| Agente | Uso principal do wiki |
-|--------|------------------------|
-| **Jarvis (CEO)** | Query estratégica — contexto AGL, decisões passadas documentadas |
-| **Elon (CPO/CRO)** | Ingest de pesquisa, lint de domínios produto, síntese para roadmap |
-| **Satya (COO)** | Runbooks de deploy/app; infra pesada → **Werner** |
-| **Werner (VP Infra)** | Runbooks infra, `docs/INFRA.md`, ingest pós-incidente |
+| Agente                | Uso principal do wiki                                              |
+| --------------------- | ------------------------------------------------------------------ |
+| **Jarvis (CEO)**      | Query estratégica — contexto AGL, decisões passadas documentadas   |
+| **Elon (CPO/CRO)**    | Ingest de pesquisa, lint de domínios produto, síntese para roadmap |
+| **Satya (COO)**       | Runbooks de deploy/app; infra pesada → **Werner**                  |
+| **Werner (VP Infra)** | Runbooks infra, `docs/INFRA.md`, ingest pós-incidente              |
 
 **Leitura (query):** toolset `file` — começar por `/opt/llm-wiki/wiki/index.md`.
 
@@ -77,11 +77,11 @@ Variável no compose: `LLM_WIKI_DIR=/opt/agl-llm-wiki` (ver `docker/hermes/docke
 
 O próprio `llm-wiki` inclui:
 
-| Artefacto | Função |
-|-----------|--------|
-| `.mcp.json` | MCP `filesystem` sobre `wiki/` e `raw/` |
+| Artefacto        | Função                                    |
+| ---------------- | ----------------------------------------- |
+| `.mcp.json`      | MCP `filesystem` sobre `wiki/` e `raw/`   |
 | `llm-wiki.skill` | Skill empacotada para agentes compatíveis |
-| `scripts/` | Automação local (search, etc.) |
+| `scripts/`       | Automação local (search, etc.)            |
 
 No Hermes CT188, alinhar com o mesmo padrão quando MCP estiver activo no gateway — ou usar `file` + path `/opt/llm-wiki`.
 
@@ -93,12 +93,26 @@ No Hermes CT188, alinhar com o mesmo padrão quando MCP estiver activo no gatewa
 
 Integração do segundo cérebro na IDE diária:
 
-| Artefacto | Função |
-|-----------|--------|
-| `.cursor/mcp.json` → `llm-wiki-fs` | MCP filesystem sobre `wiki/` e `raw/` do vault NFS |
-| `.cursor/rules/llm-wiki-second-brain.mdc` | Regra always-on: query `index.md` antes de implementar; ingest pós-mudança |
-| `.cursor/skills/obsidian-cli/` | Skill project-level (sync via `sync-six-repos --repo obsidian`) |
-| `scripts/skills/setup-obsidian-cli-llm-wiki.sh` | Verificar Obsidian CLI + vault default |
+| Artefacto                                       | Função                                                                     |
+| ----------------------------------------------- | -------------------------------------------------------------------------- |
+| `.cursor/mcp.json` → `llm-wiki-fs`              | MCP filesystem sobre `wiki/` e `raw/` do vault NFS                         |
+| `.cursor/rules/llm-wiki-second-brain.mdc`       | Regra always-on: query `index.md` antes de implementar; ingest pós-mudança |
+| `.cursor/skills/obsidian-cli/`                  | Skill project-level (sync via `sync-six-repos --repo obsidian`)            |
+| `.cursor/skills/llm-wiki-ingest/`               | Export + síntese conversas Cursor → wiki                                   |
+| `.cursor/commands/llm-wiki-ingest.md`           | Comando `/llm-wiki-ingest`                                                 |
+| `scripts/cursor/export-cursor-sessions.py`      | Export agent-transcripts + Composer → `raw/cursor/live/`                   |
+| `scripts/cursor/sync-cursor-to-wiki.sh`         | Sync incremental (hook + timer systemd)                                    |
+| `scripts/cursor/propagate-cursor-wiki-sync.sh`  | Propaga timer + export para agldv03…12                                     |
+| `scripts/skills/setup-obsidian-cli-llm-wiki.sh` | Verificar Obsidian CLI + vault default                                     |
+
+**Sync conversas (paralelo Hermes Curator):** export raw automático; ingest curado via agente ou `/llm-wiki-ingest`.
+
+```bash
+bash scripts/cursor/sync-cursor-to-wiki.sh              # incremental
+LLM_WIKI_GIT_COMMIT=1 bash scripts/cursor/sync-cursor-to-wiki.sh  # + commit vault
+./scripts/cursor/propagate-cursor-wiki-sync.sh --host agldv-all   # todos AGLDV*
+# timer: config/systemd/agl-cursor-wiki-sync.timer (install via install-cursor-wiki-sync-systemd.sh)
+```
 
 **Cutover:** servidores MCP `archon` / `archon-tailscale` removidos de `.cursor/mcp.json` — conhecimento curado via llm-wiki, não RAG Archon.
 
@@ -112,13 +126,13 @@ Integração do segundo cérebro na IDE diária:
 
 ## Honcho vs llm-wiki (quando usar o quê)
 
-| Pergunta | Usar |
-|----------|------|
-| "O que está documentado sobre Dokploy?" | **llm-wiki** → `index.md` + páginas |
-| "O que combinámos na reunião de ontem?" | **Honcho** `honcho_search` |
-| "Qual issue está bloqueada?" | **Linear** MCP/CLI |
-| "Actualizar runbook após mudança CT192" | **llm-wiki** ingest + git commit |
-| "Lembrar preferência do Sr.Big sobre modelos" | **Honcho** `honcho_conclude` |
+| Pergunta                                      | Usar                                |
+| --------------------------------------------- | ----------------------------------- |
+| "O que está documentado sobre Dokploy?"       | **llm-wiki** → `index.md` + páginas |
+| "O que combinámos na reunião de ontem?"       | **Honcho** `honcho_search`          |
+| "Qual issue está bloqueada?"                  | **Linear** MCP/CLI                  |
+| "Actualizar runbook após mudança CT192"       | **llm-wiki** ingest + git commit    |
+| "Lembrar preferência do Sr.Big sobre modelos" | **Honcho** `honcho_conclude`        |
 
 ---
 
@@ -126,10 +140,10 @@ Integração do segundo cérebro na IDE diária:
 
 Plano canónico: [`ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`](../ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md) · wiki: [[Plano Six Repos Multi-Agente]].
 
-| Host | O quê |
-|------|--------|
-| **agldv03** | `bash scripts/skills/sync-six-repos.sh --repo all` + `verify-six-repos.sh` |
-| **CT188 Hermes** | Só **leitura** llm-wiki (`/opt/agl-llm-wiki` → `/opt/llm-wiki`); **não** instalar superpowers no contentor |
+| Host                | O quê                                                                                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **agldv03**         | `bash scripts/skills/sync-six-repos.sh --repo all` + `verify-six-repos.sh`                                                                                                               |
+| **CT188 Hermes**    | Só **leitura** llm-wiki (`/opt/agl-llm-wiki` → `/opt/llm-wiki`); **não** instalar superpowers no contentor                                                                               |
 | **aglwk45 (VM104)** | `git pull` no NFS (`/mnt/overpower/.../agl-hostman`) + `bash scripts/skills/propagate-sync-agl-hostman-wk45-qemu.sh` (robocopy `Z:` → `C:\Users\Administrator\apps\dev\agl\agl-hostman`) |
 
 ```bash

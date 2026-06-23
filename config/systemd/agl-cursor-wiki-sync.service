@@ -1,0 +1,13 @@
+[Unit]
+Description=AGL Cursor → llm-wiki sync (export incremental)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=AGL_HOSTMAN_DIR=/mnt/overpower/apps/dev/agl/agl-hostman
+Environment=LLM_WIKI_DIR=/mnt/overpower/apps/dev/agl/llm-wiki
+Environment=AGL_HOME_SYNC_ROOT=/mnt/overpower/apps/dev/agl/agl-home-sync
+Environment=CURSOR_EXPORT_FILTER=agl
+Environment=CURSOR_EXPORT_ALL_HOSTS=1
+ExecStart=/bin/bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/cursor/sync-cursor-to-wiki.sh

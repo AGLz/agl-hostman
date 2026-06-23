@@ -292,6 +292,22 @@ if [[ -x "$HOSTMAN_ROOT/scripts/skills/setup-obsidian-cli-llm-wiki.sh" ]]; then
 else
   warn "setup-obsidian-cli-llm-wiki.sh em falta ou não executável"
 fi
+if [[ -x "$HOSTMAN_ROOT/scripts/cursor/sync-cursor-to-wiki.sh" ]] \
+  && [[ -f "$HOSTMAN_ROOT/scripts/cursor/export-cursor-sessions.py" ]]; then
+  pass "cursor → llm-wiki sync (export-cursor-sessions + sync-cursor-to-wiki)"
+else
+  warn "scripts/cursor/sync-cursor-to-wiki.sh em falta"
+fi
+if [[ -x "$HOSTMAN_ROOT/scripts/cursor/propagate-cursor-wiki-sync.sh" ]]; then
+  pass "propagate-cursor-wiki-sync (AGLDV* hosts)"
+else
+  warn "propagate-cursor-wiki-sync.sh em falta"
+fi
+if [[ -f "$HOSTMAN_ROOT/.cursor/skills/llm-wiki-ingest/SKILL.md" ]]; then
+  pass "skill llm-wiki-ingest (Cursor)"
+else
+  warn "skill llm-wiki-ingest em falta"
+fi
 
 echo ""
 echo "-- 9. mandatory delivery pipeline (global) --"
