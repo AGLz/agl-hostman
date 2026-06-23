@@ -82,7 +82,7 @@ propagate_one() {
       warn "$name: agl-hostman NFS em falta em $HOSTMAN_ROOT — skip"
       return 0
     fi
-    remote_bash "$ssh_target" "$install_cmd" || warn "$name: propagate falhou (offline?)"
+    remote_bash "$ssh_target" "git config --global --add safe.directory '$HOSTMAN_ROOT' 2>/dev/null || true; $install_cmd" || warn "$name: propagate falhou (offline?)"
   fi
   ok "$name cursor-wiki propagate concluído"
 }
