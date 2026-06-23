@@ -12,21 +12,28 @@ FILTER="${CURSOR_EXPORT_FILTER:-agl}"
 PY="${PYTHON:-python3}"
 export CURSOR_EXPORT_HOST="${CURSOR_EXPORT_HOST:-$(hostname -s 2>/dev/null || hostname)}"
 export CURSOR_EXPORT_ALL_HOSTS="${CURSOR_EXPORT_ALL_HOSTS:-1}"
-ARGS=(--wiki "$WIKI" --filter "$FILTER")
+FULL=0
+SNAPSHOT=0
+SESSION=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --full) ARGS=(--wiki "$WIKI" --filter "$FILTER" --full) ;;
-    --snapshot) ARGS+=("--snapshot") ;;
-    --all) FILTER=all; ARGS=(--wiki "$WIKI" --filter all) ;;
+    --full) FULL=1 ;;
+    --snapshot) SNAPSHOT=1 ;;
+    --all) FILTER=all ;;
     --session)
       shift
-      ARGS+=("--session" "${1:-}")
+      SESSION="${1:-}"
       ;;
     *) echo "Uso: $0 [--full] [--snapshot] [--all] [--session PATH]" >&2; exit 2 ;;
   esac
   shift
 done
+
+ARGS=(--wiki "$WIKI" --filter "$FILTER")
+[[ "$FULL" -eq 1 ]] && ARGS+=(--full)
+[[ "$SNAPSHOT" -eq 1 ]] && ARGS+=(--snapshot)
+[[ -n "$SESSION" ]] && ARGS+=(--session "$SESSION")
 
 echo "[cursor-wiki] export → $WIKI"
 OUT="$("$PY" "$REPO/scripts/cursor/export-cursor-sessions.py" "${ARGS[@]}")"

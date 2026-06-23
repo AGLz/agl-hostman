@@ -61,6 +61,7 @@ class TranscriptSource:
     jsonl_path: Path
     mtime_ns: int
     size: int
+    parent_session_id: str | None = None
 
 
 def utc_now_iso() -> str:
@@ -270,13 +271,17 @@ def iter_transcript_files(roots: list[TranscriptRoot]) -> Iterator[TranscriptSou
         if not root.path.is_dir():
             continue
         for jsonl_path in root.path.glob("**/agent-transcripts/**/*.jsonl"):
-            if "/subagents/" in jsonl_path.as_posix():
-                continue
             resolved = jsonl_path.resolve()
             if resolved in seen_jsonl:
                 continue
             session_id = jsonl_path.stem
             project_slug = project_slug_from_path(jsonl_path)
+            parent_session_id: str | None = None
+            parts = jsonl_path.parts
+            if "subagents" in parts:
+                idx = parts.index("subagents")
+                if idx >= 1:
+                    parent_session_id = parts[idx - 1]
             stat = jsonl_path.stat()
             seen_jsonl.add(resolved)
             yield TranscriptSource(
@@ -286,6 +291,7 @@ def iter_transcript_files(roots: list[TranscriptRoot]) -> Iterator[TranscriptSou
                 jsonl_path=jsonl_path,
                 mtime_ns=stat.st_mtime_ns,
                 size=stat.st_size,
+                parent_session_id=parent_session_id,
             )
 
 
@@ -348,29 +354,40 @@ def render_agent_markdown(
     exported_at: str,
 ) -> str:
     title = first_user_title(messages, source.session_id[:8])
+    tags = ["cursor", "agent-transcript", "agl", "fonte"]
+    if source.parent_session_id:
+        tags.append("subagent")
     lines = [
         "---",
         f'title: "Cursor Agent — {title}"',
-        "tags: [cursor, agent-transcript, agl, fonte]",
+        f"tags: [{', '.join(tags)}]",
         f'updated: "{exported_at[:10]}"',
         f'sources: ["{source.jsonl_path.as_posix()}"]',
         "harness: cursor",
         f"project: {source.project_slug}",
         f"host: {source.host}",
         f"session_id: {source.session_id}",
+    ]
+    if source.parent_session_id:
+        lines.append(f"parent_session_id: {source.parent_session_id}")
+    lines.extend([
         "---",
         "",
         f"# Agent transcript `{source.session_id}`",
         "",
         f"- **host:** `{source.host}`",
         f"- **projeto:** `{source.project_slug}`",
+    ])
+    if source.parent_session_id:
+        lines.append(f"- **parent:** `{source.parent_session_id}`")
+    lines.extend([
         f"- **ficheiro:** `{source.jsonl_path}`",
         f"- **modificado:** {datetime.fromtimestamp(source.mtime_ns / 1e9).strftime('%Y-%m-%d %H:%M')}",
         f"- **exportado:** {exported_at}",
         "",
         "---",
         "",
-    ]
+    ])
     for role, text in messages:
         lines.append(f"## {role}")
         lines.append("")
