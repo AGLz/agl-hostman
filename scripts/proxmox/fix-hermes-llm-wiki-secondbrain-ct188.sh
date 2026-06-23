@@ -40,6 +40,41 @@ if [[ ! -f "${SKILL_SRC}/SKILL.md" ]]; then
   exit 1
 fi
 
+TOKENS_FILE="${TELEGRAM_TOKENS_FILE:-/root/.aglz-telegram-tokens.env}"
+ALLOWED_USERS="${TELEGRAM_ALLOWED_USERS:-1272190248}"
+if [[ -f "${TOKENS_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  source "${TOKENS_FILE}"
+fi
+
+sync_telegram_env() {
+  local agent="$1"
+  local pdir
+  pdir="$(profile_dir "${agent}")"
+  local var="TELEGRAM_TOKEN_${agent^^}"
+  local token="${!var:-}"
+  local env_file="${pdir}/.env"
+  [[ -d "${pdir}" ]] || return 0
+  if [[ -z "${token}" ]]; then
+    grep -q '^TELEGRAM_BOT_TOKEN=' "${env_file}" 2>/dev/null && return 0
+    echo "AVISO: ${var} ausente — ${agent} sem Telegram" >&2
+    return 0
+  fi
+  touch "${env_file}"
+  chown "${HERMES_UID}:${HERMES_GID}" "${env_file}"
+  chmod 600 "${env_file}"
+  if grep -q '^TELEGRAM_BOT_TOKEN=' "${env_file}" 2>/dev/null; then
+    sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${token}|" "${env_file}"
+  else
+    echo "TELEGRAM_BOT_TOKEN=${token}" >>"${env_file}"
+  fi
+  grep -q '^TELEGRAM_ALLOWED_USERS=' "${env_file}" 2>/dev/null || \
+    echo "TELEGRAM_ALLOWED_USERS=${ALLOWED_USERS}" >>"${env_file}"
+  grep -q '^API_SERVER_ENABLED=' "${env_file}" 2>/dev/null || \
+    echo "API_SERVER_ENABLED=false" >>"${env_file}"
+  echo "OK ${agent} TELEGRAM_BOT_TOKEN"
+}
+
 echo "=== llm-wiki second brain — ${#AGENTS[@]} agentes ==="
 
 for agent in "${AGENTS[@]}"; do
@@ -105,6 +140,8 @@ if not isinstance(passthrough, list):
     term["env_passthrough"] = passthrough
 if "WIKI_PATH" not in passthrough:
     passthrough.append("WIKI_PATH")
+if cfg.get("telegram") is None:
+    cfg["telegram"] = {"channel_prompts": {}}
 path.write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
 print(f"OK config skills+WIKI_PATH: {path}")
 PY
@@ -123,6 +160,10 @@ PY
   if [[ -d "${LLM_WIKI_HOST}/raw" ]]; then
     install -d -m 775 -o "${HERMES_UID}" -g "${HERMES_GID}" "${LLM_WIKI_HOST}/raw/hermes/${agent}"
   fi
+done
+
+for agent in "${AGENTS[@]}"; do
+  sync_telegram_env "${agent}"
 done
 
 chown -R "${HERMES_UID}:${HERMES_GID}" "${HERMES_ROOT}/data/skills" 2>/dev/null || true
