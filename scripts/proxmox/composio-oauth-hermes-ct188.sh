@@ -87,7 +87,8 @@ save_api_key() {
 
 patch_config() {
   local enabled="${1:-true}"
-  python3 - "${CFG}" "${ENV_KEY}" "${OAUTH_PORT}" "${enabled}" <<'PY'
+  local api_key="${2:-}"
+  python3 - "${CFG}" "${ENV_KEY}" "${OAUTH_PORT}" "${enabled}" "${api_key}" <<'PY'
 import sys
 from pathlib import Path
 import yaml
@@ -96,6 +97,7 @@ path = Path(sys.argv[1])
 env_key = sys.argv[2]
 oauth_port = int(sys.argv[3])
 enabled = sys.argv[4].lower() in ("1", "true", "yes")
+api_key = sys.argv[5] if len(sys.argv) > 5 else ""
 
 cfg = yaml.safe_load(path.read_text()) or {}
 mcp = cfg.get("mcp_servers")
@@ -110,6 +112,11 @@ if isinstance(mcp, list):
 if not isinstance(mcp, dict):
     mcp = {}
 
+# ak_ = project API key → x-api-key; ck_ = consumer → x-consumer-api-key
+header_name = "x-api-key"
+if api_key.startswith("ck_"):
+    header_name = "x-consumer-api-key"
+
 comp = mcp.setdefault("composio", {})
 comp["url"] = "https://connect.composio.dev/mcp"
 comp["auth"] = "oauth"
@@ -117,7 +124,7 @@ comp["enabled"] = enabled
 comp["connect_timeout"] = comp.get("connect_timeout", 60)
 comp["timeout"] = comp.get("timeout", 180)
 comp["headers"] = {
-    "x-consumer-api-key": f"${{{env_key}}}",
+    header_name: f"${{{env_key}}}",
 }
 comp["oauth"] = {
     "redirect_port": oauth_port,
@@ -129,7 +136,7 @@ comp["timeout"] = 600
 
 cfg["mcp_servers"] = mcp
 path.write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
-print(f"OK config.yaml composio enabled={enabled} redirect_port={oauth_port}")
+print(f"OK config.yaml composio enabled={enabled} header={header_name} redirect_port={oauth_port}")
 PY
   chown 10000:10000 "${CFG}" 2>/dev/null || true
 }
@@ -162,7 +169,7 @@ cmd_configure() {
   save_api_key "${COMPOSIO_API_KEY}"
   local en="true"
   ${disable_until_login} && en="false"
-  patch_config "${en}"
+  patch_config "${en}" "${COMPOSIO_API_KEY}"
   fix_token_perms
 
   ok "Composio configurado. API key em ${ENV_KEY} (não commitar)."
@@ -202,7 +209,8 @@ cmd_test() {
 
 cmd_enable() {
   require_root
-  patch_config "true"
+  read_api_key || true
+  patch_config "true" "${COMPOSIO_API_KEY:-}"
   docker restart "${HERMES_CONTAINER}" >/dev/null
   sleep 15
   ok "Jarvis reiniciado com composio.enabled=true"
@@ -210,7 +218,8 @@ cmd_enable() {
 
 cmd_disable() {
   require_root
-  patch_config "false"
+  read_api_key || true
+  patch_config "false" "${COMPOSIO_API_KEY:-}"
   docker restart "${HERMES_CONTAINER}" >/dev/null
   sleep 10
   ok "Composio desactivado no gateway (sem spam OAuth)"
