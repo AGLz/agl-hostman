@@ -59,6 +59,8 @@ x-hermes-gateway: &hermes-gateway
 
     HERMES_DASHBOARD: "0"
 
+    MAKEMONEY_DIR: ${MAKEMONEY_DIR:-/mnt/overpower/apps/dev/agl/makemoney01}
+
   command:
     - gateway
 
@@ -203,7 +205,7 @@ services:
     volumes:
       - ${CURATOR_DATA_DIR:-./profiles/curator}:/opt/data
 
-      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:ro
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 
       - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
 
