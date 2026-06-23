@@ -5,16 +5,68 @@
 
 ## Mapa de agentes
 
-| ID            | Nome        | Grupo          | Contentor                | Telegram                     | Domínio                         |
-| ------------- | ----------- | -------------- | ------------------------ | ---------------------------- | ------------------------------- |
-| `jarvis`      | Jarvis      | Executive      | `agl-hermes-jarvis`      | @hermes_jarvis_h_bot         | CEO, delegação, crons gerais    |
-| `elon`        | Elon        | Executive      | `agl-hermes-elon`        | @hermes_jarvis_h_elon_bot    | Produto, pesquisa               |
-| `satya`       | Satya       | Executive      | `agl-hermes-satya`       | @hermes_jarvis_h_satya_bot   | Entrega, código                 |
-| `werner`      | Werner      | Infrastructure | `agl-hermes-werner`      | @hermes_jarvis_h_werner_bot  | Proxmox, LiteLLM, rede          |
-| **`curator`** | **Curator** | **Knowledge**  | **`agl-hermes-curator`** | @hermes_jarvis_h_curator_bot | **llm-wiki** ingest/lint        |
-| **`orion`**   | **Orion**   | **Media**      | **`agl-hermes-orion`**   | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber |
+| ID            | Nome        | Grupo          | Contentor                | Telegram                     | Domínio                          |
+| ------------- | ----------- | -------------- | ------------------------ | ---------------------------- | -------------------------------- |
+| `jarvis`      | Jarvis      | Executive      | `agl-hermes-jarvis`      | @hermes_jarvis_h_bot         | CEO, delegação, crons gerais     |
+| `elon`        | Elon        | Executive      | `agl-hermes-elon`        | @hermes_jarvis_h_elon_bot    | Produto, pesquisa                |
+| `satya`       | Satya       | Executive      | `agl-hermes-satya`       | @hermes_jarvis_h_satya_bot   | Entrega, código                  |
+| `werner`      | Werner      | Infrastructure | `agl-hermes-werner`      | @hermes_jarvis_h_werner_bot  | Proxmox, LiteLLM, rede           |
+| **`curator`** | **Curator** | **Knowledge**  | **`agl-hermes-curator`** | @hermes_jarvis_h_curator_bot | **llm-wiki** lint/ingest (todos) |
+| **`orion`**   | **Orion**   | **Media**      | **`agl-hermes-orion`**   | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber  |
 
 UI Laravel: `HermesAgentCatalog` inclui os seis perfis.
+
+---
+
+## Gateway: um contentor = um gateway (não “presos” ao Jarvis)
+
+Hermes **0.14.x** não suporta vários bots Telegram no **mesmo** processo gateway ([PR #25660](https://github.com/NousResearch/hermes-agent/pull/25660)). Por isso **cada agente** tem:
+
+- contentor Docker próprio (`agl-hermes-<agente>`)
+- comando `gateway run` (processo Hermes independente)
+- volume `profiles/<agente>` → `/opt/data` (config, SOUL, crons, memória local)
+- bot Telegram próprio (`TELEGRAM_BOT_TOKEN` no `.env` do perfil)
+
+**Curator e Orion não correm “dentro” do Jarvis** — têm gateway próprio como Elon/Satya/Werner. A diferença prática face ao quartet original:
+
+| Aspecto | Quartet (Jarvis…Werner) | Curator / Orion (novos) |
+| ------- | ------------------------ | ------------------------ |
+| Contentor + gateway | ✅ desde `configure-ct188-hermes-quartet.sh` | ✅ desde `configure-hermes-curator-orion-ct188.sh` |
+| HTTP API `:8642` exposta | **Só Jarvis** (Mission Control, Claw3D, minions) | Não — Telegram + crons internos |
+| Dashboard `:9119` | Jarvis | Não |
+| Crons | Jarvis: crons agência; Werner/…: alguns dedicados | Crons no **próprio** perfil (`profiles/curator/cron/`, `profiles/orion/cron/`) |
+| `delegate_task` | Jarvis delega para Elon/Satya/Werner | Curator/Orion **não** entram no trio CEO por omissão |
+| Bootstrap | Maduro, documentado em `AGLZ-HERMES-ONLY-AGENCY.md` | Perfil + compose adicionados depois; smoke Telegram por vezes `disconnected` até tokens/restart |
+
+**Hub operacional:** Jarvis continua o **ponto de entrada HTTP** (`8642`) e orquestração CEO — não substitui o gateway dos outros contentores.
+
+### Criar novos agentes (recomendado)
+
+1. **Repo:** `docker/hermes/profiles/<id>/` — `SOUL.md`, `config.yaml.example`, skills, `SECOND-BRAIN.md` (symlink ou referência).
+2. **Compose:** copiar bloco `hermes-satya` em `docker-compose.aglz-quartet.ct188.yml` → `hermes-<id>` (sem `ports` salvo API explícita).
+3. **Scripts:** `bootstrap-hermes-<id>-profile-ct188.sh` + `setup-hermes-<id>-crons-ct188.sh` se houver crons.
+4. **Telegram:** `TELEGRAM_TOKEN_<ID>` em tokens env; bot dedicado (1 token = 1 gateway).
+5. **Second brain:** adicionar `<id>` ao array `AGENTS` em `fix-hermes-llm-wiki-secondbrain-ct188.sh`.
+6. **Deploy CT188:** `configure-hermes-curator-orion-ct188.sh` como modelo; `docker compose up -d hermes-<id>`.
+7. **UI:** registar em `HermesAgentCatalog` (Laravel).
+
+Evitar crons só no Jarvis para agentes com contentor dedicado — o scheduler lê `cron/jobs.json` do volume montado em `/opt/data` **desse** contentor.
+
+---
+
+## Segundo cérebro (llm-wiki) — todos os agentes
+
+Protocolo partilhado: `docker/hermes/profiles/SECOND-BRAIN.md`
+
+| Script                                                     | Função                                               |
+| ---------------------------------------------------------- | ---------------------------------------------------- |
+| `scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh` | Skill + `WIKI_PATH` nos 6 perfis                     |
+| `scripts/proxmox/fix-curator-llm-wiki-skill-ct188.sh`      | Cron curator-maintenance (chamado pelo script acima) |
+
+```bash
+bash scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman
+bash scripts/proxmox/smoke-hermes-aglz-quartet.sh
+```
 
 ---
 

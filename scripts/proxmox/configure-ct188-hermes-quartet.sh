@@ -289,6 +289,11 @@ fi
 WIKI_DIR="/opt/agl-llm-wiki"
 bash "${AGL_HOSTMAN}/scripts/proxmox/ensure-llm-wiki-ct188.sh" || true
 
+if [[ -x "${AGL_HOSTMAN}/scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh" ]]; then
+  bash "${AGL_HOSTMAN}/scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh" "${AGL_HOSTMAN}" || \
+    echo "AVISO: second brain — correr fix-hermes-llm-wiki-secondbrain-ct188.sh manualmente" >&2
+fi
+
 install -m 0644 "${AGL_HOSTMAN}/docker/hermes/docker-compose.aglz-quartet.ct188.yml" \
   "${HERMES_ROOT}/docker-compose.aglz-quartet.yml"
 install -m 0644 "${AGL_HOSTMAN}/docker/hermes/Dockerfile.aglz-agency" \

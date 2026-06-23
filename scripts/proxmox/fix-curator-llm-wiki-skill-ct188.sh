@@ -52,9 +52,9 @@ Read SCHEMA.md, index.md, and recent log.md under WIKI_PATH when present.
 mkdir -p /opt/data/logs/wiki-lint /opt/data/wiki-ingest
 
 ## 3. Ingest (skill ingest workflow)
-Process new sources in /opt/data/wiki-ingest/ per llm-wiki skill. Write/update pages under WIKI_PATH.
+Process new sources in /opt/data/wiki-ingest/ (all agents: jarvis, elon, satya, werner, curator, orion) per llm-wiki skill. Write/update pages under WIKI_PATH.
 
-Also process **Cursor stubs** at `/opt/llm-wiki/raw/wiki-ingest/cursor/` (pipeline `wiki-curator-optimize.py` em agl-hostman). Synthesize problem/decision/solution — never paste full transcripts.
+Also process **agent stubs** at `/opt/llm-wiki/raw/hermes/*/` and **Cursor stubs** at `/opt/llm-wiki/raw/wiki-ingest/cursor/`.
 
 Check latest lint under `/opt/llm-wiki/raw/logs/wiki-lint/` when present.
 

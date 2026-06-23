@@ -57,6 +57,29 @@ for agent in jarvis elon satya werner curator orion; do
   fi
 done
 
+echo "=== llm-wiki skill (todos os agentes) ==="
+for agent in jarvis elon satya werner curator orion; do
+  if [[ "${agent}" == "jarvis" ]]; then
+    skill="${HERMES_ROOT}/data/skills/research/llm-wiki"
+    envf="${HERMES_ROOT}/data/.env"
+  else
+    skill="${HERMES_ROOT}/profiles/${agent}/skills/research/llm-wiki"
+    [[ -e "${skill}" ]] || skill="${HERMES_ROOT}/data/profiles/${agent}/skills/research/llm-wiki"
+    envf="${HERMES_ROOT}/profiles/${agent}/.env"
+    [[ -f "${envf}" ]] || envf="${HERMES_ROOT}/data/profiles/${agent}/.env"
+  fi
+  if [[ -f "${skill}/SKILL.md" ]] || [[ -L "${skill}" ]]; then
+    ok "${agent} skill llm-wiki"
+  else
+    fail "${agent} llm-wiki — fix-hermes-llm-wiki-secondbrain-ct188.sh"
+  fi
+  if [[ -f "${envf}" ]] && grep -q '^WIKI_PATH=/opt/llm-wiki/wiki' "${envf}"; then
+    ok "${agent} WIKI_PATH"
+  else
+    fail "${agent} WIKI_PATH — fix-hermes-llm-wiki-secondbrain-ct188.sh"
+  fi
+done
+
 echo "=== Curator profile ==="
 CURATOR_CFG="${HERMES_ROOT}/profiles/curator/config.yaml"
 [[ -f "${CURATOR_CFG}" ]] || CURATOR_CFG="${HERMES_ROOT}/data/profiles/curator/config.yaml"
@@ -64,13 +87,6 @@ if [[ -f "${CURATOR_CFG}" ]]; then
   ok "curator config.yaml"
 else
   fail "curator — bootstrap-hermes-curator-profile-ct188.sh"
-fi
-CURATOR_SKILL="${HERMES_ROOT}/profiles/curator/skills/research/llm-wiki"
-[[ -e "${CURATOR_SKILL}" ]] || CURATOR_SKILL="${HERMES_ROOT}/data/profiles/curator/skills/research/llm-wiki"
-if [[ -f "${CURATOR_SKILL}/SKILL.md" ]] || [[ -L "${CURATOR_SKILL}" ]]; then
-  ok "curator skill llm-wiki"
-else
-  fail "curator llm-wiki — fix-curator-llm-wiki-skill-ct188.sh"
 fi
 
 echo "=== Orion profile ==="

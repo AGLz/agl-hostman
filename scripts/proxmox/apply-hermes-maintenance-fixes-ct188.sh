@@ -46,9 +46,8 @@ PY
 echo "=== 2/5 Curator profile ==="
 bash "${SCRIPTS}/bootstrap-hermes-curator-profile-ct188.sh" "${AGL_HOSTMAN}"
 
-echo "=== 3/5 Curator llm-wiki skill + cron prompt ==="
-bash "${SCRIPTS}/setup-hermes-curator-crons-ct188.sh"
-bash "${SCRIPTS}/fix-curator-llm-wiki-skill-ct188.sh"
+echo "=== 3/5 llm-wiki second brain (todos os agentes) ==="
+bash "${SCRIPTS}/fix-hermes-llm-wiki-secondbrain-ct188.sh" "${AGL_HOSTMAN}"
 
 echo "=== 3b/5 Orion profile + media crons ==="
 bash "${SCRIPTS}/bootstrap-hermes-orion-profile-ct188.sh" "${AGL_HOSTMAN}" || true

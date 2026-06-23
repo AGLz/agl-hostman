@@ -41,8 +41,8 @@ Fluxos definidos em `AGENTS.md` do repo:
 
 Clone read-mostly no CT188, montado no contentor:
 
-| Host (CT188)        | Contentor       | Modo                                        |
-| ------------------- | --------------- | ------------------------------------------- |
+| Host (CT188)        | Contentor       | Modo                               |
+| ------------------- | --------------- | ---------------------------------- |
 | `/opt/agl-llm-wiki` | `/opt/llm-wiki` | **`rw`** (todos os agentes Hermes) |
 
 ```bash
@@ -58,18 +58,28 @@ Variável no compose: `LLM_WIKI_DIR=/opt/agl-llm-wiki` (ver `docker/hermes/docke
 
 ---
 
-## Integração Hermes por agente
+## Integração Hermes por agente (segundo cérebro bidireccional)
 
-| Agente                | Uso principal do wiki                                              |
-| --------------------- | ------------------------------------------------------------------ |
-| **Jarvis (CEO)**      | Query estratégica — contexto AGL, decisões passadas documentadas   |
-| **Elon (CPO/CRO)**    | Ingest de pesquisa, lint de domínios produto, síntese para roadmap |
-| **Satya (COO)**       | Runbooks de deploy/app; infra pesada → **Werner**                  |
-| **Werner (VP Infra)** | Runbooks infra, `docs/INFRA.md`, ingest pós-incidente              |
+Todos os agentes: mount **`/opt/llm-wiki` :rw**, skill **`llm-wiki`**, `WIKI_PATH=/opt/llm-wiki/wiki`, protocolo em `docker/hermes/profiles/SECOND-BRAIN.md`.
 
-**Leitura (query):** toolset `file` — começar por `/opt/llm-wiki/wiki/index.md`.
+| Agente                | Query (leitura)                     | Escrita (ingest)                                    |
+| --------------------- | ----------------------------------- | --------------------------------------------------- |
+| **Jarvis (CEO)**      | Decisões e contexto AGL documentado | Síntese estratégica, prioridades                    |
+| **Elon (CPO/CRO)**    | Pesquisa, entidades produto         | Specs, PMF, análises                                |
+| **Satya (COO)**       | Runbooks deploy/app                 | Procedimentos entrega, checklists                   |
+| **Werner (VP Infra)** | Runbooks infra, `docs/INFRA.md`     | Pós-incidente, mudanças CT/rede                     |
+| **Orion (Media)**     | MEDIA-ARR, freeze/grabs             | Estado filas, operações \*arr                       |
+| **Curator**           | Vault inteiro                       | Ingest/lint agendado (2h), consolida stubs de todos |
 
-**Escrita (ingest/lint):** clone **rw** ou branch + PR no GitHub; Satya/Elon commitam via terminal com identidade de serviço.
+**Query:** skill `llm-wiki` — começar por `/opt/llm-wiki/wiki/index.md`.
+
+**Escrita:** actualizar `wiki/`, `index.md`, `log.md`; stubs em `/opt/data/wiki-ingest/<agente>/` ou `/opt/llm-wiki/raw/hermes/<agente>/`.
+
+**Deploy skill + env (CT188):**
+
+```bash
+bash scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman
+```
 
 ---
 
@@ -143,7 +153,7 @@ Plano canónico: [`ai-docs/planning/SIX-REPOS-MULTI-AGENT-PLAN.md`](../ai-docs/p
 | Host                | O quê                                                                                                                                                                                    |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **agldv03**         | `bash scripts/skills/sync-six-repos.sh --repo all` + `verify-six-repos.sh`                                                                                                               |
-| **CT188 Hermes**    | Só **leitura** llm-wiki (`/opt/agl-llm-wiki` → `/opt/llm-wiki`); **não** instalar superpowers no contentor                                                                               |
+| **CT188 Hermes**    | llm-wiki **rw** + skill **llm-wiki** em **todos** os 6 agentes; `fix-hermes-llm-wiki-secondbrain-ct188.sh`                                                                               |
 | **aglwk45 (VM104)** | `git pull` no NFS (`/mnt/overpower/.../agl-hostman`) + `bash scripts/skills/propagate-sync-agl-hostman-wk45-qemu.sh` (robocopy `Z:` → `C:\Users\Administrator\apps\dev\agl\agl-hostman`) |
 
 ```bash
