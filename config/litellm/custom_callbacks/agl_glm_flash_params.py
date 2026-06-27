@@ -22,11 +22,27 @@ _GLM_FLASH_PATTERN = re.compile(
     re.I,
 )
 
+# GLM "thinking-capable" usados como primarios/coding (GLM Coding Plan).
+# Reason: com thinking on, o GLM gasta o budget em reasoning_content e devolve
+# content vazio -> "empty response (no content or reasoning)" sob carga. Por
+# default desligamos thinking aqui (preservando override explicito enabled).
+# Ver wiki [[GLM Coding Plan (Z.AI)]] e nota do alias zai-coding-glm-4.7.
+_GLM_THINKING_PATTERN = re.compile(
+    r"(^|/)(zai-glm-5|zai-coding-glm-4\.7|glm-5|glm-5-turbo|glm-4\.7|glm|zai/glm-5|zai/glm-4\.7)$",
+    re.I,
+)
+
 
 def _is_glm_flash_route(model: Optional[str]) -> bool:
     if not model:
         return False
     return bool(_GLM_FLASH_PATTERN.search(model.strip()))
+
+
+def _is_glm_thinking_route(model: Optional[str]) -> bool:
+    if not model:
+        return False
+    return bool(_GLM_THINKING_PATTERN.search(model.strip()))
 
 
 class AglGlmFlashParamsHandler(CustomLogger):
@@ -81,6 +97,19 @@ class AglGlmFlashParamsHandler(CustomLogger):
                 if not isinstance(thinking, dict):
                     thinking = {}
                 if thinking.get("type") != "enabled":
+                    extra["thinking"] = {"type": "disabled"}
+                data["extra_body"] = extra
+
+        # Primarios GLM (coding plan / chat): thinking off por default para
+        # garantir content nao-vazio. Mantem o teto de max_tokens do deployment.
+        if _is_glm_thinking_route(model_str) and not _is_glm_flash_route(model_str):
+            cur = data.get("max_tokens")
+            if cur is not None and (not isinstance(cur, int) or cur < MIN_MAX_TOKENS):
+                data["max_tokens"] = MIN_MAX_TOKENS
+            if not model_str.lower().startswith("openai/"):
+                extra = dict(data.get("extra_body") or {})
+                thinking = extra.get("thinking")
+                if not (isinstance(thinking, dict) and thinking.get("type") == "enabled"):
                     extra["thinking"] = {"type": "disabled"}
                 data["extra_body"] = extra
 
