@@ -18,7 +18,7 @@ AGL_HOSTMAN="${1:-/mnt/overpower/apps/dev/agl/agl-hostman}"
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
 HERMES_UID="${HERMES_UID:-10000}"
-PRIMARY_MODEL="${PRIMARY_MODEL:-gpt-5.4-mini}"
+PRIMARY_MODEL="${PRIMARY_MODEL:-zai-coding-glm-4.7}"
 FALLBACK_MODEL="${FALLBACK_MODEL:-or-nemotron-super-free}"
 CURATOR_CRON_MODEL="${CURATOR_CRON_MODEL:-or-nemotron-super-free}"
 CURATOR_CRON_EXPR="${CURATOR_CRON_EXPR:-0 4,10,16,22 * * *}"
@@ -35,8 +35,8 @@ profile_cfg() {
   fi
 }
 
-echo "=== 1/5 Fallback ${FALLBACK_MODEL} (Jarvis + Curator) ==="
-for agent in jarvis curator; do
+echo "=== 1/5 Modelos ${PRIMARY_MODEL} + fallback ${FALLBACK_MODEL} (6 agentes) ==="
+for agent in jarvis curator elon satya werner orion; do
   cfg="$(profile_cfg "${agent}")"
   [[ -f "${cfg}" ]] || { echo "WARN: ${cfg} em falta" >&2; continue; }
   python3 - "${cfg}" "${FALLBACK_MODEL}" "${LITELLM_TS}" "${PRIMARY_MODEL}" <<'PY'
@@ -49,8 +49,7 @@ cfg = yaml.safe_load(Path(path).read_text()) or {}
 
 m = cfg.setdefault("model", {})
 api_key = m.get("api_key")
-# Reason: primario Z.AI (zai-glm-5) devolve respostas vazias sob carga;
-# gpt-5.4-mini e estavel no LiteLLM CT186.
+# Reason: GLM Coding Plan via LiteLLM (thinking off no callback CT186).
 m["default"] = primary
 m["fallback"] = fallback
 m["provider"] = m.get("provider") or "custom"

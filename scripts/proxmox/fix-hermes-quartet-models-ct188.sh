@@ -45,6 +45,23 @@ case "${MODE}" in
     FALLBACK_MODEL="agl-primary-vm110"
     AUXILIARY_MODEL="groq-llama-31-8b"
     ;;
+  --zai-rate-limited)
+    # Z.AI 1302 rate limit: fallback fora da Z.AI (OpenRouter nemotron / OpenAI via LiteLLM)
+    JARVIS_MODEL="zai-coding-glm-4.7"
+    AGENT_MODEL="zai-coding-glm-4.7"
+    CURATOR_MODEL="zai-coding-glm-4.7"
+    FALLBACK_MODEL="or-nemotron-super-free"
+    AUXILIARY_MODEL="gpt-5.4-mini"
+    ;;
+  --zai-coding)
+    # GLM Coding Plan (apos thinking-off no LiteLLM CT186) — primario para todos
+    JARVIS_MODEL="zai-coding-glm-4.7"
+    AGENT_MODEL="zai-coding-glm-4.7"
+    CURATOR_MODEL="zai-coding-glm-4.7"
+    ORION_MODEL="zai-coding-glm-4.7"
+    FALLBACK_MODEL="or-nemotron-super-free"
+    AUXILIARY_MODEL="gpt-5.4-mini"
+    ;;
   --free-tier|--no-quota)
     JARVIS_MODEL="zai-glm-flash"
     AGENT_MODEL="glm-4.7-flash"
@@ -60,7 +77,7 @@ case "${MODE}" in
     AUXILIARY_MODEL="or-nemotron-super-free"
     ;;
   *)
-    echo "Uso: $0 [--paid-tier|--openai-exhausted|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
+    echo "Uso: $0 [--paid-tier|--zai-coding|--openai-exhausted|--zai-rate-limited|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
     exit 1
     ;;
 esac
@@ -127,6 +144,16 @@ fb["base_url"] = litellm.rstrip("/")
 if m.get("api_key"):
     fb["api_key"] = m["api_key"]
 
+base = litellm.rstrip("/")
+fp = [
+    {"provider": "custom", "model": fallback_model, "base_url": base},
+    {"provider": "custom", "model": "gpt-5.4-mini", "base_url": base},
+]
+if m.get("api_key"):
+    for entry in fp:
+        entry["api_key"] = m["api_key"]
+cfg["fallback_providers"] = fp
+
 for cp in cfg.get("custom_providers") or []:
     if isinstance(cp, dict):
         cp["base_url"] = litellm.rstrip("/")
@@ -149,6 +176,8 @@ if isinstance(aux, dict):
 prov = cfg.setdefault("providers", {})
 custom = prov.setdefault("custom", {})
 custom["base_url"] = litellm.rstrip("/")
+if m.get("api_key"):
+    custom["api_key"] = m["api_key"]
 
 Path(path).write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
 print(f"OK {path} primary={primary} fallback={fallback_model} aux={auxiliary_model}")

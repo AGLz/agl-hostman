@@ -35,10 +35,11 @@ test("fallback_providers herdam api_key (evita 401 no-key-required)", () => {
   assert.match(content, /providers", \{\}\)\.setdefault\("custom"/);
 });
 
-test("primario default estavel (gpt-5.4-mini, fora Z.AI)", () => {
+test("primario default GLM Coding Plan (zai-coding-glm-4.7)", () => {
   const content = fs.readFileSync(SCRIPT, "utf8");
-  assert.match(content, /PRIMARY_MODEL="\$\{PRIMARY_MODEL:-gpt-5\.4-mini\}"/);
+  assert.match(content, /PRIMARY_MODEL="\$\{PRIMARY_MODEL:-zai-coding-glm-4\.7\}"/);
   assert.match(content, /m\["default"\] = primary/);
+  assert.match(content, /jarvis curator elon satya werner orion/);
 });
 
 test("setup-hermes-curator-crons usa schedule 6h e modelo fora Z.AI", () => {
