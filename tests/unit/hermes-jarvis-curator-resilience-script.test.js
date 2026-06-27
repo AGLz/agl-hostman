@@ -35,6 +35,13 @@ test("fallback_providers herdam api_key (evita 401 no-key-required)", () => {
   assert.match(content, /providers", \{\}\)\.setdefault\("custom"/);
 });
 
+test("cadeia de fallback sem OpenAI termina em Ollama local (sem quota)", () => {
+  const content = fs.readFileSync(SCRIPT, "utf8");
+  // Reason: gpt-5.4-mini (OpenAI) esgotado gerava "quota exceeded" ao utilizador
+  assert.doesNotMatch(content, /"model": "gpt-5\.4-mini"/);
+  assert.match(content, /agl-primary-vm110/);
+});
+
 test("primario default GLM Coding Plan (zai-coding-glm-4.7)", () => {
   const content = fs.readFileSync(SCRIPT, "utf8");
   assert.match(content, /PRIMARY_MODEL="\$\{PRIMARY_MODEL:-zai-coding-glm-4\.7\}"/);

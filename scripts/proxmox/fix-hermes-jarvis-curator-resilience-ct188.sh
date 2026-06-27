@@ -62,13 +62,16 @@ fb["base_url"] = litellm.rstrip("/")
 if api_key:
     fb["api_key"] = api_key
 
-# Segundo fallback (terciário) — evita cadeia só Z.AI no LiteLLM.
-# Reason: provider "custom" exige api_key sk-litellm-...; sem ela o LiteLLM
-# devolve 401 (Received=no-key-required) e o Jarvis pára ao acionar fallback.
+# Cadeia de fallback sem OpenAI, terminando em Ollama local (sem quota externa).
+# Reason 1: provider "custom" exige api_key sk-litellm-...; sem ela o LiteLLM
+#   devolve 401 (Received=no-key-required) e o agente pára ao acionar fallback.
+# Reason 2: gpt-5.4-mini (OpenAI) com quota esgotada gerava "quota exceeded"
+#   ao utilizador; agl-primary-vm110 (Ollama local) garante resposta final.
 base = litellm.rstrip("/")
 fp = [
     {"provider": "custom", "model": fallback, "base_url": base},
-    {"provider": "custom", "model": "gpt-5.4-mini", "base_url": base},
+    {"provider": "custom", "model": "or-minimax-m2.5-free", "base_url": base},
+    {"provider": "custom", "model": "agl-primary-vm110", "base_url": base},
 ]
 if api_key:
     for entry in fp:
