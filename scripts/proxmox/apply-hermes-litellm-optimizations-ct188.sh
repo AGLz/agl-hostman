@@ -33,10 +33,12 @@ main() {
   fi
 
   if [[ "$SKIP_HERMES" != "1" ]]; then
-    log "=== Hermes CT188 ==="
-    bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --paid-tier
-    bash scripts/proxmox/fix-hermes-max-tokens-ct188.sh
-    bash scripts/proxmox/fix-hermes-cron-models-ct188.sh
+    log "=== Hermes CT188 (OpenRouter free + local — sem paid/Z.AI swarm) ==="
+    bash scripts/proxmox/hermes-openrouter-free-ct188.sh
+    CRON_MODEL="${CRON_MODEL:-or-owl-alpha}" CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}" \
+      bash scripts/proxmox/fix-hermes-max-tokens-ct188.sh
+    CRON_MODEL="${CRON_MODEL:-or-owl-alpha}" CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}" \
+      bash scripts/proxmox/fix-hermes-cron-models-ct188.sh
     if [[ "$DRY_RUN" != "1" ]]; then
       ssh -o ConnectTimeout=20 root@100.107.113.33 \
         "pct exec 188 -- bash -lc 'cd /opt/agl-hermes && docker compose restart agl-hermes-jarvis agl-hermes-elon agl-hermes-satya agl-hermes-werner agl-hermes-curator agl-hermes-orion 2>/dev/null || docker compose restart'"

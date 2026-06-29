@@ -42,15 +42,15 @@ FALLBACK_CHAIN="agl-primary,zai-glm-5,glm-5,zai-coding-glm-4.7,gpt-5.4-mini,clau
 apply_hermes() {
   local script="${REPO_ROOT}/scripts/proxmox/fix-hermes-quartet-models-ct188.sh"
   if [[ "${HERMES_LOCAL}" -eq 1 ]]; then
-    bash "${script}" --paid-tier
+    bash "${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh"
     return
   fi
   if [[ -z "${HERMES_HOST}" ]]; then
     HERMES_HOST="root@100.81.225.22"
   fi
   echo "=== Hermes CT188 via ${HERMES_HOST} ==="
-  scp "${script}" "${HERMES_HOST}:/tmp/fix-hermes-quartet-models-ct188.sh"
-  ssh "${HERMES_HOST}" "bash /tmp/fix-hermes-quartet-models-ct188.sh --paid-tier"
+  scp "${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh" "${HERMES_HOST}:/tmp/hermes-openrouter-free-ct188.sh"
+  ssh "${HERMES_HOST}" "bash /tmp/hermes-openrouter-free-ct188.sh"
 }
 
 apply_openclaw() {

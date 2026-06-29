@@ -28,6 +28,16 @@ test("config.yaml define aliases or-nemotron-ultra-free e or-owl-alpha", () => {
   assert.match(content, /model: openrouter\/openrouter\/owl-alpha/);
 });
 
+test("fallbacks zai-coding-glm-4.7 nao realimentam Z.AI", () => {
+  const content = fs.readFileSync(CONFIG, "utf8");
+  const block = content.split("- zai-coding-glm-4.7:\n")[1]?.split(/\n    - [a-z]/)[0] ?? "";
+  assert.ok(block.length > 0, "bloco zai-coding-glm-4.7 ausente");
+  assert.doesNotMatch(block, /zai-glm/);
+  assert.doesNotMatch(block, /glm-4\.7-flash/);
+  assert.match(block, /or-nemotron-ultra-free/);
+  assert.match(block, /agl-primary-vm110/);
+});
+
 test("fallbacks or-nemotron-ultra-free e or-owl-alpha nao usam paid", () => {
   const content = fs.readFileSync(CONFIG, "utf8");
   for (const alias of ["or-nemotron-ultra-free", "or-owl-alpha"]) {

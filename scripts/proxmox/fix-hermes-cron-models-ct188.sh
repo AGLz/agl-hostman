@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Crons LLM: modelo paid/cloud; fallback sem Ollama (evita timeout 90s em agl-primary-vm110).
+# Crons LLM: modelo free/cloud; fallback local (evita quota paga).
 #
 # Uso (root no CT188):
 #   bash fix-hermes-cron-models-ct188.sh
-#   CRON_MODEL=zai-glm-5 CRON_FALLBACK=zai-glm-flash bash fix-hermes-cron-models-ct188.sh
+#   CRON_MODEL=or-owl-alpha CRON_FALLBACK=groq-llama-31-8b bash fix-hermes-cron-models-ct188.sh
 
 set -euo pipefail
 
@@ -11,8 +11,8 @@ HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 JOBS="${HERMES_ROOT}/data/cron/jobs.json"
 CFG="${HERMES_ROOT}/data/config.yaml"
 HERMES_UID="${HERMES_UID:-10000}"
-CRON_MODEL="${CRON_MODEL:-zai-glm-5}"
-CRON_FALLBACK="${CRON_FALLBACK:-zai-glm-flash}"
+CRON_MODEL="${CRON_MODEL:-or-owl-alpha}"
+CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}"
 
 python3 - "${JOBS}" "${CRON_MODEL}" <<'PY'
 import json, sys, re

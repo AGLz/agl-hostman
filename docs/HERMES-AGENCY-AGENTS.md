@@ -1,20 +1,21 @@
-# Hermes Agency — Agentes (Jarvis · Quartet · Curator · Orion)
+# Hermes Agency — Agentes (Jarvis · Quartet · Curator · Orion · Argus)
 
 > **CT188** · LiteLLM `http://100.125.249.8:4000` · Honcho `aglz-agency`  
 > Complementa [`AGLZ-HERMES-ONLY-AGENCY.md`](AGLZ-HERMES-ONLY-AGENCY.md) (quartet executivo).
 
 ## Mapa de agentes
 
-| ID            | Nome        | Grupo          | Contentor                | Telegram                     | Domínio                          |
-| ------------- | ----------- | -------------- | ------------------------ | ---------------------------- | -------------------------------- |
-| `jarvis`      | Jarvis      | Executive      | `agl-hermes-jarvis`      | @hermes_jarvis_h_bot         | CEO, delegação, crons gerais     |
-| `elon`        | Elon        | Executive      | `agl-hermes-elon`        | @hermes_jarvis_h_elon_bot    | Produto, pesquisa                |
-| `satya`       | Satya       | Executive      | `agl-hermes-satya`       | @hermes_jarvis_h_satya_bot   | Entrega, código                  |
-| `werner`      | Werner      | Infrastructure | `agl-hermes-werner`      | @hermes_jarvis_h_werner_bot  | Proxmox, LiteLLM, rede           |
-| **`curator`** | **Curator** | **Knowledge**  | **`agl-hermes-curator`** | @hermes_jarvis_h_curator_bot | **llm-wiki** lint/ingest (todos) |
-| **`orion`**   | **Orion**   | **Media**      | **`agl-hermes-orion`**   | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber  |
+| ID            | Nome        | Grupo          | Contentor                | Telegram                     | Domínio                             |
+| ------------- | ----------- | -------------- | ------------------------ | ---------------------------- | ----------------------------------- |
+| `jarvis`      | Jarvis      | Executive      | `agl-hermes-jarvis`      | @hermes_jarvis_h_bot         | CEO, delegação, crons gerais        |
+| `elon`        | Elon        | Executive      | `agl-hermes-elon`        | @hermes_jarvis_h_elon_bot    | Produto, pesquisa                   |
+| `satya`       | Satya       | Executive      | `agl-hermes-satya`       | @hermes_jarvis_h_satya_bot   | Entrega, código                     |
+| `werner`      | Werner      | Infrastructure | `agl-hermes-werner`      | @hermes_jarvis_h_werner_bot  | Proxmox, LiteLLM, rede              |
+| **`curator`** | **Curator** | **Knowledge**  | **`agl-hermes-curator`** | @hermes_jarvis_h_curator_bot | **llm-wiki** lint/ingest (todos)    |
+| **`orion`**   | **Orion**   | **Media**      | **`agl-hermes-orion`**   | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber     |
+| **`argus`**   | **Argus**   | **FinOps**     | **`agl-hermes-argus`**   | @hermes_jarvis_h_argus_bot   | **Limites/quota LLM**, gate LiteLLM |
 
-UI Laravel: `HermesAgentCatalog` inclui os seis perfis.
+UI Laravel: `HermesAgentCatalog` inclui os sete perfis.
 
 ---
 
@@ -29,14 +30,14 @@ Hermes **0.14.x** não suporta vários bots Telegram no **mesmo** processo gatew
 
 **Curator e Orion não correm “dentro” do Jarvis** — têm gateway próprio como Elon/Satya/Werner. A diferença prática face ao quartet original:
 
-| Aspecto | Quartet (Jarvis…Werner) | Curator / Orion (novos) |
-| ------- | ------------------------ | ------------------------ |
-| Contentor + gateway | ✅ desde `configure-ct188-hermes-quartet.sh` | ✅ desde `configure-hermes-curator-orion-ct188.sh` |
-| HTTP API `:8642` exposta | **Só Jarvis** (Mission Control, Claw3D, minions) | Não — Telegram + crons internos |
-| Dashboard `:9119` | Jarvis | Não |
-| Crons | Jarvis: crons agência; Werner/…: alguns dedicados | Crons no **próprio** perfil (`profiles/curator/cron/`, `profiles/orion/cron/`) |
-| `delegate_task` | Jarvis delega para Elon/Satya/Werner | Curator/Orion **não** entram no trio CEO por omissão |
-| Bootstrap | Maduro, documentado em `AGLZ-HERMES-ONLY-AGENCY.md` | Perfil + compose adicionados depois; smoke Telegram por vezes `disconnected` até tokens/restart |
+| Aspecto                  | Quartet (Jarvis…Werner)                             | Curator / Orion (novos)                                                                         |
+| ------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Contentor + gateway      | ✅ desde `configure-ct188-hermes-quartet.sh`        | ✅ desde `configure-hermes-curator-orion-ct188.sh`                                              |
+| HTTP API `:8642` exposta | **Só Jarvis** (Mission Control, Claw3D, minions)    | Não — Telegram + crons internos                                                                 |
+| Dashboard `:9119`        | Jarvis                                              | Não                                                                                             |
+| Crons                    | Jarvis: crons agência; Werner/…: alguns dedicados   | Crons no **próprio** perfil (`profiles/curator/cron/`, `profiles/orion/cron/`)                  |
+| `delegate_task`          | Jarvis delega para Elon/Satya/Werner                | Curator/Orion **não** entram no trio CEO por omissão                                            |
+| Bootstrap                | Maduro, documentado em `AGLZ-HERMES-ONLY-AGENCY.md` | Perfil + compose adicionados depois; smoke Telegram por vezes `disconnected` até tokens/restart |
 
 **Hub operacional:** Jarvis continua o **ponto de entrada HTTP** (`8642`) e orquestração CEO — não substitui o gateway dos outros contentores.
 
@@ -112,7 +113,7 @@ Manter o vault **llm-wiki** curado: ingest de `/opt/data/wiki-ingest/`, lint, `i
 # No CT188 (após quartet)
 bash scripts/proxmox/configure-hermes-curator-orion-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman [/root/.aglz-telegram-tokens.env]
 bash scripts/proxmox/fix-curator-llm-wiki-skill-ct188.sh
-bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --free-tier
+bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --openrouter-free
 ```
 
 Tokens opcionais: `TELEGRAM_TOKEN_CURATOR=...` no ficheiro tokens.
@@ -167,29 +168,90 @@ docker compose -f docker-compose.aglz-quartet.yml up -d hermes-orion
 
 ---
 
+## Argus — Quota Steward & LLM FinOps
+
+### Missão
+
+Manter o **fluxo contínuo de execuções** dos harnesses AGL (Cursor, Claude Code ±OpenClaw, Codex, Ruflo, Hermes, Verdent) vivo e barato, vigiando limites/uso/saúde de todos os providers/models e sendo o **gate** das mudanças no LiteLLM. Detentor da skill `agl-llm-monitor`. Reporta ao **Jarvis**, canal Telegram direto com o operador, e **delega ao Werner** a aplicação física no LiteLLM CT186.
+
+### Ficheiros (repo)
+
+| Path                                                        | Descrição                          |
+| ----------------------------------------------------------- | ---------------------------------- |
+| `docker/hermes/profiles/argus/SOUL.md`                      | Persona                            |
+| `docker/hermes/profiles/argus/config.yaml.example`          | Template (free-tier + bloco argus) |
+| `.claude/skills/agl-llm-monitor/SKILL.md`                   | Skill cross-harness (contrato+CLI) |
+| `scripts/proxmox/bootstrap-hermes-argus-profile-ct188.sh`   | Bootstrap                          |
+| `scripts/proxmox/setup-hermes-argus-monitor-crons-ct188.sh` | Crons digest/watch                 |
+| `scripts/monitoring/hermes-argus-quota-digest.sh`           | Digest leve (no_agent)             |
+
+### Modelo
+
+Free-tier por defeito (a monitorização não deve queimar quota paga): `glm-4.7-flash` · fallback `agl-primary-vm110` · aux `groq-llama-31-8b`. **Nota:** free-tier também tem limites de uso (req/dia, rpm/tpm) e **janela de contexto menor** — Argus monitoriza estes limites e não encaminha tarefas long-context para um free insuficiente.
+
+### Gate de mudança no LiteLLM (2 tiers)
+
+- **Tier A — automático:** failover seguro para modelos free quando um provider pago falha (estilo `--apply-hermes`). Argus aplica e **notifica**. Ressalva: free-tier também tem limites (uso + contexto menor) — se não servir a tarefa/ferramenta, Argus escala em vez de insistir.
+- **Tier B — requer OK humano via Telegram:** reescrita estrutural do `config.yaml`. Argus prepara diff + justificação, pede o OK no Telegram, e só depois **delega ao Werner** o pipeline com guardrails (backup `.bak` → validação → deploy → smoke → rollback).
+
+### Crons Argus
+
+| Job                        | Schedule  | Acção                               |
+| -------------------------- | --------- | ----------------------------------- |
+| `argus-quota-digest-daily` | 07:30     | Digest diário de limites (Telegram) |
+| `argus-limits-watch`       | a cada 6h | Verificação 5h/semanal/mensal/RL    |
+
+### Deploy
+
+```bash
+# No CT188 (após quartet + curator/orion)
+bash scripts/proxmox/configure-hermes-argus-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman [/root/.aglz-telegram-tokens.env]
+# ou manual:
+bash scripts/proxmox/bootstrap-hermes-argus-profile-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman
+bash scripts/proxmox/fix-hermes-llm-wiki-secondbrain-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman
+docker compose -f docker-compose.aglz-quartet.yml up -d hermes-argus
+```
+
+Token: `TELEGRAM_TOKEN_ARGUS=...` em `/root/.aglz-telegram-tokens.env` no CT188; depois:
+
+```bash
+bash scripts/proxmox/setup-hermes-argus-telegram-ct188.sh /root/.aglz-telegram-tokens.env
+```
+
+Bot sugerido: `@hermes_jarvis_h_argus_bot` (criar no BotFather antes do script acima).
+
+---
+
 ## Docker Compose
 
 Serviços em `docker/hermes/docker-compose.aglz-quartet.ct188.yml`:
 
 - `hermes-curator` → `CURATOR_DATA_DIR=./profiles/curator`
 - `hermes-orion` → `ORION_DATA_DIR=./profiles/orion`
+- `hermes-argus` → `ARGUS_DATA_DIR=./profiles/argus`
 
 Mesma imagem `agl-hermes-agency` que o quartet.
 
 ---
 
-## Modelos (quota esgotada)
+## Modelos (swarm free — política 2026-06-29)
 
-Perfil **`--free-tier`** (recomendado quando OpenAI/Z.AI paid falham):
+Perfil **`--openrouter-free`** (default; custo variável ≈ $0; veto Alibaba pay-as-you-go):
 
-| Agente          | Primário      | Fallback          |
-| --------------- | ------------- | ----------------- |
-| Jarvis          | zai-glm-flash | agl-primary-vm110 |
-| Quartet         | glm-4.7-flash | agl-primary-vm110 |
-| Curator / Orion | glm-4.7-flash | agl-primary-vm110 |
+| Agente | Primário | Fallback |
+| ------ | -------- | -------- |
+| Jarvis, Curator | `or-nemotron-ultra-free` | `or-owl-alpha` → `or-nemotron-super-free` → `groq` → `vm110` |
+| Elon, Satya, Werner, Orion | `or-owl-alpha` | `or-nemotron-super-free` → `groq` → `vm110` |
+| Aux / delegation | `or-owl-alpha` | — |
+| Crons | `or-owl-alpha` | `groq-llama-31-8b` |
+
+> Dados sensíveis de infra → `agl-primary-vm110` (local, zero logging). Z.AI Coding Plan reservado a 1–2 agentes serializados no IDE, não ao swarm.
 
 ```bash
-bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --free-tier
+bash scripts/proxmox/hermes-openrouter-free-ct188.sh
+# ou
+bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --openrouter-free
+bash scripts/proxmox/apply-hermes-litellm-optimizations-ct188.sh
 ```
 
 ---

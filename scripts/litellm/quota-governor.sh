@@ -195,20 +195,20 @@ decide_action() {
 }
 
 apply_hermes_free_tier() {
-  local fix_script="${REPO_ROOT}/scripts/proxmox/fix-hermes-quartet-models-ct188.sh"
+  local fix_script="${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh"
   [[ -f "$fix_script" ]] || { log "ERRO: fix script em falta"; return 1; }
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    log "[dry-run] Hermes --free-tier via ${HERMES_SSH_HOST}"
+    log "[dry-run] Hermes --openrouter-free via ${HERMES_SSH_HOST}"
     return 0
   fi
   if [[ -d /opt/agl-hermes ]]; then
-    log "Aplicar Hermes free-tier local (CT188)"
-    bash "$fix_script" --free-tier
+    log "Aplicar Hermes openrouter-free local (CT188)"
+    bash "$fix_script"
     return
   fi
-  log "Aplicar Hermes free-tier remoto ${HERMES_SSH_HOST}"
-  scp -q "$fix_script" "${HERMES_SSH_HOST}:/tmp/fix-hermes-quartet-models-ct188.sh"
-  ssh -o BatchMode=yes -o ConnectTimeout=20 "${HERMES_SSH_HOST}" "bash /tmp/fix-hermes-quartet-models-ct188.sh --free-tier"
+  log "Aplicar Hermes openrouter-free remoto ${HERMES_SSH_HOST}"
+  scp -q "$fix_script" "${HERMES_SSH_HOST}:/tmp/hermes-openrouter-free-ct188.sh"
+  ssh -o BatchMode=yes -o ConnectTimeout=20 "${HERMES_SSH_HOST}" "bash /tmp/hermes-openrouter-free-ct188.sh"
 }
 
 send_notify() {
