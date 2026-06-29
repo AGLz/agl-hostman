@@ -7,7 +7,8 @@
 #   --free-tier: Z.AI flash + Ollama VM110 (melhor qualidade sem OpenAI quota)
 #
 # Uso (root no CT188):
-#   bash fix-hermes-quartet-models-ct188.sh --openrouter-free   # default (recomendado AGL 2026-06)
+#   bash fix-hermes-quartet-models-ct188.sh --secure          # default (zero-logging, dados sensíveis)
+#   bash fix-hermes-quartet-models-ct188.sh --openrouter-free # SÓ tarefas públicas (free loga prompts)
 #   bash fix-hermes-quartet-models-ct188.sh --paid-tier
 #   bash fix-hermes-quartet-models-ct188.sh --restore-openai   # após quota OpenAI repor
 #   bash fix-hermes-quartet-models-ct188.sh --openai-exhausted # quota OpenAI esgotada (fallback Z.AI)
@@ -16,10 +17,15 @@ set -euo pipefail
 
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
-MODE="${1:---openrouter-free}"
+MODE="${1:---secure}"
 
 case "${MODE}" in
+  --secure)
+    # Default: swarm lê segundo cérebro (infra+agência) → routing local zero-logging.
+    exec bash "$(dirname "$0")/hermes-secure-routing-ct188.sh"
+    ;;
   --openrouter-free)
+    # AVISO: modelos free logam prompts. Usar SÓ para tarefas sem dados AGL no contexto.
     exec bash "$(dirname "$0")/hermes-openrouter-free-ct188.sh"
     ;;
   --paid-tier)
@@ -80,7 +86,7 @@ case "${MODE}" in
     AUXILIARY_MODEL="or-nemotron-super-free"
     ;;
   *)
-    echo "Uso: $0 [--openrouter-free|--paid-tier|--zai-coding|--openai-exhausted|--zai-rate-limited|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
+    echo "Uso: $0 [--secure|--openrouter-free|--paid-tier|--zai-coding|--openai-exhausted|--zai-rate-limited|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
     exit 1
     ;;
 esac

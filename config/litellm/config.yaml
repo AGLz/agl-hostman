@@ -120,6 +120,12 @@ litellm_settings:
         - groq-llama-31-8b
         - zai-glm-5
         - or-nemotron-super-free
+    # agl-sensitive: cadeia 100% LOCAL (zero egress/logging). Dados sensíveis (segundo cérebro,
+    # infra, agência, emails/LinkedIn, leads). NUNCA adicionar modelos cloud/free aqui — logam prompts.
+    - agl-sensitive:
+        - agl-primary-strong
+        - agl-primary-vm110
+        - agl-primary-fast
     - openai/ollama-qwen3-4b:
         - glm-4.7-flash
         - glm-flash
@@ -464,6 +470,27 @@ model_list:
       note: "VM310 GPU0 — qwen3:4b ctx-long (primário local AGL)"
       output_cost_per_token: 0
     model_name: agl-primary
+  - litellm_params:
+      api_base: http://100.67.253.52:11434
+      api_key: ollama
+      model: ollama/qwen3:4b
+      timeout: 12
+      stream: true
+      max_tokens: 8192
+      think: false
+      extra_body:
+        options:
+          num_ctx: 32768
+    model_info:
+      access: direct
+      context_window: 32768
+      free_tier: true
+      input_cost_per_token: 0
+      max_tokens: 8192
+      note: "ZERO-LOGGING local (VM310 GPU0 qwen3:4b). USAR para dados sensíveis: segundo cérebro (infra+agência), emails/LinkedIn privados, leads makemoney. Fallbacks 100% locais — nunca sai da infra AGL. NÃO trocar por modelos cloud/free (logam prompts)."
+      output_cost_per_token: 0
+      data_policy: local-only-zero-logging
+    model_name: agl-sensitive
   - litellm_params:
       api_base: http://100.67.253.52:11435
       api_key: ollama

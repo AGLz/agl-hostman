@@ -6,7 +6,9 @@ MAKEMONEY_DIR="${MAKEMONEY_DIR:-/mnt/overpower/apps/dev/agl/makemoney01}"
 DATE="$(date '+%Y-%m-%d')"
 HERMES_ENV="${HERMES_ENV:-/opt/data/.env}"
 LITELLM_URL="${LITELLM_URL:-}"
-MODEL="${MAKEMONEY_LLM_MODEL:-agl-primary}"
+# Leads/oportunidades makemoney = dados sensíveis → local zero-logging (fallback 100% local).
+# agl-sensitive nunca cai para cloud/free (que logam). NÃO trocar por agl-primary (failover→cloud).
+MODEL="${MAKEMONEY_LLM_MODEL:-agl-sensitive}"
 MAX_CHARS="${MAKEMONEY_MAX_CHARS:-2500}"
 
 load_api_key() {

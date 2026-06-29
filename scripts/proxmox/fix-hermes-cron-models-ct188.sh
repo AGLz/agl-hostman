@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Crons LLM: modelo free/cloud; fallback local (evita quota paga).
+# Crons LLM: modelo LOCAL zero-logging por default (crons leem segundo cérebro,
+# makemoney/leads e emails/LinkedIn → dados sensíveis NÃO podem ir para cloud/free
+# que logam prompts). Local = zero-logging E custo ≈ 0.
+#
+# Para crons comprovadamente PÚBLICOS (sem dados AGL no prompt), passar explicitamente
+# CRON_MODEL=or-owl-alpha CRON_FALLBACK=groq-llama-31-8b (opt-in consciente).
 #
 # Uso (root no CT188):
 #   bash fix-hermes-cron-models-ct188.sh
@@ -11,8 +16,8 @@ HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 JOBS="${HERMES_ROOT}/data/cron/jobs.json"
 CFG="${HERMES_ROOT}/data/config.yaml"
 HERMES_UID="${HERMES_UID:-10000}"
-CRON_MODEL="${CRON_MODEL:-or-owl-alpha}"
-CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}"
+CRON_MODEL="${CRON_MODEL:-agl-sensitive}"
+CRON_FALLBACK="${CRON_FALLBACK:-agl-primary-vm110}"
 
 python3 - "${JOBS}" "${CRON_MODEL}" <<'PY'
 import json, sys, re

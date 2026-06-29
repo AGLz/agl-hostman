@@ -33,11 +33,11 @@ main() {
   fi
 
   if [[ "$SKIP_HERMES" != "1" ]]; then
-    log "=== Hermes CT188 (OpenRouter free + local — sem paid/Z.AI swarm) ==="
-    bash scripts/proxmox/hermes-openrouter-free-ct188.sh
-    CRON_MODEL="${CRON_MODEL:-or-owl-alpha}" CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}" \
+    log "=== Hermes CT188 (routing SEGURO local zero-logging — swarm lê segundo cérebro) ==="
+    bash scripts/proxmox/hermes-secure-routing-ct188.sh
+    CRON_MODEL="${CRON_MODEL:-agl-sensitive}" CRON_FALLBACK="${CRON_FALLBACK:-agl-primary-vm110}" \
       bash scripts/proxmox/fix-hermes-max-tokens-ct188.sh
-    CRON_MODEL="${CRON_MODEL:-or-owl-alpha}" CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}" \
+    CRON_MODEL="${CRON_MODEL:-agl-sensitive}" CRON_FALLBACK="${CRON_FALLBACK:-agl-primary-vm110}" \
       bash scripts/proxmox/fix-hermes-cron-models-ct188.sh
     if [[ "$DRY_RUN" != "1" ]]; then
       ssh -o ConnectTimeout=20 root@100.107.113.33 \

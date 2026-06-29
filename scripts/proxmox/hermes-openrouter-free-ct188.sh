@@ -1,18 +1,37 @@
 #!/usr/bin/env bash
-# Hermes CT188: primarios OpenRouter FREE (regime saldo < $15, politica AGL).
+# Hermes CT188: primarios OpenRouter FREE — OPT-IN, NAO e o default.
 #
-# Reparticao (agentsdirectory.dev + validacao AGL 2026-06-29):
+# !!! AVISO DE PRIVACIDADE !!!
+# Modelos free OpenRouter LOGAM/RETEM prompts (NVIDIA Nemotron + stealth Owl Alpha) e
+# Groq tambem retem no tier free. O swarm Hermes carrega contexto do SEGUNDO CEREBRO
+# (llm-wiki: infra + agencia) e os crons leem makemoney/leads + emails/LinkedIn.
+# Enviar esse contexto para estes modelos = FUGA DE DADOS.
+#
+# >>> Default correcto: scripts/proxmox/hermes-secure-routing-ct188.sh (local, zero-logging).
+# >>> Usar ESTE script SO para tarefas comprovadamente PUBLICAS, sem qualquer dado AGL no prompt.
+#
+# Reparticao (quando aplicavel a tarefas publicas):
 #   Criticos (jarvis/curator): or-nemotron-ultra-free — reasoning/orquestracao, 1M ctx
 #   Restantes (elon/satya/werner/orion): or-owl-alpha — all-round, ~19tps, 1M ctx
 # Fallbacks (sem paid): or-owl-alpha / or-nemotron-super-free -> groq -> vm110
 #
-# AVISO: modelos free OpenRouter logam prompts (NVIDIA + stealth Owl Alpha).
-# Dados sensiveis AGL -> agl-primary-vm110 (local, zero logging).
-#
-# Uso (root no CT188):
-#   bash hermes-openrouter-free-ct188.sh
+# Uso (root no CT188), confirmando que NAO ha dados sensiveis no contexto:
+#   HERMES_ALLOW_PUBLIC_FREE=1 bash hermes-openrouter-free-ct188.sh
 
 set -euo pipefail
+
+if [[ "${HERMES_ALLOW_PUBLIC_FREE:-0}" != "1" ]]; then
+  cat >&2 <<'WARN'
+RECUSADO: hermes-openrouter-free encaminha o swarm para modelos free que LOGAM prompts.
+O swarm le o segundo cerebro (infra+agencia) e os crons leem emails/LinkedIn → risco de fuga.
+
+Default seguro (zero-logging, local): bash hermes-secure-routing-ct188.sh
+
+Se esta tarefa NAO contem dados AGL (apenas dados publicos), repetir com:
+  HERMES_ALLOW_PUBLIC_FREE=1 bash hermes-openrouter-free-ct188.sh
+WARN
+  exit 2
+fi
 
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
