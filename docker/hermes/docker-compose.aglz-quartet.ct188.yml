@@ -271,6 +271,31 @@ services:
       - default
       - langfuse
 
+  hermes-verifier:
+    <<: *hermes-gateway
+
+    container_name: agl-hermes-verifier
+
+    env_file:
+      - ${VERIFIER_DATA_DIR:-./profiles/verifier}/.env
+
+    volumes:
+      - ${VERIFIER_DATA_DIR:-./profiles/verifier}:/opt/data
+
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
+
+      - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
+
+      - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
+
+      - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
+
+    healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
+
   # Claw3D / hermes-desktop Office — WebSocket adapter (OpenClaw protocol → Hermes HTTP :8642)
   hermes-claw3d-adapter:
     build:

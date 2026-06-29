@@ -40,5 +40,28 @@ Quando alterares infra, deploy, media, produto ou decisões de arquitectura:
 | **Orion**   | Media stack          | Estado \*arr, freeze/unfreeze, MEDIA-ARR            |
 | **Curator** | Vault inteiro        | Ingest/lint agendado (2h), consolida stubs de todos |
 | **Argus**   | Limites LLM, planos  | Quotas/providers, incidentes FinOps, stubs monitor  |
+| **Verifier**| Critérios, runbooks  | Padrões de falha QA recorrentes (`hermes/verifier`) |
 
 Curator **não** monopoliza escrita — mantém qualidade e cron; os restantes escrevem no domínio deles.
+
+## Review-Queue (modelo Verdent "To Review")
+
+Fila partilhada onde o **Jarvis** (Manager) regista cada task delegada e o **Verifier** dá o veredito. Permite acompanhamento de perto sem micro-gestão.
+
+- **Path (rw para todos os agentes, via `/opt/llm-wiki`):** `/opt/llm-wiki/raw/hermes/review-queue/queue.json`
+- **Helper:** `/opt/agl-hostman/scripts/proxmox/hermes-review-queue.sh` (`add` | `list` | `set-status` | `verdict`).
+- **Estados:** `planned` → `in_progress` → `to_review` → `verifying` → `done` | `blocked` | `failed`.
+
+Entrada (campos):
+
+| Campo | Significado |
+| ----- | ----------- |
+| `id` | identificador curto da task |
+| `agent` | agente responsável pela execução |
+| `goal` | objetivo em 1 linha |
+| `acceptance_criteria` | lista objetiva (o que o Verifier valida) |
+| `status` | ver estados acima |
+| `verifier_verdict` | `PASS` / `FAIL` / `null` + evidência |
+| `updated_at` | ISO timestamp |
+
+**Fluxo:** Jarvis `add` (planned + criteria) → delega → agente `set-status in_progress`/`to_review` → Verifier `verdict PASS|FAIL` → Jarvis fecha (`done`) ou re-delega (`failed`).

@@ -38,6 +38,16 @@ Este ficheiro guarda conhecimento específico do projeto, convenções e prefer�
 - jarvis/curator → `or-nemotron-ultra-free`; elon/satya/werner/orion → `or-owl-alpha`
 - Fallbacks: groq → `agl-primary-vm110` (dados sensíveis → local)
 
+### Hermes — modelo Verdent Manager (2026-06-29)
+
+- **Jarvis = Manager, não executor.** Loop **Plan→Execute→Verify→Deliver**: clarifica → decompõe (fases→subtasks→**acceptance criteria**) → delega (`delegate_task`, paraleliza ortogonais) → `read_agent_context` antes de re-delegar → gate **Verifier** → entrega só o que precisa de decisão.
+- **Verifier** = 8º agente, gate QA **PASS/FAIL** (modelo `@Verifier`); container `agl-hermes-verifier`. Não implementa correções nem decide prioridades.
+- **Review-queue:** `/opt/llm-wiki/raw/hermes/review-queue/queue.json` (rw via `LLM_WIKI_DIR`; **`/mnt/overpower` é NFS root-squashed**, não escrevível pelos agentes). Helper: `scripts/proxmox/hermes-review-queue.sh`.
+- **Stand-up cron 2h** (`jarvis-standup-2h`): Jarvis varre `read_agent_context` + review-queue.
+- **Crons:** Jarvis só gerencial (briefing, emails, stand-up). Executor migrado → Werner (infra) / Elon (research) / Satya (makemoney). Script: `migrate-hermes-jarvis-crons-ct188.sh`.
+- **Roster (8):** Jarvis, Elon, Satya, Werner, Orion, Argus, Curator, **Verifier**.
+- Página: `llm-wiki/wiki/Agência Hermes — Modelo Manager.md`.
+
 ## Project Conventions
 
 - LiteLLM gateway em **CT186** (`100.125.249.8:4000`); deploy via `scripts/litellm/deploy-litellm-callbacks-ct186.sh`.
