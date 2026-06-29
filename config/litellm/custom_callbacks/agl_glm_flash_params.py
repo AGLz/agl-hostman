@@ -28,7 +28,7 @@ _GLM_FLASH_PATTERN = re.compile(
 # default desligamos thinking aqui (preservando override explicito enabled).
 # Ver wiki [[GLM Coding Plan (Z.AI)]] e nota do alias zai-coding-glm-4.7.
 _GLM_THINKING_PATTERN = re.compile(
-    r"(^|/)(zai-glm-5|zai-coding-glm-4\.7|glm-5|glm-5-turbo|glm-4\.7|glm|zai/glm-5|zai/glm-4\.7)$",
+    r"(^|/)(zai-glm-5|zai-coding-glm-4\.7|glm-5|glm-5-turbo|glm-4\.7|glm-4\.5|glm-air|glm|zai/glm-5|zai/glm-4\.7|openai/glm-4\.5|zai/glm-4\.5-air)$",
     re.I,
 )
 

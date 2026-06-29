@@ -82,6 +82,12 @@ litellm_settings:
         - glm-flash
         - kimi
   fallbacks:
+    - glm-4.5:
+        - glm-air
+        - or-nemotron-super-free
+        - or-minimax-m2.5-free
+        - groq-llama-31-8b
+        - agl-primary-vm110
     - zai-coding-glm-4.7:
         - zai-glm-5
         - agl-primary
@@ -594,6 +600,19 @@ model_list:
       max_tokens: 131072
       output_cost_per_token: 3.2e-06
     model_name: glm-5
+  - litellm_params:
+      api_base: https://api.z.ai/api/openai/v1
+      api_key: os.environ/ZAI_API_KEY
+      model: openai/glm-4.5
+      timeout: 90
+    model_info:
+      access: direct
+      context_window: 131072
+      input_cost_per_token: 6.0e-07
+      max_tokens: 98304
+      output_cost_per_token: 2.2e-06
+      note: "Z.AI Developer API (balance) — concurrency 10; preferir a zai-coding-glm-4.7 (concurrency 2) para multi-agente Hermes"
+    model_name: glm-4.5
   - litellm_params:
       api_key: os.environ/ZAI_API_KEY
       model: zai/glm-4.7

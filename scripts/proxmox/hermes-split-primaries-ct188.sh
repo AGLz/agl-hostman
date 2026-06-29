@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
-# Reparticao de primarios Hermes (CT188) para aliviar rate-limit 1302 do Z.AI.
+# Reparticao de primarios Hermes (CT188) — SUPERSEDED por hermes-glm45-balance-ct188.sh
 #
-# Politica (2026-06-29): com os 6 agentes em Z.AI (zai-coding-glm-4.7) o GLM Coding
-# Plan satura sob carga (1302). Reparte:
-#   - Z.AI (criticos):        jarvis, curator      -> zai-coding-glm-4.7
-#   - non-Z.AI (restantes):   elon, satya, werner, orion -> or-nemotron-super-free
+# Ver scripts/proxmox/hermes-glm45-balance-ct188.sh (GLM-4.5 balance, concurrency 10).
 #
 # Cadeias de fallback (todas sem OpenAI; ver fix-hermes-jarvis-curator-resilience):
 #   Z.AI:     zai-coding-glm-4.7 -> or-nemotron-super-free -> or-minimax-m2.5-free -> agl-primary-vm110
