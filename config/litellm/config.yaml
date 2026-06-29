@@ -343,21 +343,21 @@ litellm_settings:
     - or-nemotron-super-free:
         - or-minimax-m2.5-free
         - or-llama-3.3-70b-free
-        - glm-flash
-        - glm-flash
+        - groq-llama-31-8b
+        - agl-primary-vm110
     - or-minimax-m2.5-free:
         - or-llama-3.3-70b-free
         - or-gemma-3-4b-free
-        - glm-flash
-        - glm-flash
+        - groq-llama-31-8b
+        - agl-primary-vm110
     - or-llama-3.3-70b-free:
         - or-gemma-3-4b-free
         - or-gemma-3-12b-free
-        - glm-flash
-        - glm-flash
+        - groq-llama-31-8b
+        - agl-primary-vm110
     - or-gemma-3-4b-free:
-        - glm-flash
-        - glm-flash
+        - groq-llama-31-8b
+        - agl-primary-vm110
         - or-llama-3.3-70b-free
     - or-gemma-3-12b-free:
         - glm-flash
@@ -459,7 +459,7 @@ model_list:
       api_base: http://100.74.118.51:11434
       api_key: ollama
       model: ollama/qwen3:4b
-      timeout: 90
+      timeout: 30
       stream: true
       max_tokens: 4096
       think: false
