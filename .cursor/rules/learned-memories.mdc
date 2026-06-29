@@ -26,9 +26,17 @@ Este ficheiro guarda conhecimento específico do projeto, convenções e prefer�
 ### OpenRouter — estado dos modelos (validação 2026-06-29)
 
 - Maioria dos `:free` antigos **deprecada/indisponível** (404).
-- `nvidia/nemotron-3-super-120b-a12b:free` é o **melhor free atual** (estável, contexto longo).
+- **`or-owl-alpha`**: melhor free all-round para Hermes (1M ctx, ~19 tps, stealth — prompts logados).
+- **`or-nemotron-ultra-free`**: melhor free para reasoning/orquestração (550B/55B MoE, 1M ctx, ~7 tps — prompts logados NVIDIA).
+- **`or-nemotron-super-free`**: fallback rápido (262K ctx, ~1.2s latência).
 - Paid funcionais (só com saldo > $30): nemotron-super, minimax-m2.5, llama-3.3-70b, gpt-4o-mini, deepseek-v3, gemma-3-27b.
 - **`max_tokens` baixo → `content` vazio** em modelos com reasoning (nemotron/minimax), igual ao GLM; usar `max_tokens` ≥ 4096–8192.
+
+### Hermes — primários OpenRouter free (2026-06-29)
+
+- Script: `scripts/proxmox/hermes-openrouter-free-ct188.sh`
+- jarvis/curator → `or-nemotron-ultra-free`; elon/satya/werner/orion → `or-owl-alpha`
+- Fallbacks: groq → `agl-primary-vm110` (dados sensíveis → local)
 
 ## Project Conventions
 

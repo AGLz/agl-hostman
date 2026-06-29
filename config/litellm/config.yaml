@@ -349,6 +349,15 @@ litellm_settings:
     - or-nemotron-super-free:
         - groq-llama-31-8b
         - agl-primary-vm110
+    - or-nemotron-ultra-free:
+        - or-owl-alpha
+        - or-nemotron-super-free
+        - groq-llama-31-8b
+        - agl-primary-vm110
+    - or-owl-alpha:
+        - or-nemotron-super-free
+        - groq-llama-31-8b
+        - agl-primary-vm110
     - or-nemotron-super:
         - or-minimax-m2.5
         - or-llama-3.3-70b
@@ -1375,6 +1384,28 @@ model_list:
       free_tier: true
       max_tokens: 8192
     model_name: or-nemotron-super-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/nvidia/nemotron-3-ultra-550b-a55b:free
+      timeout: 120
+    model_info:
+      access: openrouter
+      context_window: 1048576
+      free_tier: true
+      max_tokens: 8192
+      note: "OpenRouter free — nemotron ultra 550B/55B active MoE, agent orchestration, 1M ctx; prompts logged"
+    model_name: or-nemotron-ultra-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/openrouter/owl-alpha
+      timeout: 90
+    model_info:
+      access: openrouter
+      context_window: 1048576
+      free_tier: true
+      max_tokens: 8192
+      note: "OpenRouter free stealth — Owl Alpha, agentic all-round, ~19tps; prompts logged"
+    model_name: or-owl-alpha
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
       model: openrouter/nvidia/nemotron-3-super-120b-a12b
