@@ -1,0 +1,5 @@
+model,mode,target,case,status,wall_ms,load_ms,total_ms,eval_count,tok_per_s,preview,processor,vram
+qwen3:4b,gpu-g0,http://100.74.118.51:11434,chat,FAIL,,,,,,invalid json,,
+|
+qwen3:4b,gpu-g0,http://100.74.118.51:11434,json,FAIL,,,,,,invalid json,,
+|

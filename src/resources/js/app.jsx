@@ -13,6 +13,7 @@ import MissionControlSettings from "./pages/MissionControlSettings";
 import MissionControlStudio from "./pages/MissionControlStudio";
 import MissionControlMinions from "./pages/MissionControlMinions";
 import MissionControlHarness from "./pages/MissionControlHarness";
+import MissionControlLlmMonitor from "./pages/MissionControlLlmMonitor";
 import DokployDashboard from "./pages/DokployDashboard";
 import InfrastructureDashboard from "./pages/InfrastructureDashboard";
 import MetricsDashboard from "./pages/MetricsDashboard";
@@ -53,6 +54,10 @@ function App() {
                         <Route
                             path="/mission-control/harness"
                             element={<MissionControlHarness />}
+                        />
+                        <Route
+                            path="/mission-control/llm-monitor"
+                            element={<MissionControlLlmMonitor />}
                         />
                         <Route
                             path="/mission-control/studio"

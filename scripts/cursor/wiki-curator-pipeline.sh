@@ -12,6 +12,9 @@ bash "$REPO/scripts/cursor/sync-cursor-to-wiki.sh" "$@"
 echo "[curator-pipeline] 2/3 optimize wiki (dedupe, ingest stubs, lint, hubs)"
 "$PY" "$REPO/scripts/cursor/wiki-curator-optimize.py" --wiki "$WIKI"
 
+echo "[curator-pipeline] 2b/3 synthesize all sessions → wiki/"
+"$PY" "$REPO/scripts/cursor/wiki-curator-synthesize-all.py" --wiki "$WIKI" --force
+
 if [[ "${LLM_WIKI_GIT_COMMIT:-0}" == "1" ]] && [[ -d "$WIKI/.git" ]]; then
   echo "[curator-pipeline] 3/3 git commit vault"
   git -C "$WIKI" add raw/wiki-ingest raw/logs/wiki-lint raw/cursor wiki/

@@ -1,8 +1,12 @@
 ---
-description: 
-globs: 
+description: Guia primário agl-hostman — contexto, código, testes, tasks, docs e fluxo READ→DEPLOY a seguir em todo o trabalho
+globs:
 alwaysApply: true
 ---
+
+> **Objetivo:** antes de qualquer trabalho, carregar contexto (PROJECT_PLAN + llm-wiki),
+> respeitar limites de código/testes e seguir o fluxo READ → … → DEPLOY no fim deste ficheiro.
+
 ## 🔄 Context
 - **Read `ai-docs/planning/PROJECT_PLAN.md`** first
 - **Consultar segundo cérebro** — `llm-wiki/wiki/index.md` (`/mnt/overpower/apps/dev/agl/llm-wiki`) antes de features/runbooks/decisões; ver `.cursor/rules/llm-wiki-second-brain.mdc`

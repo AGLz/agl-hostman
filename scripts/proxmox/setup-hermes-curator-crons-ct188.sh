@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cron curator-maintenance (llm-wiki, cada 2h) no perfil curator.
+# Cron curator-maintenance (llm-wiki, cada 6h) no perfil curator.
 #
 # Uso (root no CT188):
 #   bash setup-hermes-curator-crons-ct188.sh
@@ -12,12 +12,13 @@ JOBS="${CURATOR_DIR}/cron/jobs.json"
 HERMES_UID="${HERMES_UID:-10000}"
 TELEGRAM_CHAT="${TELEGRAM_CHAT:-1272190248}"
 JOB_ID="${CURATOR_CRON_JOB_ID:-e54ffa964a1f}"
-CRON_MODEL="${CURATOR_CRON_MODEL:-groq-llama-31-8b}"
+CRON_MODEL="${CURATOR_CRON_MODEL:-or-nemotron-super-free}"
+CRON_EXPR="${CURATOR_CRON_EXPR:-0 4,10,16,22 * * *}"
 
 install -d -m 700 -o "${HERMES_UID}" -g "${HERMES_UID}" "${CURATOR_DIR}/cron"
 
 read -r -d '' PROMPT <<'PROMPT' || true
-# Curator Maintenance Job (runs every 2h)
+# Curator Maintenance Job (runs every 6h)
 
 Use the **llm-wiki** skill (no shell `llm-wiki` CLI). WIKI_PATH=/opt/llm-wiki/wiki (flat AGLz structure).
 
@@ -48,14 +49,13 @@ Após ingest/lint: `git add -A`, commit datado, `git push origin main` se houver
 If nothing to ingest and no lint findings, respond with exactly [SILENT].
 PROMPT
 
-python3 - "${JOBS}" "${JOB_ID}" "${CRON_MODEL}" "${TELEGRAM_CHAT}" "${PROMPT}" <<'PY'
+python3 - "${JOBS}" "${JOB_ID}" "${CRON_MODEL}" "${TELEGRAM_CHAT}" "${PROMPT}" "${CRON_EXPR}" <<'PY'
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
 
-path, job_id, model, chat, prompt = sys.argv[1:6]
-cron_expr = "0 */2 * * *"
+path, job_id, model, chat, prompt, cron_expr = sys.argv[1:7]
 
 def load():
     if Path(path).is_file():

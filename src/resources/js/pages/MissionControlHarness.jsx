@@ -21,23 +21,18 @@ import {
     HARNESS_POLL_INTERVAL_MS,
     actionBadgeClass,
     fetchHarnessSnapshot,
+    fetchLlmMonitorStatus,
     formatTierSummary,
+    overallBadgeClass,
 } from "@/lib/harness";
-
-function MetricTile({ label, value, sub }) {
-    return (
-        <div className="rounded-lg border border-white/5 bg-white/[0.03] p-4">
-            <p className="text-xs text-white/40">{label}</p>
-            <p className="text-xl font-semibold text-white mt-1">{value}</p>
-            {sub && <p className="text-[11px] text-white/30 mt-1">{sub}</p>}
-        </div>
-    );
-}
+import LlmMonitorDashboard from "@/components/llm-monitor/LlmMonitorDashboard";
 
 export default function MissionControlHarness() {
     const [data, setData] = useState(null);
+    const [llmMonitor, setLlmMonitor] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [llmError, setLlmError] = useState(null);
 
     const load = useCallback(async () => {
         try {
@@ -46,6 +41,14 @@ export default function MissionControlHarness() {
             setData(snapshot);
         } catch (err) {
             setError(err.message);
+        }
+
+        try {
+            setLlmError(null);
+            const monitor = await fetchLlmMonitorStatus();
+            setLlmMonitor(monitor);
+        } catch (err) {
+            setLlmError(err.message);
         } finally {
             setLoading(false);
         }
@@ -284,6 +287,12 @@ export default function MissionControlHarness() {
                             </CardContent>
                         </Card>
                     )}
+
+                    <LlmMonitorDashboard
+                        data={llmMonitor}
+                        error={llmError}
+                        compact
+                    />
                 </>
             )}
         </div>

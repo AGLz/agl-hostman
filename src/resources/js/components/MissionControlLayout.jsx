@@ -25,6 +25,7 @@ import {
     ExternalLink,
     Route,
     Building2,
+    Gauge,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -68,6 +69,11 @@ const navSections = [
                 name: "Harness Router",
                 href: "/mission-control/harness",
                 icon: Route,
+            },
+            {
+                name: "LLM Monitor",
+                href: "/mission-control/llm-monitor",
+                icon: Gauge,
             },
             {
                 name: "Claw3D Studio",

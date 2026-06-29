@@ -22,6 +22,7 @@ When new information relevant to the project's conventions, user preferences, or
 1.  **Identify Key Information:** Determine the core piece of knowledge to be stored.
 2.  **Check Existing Memory:** Review `learned-memories.mdc` to see if this information contradicts or updates existing entries.
 3.  **Propose Update:** Suggest an edit to `learned-memories.mdc` to add or modify the relevant information. Keep entries concise and clear.
+4.  **Session capture:** At end of productive sessions with corrections, suggest `/reflect-yourself` (skill `reflect-yourself`, rule `self-improve.mdc`).
 
 ## Using Memory
 
@@ -36,11 +37,13 @@ Before proposing solutions, code changes, or answering questions, the AI should 
 1.  Recognize this as a project-specific technical decision.
 2.  Check `learned-memories.mdc` for existing Tailwind version information.
 3.  Propose adding or updating an entry in `learned-memories.mdc`:
+
     ```markdown
     ## Technical Decisions
 
-    *   **CSS Framework:** Tailwind v4 is used. Ensure usage aligns with v4 documentation and practices, noting differences from v3.
+    - **CSS Framework:** Tailwind v4 is used. Ensure usage aligns with v4 documentation and practices, noting differences from v3.
     ```
+
 4.  In subsequent interactions involving Tailwind, the AI will refer to this entry and consult v4 documentation if necessary.
 
 ## Memory File (`.cursor/rules/learned-memories.mdc`)
@@ -54,16 +57,16 @@ This file stores project-specific knowledge, conventions, and user preferences l
 
 ## User Preferences
 
--   [Preference 1]
--   [Preference 2]
+- [Preference 1]
+- [Preference 2]
 
 ## Technical Decisions
 
--   [Decision 1]
--   [Decision 2]
+- [Decision 1]
+- [Decision 2]
 
 ## Project Conventions
 
--   [Convention 1]
--   [Convention 2]
+- [Convention 1]
+- [Convention 2]
 ```

@@ -6,19 +6,19 @@
 
 ## Contactos e nós
 
-| Papel | Nó | IP LAN | Tailscale |
-|-------|-----|--------|-----------|
-| **Primário apps** | CT610 `mssql6` | `192.168.0.110` | `100.117.17.113` |
-| **Legado / DR** | VM620 `WinServer2016-VirtIO` | `192.168.0.200` | `100.102.182.100` |
+| Papel             | Nó                           | IP LAN          | Tailscale         |
+| ----------------- | ---------------------------- | --------------- | ----------------- |
+| **Primário apps** | CT610 `mssql6`               | `192.168.0.110` | `100.117.17.113`  |
+| **Legado / DR**   | VM620 `WinServer2016-VirtIO` | `192.168.0.200` | `100.102.182.100` |
 
 **Credenciais CT610:** `ald-sys8/src/.env` (`DB_PASSWORD_SYS` / `DB_PASSWORD_ALD`).  
 **Credenciais VM620:** SA distinta — definir em `config/mssql-sync/mssql-sync.env` (não commitar).
 
 ## RPO / RTO (alvo)
 
-| Métrica | Alvo piloto SILD | Produção |
-|---------|------------------|----------|
-| **RPO** | ≤ 5 min (lag SymmetricDS) | ≤ 1 min após rollout |
+| Métrica | Alvo piloto SILD           | Produção                      |
+| ------- | -------------------------- | ----------------------------- |
+| **RPO** | ≤ 5 min (lag SymmetricDS)  | ≤ 1 min após rollout          |
 | **RTO** | ≤ 30 min (failover manual) | ≤ 15 min com runbook ensaiado |
 
 ## Monitorização
@@ -76,17 +76,17 @@
 
 - Sync e sqlcmd remoto via rede LAN continuam se SA conhecido
 - Reparo guest agent: ver notas em inventário; **não parar VM** sem janela
-- Monitor legado `/root/monitor_sqlserver_vm200.sh` no man6 — actualizar VMID para **620**
+- Monitor legado `/root/monitor_sqlserver_vm200.sh` no man6 — **VMID=620** (renumber 200→620; subject e-mail «VM620 SQL Server»)
 
 ## Scripts úteis
 
-| Script | Uso |
-|--------|-----|
-| `scripts/mssql-sync/inventory.sh` | Inventário CT610 + VM620 |
-| `scripts/mssql-sync/enable-sqlagent-ct610.sh` | Activar Agent no CT610 |
-| `scripts/mssql-sync/apply-repl-logins.sh` | Login `repl_mssql` |
-| `scripts/mssql-sync/deploy-symmetricds.sh` | Deploy piloto |
-| `scripts/mssql-sync/monitor-sync.sh` | Health check |
+| Script                                        | Uso                      |
+| --------------------------------------------- | ------------------------ |
+| `scripts/mssql-sync/inventory.sh`             | Inventário CT610 + VM620 |
+| `scripts/mssql-sync/enable-sqlagent-ct610.sh` | Activar Agent no CT610   |
+| `scripts/mssql-sync/apply-repl-logins.sh`     | Login `repl_mssql`       |
+| `scripts/mssql-sync/deploy-symmetricds.sh`    | Deploy piloto            |
+| `scripts/mssql-sync/monitor-sync.sh`          | Health check             |
 
 ## Pré-requisitos pendentes (checklist)
 

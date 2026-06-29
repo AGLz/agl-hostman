@@ -1,6 +1,8 @@
 # Runbook — Cutover Cloudflare `ah.aglz.io` (dev → prod CT134)
 
-> **Túnel:** `archon` · **CT117** AGLSRV1 · **Tunnel ID:** `908b1097-e182-4725-9960-626ecc003375`  
+> **Túnel DNS `ah.aglz.io`:** CNAME → **`f7ab6239-5cbd-44ef-83b9-ee8bfb4965ce`** (**aglsrv1**, CT117 `systemd` token).  
+> **Não** confundir com **aglsrv1b/archon** (`908b1097-…`) — ingress lá não afecta `ah.aglz.io`.  
+> Script: `scripts/cloudflare/update-ah-aglz-tunnel-ingress.sh` (patch só `ah.aglz.io` / `ah-dev.aglz.io`).  
 > **Plano:** [`ai-docs/planning/CT134-IMPLEMENTATION-PLAN.md`](../../ai-docs/planning/CT134-IMPLEMENTATION-PLAN.md) (Fase 5)
 
 ---
@@ -15,13 +17,13 @@
 
 ## 2. Mapa de domínios (alvo)
 
-| Hostname | Ambiente | Origin (service) | Notas |
-|----------|----------|------------------|-------|
-| `ah.aglz.io` | **Produção** | `http://192.168.0.134:80` | CT134 — Laravel Docker |
-| `ah-dev.aglz.io` | Dev | *origin dev actual* | CT179 / nginx host — ver §3 |
-| `ah-qa.aglz.io` | QA | TBD | Fase posterior |
-| `ah-uat.aglz.io` | UAT | TBD | Fase posterior |
-| `pr-N.ah.aglz.io` | Preview PR | TBD | Dokploy preview (opcional) |
+| Hostname          | Ambiente     | Origin (service)          | Notas                       |
+| ----------------- | ------------ | ------------------------- | --------------------------- |
+| `ah.aglz.io`      | **Produção** | `http://192.168.0.134:80` | CT134 — Laravel Docker      |
+| `ah-dev.aglz.io`  | Dev          | _origin dev actual_       | CT179 / nginx host — ver §3 |
+| `ah-qa.aglz.io`   | QA           | TBD                       | Fase posterior              |
+| `ah-uat.aglz.io`  | UAT          | TBD                       | Fase posterior              |
+| `pr-N.ah.aglz.io` | Preview PR   | TBD                       | Dokploy preview (opcional)  |
 
 Aliases legados (opcional, mesmo origin prod): `agl-hostman.aglz.io`, `prod-agl.aglz.io`.
 
@@ -62,10 +64,10 @@ curl -sI -H 'Host: ah.aglz.io' http://<IP-DEV>/ | head -5
 
 Preencher aqui antes do cutover:
 
-| Campo | Valor (preencher) |
-|-------|-------------------|
-| Host dev | ex. CT179 `192.168.0.179` |
-| Porta | ex. `80` ou `8080` |
+| Campo              | Valor (preencher)             |
+| ------------------ | ----------------------------- |
+| Host dev           | ex. CT179 `192.168.0.179`     |
+| Porta              | ex. `80` ou `8080`            |
 | Service URL tunnel | ex. `http://192.168.0.179:80` |
 
 ---
@@ -163,9 +165,9 @@ Se `ah.aglz.io` estiver em `/root/.cloudflared/config.yml` no CT117 (ingress loc
 ```yaml
 ingress:
   - hostname: ah-dev.aglz.io
-    service: http://192.168.0.179:80    # DEV — ajustar
+    service: http://192.168.0.179:80 # DEV — ajustar
   - hostname: ah.aglz.io
-    service: http://192.168.0.134:80    # PROD CT134
+    service: http://192.168.0.134:80 # PROD CT134
   - hostname: archon.aglz.io
     service: http://192.168.0.183:8080
   # ... restantes hostnames ...
@@ -198,13 +200,13 @@ dig ah-dev.aglz.io CNAME +short
 
 ## 9. Troubleshooting
 
-| Sintoma | Causa provável | Acção |
-|---------|----------------|-------|
-| 502 Bad Gateway | CT134 down / porta errada | `docker ps` no CT134; corrigir service URL |
-| 404 | Host header / nginx | `server_name ah.aglz.io` no container |
-| SSL handshake | Origin HTTPS inválido | Usar `http://` no tunnel se TLS só na edge |
-| Dev offline após cutover | Falta `ah-dev` | Completar passo A |
-| Health 200 LAN mas 502 público | Tunnel não actualizado | Restart cloudflared; ver journal |
+| Sintoma                        | Causa provável            | Acção                                      |
+| ------------------------------ | ------------------------- | ------------------------------------------ |
+| 502 Bad Gateway                | CT134 down / porta errada | `docker ps` no CT134; corrigir service URL |
+| 404                            | Host header / nginx       | `server_name ah.aglz.io` no container      |
+| SSL handshake                  | Origin HTTPS inválido     | Usar `http://` no tunnel se TLS só na edge |
+| Dev offline após cutover       | Falta `ah-dev`            | Completar passo A                          |
+| Health 200 LAN mas 502 público | Tunnel não actualizado    | Restart cloudflared; ver journal           |
 
 ---
 

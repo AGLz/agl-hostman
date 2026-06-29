@@ -28,7 +28,7 @@ echo "=== Jarvis API ==="
 curl -sf -m5 http://127.0.0.1:8642/health | grep -q hermes-agent && ok ":8642" || fail ":8642"
 
 echo "=== Telegram (gateway_state) ==="
-for agent in jarvis elon satya werner curator orion; do
+for agent in jarvis elon satya werner curator orion argus; do
   if [[ "${agent}" == jarvis ]]; then
     f="${HERMES_ROOT}/data/gateway_state.json"
   else
@@ -48,7 +48,7 @@ done
 
 echo "=== llm-wiki no contentor (rw) ==="
 docker exec agl-hermes-jarvis test -r /opt/llm-wiki/wiki/index.md && ok "mount /opt/llm-wiki (jarvis read)" || fail "mount /opt/llm-wiki"
-for agent in jarvis elon satya werner curator orion; do
+for agent in jarvis elon satya werner curator orion argus; do
   c="agl-hermes-${agent}"
   if docker exec -u hermes "${c}" sh -c 'touch /opt/llm-wiki/wiki/.rw-smoke && rm -f /opt/llm-wiki/wiki/.rw-smoke' 2>/dev/null; then
     ok "${agent} escreve em /opt/llm-wiki/wiki"
@@ -58,7 +58,7 @@ for agent in jarvis elon satya werner curator orion; do
 done
 
 echo "=== llm-wiki skill (todos os agentes) ==="
-for agent in jarvis elon satya werner curator orion; do
+for agent in jarvis elon satya werner curator orion argus; do
   if [[ "${agent}" == "jarvis" ]]; then
     skill="${HERMES_ROOT}/data/skills/research/llm-wiki"
     envf="${HERMES_ROOT}/data/.env"
@@ -102,6 +102,23 @@ else
 fi
 docker ps --format '{{.Names}}' | grep -q agl-hermes-curator && ok "container agl-hermes-curator" || fail "container curator — configure-hermes-curator-orion-ct188.sh"
 docker ps --format '{{.Names}}' | grep -q agl-hermes-orion && ok "container agl-hermes-orion" || fail "container orion — configure-hermes-curator-orion-ct188.sh"
+
+echo "=== Argus profile ==="
+if [[ -f "${HERMES_ROOT}/profiles/argus/config.yaml" ]]; then
+  ok "argus config.yaml"
+else
+  fail "argus — bootstrap-hermes-argus-profile-ct188.sh"
+fi
+if [[ -f "${HERMES_ROOT}/profiles/argus/skills/agl-llm-monitor/SKILL.md" ]]; then
+  ok "argus skill agl-llm-monitor"
+else
+  fail "argus agl-llm-monitor skill"
+fi
+docker ps --format '{{.Names}}' | grep -q agl-hermes-argus && ok "container agl-hermes-argus" || fail "container argus — configure-hermes-argus-ct188.sh"
+ARGUS_ENV="${HERMES_ROOT}/profiles/argus/.env"
+if [[ -f "${ARGUS_ENV}" ]] && grep -q '^TELEGRAM_BOT_TOKEN=PLACEHOLDER' "${ARGUS_ENV}" 2>/dev/null; then
+  fail "argus telegram=PLACEHOLDER — BotFather + TELEGRAM_TOKEN_ARGUS + setup-hermes-argus-telegram-ct188.sh"
+fi
 
 echo "=== NFS dev tree (jarvis) ==="
 docker exec agl-hermes-jarvis test -d /mnt/overpower/apps/dev/agl && ok "mount /mnt/overpower/apps/dev" || fail "mount /mnt/overpower/apps/dev"

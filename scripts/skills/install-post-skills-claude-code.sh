@@ -39,6 +39,12 @@ else
   warn "install-global-delivery-rules.sh em falta — saltar pipeline global"
 fi
 
+if [[ -x "$HOSTMAN_ROOT/scripts/skills/install-cursor-agent-rules.sh" ]]; then
+  "$HOSTMAN_ROOT/scripts/skills/install-cursor-agent-rules.sh"
+else
+  warn "install-cursor-agent-rules.sh em falta — saltar self-improve pack"
+fi
+
 if [[ "${SKIP_PROMPT_IMPROVER_PLUGIN:-0}" == "1" ]]; then
   warn "SKIP_PROMPT_IMPROVER_PLUGIN=1 — saltar plugin (skill ~/.claude/skills/prompt-improver mantida)"
   exit 0

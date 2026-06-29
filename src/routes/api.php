@@ -26,6 +26,7 @@ Route::prefix('daily-memory')->group(function () {
 
 require __DIR__.'/api/hermes.php';
 require __DIR__.'/api/harness.php';
+require __DIR__.'/api/llm-monitor.php';
 require __DIR__.'/api/openclaw.php';
 
 // N8N Integration routes

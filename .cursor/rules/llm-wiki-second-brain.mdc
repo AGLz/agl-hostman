@@ -1,7 +1,7 @@
 ---
 description: Segundo cérebro AGL (llm-wiki) — consultar vault antes de implementar; ingest de decisões e runbooks no wiki, não duplicar em docs/ solto
 globs:
-alwaysApply: true
+alwaysApply: false
 ---
 
 # llm-wiki — segundo cérebro

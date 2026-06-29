@@ -1,0 +1,42 @@
+---
+description: Best practices de prompt engineering para melhorar prompts e regras. Referenciar com @prompt-improve no Cmd+K sobre o texto selecionado, ou pedir ao Agent para aplicar a um prompt/regra.
+alwaysApply: false
+---
+
+# Melhorar o prompt/regra seguindo os padrões abaixo
+
+> Reescreve o texto **selecionado** (um prompt, uma secção de regra, uma instrução)
+> aplicando os padrões de prompt engineering desta tabela. Mantém a língua original
+> (PT neste repo) e **não** inventes requisitos novos — só clarifica o que já existe.
+
+## Como usar
+
+1. Seleciona o prompt/secção a melhorar.
+2. `Cmd+K` → escreve `@prompt-improve` → Enter. O Cursor reescreve aplicando os padrões.
+3. `Cmd+Enter` para aceitar.
+4. (Opcional) `Cmd+L` → "compara com o commit atual e explica o que mudou e porquê".
+
+## Padrões
+
+| # | Padrão | Porque importa | Template |
+|---|--------|----------------|----------|
+| 1 | Pôr o pedido primeiro | O modelo lê de cima para baixo; o objetivo à frente evita dispersão. | `Faz X. [contexto]` |
+| 2 | Repetir o pedido no fim | Contextos longos podem truncar; um fecho protege. | `...[detalhe]... LEMBRA: faz X.` |
+| 3 | Especificar o formato de saída | Ditar o formato corta voltas de revisão. | `Devolve como: 1) título, 2) tabela.` |
+| 4 | Usar delimitadores claros | Backticks/headings/XML evitam mistura de secções. | ` ```TEXTO A ANALISAR``` ` |
+| 5 | Induzir raciocínio passo-a-passo | Planear primeiro melhora tarefas multi-passo. | `Pensa passo-a-passo e depois responde.` |
+| 6 | Pedir que planeie o workflow | Em tarefas grandes, esboçar antes de executar. | `Primeiro um plano, espera, depois executa.` |
+| 7 | Limitar/alargar fontes de conhecimento | Controla alucinação. | `Usa só a info abaixo. / Combina base + contexto.` |
+| 8 | Guiar a recuperação de informação | Ajuda a escolher os docs certos antes de responder. | `Lista os docs relevantes, depois responde.` |
+| 9 | Mostrar um exemplo de estilo | Fixa tom, comprimento, vocabulário. | `Segue o estilo de: <exemplo>` |
+| 10 | Definir "handles" de correção | Correções de uma linha permitem dirigir rápido. | `Se passar de 150 palavras, encurta.` |
+| 11 | Dizer quando parar ou repetir | Evita listas a meio ou ensaios sem fim. | `Continua até 20 ideias, depois para.` |
+| 12 | Pedir o raciocínio escondido | Útil para auditoria; omitir para respostas curtas. | `No fim, junta uma secção breve de raciocínio.` |
+
+## Guardrails (alinhados com este repo)
+
+- **Cirúrgico**: melhora só o texto selecionado; não reescrevas o que está à volta.
+- **Sem features novas**: clarifica o pedido existente, não acrescentes requisitos.
+- **Convenções do repo prevalecem**: se um padrão chocar com `primary-guide`,
+  `laravel-boost` ou `karpathy-skills`, ganha a convenção do repo.
+- **Língua**: PT para prompts/regras deste projeto.

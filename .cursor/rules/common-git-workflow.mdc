@@ -1,10 +1,14 @@
 ---
 description: "Git workflow: conventional commits, PR process"
-alwaysApply: true
+alwaysApply: false
 ---
+
 # Git Workflow
 
+> **Objetivo:** commits em conventional commits e PRs com histórico completo + test plan.
+
 ## Commit Message Format
+
 ```
 <type>: <description>
 
@@ -18,6 +22,7 @@ Note: Attribution disabled globally via ~/.claude/settings.json.
 ## Pull Request Workflow
 
 When creating PRs:
+
 1. Analyze full commit history (not just latest commit)
 2. Use `git diff [base-branch]...HEAD` to see all changes
 3. Draft comprehensive PR summary

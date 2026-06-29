@@ -1,0 +1,71 @@
+# Perfil Argus — Quota Steward & LLM FinOps
+# Deploy: scripts/proxmox/bootstrap-hermes-argus-profile-ct188.sh
+# Modelo free-tier por defeito — a monitorização não deve queimar quota paga.
+
+model:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  default: glm-4.7-flash
+  fallback: agl-primary-vm110
+  max_tokens: 8192
+  api_key: REPLACE_WITH_LITELLM_SK
+
+providers:
+  custom:
+    base_url: http://100.125.249.8:4000
+
+fallback_model:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  model: agl-primary-vm110
+  api_key: REPLACE_WITH_LITELLM_SK
+
+delegation:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  model: groq-llama-31-8b
+  api_key: REPLACE_WITH_LITELLM_SK
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2750
+  user_char_limit: 2750
+
+skills:
+  default:
+    - agl-llm-monitor
+
+argus:
+  enabled: true
+  litellm_ts: http://100.125.249.8:4000
+  monitor_api_url: ""
+  reports_to: jarvis
+  delegate_litellm_apply_to: werner
+  approval_required_for_litellm_changes: true
+  auto_failover_free_tier: true
+  free_tier_limited: true        # free-tier tem limites de uso (req/dia, rpm/tpm) e contexto menor
+  watch_free_tier: true          # monitorizar quotas/contexto dos modelos free também
+  min_context_guard: true        # não encaminhar tarefas long-context para free insuficiente — escalar
+  watch_windows:
+    - 5h
+    - weekly
+    - monthly
+    - rate_limit
+    - context_window
+
+terminal:
+  env_passthrough:
+    - AGL_HOSTMAN
+    - LITELLM_TS
+    - MONITOR_API_URL
+
+approvals:
+  mode: off
+  cron_mode: approve
+  timeout: 300
+
+cron:
+  wrap_response: true
+
+_config_version: 24

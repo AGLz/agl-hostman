@@ -44,6 +44,12 @@ final class HermesAgentCatalog
             'group' => 'Media',
             'profile' => 'orion',
         ],
+        'argus' => [
+            'name' => 'Argus',
+            'role' => 'Quota Steward — limites LLM, monitor providers, gate LiteLLM',
+            'group' => 'FinOps',
+            'profile' => 'argus',
+        ],
     ];
 
     /**

@@ -1,7 +1,7 @@
 ---
 description: Diretrizes Karpathy (Think Before Coding, Simplicity, Surgical, Goal-Driven) — referência a CLAUDE.md
 globs:
-alwaysApply: true
+alwaysApply: false
 ---
 
 ## Karpathy Skills (Cursor)

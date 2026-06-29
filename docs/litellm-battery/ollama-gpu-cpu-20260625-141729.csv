@@ -1,0 +1,5 @@
+model,mode,target,case,status,wall_ms,load_ms,total_ms,eval_count,tok_per_s,preview,processor,vram
+qwen3:4b,gpu-g0,http://100.74.118.51:11434,chat,OK,9252,163.1,9170.2,128,15.48,Okay; the user is asking in Portuguese: "para que serve um b,CPU,3.8 GB
+qwen3:4b,gpu-g0,http://100.74.118.51:11434,json,OK,,154.8,9218.0,128,15.14,We are to return ONLY a compact JSON string: {"ok":true;"n":,CPU,3.8 GB
+qwen3:4b,cpu,127.0.0.1:11436,chat,OK,9207,228.5,9075.0,128,14.73,Okay; the user wrote "Responde". That's Spanish for "Respond,CPU,3.3 GB
+qwen3:4b,cpu,127.0.0.1:11436,json,OK,,233.3,9006.1,128,15.15,Okay; the user wrote "numa". Hmm; that's a bit short. Let me,CPU,3.3 GB

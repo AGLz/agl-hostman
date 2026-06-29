@@ -22,11 +22,13 @@ USER_QUERY_RE = re.compile(
 )
 TOPIC_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("Cursor e llm-wiki", ("llm-wiki", "segundo cérebro", "wiki-ingest", "curator")),
-    ("LiteLLM e modelos", ("litellm", "virtual key", "quota", "fallback", "cursor-composer")),
+    ("LiteLLM e modelos", ("litellm", "virtual key",
+     "quota", "fallback", "cursor-composer")),
     ("OpenClaw e gateway", ("openclaw", "telegram", "gateway", "jarvis")),
     ("Hermes e agency", ("hermes", "ct188", "curator", "makemoney", "agency")),
     ("Proxmox e infra AGL", ("proxmox", "pbs", "ct5", "aglsrv", "numa", "badblocks")),
-    ("Six Repos e harness", ("six-repos", "harness", "ruflo", "dotfiles", "obsidian cli")),
+    ("Six Repos e harness", ("six-repos", "harness",
+     "ruflo", "dotfiles", "obsidian cli")),
     ("Media e ARR", ("sonarr", "radarr", "prowlarr", "jellyfin", "*arr")),
 ]
 
@@ -49,7 +51,8 @@ def session_id_from_stem(stem: str) -> str | None:
 
 
 def host_priority(host: str) -> int:
-    order = {"linux-root": 0, "agldv04": 1, "agldv03": 2, "agldv06": 3, "agldv12": 4, "flat": 5}
+    order = {"linux-root": 0, "agldv04": 1, "agldv03": 2,
+             "agldv06": 3, "agldv12": 4, "flat": 5}
     return order.get(host, 9)
 
 
@@ -111,12 +114,19 @@ def first_user_line(md_path: Path) -> str:
     match = USER_QUERY_RE.search(text)
     if match:
         return match.group(1).strip().splitlines()[0][:120]
-    for line in text.splitlines():
-        if line.startswith("## user"):
+    parts = re.split(r"^## user\s*$", text, maxsplit=1, flags=re.MULTILINE)
+    body = parts[1] if len(parts) > 1 else text
+    for line in body.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
             continue
-        if line.strip() and not line.startswith("#"):
-            return line.strip()[:120]
-    return md_path.stem[:60]
+        if line == "[REDACTED]":
+            continue
+        return line[:120]
+    stem = md_path.stem
+    if "_" in stem:
+        return stem.split("_", 1)[-1].replace("_", " ")[:120]
+    return stem[:60]
 
 
 def classify_topic(text: str) -> str:
@@ -192,7 +202,8 @@ sources:
     if queue_path.is_file() and not dry_run:
         marker = ingest_dir / ".ingest-queue-processed.json"
         marker.write_text(
-            json.dumps({"processed_at": utc_date(), "sessions": len(by_sid)}, indent=2)
+            json.dumps({"processed_at": utc_date(),
+                       "sessions": len(by_sid)}, indent=2)
             + "\n",
             encoding="utf-8",
         )
@@ -219,11 +230,13 @@ def link_target_exists(wiki: Path, target: str, titles: set[str]) -> bool:
 
 def lint_wiki(wiki: Path, dry_run: bool) -> dict[str, Any]:
     titles = wiki_titles(wiki)
-    index_text = (wiki / "wiki/index.md").read_text(encoding="utf-8", errors="replace")
+    index_text = (
+        wiki / "wiki/index.md").read_text(encoding="utf-8", errors="replace")
     broken: list[tuple[str, str]] = []
     orphans: list[str] = []
 
-    skip_targets = {"Nome da Página", "wikilinks", "index.md", "log.md", "CrewAI", "Phidata"}
+    skip_targets = {"Nome da Página", "wikilinks",
+                    "index.md", "log.md", "CrewAI", "Phidata"}
 
     for md in (wiki / "wiki").rglob("*.md"):
         if md.name == "log.md":
@@ -244,7 +257,8 @@ def lint_wiki(wiki: Path, dry_run: bool) -> dict[str, Any]:
     }
     # wikilinks com subpath usam stem relativo
     if not (wiki / "wiki/AI-Tools/installed-repos.md").is_file():
-        fixes[("index.md", "AI-Tools/installed-repos")] = "AI-Tools installed-repos"
+        fixes[("index.md", "AI-Tools/installed-repos")
+              ] = "AI-Tools installed-repos"
     fixed = 0
     for (src, old), new in fixes.items():
         path = wiki / "wiki" / src
@@ -255,13 +269,15 @@ def lint_wiki(wiki: Path, dry_run: bool) -> dict[str, Any]:
         new_link = f"[[{new}]]"
         if old_link in content:
             if not dry_run:
-                path.write_text(content.replace(old_link, new_link), encoding="utf-8")
+                path.write_text(content.replace(
+                    old_link, new_link), encoding="utf-8")
             fixed += 1
 
     lint_log = wiki / "raw/logs/wiki-lint"
     if not dry_run:
         lint_log.mkdir(parents=True, exist_ok=True)
-        report = lint_log / f"curator-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}.log"
+        report = lint_log / \
+            f"curator-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}.log"
         lines = [
             f"# Wiki lint {utc_date()}",
             f"broken_links: {len(broken)}",
@@ -326,8 +342,10 @@ def synthesize_topic_hubs(wiki: Path, dry_run: bool) -> dict[str, int]:
         for sid8, title, rel in sessions[:25]:
             lines.append(f"| `{sid8}` | {title} | `{rel}` |")
         if len(sessions) > 25:
-            lines.append(f"\n_+{len(sessions) - 25} sessões adicionais em raw/cursor/live._")
-        lines.append("\n## Relacionado\n\n- [[Cursor — segundo cérebro AGL]]\n- [[Cursor sync multi-host AGLDV]]\n")
+            lines.append(
+                f"\n_+{len(sessions) - 25} sessões adicionais em raw/cursor/live._")
+        lines.append(
+            "\n## Relacionado\n\n- [[Cursor — segundo cérebro AGL]]\n- [[Cursor sync multi-host AGLDV]]\n")
         if not dry_run:
             hub_path.write_text("\n".join(lines), encoding="utf-8")
         stats["hubs_updated"] += 1
@@ -370,7 +388,8 @@ def update_index_orphans(wiki: Path, dry_run: bool) -> int:
         return 0
     block = "\n".join(new_rows) + "\n\n"
     if not dry_run:
-        index_path.write_text(text.replace(marker, block + marker), encoding="utf-8")
+        index_path.write_text(text.replace(
+            marker, block + marker), encoding="utf-8")
     return len(new_rows)
 
 
@@ -396,8 +415,10 @@ def update_index_cursor_section(wiki: Path, dry_run: bool) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Wiki Curator optimize pipeline")
-    parser.add_argument("--wiki", type=Path, default=Path("/mnt/overpower/apps/dev/agl/llm-wiki"))
+    parser = argparse.ArgumentParser(
+        description="Wiki Curator optimize pipeline")
+    parser.add_argument("--wiki", type=Path,
+                        default=Path("/mnt/overpower/apps/dev/agl/llm-wiki"))
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     wiki = args.wiki.resolve()
@@ -407,7 +428,8 @@ def main() -> int:
     summary["feed"] = feed_curator_ingest(wiki, args.dry_run)
     summary["hubs"] = synthesize_topic_hubs(wiki, args.dry_run)
     if not args.dry_run:
-        summary["index_orphans_added"] = update_index_orphans(wiki, args.dry_run)
+        summary["index_orphans_added"] = update_index_orphans(
+            wiki, args.dry_run)
         update_index_cursor_section(wiki, args.dry_run)
     summary["lint"] = lint_wiki(wiki, args.dry_run)
     if not args.dry_run:

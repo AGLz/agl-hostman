@@ -2,8 +2,9 @@
 # Evolução dos cronjobs Hermes Jarvis CT188:
 # - Permissões jobs.json (hermes pode ler)
 # - Briefing / Manutenção / Backup → scripts --no-agent (sem tool calls JSON)
-# - AI Opportunity → agl-primary via LiteLLM, sem toolsets
-# - approvals.cron_mode=allow para crons LLM restantes
+# - makemoney01 → mount /mnt/overpower/apps/dev/agl/makemoney01 + wiki-ingest
+# - AI Opportunity → agl-primary via LiteLLM, sem toolsets; scripts sync/wiki/deep-dive
+# - Remove cron LLM "Wiki Feeding" (sem tools) — substituído por script real
 #
 # Uso (root no CT188):
 #   bash evolve-hermes-crons-ct188.sh
@@ -24,6 +25,8 @@ HERMES_UID="${HERMES_UID:-10000}"
 HERMES_GID="${HERMES_GID:-10000}"
 TELEGRAM_CHAT="${TELEGRAM_CHAT:-1272190248}"
 CONTAINER="${HERMES_JARVIS_CONTAINER:-agl-hermes-jarvis}"
+MAKEMONEY_DIR="${MAKEMONEY_DIR:-/mnt/overpower/apps/dev/agl/makemoney01}"
+MAKEMONEY_WORKDIR="${MAKEMONEY_WORKDIR:-/mnt/overpower/apps/dev/agl/makemoney01}"
 
 test -d "${MON}" || { echo "ERRO: falta ${MON}" >&2; exit 1; }
 
@@ -48,18 +51,41 @@ install_script() {
   echo "OK script ${src_name}"
 }
 
-echo "=== 1/6 Permissões cron + scripts ==="
+install_makemoney_script() {
+  local src_rel="$1"
+  local dst_name="$2"
+  local src="${MAKEMONEY_DIR}/scripts/cron/${src_rel}"
+  local dst="${DATA_SCRIPTS}/${dst_name}"
+  test -f "${src}" || { echo "ERRO: falta ${src}" >&2; exit 1; }
+  sed 's/\r$//' "${src}" > "${dst}.tmp" && mv "${dst}.tmp" "${dst}"
+  chmod 0755 "${dst}"
+  chown "${HERMES_UID}:${HERMES_GID}" "${dst}"
+  echo "OK makemoney script ${dst_name}"
+}
+
+echo "=== 1/7 makemoney01 mount ==="
+bash "${SCRIPTS}/ensure-makemoney01-ct188.sh" "${AGL_HOSTMAN}" 2>/dev/null || \
+  echo "AVISO: ensure-makemoney01 — verificar NFS ${MAKEMONEY_DIR}" >&2
+
+echo "=== 2/7 Permissões cron + scripts ==="
 bash "${SCRIPTS}/fix-hermes-cron-perms-ct188.sh" --install-cron 2>/dev/null || fix_cron_perms
 
 for s in \
   hermes-ct188-health-check.sh \
   hermes-ct188-daily-briefing.sh \
   hermes-ct188-daily-maintenance.sh \
-  hermes-ct188-daily-backup.sh; do
+  hermes-ct188-daily-backup.sh \
+  hermes-makemoney-sync-crons.sh \
+  hermes-makemoney-deep-dive.sh \
+  hermes-makemoney-wiki-feed.sh \
+  hermes-makemoney-pipeline-report.sh \
+  hermes-makemoney-git-sync.sh; do
   install_script "${s}"
 done
 
-echo "=== 2/6 Config Jarvis: approvals permissivos ==="
+install_makemoney_script "generate-dossiers.sh" "makemoney-generate-dossiers.sh"
+
+echo "=== 3/7 Config Jarvis: approvals permissivos ==="
 bash "${SCRIPTS}/fix-hermes-approvals-ct188.sh" --no-restart 2>/dev/null || python3 - "${CFG}" <<'PY'
 import sys
 from pathlib import Path
@@ -77,8 +103,8 @@ print("OK approvals mode=off cron_mode=approve")
 PY
 chown "${HERMES_UID}:${HERMES_GID}" "${CFG}" 2>/dev/null || true
 
-echo "=== 3/6 Reescrever jobs.json ==="
-python3 - "${JOBS_FILE}" "${TELEGRAM_CHAT}" <<'PY'
+echo "=== 4/7 Reescrever jobs.json ==="
+python3 - "${JOBS_FILE}" "${TELEGRAM_CHAT}" "${MAKEMONEY_WORKDIR}" <<'PY'
 import json, sys
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -86,6 +112,7 @@ from pathlib import Path
 
 path = Path(sys.argv[1])
 chat = sys.argv[2]
+makemoney_workdir = sys.argv[3]
 
 def load():
     if not path.is_file():
@@ -134,7 +161,7 @@ def base_script_job(job_id, name, script, cron_expr, deliver=None):
         "profile": None,
     }
 
-def base_llm_job(job_id, name, cron_expr, prompt_body, deliver=None):
+def base_llm_job(job_id, name, cron_expr, prompt_body, deliver=None, workdir=None):
     prev = old.get(job_id, {})
     prompt = f"""[CRON — SEM FERRAMENTAS]
 Entrega: responde só com texto em pt-BR (máx 1200 caracteres). NÃO invocar tools/terminal/read_file.
@@ -175,29 +202,38 @@ Se não houver novidade útil: responde exactamente [SILENT].
             "thread_id": None,
         },
         "enabled_toolsets": [],
-        "workdir": None,
+        "workdir": workdir,
         "profile": None,
     }
 
-research_prompt = """Pesquisa diária (makemoney01 / oportunidades AI para AGLz):
-1. Três nichos com potencial (Brasil/LATAM): problema, cliente, monetização.
-2. Para cada um: stack mínima, tempo MVP, risco regulatório.
-3. Escolhe 1 prioridade do dia com próximo passo concreto (1 frase acionável).
-Sem inventar métricas de mercado — indica quando precisas de validação humana."""
+research_prompt = """Pesquisa diária EXPANDIDA (makemoney01 / oportunidades AI para AGLz):
 
-deep_dive_prompt = """Deep dive na oportunidade #1 do scan das 06:30 (ou melhor candidata atual):
-- Proposta de valor em 2 frases
-- Roadmap 2 semanas (5 bullets)
-- KPIs de validação
-- Riscos e mitigação
-Tom executivo, pt-BR."""
+CONTEXTO AGL: já temos LiteLLM, Hermes (6 agentes), llm-wiki, agl-hostman, agency-agents, api-evo.
+Projecto: /mnt/overpower/apps/dev/agl/makemoney01 — pipeline prospect→qualify→execute.
 
-impl_prompt = """Sprint de planeamento de implementação:
-Com base nas oportunidades AI AGLz, lista hoje:
-- 3 tarefas técnicas (cada uma ≤2h)
-- 1 entrega verificável até amanhã
-- Dependências (LiteLLM, repo, Linear)
-Formato checklist numerada."""
+1. CINCO nichos (Brasil/LATAM), cada um com:
+   - Problema, cliente-alvo, monetização (faixa R$)
+   - Stack mínima (preferir reutilizar stack AGL)
+   - MVP (semanas), risco regulatório (baixo/médio/alto)
+   - Tipo: B2B-SaaS | agency-service | API/marketplace | infra-productized
+
+2. Dois nichos "quick wins" (MVP ≤2 semanas, risco baixo).
+
+3. Um nicho "moonshot" (alto potencial, maior risco).
+
+4. Prioridade do dia: 1 nicho + próximo passo concreto (validação em 48h).
+
+5. Sinergia: como cada nicho usa Hermes/LiteLLM/wiki existentes.
+
+Sem inventar métricas — marcar [VALIDAR] onde necessário."""
+
+impl_prompt = """Sprint de implementação makemoney01:
+Com base no pipeline em /mnt/overpower/apps/dev/agl/makemoney01:
+- 3 tarefas técnicas (≤2h cada) para o nicho em qualify
+- 1 entrega verificável até amanhã (artefacto em makemoney01 ou wiki)
+- Issues Linear sugeridas (título + team AGLDV/CBDEV)
+- Dependências: LiteLLM, repos, CT188
+Formato checklist numerada, pt-BR."""
 
 jobs = [
     base_script_job(
@@ -214,9 +250,16 @@ jobs = [
     ),
     base_llm_job(
         "708fe1021f93",
-        "AI Opportunity Research — scan diário",
+        "AI Opportunity Research — scan expandido",
         "30 6 * * *",
         research_prompt,
+        workdir=makemoney_workdir,
+    ),
+    base_script_job(
+        "a1c2d3e4f501",
+        "makemoney-sync-crons",
+        "hermes-makemoney-sync-crons.sh",
+        "50 6 * * *",
     ),
     base_script_job(
         "b1afbb4c31ce",
@@ -224,17 +267,42 @@ jobs = [
         "hermes-ct188-daily-briefing.sh",
         "0 7 * * *",
     ),
-    base_llm_job(
+    base_script_job(
         "052baa2c84ec",
-        "AI Opportunity Deep Dive",
+        "makemoney-deep-dive",
+        "hermes-makemoney-deep-dive.sh",
         "15 7 * * *",
-        deep_dive_prompt,
+    ),
+    base_script_job(
+        "c2d3e4f50602",
+        "makemoney-wiki-feed",
+        "hermes-makemoney-wiki-feed.sh",
+        "30 7 * * *",
     ),
     base_llm_job(
         "397353f649f0",
         "AI Implementation Planning Sprint",
         "45 7 * * *",
         impl_prompt,
+        workdir=makemoney_workdir,
+    ),
+    base_script_job(
+        "f50607180405",
+        "makemoney-generate-dossiers",
+        "makemoney-generate-dossiers.sh",
+        "55 7 * * *",
+    ),
+    base_script_job(
+        "d3e4f5060703",
+        "makemoney-pipeline-report",
+        "hermes-makemoney-pipeline-report.sh",
+        "0 8 * * *",
+    ),
+    base_script_job(
+        "e4f506071804",
+        "makemoney-git-sync",
+        "hermes-makemoney-git-sync.sh",
+        "15 8 * * *",
     ),
     base_script_job(
         "89b6d08634a1",
@@ -244,8 +312,8 @@ jobs = [
     ),
 ]
 
-# Remover lixo legado
-legacy_ids = {"5fdb6a3c6674"}
+# Remover lixo legado (incl. LLM-Wiki Continuous Feeding sem tools)
+legacy_ids = {"5fdb6a3c6674", "d3aa78d4d071"}
 jobs = [j for j in jobs if j["id"] not in legacy_ids]
 
 data["jobs"] = jobs
@@ -258,26 +326,27 @@ PY
 
 fix_cron_perms
 
-echo "=== 4/6 Reiniciar Jarvis ==="
+echo "=== 5/7 Reiniciar Jarvis ==="
 docker restart "${CONTAINER}"
 sleep 22
 
-echo "=== 5/6 Validar scheduler ==="
+echo "=== 6/7 Validar scheduler ==="
 docker exec -u hermes -e HERMES_HOME=/opt/data "${CONTAINER}" \
   /opt/hermes/.venv/bin/hermes cron list
 
 if [[ "${TEST_RUN}" == "--test-run" ]]; then
-  echo "=== 6/6 Test runs (scripts) ==="
-  for job in hermes-ct188-daily-maintenance hermes-ct188-daily-backup hermes-ct188-health-check; do
+  echo "=== 7/7 Test runs (scripts) ==="
+  for job in hermes-ct188-daily-maintenance hermes-ct188-daily-backup hermes-ct188-health-check \
+    makemoney-sync-crons makemoney-wiki-feed makemoney-pipeline-report makemoney-git-sync; do
     echo "--- ${job} ---"
     docker exec -u hermes -e HERMES_HOME=/opt/data "${CONTAINER}" \
       /opt/hermes/.venv/bin/hermes cron run "${job}" || true
     sleep 5
   done
 else
-  echo "=== 6/6 Skip test-run (usar --test-run para forçar) ==="
+  echo "=== 7/7 Skip test-run (usar --test-run para forçar) ==="
 fi
 
 fix_cron_perms
 echo ""
-echo "Concluído. Crons evoluídos: scripts para ops, LLM só texto (agl-primary)."
+echo "Concluído. makemoney01=${MAKEMONEY_DIR} | crons: research LLM + sync/deep-dive/wiki scripts."

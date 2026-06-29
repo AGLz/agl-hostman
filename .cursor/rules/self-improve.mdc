@@ -1,0 +1,35 @@
+---
+description: Loop de auto-melhoria — quando o utilizador corrige o agente, diz "lembra-te"/"da próxima vez", ou ao fechar uma sessão com correções, capturar a lição e propor onde a guardar (memória, regra, skill ou llm-wiki).
+alwaysApply: false
+---
+
+# Self-Improve — capturar lições
+
+> **Objetivo:** transformar correções pontuais em conhecimento permanente, com revisão humana.
+> Comando: `/reflect-yourself` (`.cursor/commands/reflect-yourself.md`).
+> Puxar esta regra quando: (a) o utilizador corrige o agente, (b) usa gatilhos como
+> "lembra-te", "da próxima vez", "não voltes a", ou (c) no fim de uma sessão com correções.
+
+## Workflow (4 passos)
+
+1. **Detetar** a lição — o que mudou face ao que o agente fez? Captura a correção concreta
+   (ex.: "usar `Model::query()`, nunca `DB::`").
+2. **Encaminhar** para o destino certo:
+
+| Tipo de lição                                      | Destino                                        | Como                                                   |
+| -------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------ |
+| Preferência de sessão / decisão técnica do projeto | `learned-memories.mdc`                         | seguir `memory.mdc`                                    |
+| Padrão de código recorrente / convenção            | regra `.cursor/rules/*.mdc`                    | criar/atualizar (ver `prompt-improve` + `create-rule`) |
+| Workflow repetível (review, deploy, migração)      | skill (`.claude/skills/` ou `.cursor/skills/`) | criar `SKILL.md`                                       |
+| Infra / deploy / decisão de arquitetura durável    | **llm-wiki**                                   | seguir `llm-wiki-second-brain`                         |
+
+3. **Propor** a alteração — diff curto e específico; incluir um exemplo bom/mau quando for regra
+   (correções específicas geram regras melhores).
+4. **Aplicar só após aprovação** do utilizador.
+
+## Regras
+
+- **Não criar regra à primeira**: só capturar quando o erro se repete ou o utilizador pede explicitamente.
+- **Específico > genérico**: a lição deve ter um exemplo concreto, não conselho vago.
+- **Um lar por concern**: não duplicar a mesma lição em memória + regra + wiki — escolher um destino e referenciar.
+- **Podar**: se uma regra ficou obsoleta com a evolução do código, propor remoção.

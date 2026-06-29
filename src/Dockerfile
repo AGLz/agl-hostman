@@ -205,6 +205,8 @@ COPY --chown=$user:www-data bootstrap ./bootstrap
 # Copy PHP and Nginx configuration
 COPY --chown=$user:www-data docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
 COPY --chown=$user:www-data docker/nginx/conf.d /etc/nginx/conf.d/
+COPY docker/entrypoint-production.sh /usr/local/bin/entrypoint-production.sh
+RUN chmod +x /usr/local/bin/entrypoint-production.sh
 
 # Set up Laravel storage and cache directories
 # Proper permissions are critical for Laravel to function
@@ -218,19 +220,15 @@ RUN mkdir -p storage/framework/{cache,sessions,views,testing} \
 RUN mkdir -p /var/log/supervisor \
     && chown -R $user:www-data /var/log/supervisor
 
-# Expose PHP-FPM port
-EXPOSE 9000
+# Expose HTTP (nginx) e PHP-FPM
+EXPOSE 80 9000
 
-# Health check for container orchestration
-# Checks if Octane server is responding (adjust if not using Octane)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD php artisan octane:status || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
+    CMD curl -sf http://127.0.0.1/health || curl -sf http://127.0.0.1/up || exit 1
 
-# Run as non-root user for security
-USER $user
+USER root
 
-# Default command (can be overridden in docker-compose)
-CMD ["php-fpm"]
+CMD ["/usr/local/bin/entrypoint-production.sh"]
 
 #############################################
 # Stage 6: Development Image (with Xdebug)

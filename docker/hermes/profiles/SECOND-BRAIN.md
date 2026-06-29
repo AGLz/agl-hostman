@@ -39,5 +39,6 @@ Quando alterares infra, deploy, media, produto ou decisões de arquitectura:
 | **Werner**  | Infra, incidentes    | Runbooks Proxmox/LiteLLM pós-mortem                 |
 | **Orion**   | Media stack          | Estado \*arr, freeze/unfreeze, MEDIA-ARR            |
 | **Curator** | Vault inteiro        | Ingest/lint agendado (2h), consolida stubs de todos |
+| **Argus**   | Limites LLM, planos  | Quotas/providers, incidentes FinOps, stubs monitor  |
 
 Curator **não** monopoliza escrita — mantém qualidade e cron; os restantes escrevem no domínio deles.

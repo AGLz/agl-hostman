@@ -1,0 +1,18 @@
+# Exemplo flash.nsh — substituir pelos ficheiros do pacote iEngineer ou oficial Huananzhi.
+# Copiar para NEWBIOS/flash.nsh após descompactar o ZIP correcto.
+#
+# Pacote iEngineer (CX99DE77): já inclui flash.nsh — usar esse, não este exemplo.
+#
+# Estrutura típica iEngineer:
+#   AfuEfix64.efi
+#   CX99DE77-F8-5532.ROM   (ou 5567, conforme Super I/O)
+#   flash.nsh
+
+echo "AGLSRV3 X99-F8 BIOS update"
+echo "BIOS actual deve ser CX99DE29 (iEngineer) ou stock Huananzhi"
+
+# Descomentar e ajustar nomes após colocar ficheiros reais na pen:
+# AfuEfix64.efi CX99DE77-F8-5532.ROM /P /B /N /K /R /X
+# reset
+
+echo "Se flash.nsh do fabricante existir, use-o em vez deste exemplo."

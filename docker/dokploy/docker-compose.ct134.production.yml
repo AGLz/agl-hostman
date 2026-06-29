@@ -11,10 +11,17 @@ services:
     volumes:
       - app-storage:/var/www/html/storage
       - app-bootstrap-cache:/var/www/html/bootstrap/cache
+      - /var/log/hostman:/var/log/hostman:ro
     networks:
       - agl-prod
+    ports:
+      - "80:80"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://127.0.0.1/health || curl -sf http://127.0.0.1:8080/health"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf http://127.0.0.1/health || curl -sf http://127.0.0.1/up",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -34,11 +41,12 @@ services:
       - .env
     volumes:
       - app-storage:/var/www/html/storage
+      - /var/log/hostman:/var/log/hostman:ro
     networks:
       - agl-prod
     depends_on:
       app:
-        condition: service_healthy
+        condition: service_started
 
   scheduler:
     image: ${IMAGE:-harbor.aglz.io/agl-hostman-prod/hostman:prod-latest}
@@ -49,11 +57,12 @@ services:
       - .env
     volumes:
       - app-storage:/var/www/html/storage
+      - /var/log/hostman:/var/log/hostman:ro
     networks:
       - agl-prod
     depends_on:
       app:
-        condition: service_healthy
+        condition: service_started
 
 networks:
   agl-prod:

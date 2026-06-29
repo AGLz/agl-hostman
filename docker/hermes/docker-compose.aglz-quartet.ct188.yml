@@ -244,6 +244,33 @@ services:
       - default
       - langfuse
 
+  hermes-argus:
+    <<: *hermes-gateway
+
+    container_name: agl-hermes-argus
+
+    env_file:
+      - ${ARGUS_DATA_DIR:-./profiles/argus}/.env
+
+    volumes:
+      - ${ARGUS_DATA_DIR:-./profiles/argus}:/opt/data
+
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
+
+      - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
+
+      - /var/log/hostman:/var/log/hostman:ro
+
+      - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
+
+      - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
+
+    healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
+
   # Claw3D / hermes-desktop Office — WebSocket adapter (OpenClaw protocol → Hermes HTTP :8642)
   hermes-claw3d-adapter:
     build:

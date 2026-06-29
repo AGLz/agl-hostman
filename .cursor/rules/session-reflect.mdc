@@ -1,0 +1,16 @@
+---
+description: Lembrete de reflexão no fim de sessão — sugerir /reflect-yourself após correções ou tarefas significativas
+alwaysApply: false
+---
+
+# Session reflect (AGL)
+
+Quando detetares fim de sessão ou múltiplas correções:
+
+1. Nota mentalmente correções para `/reflect-yourself`
+2. Sugere (com moderação): «Queres `/reflect-yourself` para capturar aprendizagens?»
+3. Se infra/decisões duráveis → também `/llm-wiki-ingest`
+
+Correções com skill activa → actualizar essa skill, não só memória global.
+
+Queue global: `~/.cursor/reflect-queue.json`

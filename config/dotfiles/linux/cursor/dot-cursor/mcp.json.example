@@ -10,6 +10,21 @@
         "DOKPLOY_URL": "https://dok.aglz.io/api",
         "DOKPLOY_API_KEY": "${DOKPLOY_API_KEY}"
       }
+    },
+    "composio": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://connect.composio.dev/mcp",
+        "8787",
+        "--header",
+        "x-api-key:${COMPOSIO_API_KEY}"
+      ],
+      "env": {
+        "COMPOSIO_API_KEY": "${COMPOSIO_API_KEY}"
+      },
+      "description": "Composio Connect — usar mcp-remote + túnel SSH em Remote SSH (ver scripts/cursor/composio-mcp-oauth-remote.sh)"
     }
   }
 }

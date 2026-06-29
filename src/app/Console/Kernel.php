@@ -5,8 +5,10 @@ namespace App\Console;
 use App\Jobs\BackupJob;
 use App\Jobs\CleanupJob;
 use App\Jobs\ContainerHealthCheckJob;
+use App\Jobs\IngestGovernorStateJob;
 use App\Jobs\MetricsCollectionJob;
 use App\Jobs\NotificationJob;
+use App\Jobs\RunLlmProbeJob;
 use App\Jobs\SecurityScanJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -50,6 +52,22 @@ class Kernel extends ConsoleKernel
             ->onQueue('health-checks')
             ->withoutOverlapping()
             ->description('Quick container health ping');
+
+        // ============================================
+        // LLM MONITOR (Argus / Mission Control)
+        // ============================================
+
+        $schedule->job(new IngestGovernorStateJob)
+            ->everyFiveMinutes()
+            ->onQueue('llm-monitor')
+            ->withoutOverlapping()
+            ->description('Ingest quota-governor state to MySQL');
+
+        $schedule->job(new RunLlmProbeJob('simple'))
+            ->everyFifteenMinutes()
+            ->onQueue('llm-monitor')
+            ->withoutOverlapping()
+            ->description('LiteLLM simple probe (default model)');
 
         // ============================================
         // METRICS COLLECTION - Medium Frequency

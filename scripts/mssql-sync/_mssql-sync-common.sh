@@ -14,7 +14,10 @@ load_mssql_sync_env() {
   fi
 
   if [[ -z "${MSSQL_CT610_SA_PASSWORD:-}" && -f "${ALD_SYS8_ENV}" ]]; then
-    MSSQL_CT610_SA_PASSWORD="$(grep -E '^DB_PASSWORD_SYS=' "${ALD_SYS8_ENV}" | cut -d= -f2- | tr -d '"')"
+    MSSQL_CT610_SA_PASSWORD="$(grep -E '^DB_PASSWORD_ALD=' "${ALD_SYS8_ENV}" | cut -d= -f2- | tr -d '"')"
+    if [[ -z "${MSSQL_CT610_SA_PASSWORD}" ]]; then
+      MSSQL_CT610_SA_PASSWORD="$(grep -E '^DB_PASSWORD_SYS=' "${ALD_SYS8_ENV}" | cut -d= -f2- | tr -d '"')"
+    fi
     export MSSQL_CT610_SA_PASSWORD
   fi
 
@@ -31,6 +34,41 @@ load_mssql_sync_env() {
   : "${PVE_HOST:=100.98.108.66}"
   : "${PVE_VM620_VMID:=620}"
   : "${PVE_CT610_CTID:=610}"
+  : "${MSSQL_IDE_DATABASE:=DB_IDE_Associacao}"
+}
+
+require_vm620_sa() {
+  load_mssql_sync_env
+  if [[ -z "${MSSQL_VM620_SA_PASSWORD:-}" ]]; then
+    echo "ERRO: MSSQL_VM620_SA_PASSWORD vazio. Definir em ${ENV_FILE}" >&2
+    exit 1
+  fi
+}
+
+require_both_nodes() {
+  require_ct610_sa
+  require_vm620_sa
+}
+
+vm620_sqlcmd() {
+  local query="$*"
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${MSSQL_VM620_SA_PASSWORD}\" /opt/mssql-tools18/bin/sqlcmd -S ${MSSQL_VM620_HOST} -U ${MSSQL_VM620_SA_USER} -C -Q \"${query}\" -W -s \"|\" -l 30'"
+}
+
+vm620_sqlcmd_stdin() {
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${MSSQL_VM620_SA_PASSWORD}\" /opt/mssql-tools18/bin/sqlcmd -S ${MSSQL_VM620_HOST} -U ${MSSQL_VM620_SA_USER} -C -i - -s \"|\" -W -l 30'"
+}
+
+ct610_sqlcmd_pipe() {
+  local server="${1:-localhost}"
+  shift
+  local query="$*"
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${MSSQL_CT610_SA_PASSWORD}\" /opt/mssql-tools18/bin/sqlcmd -S ${server} -U ${MSSQL_CT610_SA_USER} -C -Q \"${query}\" -W -s \"|\" -l 30'"
+}
+
+ct610_sqlcmd_stdin_pipe() {
+  local server="${1:-localhost}"
+  pct610_exec "bash -c 'SQLCMDPASSWORD=\"${MSSQL_CT610_SA_PASSWORD}\" /opt/mssql-tools18/bin/sqlcmd -S ${server} -U ${MSSQL_CT610_SA_USER} -C -i - -s \"|\" -W -l 30'"
 }
 
 require_ct610_sa() {
@@ -43,6 +81,28 @@ require_ct610_sa() {
 
 pct610_exec() {
   ssh -o ConnectTimeout=15 "root@${PVE_HOST}" "pct exec ${PVE_CT610_CTID} -- $*"
+}
+
+# Executa ficheiro SQL via base64 (evita problemas de stdin/-i - através de SSH)
+run_sql_file_on_ct610() {
+  local server="$1"
+  local sa_password="$2"
+  local sa_user="$3"
+  local sql_file="$4"
+  local b64
+  b64="$(base64 -w0 "${sql_file}")"
+  ssh -o ConnectTimeout=15 "root@${PVE_HOST}" "pct exec ${PVE_CT610_CTID} -- bash -lc $(printf '%q' "
+    echo '${b64}' | base64 -d > /tmp/_mssql_sync_q.sql
+    SQLCMDPASSWORD='${sa_password}' /opt/mssql-tools18/bin/sqlcmd -S ${server} -U ${sa_user} -C -i /tmp/_mssql_sync_q.sql -W -s '|' -l 120
+  ")"
+}
+
+run_sql_file_ct610() {
+  run_sql_file_on_ct610 "localhost" "${MSSQL_CT610_SA_PASSWORD}" "${MSSQL_CT610_SA_USER}" "$1"
+}
+
+run_sql_file_vm620() {
+  run_sql_file_on_ct610 "${MSSQL_VM620_HOST}" "${MSSQL_VM620_SA_PASSWORD}" "${MSSQL_VM620_SA_USER}" "$1"
 }
 
 ct610_sqlcmd() {

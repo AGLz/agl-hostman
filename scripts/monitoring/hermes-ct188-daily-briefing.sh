@@ -49,6 +49,14 @@ else
   echo "• LiteLLM CT186: FAIL"
 fi
 
+if [[ -d /mnt/overpower/apps/dev/agl/makemoney01/data/pipeline ]]; then
+  mm_prospect="$(python3 -c "import json; b=json.load(open('/mnt/overpower/apps/dev/agl/makemoney01/data/pipeline/board.json')); print(len(b.get('columns',{}).get('prospect',[])))" 2>/dev/null || echo '?')"
+  mm_qualify="$(python3 -c "import json; b=json.load(open('/mnt/overpower/apps/dev/agl/makemoney01/data/pipeline/board.json')); print(len(b.get('columns',{}).get('qualify',[])))" 2>/dev/null || echo '?')"
+  echo "• makemoney01: prospect=${mm_prospect} qualify=${mm_qualify}"
+else
+  echo "• makemoney01: mount em falta"
+fi
+
 if [[ -f /opt/llm-wiki/wiki/index.md ]]; then
   wiki_age="$(find /opt/llm-wiki/wiki/index.md -printf '%TY-%Tm-%Td' 2>/dev/null || echo '?')"
   echo "• llm-wiki index: atualizado ${wiki_age}"
@@ -58,4 +66,4 @@ err_today=0
 [[ -f /opt/data/logs/errors.log ]] && err_today="$(grep -c "${DATE}" /opt/data/logs/errors.log 2>/dev/null || echo 0)"
 echo "• Erros gateway hoje: ${err_today} (errors.log)"
 echo ""
-echo "_Briefing automático. Para pesquisa AI/makemoney, pedir ao Jarvis em chat dedicado (/new)._"
+echo "_Briefing automático. Pipeline makemoney01: crons 06:30–08:00 + wiki-ingest._"

@@ -12,7 +12,7 @@ const SCRIPT = path.join(
 );
 const PROTOCOL = path.join(ROOT, "docker/hermes/profiles/SECOND-BRAIN.md");
 
-test("fix-hermes-llm-wiki-secondbrain-ct188.sh existe e cobre os 6 agentes", () => {
+test("fix-hermes-llm-wiki-secondbrain-ct188.sh existe e cobre os 7 agentes", () => {
   assert.ok(fs.existsSync(SCRIPT));
   assert.ok(fs.statSync(SCRIPT).mode & 0o111);
   const content = fs.readFileSync(SCRIPT, "utf8");
@@ -23,6 +23,7 @@ test("fix-hermes-llm-wiki-secondbrain-ct188.sh existe e cobre os 6 agentes", () 
     "werner",
     "curator",
     "orion",
+    "argus",
   ]) {
     assert.match(content, new RegExp(agent));
   }
