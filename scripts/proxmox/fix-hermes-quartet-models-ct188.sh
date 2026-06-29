@@ -6,9 +6,15 @@
 # Modo legado --quota: Groq + Ollama local (sem OpenAI/Z.AI paid)
 #   --free-tier: Z.AI flash + Ollama VM110 (melhor qualidade sem OpenAI quota)
 #
+# Tiers de privacidade (swarm lê o segundo cérebro infra+agência):
+#   --no-logging (default) → free models NO-LOGGING (data_collection=deny) + fallback local. Seguro p/ dados AGL.
+#   --local                → 100% on-prem (agl-sensitive). Soberania máxima.
+#   --logging-public       → owl-alpha/nemotron (LOGAM). SÓ tarefas públicas, sem dados AGL.
+#
 # Uso (root no CT188):
-#   bash fix-hermes-quartet-models-ct188.sh --secure          # default (zero-logging, dados sensíveis)
-#   bash fix-hermes-quartet-models-ct188.sh --openrouter-free # SÓ tarefas públicas (free loga prompts)
+#   bash fix-hermes-quartet-models-ct188.sh --no-logging      # default (recomendado)
+#   bash fix-hermes-quartet-models-ct188.sh --local
+#   bash fix-hermes-quartet-models-ct188.sh --logging-public
 #   bash fix-hermes-quartet-models-ct188.sh --paid-tier
 #   bash fix-hermes-quartet-models-ct188.sh --restore-openai   # após quota OpenAI repor
 #   bash fix-hermes-quartet-models-ct188.sh --openai-exhausted # quota OpenAI esgotada (fallback Z.AI)
@@ -17,16 +23,20 @@ set -euo pipefail
 
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
-MODE="${1:---secure}"
+MODE="${1:---no-logging}"
 
 case "${MODE}" in
-  --secure)
-    # Default: swarm lê segundo cérebro (infra+agência) → routing local zero-logging.
+  --no-logging|--secure|--openrouter-free)
+    # Default: free NO-LOGGING (provider.data_collection=deny) + fallback local. Seguro p/ dados AGL.
+    exec bash "$(dirname "$0")/hermes-openrouter-free-ct188.sh"
+    ;;
+  --local|--secure-local)
+    # 100% on-prem (agl-sensitive). Soberania máxima / sem dependência de OpenRouter.
     exec bash "$(dirname "$0")/hermes-secure-routing-ct188.sh"
     ;;
-  --openrouter-free)
-    # AVISO: modelos free logam prompts. Usar SÓ para tarefas sem dados AGL no contexto.
-    exec bash "$(dirname "$0")/hermes-openrouter-free-ct188.sh"
+  --logging-public)
+    # owl-alpha/nemotron LOGAM prompts → só tarefas públicas, sem dados AGL.
+    exec env HERMES_USE_LOGGING_FREE=1 bash "$(dirname "$0")/hermes-openrouter-free-ct188.sh"
     ;;
   --paid-tier)
     JARVIS_MODEL="glm-5"
@@ -86,7 +96,7 @@ case "${MODE}" in
     AUXILIARY_MODEL="or-nemotron-super-free"
     ;;
   *)
-    echo "Uso: $0 [--secure|--openrouter-free|--paid-tier|--zai-coding|--openai-exhausted|--zai-rate-limited|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
+    echo "Uso: $0 [--no-logging|--local|--logging-public|--paid-tier|--zai-coding|--openai-exhausted|--zai-rate-limited|--free-tier|--no-quota|--coding-exhausted|--resilient|--restore-openai|--quota]" >&2
     exit 1
     ;;
 esac

@@ -40,19 +40,20 @@ PRIMARY_ANTHROPIC="claude-haiku"
 FALLBACK_CHAIN="agl-primary,zai-glm-5,glm-5,zai-coding-glm-4.7,gpt-5.4-mini,claude-haiku,deepseek"
 
 apply_hermes() {
-  # Routing SEGURO (local zero-logging) por default: swarm lê o segundo cérebro (infra+agência).
-  # Free OpenRouter (loga prompts) só em opt-in consciente para tarefas públicas.
-  local secure="${REPO_ROOT}/scripts/proxmox/hermes-secure-routing-ct188.sh"
+  # Default: free NO-LOGGING (data_collection=deny) + fallback local — seguro p/ dados AGL e bom p/ paralelismo.
+  # HERMES_LOCAL=1 força 100% on-prem (agl-sensitive, soberania máxima).
+  local nolog="${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh"
+  local localr="${REPO_ROOT}/scripts/proxmox/hermes-secure-routing-ct188.sh"
   if [[ "${HERMES_LOCAL}" -eq 1 ]]; then
-    bash "${secure}"
+    bash "${localr}"
     return
   fi
   if [[ -z "${HERMES_HOST}" ]]; then
     HERMES_HOST="root@100.81.225.22"
   fi
-  echo "=== Hermes CT188 (secure routing) via ${HERMES_HOST} ==="
-  scp "${secure}" "${HERMES_HOST}:/tmp/hermes-secure-routing-ct188.sh"
-  ssh "${HERMES_HOST}" "bash /tmp/hermes-secure-routing-ct188.sh"
+  echo "=== Hermes CT188 (free no-logging + fallback local) via ${HERMES_HOST} ==="
+  scp "${nolog}" "${HERMES_HOST}:/tmp/hermes-openrouter-free-ct188.sh"
+  ssh "${HERMES_HOST}" "bash /tmp/hermes-openrouter-free-ct188.sh"
 }
 
 apply_openclaw() {

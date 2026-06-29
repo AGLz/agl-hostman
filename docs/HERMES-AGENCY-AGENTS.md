@@ -181,7 +181,7 @@ Manter o vault **llm-wiki** curado: ingest de `/opt/data/wiki-ingest/`, lint, `i
 # No CT188 (após quartet)
 bash scripts/proxmox/configure-hermes-curator-orion-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman [/root/.aglz-telegram-tokens.env]
 bash scripts/proxmox/fix-curator-llm-wiki-skill-ct188.sh
-bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --secure
+bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --no-logging
 ```
 
 Tokens opcionais: `TELEGRAM_TOKEN_CURATOR=...` no ficheiro tokens.
@@ -303,45 +303,54 @@ Mesma imagem `agl-hermes-agency` que o quartet.
 
 ---
 
-## Modelos (swarm SEGURO local — política privacidade 2026-06-29)
+## Modelos (swarm — política privacidade 2026-06-29)
 
-**Porquê local por default:** todos os agentes leem o **segundo cérebro** (`llm-wiki`: infra +
-agência) e os crons leem **makemoney/leads + emails/LinkedIn privados**. Modelos cloud/free
-(OpenRouter, Groq, Z.AI) **logam/retêm prompts** → enviar esse contexto = fuga de dados. O local
-(`agl-sensitive` → família `agl-primary`) é **zero-logging E custo ≈ 0** (self-hosted), por isso é
-o trade-off certo: privacidade > throughput.
+**Distinção-chave:** o problema não é "free", é **logging**. No OpenRouter, `provider.data_collection=deny`
+faz o request só ser roteado para providers que **NÃO treinam/retêm** prompts (ex. Venice ZDR). Logo
+há free models **seguros** para dados AGL — só os **stealth que logam** (`or-owl-alpha`, `or-nemotron-*`)
+ficam restritos. Todos os agentes leem o **segundo cérebro** (`llm-wiki`: infra+agência) e os crons leem
+**leads/emails/LinkedIn**, por isso o default usa só modelos no-logging.
 
-Perfil **`--secure`** (default; zero-logging; nenhum prompt sai da infra AGL):
+### Tiers de privacidade
 
-| Agente | Primário | Fallback (100% local) |
-| ------ | -------- | --------------------- |
-| Jarvis, Curator, Elon, Satya, Werner, Orion, Argus, Verifier | `agl-sensitive` | `agl-primary-strong` → `agl-primary-vm110` → `agl-primary-fast` |
-| Aux / delegation | `agl-primary-fast` | — |
-| Crons (vault/leads/email) | `agl-sensitive` | `agl-primary-vm110` |
+| Tier | Quando | Modelos |
+| ---- | ------ | ------- |
+| **`--no-logging`** (default) | swarm geral, paralelismo, dados AGL | free **no-logging** (`data_collection=deny`) + fallback local |
+| **`--local`** | soberania máxima / OpenRouter indisponível | 100% on-prem (`agl-sensitive` → família `agl-primary`) |
+| **`--logging-public`** | SÓ tarefas públicas, sem dados AGL | `or-owl-alpha`/`or-nemotron-*` (LOGAM) |
 
-> **`agl-sensitive`** (LiteLLM) = VM310 local, `data_policy: local-only-zero-logging`, cadeia de
-> fallback 100% local — nunca cai para cloud/free.
+Swarm **`--no-logging`** (default; seguro p/ dados AGL; bom p/ parallel tool calling):
+
+| Agente | Primário (no-logging) | Fallback |
+| ------ | --------------------- | -------- |
+| Jarvis, Curator | `or-qwen3-coder-free` (Qwen3 Coder 480B) | `or-hermes-free` → `or-qwen3-next-free` → `or-llama-3.3-70b-free` → `agl-sensitive` |
+| Elon, Satya, Werner, Orion | `or-qwen3-next-free` (Qwen3 Next 80B MoE) | `or-llama-3.3-70b-free` → `or-hermes-free` → `or-qwen3-coder-free` → `agl-sensitive` |
+| Aux / delegation | `or-qwen3-next-free` | — |
+| Crons (vault/leads/email) | `agl-sensitive` (local) | `agl-primary-vm110` |
+
+> **No-logging free** (LiteLLM `data_policy: no-logging-data-collection-deny`): `or-qwen3-coder-free`,
+> `or-qwen3-next-free`, `or-hermes-free` (Nous Hermes 3 405B), `or-llama-3.3-70b-free` — todos com
+> `provider.data_collection=deny` no `extra_body`. Fallback final sempre `agl-sensitive` (local).
+> **`agl-sensitive`** = VM310 local, fallback 100% local (tier de soberania).
 
 ```bash
-bash scripts/proxmox/hermes-secure-routing-ct188.sh
-# ou
-bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --secure
-bash scripts/proxmox/apply-hermes-litellm-optimizations-ct188.sh
+# Default (no-logging free + fallback local)
+bash scripts/proxmox/hermes-openrouter-free-ct188.sh
+bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --no-logging
+# 100% on-prem
+bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --local
+# Tarefas públicas (modelos que logam)
+bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --logging-public
 ```
 
-### Exceção: free OpenRouter só para tarefas PÚBLICAS (opt-in)
+### Pré-requisito de conta OpenRouter
 
-Para tarefas **comprovadamente públicas** (sem qualquer dado AGL no contexto), e só então, o perfil
-free está disponível mas **bloqueado por default** (exige confirmação explícita):
+Para reforçar globalmente: **Privacy settings → desligar "Allow providers that may train on your data"
+para free models**. Assim, mesmo sem o `data_collection=deny` por-request, o OpenRouter nunca roteia
+para providers que treinam. O `data_collection=deny` no LiteLLM garante isto a nível de request.
 
-```bash
-HERMES_ALLOW_PUBLIC_FREE=1 bash scripts/proxmox/hermes-openrouter-free-ct188.sh
-# ou
-bash scripts/proxmox/fix-hermes-quartet-models-ct188.sh --openrouter-free
-```
-
-> **AVISO:** `or-owl-alpha`/`or-nemotron-*-free` (NVIDIA + stealth) e `groq` (tier free) **retêm
-> prompts**. Nunca usar com vault, agência, infra, emails ou LinkedIn no contexto.
+> **AVISO:** `or-owl-alpha`/`or-nemotron-*-free` (stealth/NVIDIA) **logam prompts** — só via
+> `--logging-public`, nunca com vault, agência, infra, emails ou LinkedIn no contexto.
 
 ---
 

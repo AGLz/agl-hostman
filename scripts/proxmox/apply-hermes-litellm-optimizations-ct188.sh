@@ -33,8 +33,8 @@ main() {
   fi
 
   if [[ "$SKIP_HERMES" != "1" ]]; then
-    log "=== Hermes CT188 (routing SEGURO local zero-logging — swarm lê segundo cérebro) ==="
-    bash scripts/proxmox/hermes-secure-routing-ct188.sh
+    log "=== Hermes CT188 (swarm free NO-LOGGING + fallback local; crons local) ==="
+    bash scripts/proxmox/hermes-openrouter-free-ct188.sh
     CRON_MODEL="${CRON_MODEL:-agl-sensitive}" CRON_FALLBACK="${CRON_FALLBACK:-agl-primary-vm110}" \
       bash scripts/proxmox/fix-hermes-max-tokens-ct188.sh
     CRON_MODEL="${CRON_MODEL:-agl-sensitive}" CRON_FALLBACK="${CRON_FALLBACK:-agl-primary-vm110}" \

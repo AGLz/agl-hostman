@@ -59,11 +59,14 @@ test("crons usam modelo local por default (leem segundo cerebro/leads)", () => {
   assert.match(c, /CRON_FALLBACK="\$\{CRON_FALLBACK:-agl-primary-vm110\}"/);
 });
 
-test("fix-hermes-quartet default e --secure; free exige opt-in", () => {
+test("fix-hermes-quartet: default --no-logging, tiers --local e --logging-public", () => {
   const q = fs.readFileSync(QUARTET, "utf8");
-  assert.match(q, /MODE="\$\{1:---secure\}"/);
-  assert.match(q, /--secure\)/);
-  const f = fs.readFileSync(FREE, "utf8");
-  assert.match(f, /HERMES_ALLOW_PUBLIC_FREE/);
-  assert.match(f, /exit 2/);
+  assert.match(q, /MODE="\$\{1:---no-logging\}"/);
+  assert.match(q, /--no-logging\|--secure\|--openrouter-free\)/);
+  assert.match(q, /--local\|--secure-local\)/);
+  assert.match(q, /--logging-public\)/);
+  // --local roteia para o script 100% on-prem
+  assert.match(q, /hermes-secure-routing-ct188\.sh/);
+  // --logging-public ativa o opt-in dos modelos que logam
+  assert.match(q, /HERMES_USE_LOGGING_FREE=1/);
 });

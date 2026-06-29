@@ -9,42 +9,63 @@ const ROOT = path.join(__dirname, "../..");
 const SCRIPT = path.join(ROOT, "scripts/proxmox/hermes-openrouter-free-ct188.sh");
 const CONFIG = path.join(ROOT, "config/litellm/config.yaml");
 
-test("hermes-openrouter-free-ct188.sh existe e reparte criticos vs restantes", () => {
+// Modelos free que LOGAM prompts (stealth/feedback). Não devem ser o default.
+const LOGGING = [/or-owl-alpha/, /or-nemotron-ultra-free/, /or-nemotron-super-free/];
+
+test("hermes-openrouter-free usa no-logging por default e reparte criticos vs restantes", () => {
   assert.ok(fs.existsSync(SCRIPT));
   const content = fs.readFileSync(SCRIPT, "utf8");
   assert.match(content, /CRITICAL_AGENTS=\(jarvis curator\)/);
   assert.match(content, /OTHER_AGENTS=\(elon satya werner orion\)/);
-  assert.match(content, /or-nemotron-ultra-free/);
-  assert.match(content, /or-owl-alpha/);
-  assert.match(content, /groq-llama-31-8b/);
-  assert.match(content, /agl-primary-vm110/);
+  // primários no-logging
+  assert.match(content, /CRIT_PRIMARY="or-qwen3-coder-free"/);
+  assert.match(content, /OTHER_PRIMARY="or-qwen3-next-free"/);
+  // fallback final local
+  assert.match(content, /agl-sensitive/);
 });
 
-test("config.yaml define aliases or-nemotron-ultra-free e or-owl-alpha", () => {
-  const content = fs.readFileSync(CONFIG, "utf8");
-  assert.match(content, /model_name: or-nemotron-ultra-free/);
-  assert.match(content, /model: openrouter\/nvidia\/nemotron-3-ultra-550b-a55b:free/);
-  assert.match(content, /model_name: or-owl-alpha/);
-  assert.match(content, /model: openrouter\/openrouter\/owl-alpha/);
+test("ramo no-logging (default) NAO usa owl-alpha/nemotron", () => {
+  const content = fs.readFileSync(SCRIPT, "utf8");
+  // isolar o bloco else (no-logging) do if HERMES_USE_LOGGING_FREE
+  const elseBlock = content.split("else")[1]?.split("fi")[0] ?? "";
+  assert.ok(elseBlock.length > 0, "bloco no-logging ausente");
+  for (const re of LOGGING) {
+    assert.doesNotMatch(elseBlock, re, `modelo logging no ramo no-logging: ${re}`);
+  }
 });
 
-test("fallbacks zai-coding-glm-4.7 nao realimentam Z.AI", () => {
-  const content = fs.readFileSync(CONFIG, "utf8");
-  const block = content.split("- zai-coding-glm-4.7:\n")[1]?.split(/\n    - [a-z]/)[0] ?? "";
-  assert.ok(block.length > 0, "bloco zai-coding-glm-4.7 ausente");
-  assert.doesNotMatch(block, /zai-glm/);
-  assert.doesNotMatch(block, /glm-4\.7-flash/);
-  assert.match(block, /or-nemotron-ultra-free/);
-  assert.match(block, /agl-primary-vm110/);
+test("modelos que logam só via opt-in HERMES_USE_LOGGING_FREE (tarefas públicas)", () => {
+  const content = fs.readFileSync(SCRIPT, "utf8");
+  assert.match(content, /HERMES_USE_LOGGING_FREE/);
+  // os aliases logging vivem no ramo do opt-in
+  const ifBlock = content.split('HERMES_USE_LOGGING_FREE:-0}" == "1"')[1]?.split("else")[0] ?? "";
+  assert.match(ifBlock, /or-owl-alpha/);
+  assert.match(ifBlock, /or-nemotron-ultra-free/);
 });
 
-test("fallbacks or-nemotron-ultra-free e or-owl-alpha nao usam paid", () => {
+test("config define no-logging free aliases com data_collection=deny", () => {
   const content = fs.readFileSync(CONFIG, "utf8");
-  for (const alias of ["or-nemotron-ultra-free", "or-owl-alpha"]) {
-    const block = content.split(`- ${alias}:\n`)[1]?.split(/\n    - /)[0] ?? "";
-    assert.ok(block.length > 0, `bloco fallbacks ${alias} ausente`);
-    assert.doesNotMatch(block, /or-nemotron-super[^-]/);
-    assert.doesNotMatch(block, /or-minimax-m2\.5[^-]/);
-    assert.doesNotMatch(block, /or-gpt-4o-mini/);
+  for (const alias of [
+    "or-qwen3-coder-free",
+    "or-qwen3-next-free",
+    "or-hermes-free",
+    "or-llama-3.3-70b-free",
+  ]) {
+    assert.match(content, new RegExp(`model_name: ${alias.replace(/\./g, "\\.")}`), `alias ${alias} ausente`);
+  }
+  // pelo menos 3 ocorrências de data_collection: deny (aliases no-logging)
+  const denies = content.match(/data_collection: deny/g) || [];
+  assert.ok(denies.length >= 4, `esperado >=4 data_collection: deny, obtido ${denies.length}`);
+});
+
+test("fallbacks dos no-logging free nunca encadeiam owl-alpha/nemotron", () => {
+  const content = fs.readFileSync(CONFIG, "utf8");
+  for (const alias of ["or-qwen3-coder-free", "or-qwen3-next-free", "or-hermes-free", "or-llama-3.3-70b-free"]) {
+    const block = content.split(`- ${alias}:\n`)[1]?.split(/\n    - [a-z]/)[0] ?? "";
+    assert.ok(block.length > 0, `fallback ${alias} ausente`);
+    for (const re of LOGGING) {
+      assert.doesNotMatch(block, re, `${alias} encadeia modelo logging: ${re}`);
+    }
+    assert.match(block, /agl-sensitive/, `${alias} sem fallback local final`);
   }
 });

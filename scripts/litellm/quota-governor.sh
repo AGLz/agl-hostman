@@ -195,22 +195,22 @@ decide_action() {
 }
 
 apply_hermes_free_tier() {
-  # Budget baixo → routing LOCAL (agl-sensitive), que é zero-custo E zero-logging.
-  # Nunca cair para free OpenRouter aqui: o swarm carrega contexto do segundo cérebro.
-  local fix_script="${REPO_ROOT}/scripts/proxmox/hermes-secure-routing-ct188.sh"
+  # Budget baixo → free NO-LOGGING (data_collection=deny, custo $0) + fallback local.
+  # Seguro p/ dados AGL (não usa owl-alpha/nemotron que logam). Não cai para paid.
+  local fix_script="${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh"
   [[ -f "$fix_script" ]] || { log "ERRO: fix script em falta"; return 1; }
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    log "[dry-run] Hermes --secure (local zero-logging) via ${HERMES_SSH_HOST}"
+    log "[dry-run] Hermes free no-logging via ${HERMES_SSH_HOST}"
     return 0
   fi
   if [[ -d /opt/agl-hermes ]]; then
-    log "Aplicar Hermes secure-routing local (CT188)"
+    log "Aplicar Hermes free no-logging local (CT188)"
     bash "$fix_script"
     return
   fi
-  log "Aplicar Hermes secure-routing remoto ${HERMES_SSH_HOST}"
-  scp -q "$fix_script" "${HERMES_SSH_HOST}:/tmp/hermes-secure-routing-ct188.sh"
-  ssh -o BatchMode=yes -o ConnectTimeout=20 "${HERMES_SSH_HOST}" "bash /tmp/hermes-secure-routing-ct188.sh"
+  log "Aplicar Hermes free no-logging remoto ${HERMES_SSH_HOST}"
+  scp -q "$fix_script" "${HERMES_SSH_HOST}:/tmp/hermes-openrouter-free-ct188.sh"
+  ssh -o BatchMode=yes -o ConnectTimeout=20 "${HERMES_SSH_HOST}" "bash /tmp/hermes-openrouter-free-ct188.sh"
 }
 
 send_notify() {

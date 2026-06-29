@@ -120,12 +120,34 @@ litellm_settings:
         - groq-llama-31-8b
         - zai-glm-5
         - or-nemotron-super-free
-    # agl-sensitive: cadeia 100% LOCAL (zero egress/logging). Dados sensíveis (segundo cérebro,
-    # infra, agência, emails/LinkedIn, leads). NUNCA adicionar modelos cloud/free aqui — logam prompts.
+    # agl-sensitive: cadeia 100% LOCAL (zero egress/logging). Tier de soberania máxima.
+    # Dados sensíveis (segundo cérebro, infra, agência, emails/LinkedIn, leads).
+    # NUNCA adicionar modelos cloud/free aqui — mesmo no-logging sai da infra.
     - agl-sensitive:
         - agl-primary-strong
         - agl-primary-vm110
         - agl-primary-fast
+    # No-logging free (provider.data_collection=deny → só providers que NÃO treinam/retêm).
+    # Seguros p/ dados AGL. Encadeiam só entre si + local; NUNCA owl-alpha/nemotron (logam).
+    - or-qwen3-coder-free:
+        - or-hermes-free
+        - or-qwen3-next-free
+        - or-llama-3.3-70b-free
+        - agl-sensitive
+    - or-qwen3-next-free:
+        - or-llama-3.3-70b-free
+        - or-hermes-free
+        - or-qwen3-coder-free
+        - agl-sensitive
+    - or-hermes-free:
+        - or-qwen3-coder-free
+        - or-qwen3-next-free
+        - or-llama-3.3-70b-free
+        - agl-sensitive
+    - or-llama-3.3-70b-free:
+        - or-qwen3-next-free
+        - or-hermes-free
+        - agl-sensitive
     - openai/ollama-qwen3-4b:
         - glm-4.7-flash
         - glm-flash
@@ -385,11 +407,7 @@ litellm_settings:
         - or-gemma-3-4b-free
         - groq-llama-31-8b
         - agl-primary-vm110
-    - or-llama-3.3-70b-free:
-        - or-gemma-3-4b-free
-        - or-gemma-3-12b-free
-        - groq-llama-31-8b
-        - agl-primary-vm110
+    # or-llama-3.3-70b-free e or-hermes-free: fallbacks no-logging definidos no topo (deny+local).
     - or-gemma-3-4b-free:
         - groq-llama-31-8b
         - agl-primary-vm110
@@ -406,10 +424,6 @@ litellm_settings:
         - glm-flash
         - glm-flash
         - or-llama-3.3-70b-free
-    - or-hermes-free:
-        - glm-flash
-        - glm-flash
-        - or-nemotron-super-free
     - openrouter/openrouter/free:
         - or-owl-alpha
         - or-nemotron-super-free
@@ -1350,11 +1364,46 @@ model_list:
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
       model: openrouter/meta-llama/llama-3.3-70b-instruct:free
+      extra_body:
+        provider:
+          data_collection: deny
     model_info:
       access: openrouter
       free_tier: true
       max_tokens: 8192
+      data_policy: no-logging-data-collection-deny
+      note: "Free no-logging — provider.data_collection=deny (só providers que NÃO treinam/retêm, ex. Venice ZDR). Seguro p/ dados AGL."
     model_name: or-llama-3.3-70b-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-coder:free
+      timeout: 90
+      extra_body:
+        provider:
+          data_collection: deny
+    model_info:
+      access: openrouter
+      context_window: 262144
+      free_tier: true
+      max_tokens: 8192
+      data_policy: no-logging-data-collection-deny
+      note: "Free no-logging — Qwen3 Coder 480B, melhor coding free + parallel tool calling. provider.data_collection=deny. Seguro p/ dados AGL."
+    model_name: or-qwen3-coder-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
+      extra_body:
+        provider:
+          data_collection: deny
+    model_info:
+      access: openrouter
+      context_window: 262144
+      free_tier: true
+      max_tokens: 8192
+      data_policy: no-logging-data-collection-deny
+      note: "Free no-logging — Qwen3 Next 80B MoE (rápido, all-round, tool calling). provider.data_collection=deny. Seguro p/ dados AGL."
+    model_name: or-qwen3-next-free
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
       model: openrouter/google/gemma-3-4b-it:free
@@ -1390,10 +1439,15 @@ model_list:
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
       model: openrouter/nousresearch/hermes-3-llama-3.1-405b:free
+      extra_body:
+        provider:
+          data_collection: deny
     model_info:
       access: openrouter
       free_tier: true
       max_tokens: 8192
+      data_policy: no-logging-data-collection-deny
+      note: "Free no-logging — Nous Hermes 3 405B (tool-use tuned). provider.data_collection=deny (Venice ZDR). Seguro p/ dados AGL."
     model_name: or-hermes-free
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
