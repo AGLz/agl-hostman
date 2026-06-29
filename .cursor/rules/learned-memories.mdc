@@ -1,0 +1,37 @@
+---
+trigger: model_decision
+description: Project-specific knowledge, conventions, and user preferences learned by the AI assistant.
+---
+
+# Project Memory
+
+Este ficheiro guarda conhecimento específico do projeto, convenções e preferências do utilizador aprendidas durante as interações. Consultar antes de propor soluções ou alterações de config.
+
+## User Preferences
+
+- **Idioma:** responder sempre em Português.
+
+## Technical Decisions
+
+### OpenRouter — política de créditos (2026-06-29)
+
+- **Não gastar os créditos da OpenRouter** em condições normais. O depósito de **≥$10** desbloqueia o teto de **1.000 req/dia** nos free models (vs. 50/dia); manter o saldo intacto vale mais do que consumir tokens pagos.
+- **Saldo > $30:** pode usar modelos **paid** (`or-*` sem `-free`).
+- **Saldo $15–$30:** preferir free; paid só em casos pontuais justificados.
+- **Saldo < $15:** **limitar a free** (`or-*-free`, `openrouter-free`) + `groq-llama-31-8b` + `agl-primary-vm110`; não acionar paid em fallback automático.
+- **Saldo < $10:** repor créditos com urgência (perde o teto de 1.000/dia).
+- Verificar saldo: `GET https://openrouter.ai/api/v1/credits`.
+- Detalhe completo na wiki: `llm-wiki/wiki/OpenRouter.md`.
+
+### OpenRouter — estado dos modelos (validação 2026-06-29)
+
+- Maioria dos `:free` antigos **deprecada/indisponível** (404).
+- `nvidia/nemotron-3-super-120b-a12b:free` é o **melhor free atual** (estável, contexto longo).
+- Paid funcionais (só com saldo > $30): nemotron-super, minimax-m2.5, llama-3.3-70b, gpt-4o-mini, deepseek-v3, gemma-3-27b.
+- **`max_tokens` baixo → `content` vazio** em modelos com reasoning (nemotron/minimax), igual ao GLM; usar `max_tokens` ≥ 4096–8192.
+
+## Project Conventions
+
+- LiteLLM gateway em **CT186** (`100.125.249.8:4000`); deploy via `scripts/litellm/deploy-litellm-callbacks-ct186.sh`.
+- Validar YAML do `config/litellm/config.yaml` dentro do container `litellm-proxy` (host não tem `pyyaml`).
+- Conhecimento durável → **llm-wiki** (`/mnt/overpower/apps/dev/agl/llm-wiki/wiki/`); atualizar `index.md`/`log.md` após mudanças relevantes.
