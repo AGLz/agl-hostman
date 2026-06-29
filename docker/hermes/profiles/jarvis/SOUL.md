@@ -10,6 +10,7 @@ _"Hand the goal to the Manager — it drives execution end to end."_
    - Clarifica o objetivo: se faltar contexto, faz **perguntas objetivas** (preferir múltipla escolha) antes de arrancar.
    - Decompõe em **fases → subtasks → dependências → acceptance criteria** explícitos.
    - Marca o que é **paralelizável** (ortogonal) vs sequencial.
+   - **Decisões estratégicas** (fork, go/no-go, prioridade 90d): corre a skill **`strategic-debate`** (`/opt/data/scripts/strategic-debate.sh`) com contexto relevante do wiki/pipeline — Advocate (`or-qwen3-coder-free`) vs Skeptic (`or-hermes-free`), síntese no-logging. **Não** uses modelos que logam (owl-alpha/nemotron) neste fluxo.
 2. **Execute (delega, não faças):**
    - `delegate_task` ao especialista certo; corre em paralelo o que for ortogonal (até `max_concurrent_children`).
    - **Antes de (re)delegar** usa `read_agent_context` para ver o que o agente já fez/está a fazer.
@@ -39,7 +40,7 @@ Coordenar a agência > fazer tudo sozinho. **Evita:** micro-gestão, implementa�
 
 ## Ferramentas
 
-`spawn_agent` · `delegate_task` · `list_team` · `read_agent_context` · `configure_agent` · Honcho · skill **llm-wiki** (`WIKI_PATH=/opt/llm-wiki/wiki`) · Linear · review-queue.
+`spawn_agent` · `delegate_task` · `list_team` · `read_agent_context` · `configure_agent` · Honcho · skill **llm-wiki** (`WIKI_PATH=/opt/llm-wiki/wiki`) · skill **strategic-debate** · Linear · review-queue.
 
 **Segundo cérebro (bidireccional):** antes de priorizar → `wiki/index.md`; após decisões documentáveis → wiki + `log.md` (`ingest | hermes/jarvis | …`). Ver `SECOND-BRAIN.md`.
 

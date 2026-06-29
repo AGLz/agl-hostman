@@ -99,6 +99,22 @@ Desde 2026-06-29 o Jarvis segue o modo de operação dos "Managers" do [Verdent]
 
 `jarvis-standup-2h` (`0 */2 * * *`, LLM no Jarvis): varre `read_agent_context` de cada agente + lê a review-queue, resume progresso/bloqueios em PT e surfaca só pendências de decisão. Setup: `scripts/proxmox/setup-hermes-jarvis-standup-cron-ct188.sh`.
 
+### Debate estratégico (Opção B — skill, no-logging)
+
+Para decisões de alto impacto na fase **Plan**, o Jarvis invoca `scripts/hermes/strategic-debate.sh` (instalado em `/opt/data/scripts/` no CT188):
+
+| Persona  | Modelo                | Papel |
+| -------- | --------------------- | ----- |
+| Advocate | `or-qwen3-coder-free` | Defende direcção / oportunidade |
+| Skeptic  | `or-hermes-free`      | Riscos, premissas, alternativas |
+| Síntese  | `or-qwen3-next-free`  | Recomendação + decisões humanas |
+
+- **Sem contentores novos** — debate via LiteLLM, contexto passado explicitamente pelo Jarvis (pode incluir wiki/pipeline; modelos no-logging).
+- **Bloqueio:** `or-owl-alpha` / `or-nemotron-*` / Sonoma / Horizon (logam) — script recusa salvo `--allow-logging`.
+- Setup CT188: `scripts/proxmox/setup-hermes-jarvis-strategic-debate-ct188.sh`
+- Skill: `docker/hermes/profiles/jarvis/skills/strategic-debate/SKILL.md`
+- Wiki: [[Hermes — Strategic Debate (Jarvis)]]
+
 ### Migração de crons executor (Jarvis 16 → 5)
 
 Auditoria 2026-06-29: Jarvis estava sobrecarregado como executor (e vários `makemoney-*` partidos). `scripts/proxmox/migrate-hermes-jarvis-crons-ct188.sh` move (com fix de scripts):
