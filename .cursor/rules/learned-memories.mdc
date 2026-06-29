@@ -45,8 +45,8 @@ Este ficheiro guarda conhecimento específico do projeto, convenções e prefer�
 - **Review-queue:** `/opt/llm-wiki/raw/hermes/review-queue/queue.json` (rw via `LLM_WIKI_DIR`; **`/mnt/overpower` é NFS root-squashed**, não escrevível pelos agentes). Helper: `scripts/proxmox/hermes-review-queue.sh`.
 - **Stand-up cron 2h** (`jarvis-standup-2h`): Jarvis varre `read_agent_context` + review-queue.
 - **Crons:** Jarvis só gerencial (briefing, emails, stand-up). Executor migrado → Werner (infra) / Elon (research) / Satya (makemoney). Script: `migrate-hermes-jarvis-crons-ct188.sh`.
-- **Roster (8):** Jarvis, Elon, Satya, Werner, Orion, Argus, Curator, **Verifier**.
-- Página: `llm-wiki/wiki/Agência Hermes — Modelo Manager.md`.
+- **Roster (8) da AGLz AI Agency:** Jarvis, Elon, Satya, Werner, Orion, Argus, Curator, **Verifier**.
+- **Não criar páginas/agências novas:** a agência é a **AGLz AI Agency** (runtime Hermes). Doc canónica: `llm-wiki/wiki/Hermes — Operações CT188.md` + `agl-hostman/docs/HERMES-AGENCY-AGENTS.md`. Modelo: `llm-wiki/wiki/Verdent Manager.md`.
 
 ## Project Conventions
 

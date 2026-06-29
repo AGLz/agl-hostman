@@ -14,8 +14,11 @@
 | **`curator`** | **Curator** | **Knowledge**  | **`agl-hermes-curator`** | @hermes_jarvis_h_curator_bot | **llm-wiki** lint/ingest (todos)    |
 | **`orion`**   | **Orion**   | **Media**      | **`agl-hermes-orion`**   | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber     |
 | **`argus`**   | **Argus**   | **FinOps**     | **`agl-hermes-argus`**   | @hermes_jarvis_h_argus_bot   | **Limites/quota LLM**, gate LiteLLM |
+| **`verifier`** | **Verifier** | **Quality**  | **`agl-hermes-verifier`** | — (interno)                | **Gate QA PASS/FAIL** vs acceptance criteria |
 
-UI Laravel: `HermesAgentCatalog` inclui os sete perfis.
+UI Laravel: `HermesAgentCatalog` inclui os oito perfis.
+
+> **Modelo operacional:** o Jarvis opera como **Manager** (modelo [Verdent](https://docs.verdent.ai/verdent-manager/core-features/manager)) — ver secção [Modelo Manager (Verdent)](#modelo-manager-verdent) abaixo. Não é executor: decompõe, delega e verifica via Verifier.
 
 ---
 
@@ -70,6 +73,71 @@ bash scripts/proxmox/setup-hermes-wiki-git-ct188.sh --test   # git safe + creden
 bash scripts/proxmox/setup-hermes-wiki-git-ct188.sh --push     # push origin main (requer gh root)
 bash scripts/proxmox/smoke-hermes-aglz-quartet.sh
 ```
+
+---
+
+## Modelo Manager (Verdent)
+
+Desde 2026-06-29 o Jarvis segue o modo de operação dos "Managers" do [Verdent](https://docs.verdent.ai/verdent-manager/core-features/manager): **gerencial, não executor**. Wiki: [[Verdent Manager]] · [[Hermes — Operações CT188]].
+
+### Loop Plan → Execute → Verify → Deliver
+
+1. **Plan/Align** — clarifica (perguntas objetivas) e decompõe em fases → subtasks → dependências → **acceptance criteria**.
+2. **Execute** — `delegate_task` ao especialista; paraleliza ortogonais (`max_concurrent_children=3`); `read_agent_context` antes de re-delegar.
+3. **Verify** — nada é "feito" sem veredito do **Verifier** (PASS/FAIL vs critérios).
+4. **Deliver** — sintetiza, atualiza review-queue, traz ao humano só o que precisa de decisão.
+
+### Review-Queue (coluna "To Review")
+
+- **Path (rw via `LLM_WIKI_DIR`):** `/opt/llm-wiki/raw/hermes/review-queue/queue.json`
+  - O mount `/mnt/overpower` é **NFS root-squashed** (nobody:nogroup) → não escrevível pelos agentes; por isso a fila vive no vault `llm-wiki` (rw).
+- **Helper:** `scripts/proxmox/hermes-review-queue.sh` — `add <id> <agent> "<goal>" "<crit1;crit2>"` · `set-status <id> <status>` · `verdict <id> PASS|FAIL "<evidência>"` · `list [status]`.
+- **Estados:** `planned → in_progress → to_review → verifying → done | blocked | failed`.
+- **Fluxo:** Jarvis `add` (criteria) → delega → agente `set-status` → Verifier `verdict` → Jarvis fecha (`done`) ou re-delega (`failed`).
+
+### Stand-up cron 2h (acompanhamento)
+
+`jarvis-standup-2h` (`0 */2 * * *`, LLM no Jarvis): varre `read_agent_context` de cada agente + lê a review-queue, resume progresso/bloqueios em PT e surfaca só pendências de decisão. Setup: `scripts/proxmox/setup-hermes-jarvis-standup-cron-ct188.sh`.
+
+### Migração de crons executor (Jarvis 16 → 5)
+
+Auditoria 2026-06-29: Jarvis estava sobrecarregado como executor (e vários `makemoney-*` partidos). `scripts/proxmox/migrate-hermes-jarvis-crons-ct188.sh` move (com fix de scripts):
+
+| Destino | Crons |
+| ------- | ----- |
+| **Werner** | daily-maintenance, daily-backup, health-check |
+| **Elon** | AI Opportunity Research, AI Implementation Planning Sprint |
+| **Satya** | 6× makemoney-* (sync-crons, deep-dive, wiki-feed, generate-dossiers, pipeline-report, git-sync) |
+| **Jarvis (mantém)** | daily-briefing, 3× email, jarvis-standup-2h |
+
+---
+
+## Verifier — QA Gate
+
+### Missão
+
+Gate de qualidade da agência (equivalente ao `@Verifier` do Verdent): valida entregas **contra os acceptance criteria** e devolve veredito **PASS** (com evidência) ou **FAIL** (lista do que falhou + sugestão). **Não implementa correções** (isso é Satya/Werner/etc.) **nem decide prioridades** (Jarvis).
+
+### Ficheiros (repo)
+
+| Path                                                        | Descrição          |
+| ----------------------------------------------------------- | ------------------ |
+| `docker/hermes/profiles/verifier/SOUL.md`                   | Persona            |
+| `scripts/proxmox/bootstrap-hermes-verifier-profile-ct188.sh`| Bootstrap CT188    |
+| `scripts/proxmox/hermes-review-queue.sh`                    | Helper review-queue |
+
+### Modelo
+
+`or-nemotron-ultra-free` (reasoning) · fallback `or-owl-alpha` · aux `groq-llama-31-8b`. Em modo privacidade (`--secure`), usa `agl-sensitive` local como os restantes (ver secção Modelos abaixo).
+
+### Deploy
+
+```bash
+bash scripts/proxmox/bootstrap-hermes-verifier-profile-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman
+docker compose -f docker-compose.aglz-quartet.yml up -d hermes-verifier
+```
+
+Sem bot Telegram (agente interno; interage via `delegate_task` do Jarvis + review-queue).
 
 ---
 
@@ -229,6 +297,7 @@ Serviços em `docker/hermes/docker-compose.aglz-quartet.ct188.yml`:
 - `hermes-curator` → `CURATOR_DATA_DIR=./profiles/curator`
 - `hermes-orion` → `ORION_DATA_DIR=./profiles/orion`
 - `hermes-argus` → `ARGUS_DATA_DIR=./profiles/argus`
+- `hermes-verifier` → `VERIFIER_DATA_DIR=./profiles/verifier`
 
 Mesma imagem `agl-hermes-agency` que o quartet.
 
