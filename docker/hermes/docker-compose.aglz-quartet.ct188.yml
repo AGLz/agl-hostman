@@ -161,6 +161,8 @@ services:
 
       - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
 
+      - ${ELON_DATA_DIR:-./profiles/elon}/cron/output:/opt/elon-cron-output:ro
+
       - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
 
     healthcheck: *hermes-health-process

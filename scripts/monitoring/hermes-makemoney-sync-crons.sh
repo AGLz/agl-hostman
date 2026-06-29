@@ -5,6 +5,8 @@ set -euo pipefail
 
 MAKEMONEY_DIR="${MAKEMONEY_DIR:-/mnt/overpower/apps/dev/agl/makemoney01}"
 CRON_OUTPUT="${HERMES_CRON_OUTPUT:-/opt/data/cron/output}"
+# Outputs dos crons LLM do Elon (research/impl) — mount ro em Satya: /opt/elon-cron-output
+ELON_CRON_OUTPUT="${ELON_CRON_OUTPUT:-/opt/elon-cron-output}"
 DATE="$(date '+%Y-%m-%d')"
 
 JOB_RESEARCH="${MAKEMONEY_JOB_RESEARCH:-708fe1021f93}"
@@ -22,7 +24,8 @@ ensure_dirs() {
 
 latest_output() {
   local job_id="$1"
-  local dir="${CRON_OUTPUT}/${job_id}"
+  local base="${2:-${CRON_OUTPUT}}"
+  local dir="${base}/${job_id}"
   [[ -d "${dir}" ]] || return 1
   find "${dir}" -name '*.md' -type f 2>/dev/null | sort | tail -1
 }
@@ -59,9 +62,9 @@ PY
 }
 
 sync_job() {
-  local job_id="$1" label="$2"
+  local job_id="$1" label="$2" output_base="${3:-${CRON_OUTPUT}}"
   local src
-  src="$(latest_output "${job_id}")" || return 0
+  src="$(latest_output "${job_id}" "${output_base}")" || return 0
   archive_hermes_file "${job_id}" "${src}"
   local dst="${MAKEMONEY_DIR}/data/cron-sync/${DATE}-${label}.md"
   cp -f "${src}" "${dst}"
@@ -86,9 +89,11 @@ main() {
     exit 1
   fi
   ensure_dirs
-  sync_job "${JOB_RESEARCH}" "research"
-  sync_job "${JOB_DEEP}" "deep-dive"
-  sync_job "${JOB_IMPL}" "impl-sprint"
+  # Research + impl sprint: crons LLM no Elon (após migração Manager)
+  sync_job "${JOB_RESEARCH}" "research" "${ELON_CRON_OUTPUT}"
+  # Deep-dive: script Satya grava directo em makemoney01; sync opcional se houver output cron
+  sync_job "${JOB_DEEP}" "deep-dive" "${CRON_OUTPUT}"
+  sync_job "${JOB_IMPL}" "impl-sprint" "${ELON_CRON_OUTPUT}"
 
   local upd="${MAKEMONEY_DIR}/scripts/update_pipeline.py"
   local research_md="${MAKEMONEY_DIR}/data/cron-sync/${DATE}-research.md"
