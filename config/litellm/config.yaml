@@ -347,8 +347,25 @@ litellm_settings:
         - or-llama-3.3-70b-free
         - or-gemma-3-4b-free
     - or-nemotron-super-free:
-        - or-minimax-m2.5-free
-        - or-llama-3.3-70b-free
+        - or-nemotron-super
+        - or-minimax-m2.5
+        - or-llama-3.3-70b
+        - groq-llama-31-8b
+        - agl-primary-vm110
+    - or-nemotron-super:
+        - or-minimax-m2.5
+        - or-llama-3.3-70b
+        - or-gpt-4o-mini
+        - groq-llama-31-8b
+        - agl-primary-vm110
+    - or-minimax-m2.5:
+        - or-llama-3.3-70b
+        - or-gpt-4o-mini
+        - groq-llama-31-8b
+        - agl-primary-vm110
+    - or-llama-3.3-70b:
+        - or-gpt-4o-mini
+        - or-deepseek-v3
         - groq-llama-31-8b
         - agl-primary-vm110
     - or-minimax-m2.5-free:
@@ -1361,6 +1378,63 @@ model_list:
       free_tier: true
       max_tokens: 8192
     model_name: or-nemotron-super-free
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/nvidia/nemotron-3-super-120b-a12b
+      timeout: 120
+    model_info:
+      access: openrouter
+      context_window: 262144
+      max_tokens: 8192
+      note: "OpenRouter paid — nemotron super 120B (fallback quando tier free 429/404)"
+    model_name: or-nemotron-super
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/minimax/minimax-m2.5
+      timeout: 90
+    model_info:
+      access: openrouter
+      context_window: 196608
+      max_tokens: 8192
+      note: "OpenRouter paid — minimax m2.5 (tier free descontinuado 2026-06)"
+    model_name: or-minimax-m2.5
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/meta-llama/llama-3.3-70b-instruct
+      timeout: 90
+    model_info:
+      access: openrouter
+      context_window: 131072
+      max_tokens: 8192
+      note: "OpenRouter paid — llama 3.3 70b (tier free rate-limited)"
+    model_name: or-llama-3.3-70b
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/openai/gpt-4o-mini
+      timeout: 60
+    model_info:
+      access: openrouter
+      context_window: 128000
+      max_tokens: 8192
+    model_name: or-gpt-4o-mini
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/deepseek/deepseek-chat-v3-0324
+      timeout: 90
+    model_info:
+      access: openrouter
+      context_window: 163840
+      max_tokens: 8192
+    model_name: or-deepseek-v3
+  - litellm_params:
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/google/gemma-3-27b-it
+      timeout: 90
+    model_info:
+      access: openrouter
+      context_window: 131072
+      max_tokens: 8192
+    model_name: or-gemma-3-27b
   - litellm_params:
       api_base: https://api.z.ai/api/anthropic
       api_key: os.environ/ZAI_API_KEY
