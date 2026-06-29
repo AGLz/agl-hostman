@@ -20,7 +20,7 @@ test("hermes-openrouter-free usa no-logging por default e reparte criticos vs re
   // primários no-logging
   assert.match(content, /CRIT_PRIMARY="or-qwen3-coder-free"/);
   assert.match(content, /OTHER_PRIMARY="or-qwen3-next-free"/);
-  // fallback final local
+  // fallback final agl-sensitive (ZDR cloud enquanto VMs GPU suspensas)
   assert.match(content, /agl-sensitive/);
 });
 
@@ -66,6 +66,6 @@ test("fallbacks dos no-logging free nunca encadeiam owl-alpha/nemotron", () => {
     for (const re of LOGGING) {
       assert.doesNotMatch(block, re, `${alias} encadeia modelo logging: ${re}`);
     }
-    assert.match(block, /agl-sensitive/, `${alias} sem fallback local final`);
+    assert.match(block, /agl-sensitive/, `${alias} sem fallback agl-sensitive final`);
   }
 });

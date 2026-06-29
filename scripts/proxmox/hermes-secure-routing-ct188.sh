@@ -2,14 +2,19 @@
 # Hermes CT188: routing SEGURO (zero-logging) — default para dados sensíveis.
 #
 # Porquê: TODOS os agentes leem o segundo cérebro (llm-wiki: infra + agência) e os
-# crons leem makemoney/leads + emails/LinkedIn privados. Modelos cloud/free
-# (OpenRouter, Groq, Z.AI) RETÊM/LOGAM prompts — enviar esse contexto para lá é fuga.
-# Local (agl-sensitive → família agl-primary) é zero-logging E custo ≈ 0 (self-hosted),
-# por isso é o trade-off certo: privacidade > throughput/qualidade.
+# crons leem makemoney/leads + emails/LinkedIn privados. Modelos cloud/free que
+# LOGAM/TREINAM prompts (OpenRouter default, Owl Alpha, Nemotron) são fuga.
 #
-# Routing:
-#   Todos os agentes  → primário agl-sensitive (VM310 local), fallback 100% local.
-#   Aux/delegation    → agl-primary-fast (local).
+# !!! VMs GPU Ollama SUSPENSAS 2026-06-29 (VM110/VM310 em baixo). !!!
+# O tier sensível NÃO pode usar local agora. Substituto temporário e reversível:
+# cloud ZDR no-logging (provider.data_collection=deny + zdr=true) — só providers
+# que NÃO treinam NEM retêm (Venice ZDR, Groq, Cerebras). O prompt passa por
+# terceiros mas sem retenção/treino. REVERTER para 100% local (agl-primary-strong/
+# vm110/fast) quando as GPUs voltarem (git revert deste commit).
+#
+# Routing (estado atual, VMs suspensas):
+#   Todos os agentes  → primário agl-sensitive (ZDR cloud), fallback ZDR cloud.
+#   Aux/delegation    → or-qwen3-next-free (ZDR cloud).
 # Para tarefas EXPLICITAMENTE públicas (sem dados AGL no contexto) usar, em opt-in,
 # scripts/proxmox/hermes-openrouter-free-ct188.sh — nunca para vault/agência/email.
 #
@@ -22,10 +27,11 @@ HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
 
 ALL_AGENTS=(jarvis curator elon satya werner orion argus verifier)
+# VMs GPU suspensas → fallback ZDR cloud no-logging. Reverter p/ cadeia local quando voltarem.
 PRIMARY="${HERMES_SECURE_PRIMARY:-agl-sensitive}"
-FALLBACK="${HERMES_SECURE_FALLBACK:-agl-primary-strong}"
-FALLBACK_CSV="${HERMES_SECURE_FALLBACK_CSV:-agl-primary-strong,agl-primary-vm110,agl-primary-fast}"
-AUX_MODEL="${HERMES_SECURE_AUX:-agl-primary-fast}"
+FALLBACK="${HERMES_SECURE_FALLBACK:-or-qwen3-next-free}"
+FALLBACK_CSV="${HERMES_SECURE_FALLBACK_CSV:-or-qwen3-next-free,or-hermes-free,or-llama-3.3-70b-free,groq-llama-31-8b}"
+AUX_MODEL="${HERMES_SECURE_AUX:-or-qwen3-next-free}"
 
 profile_cfg() {
   local agent="$1"
@@ -96,8 +102,9 @@ cd "${HERMES_ROOT}"
 docker compose -f docker-compose.aglz-quartet.yml restart 2>/dev/null || true
 
 echo ""
-echo "Routing SEGURO (zero-logging) aplicado:"
-echo "  Todos os agentes → primário ${PRIMARY} (local)"
-echo "  Fallback local-only: ${FALLBACK_CSV}"
-echo "  Aux/delegation: ${AUX_MODEL} (local)"
-echo "  Nenhum prompt sai da infra AGL."
+echo "Routing SEGURO (no-logging) aplicado:"
+echo "  Todos os agentes → primário ${PRIMARY}"
+echo "  Fallback ZDR cloud no-logging: ${FALLBACK_CSV}"
+echo "  Aux/delegation: ${AUX_MODEL}"
+echo "  VMs GPU SUSPENSAS → cloud ZDR (data_collection=deny + zdr): não treina nem retém."
+echo "  Reverter p/ 100% local quando VM110/VM310 voltarem (git revert)."

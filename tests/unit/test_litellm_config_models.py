@@ -92,4 +92,5 @@ def test_build_battery_manifest_has_unique_ids() -> None:
     assert "anthropic" in providers
     assert "openai" in providers
     assert "zai" in providers
-    assert "ollama" in providers
+    # "ollama" suspenso 2026-06-29 (VMs GPU VM110/VM310 em baixo) — aliases
+    # redirecionados p/ cloud ZDR no-logging. Reverter quando as GPUs voltarem.

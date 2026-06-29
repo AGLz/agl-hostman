@@ -5,16 +5,16 @@
 
 ## Mapa de agentes
 
-| ID            | Nome        | Grupo          | Contentor                | Telegram                     | Domínio                             |
-| ------------- | ----------- | -------------- | ------------------------ | ---------------------------- | ----------------------------------- |
-| `jarvis`      | Jarvis      | Executive      | `agl-hermes-jarvis`      | @hermes_jarvis_h_bot         | CEO, delegação, crons gerais        |
-| `elon`        | Elon        | Executive      | `agl-hermes-elon`        | @hermes_jarvis_h_elon_bot    | Produto, pesquisa                   |
-| `satya`       | Satya       | Executive      | `agl-hermes-satya`       | @hermes_jarvis_h_satya_bot   | Entrega, código                     |
-| `werner`      | Werner      | Infrastructure | `agl-hermes-werner`      | @hermes_jarvis_h_werner_bot  | Proxmox, LiteLLM, rede              |
-| **`curator`** | **Curator** | **Knowledge**  | **`agl-hermes-curator`** | @hermes_jarvis_h_curator_bot | **llm-wiki** lint/ingest (todos)    |
-| **`orion`**   | **Orion**   | **Media**      | **`agl-hermes-orion`**   | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber     |
-| **`argus`**   | **Argus**   | **FinOps**     | **`agl-hermes-argus`**   | @hermes_jarvis_h_argus_bot   | **Limites/quota LLM**, gate LiteLLM |
-| **`verifier`** | **Verifier** | **Quality**  | **`agl-hermes-verifier`** | — (interno)                | **Gate QA PASS/FAIL** vs acceptance criteria |
+| ID             | Nome         | Grupo          | Contentor                 | Telegram                     | Domínio                                      |
+| -------------- | ------------ | -------------- | ------------------------- | ---------------------------- | -------------------------------------------- |
+| `jarvis`       | Jarvis       | Executive      | `agl-hermes-jarvis`       | @hermes_jarvis_h_bot         | CEO, delegação, crons gerais                 |
+| `elon`         | Elon         | Executive      | `agl-hermes-elon`         | @hermes_jarvis_h_elon_bot    | Produto, pesquisa                            |
+| `satya`        | Satya        | Executive      | `agl-hermes-satya`        | @hermes_jarvis_h_satya_bot   | Entrega, código                              |
+| `werner`       | Werner       | Infrastructure | `agl-hermes-werner`       | @hermes_jarvis_h_werner_bot  | Proxmox, LiteLLM, rede                       |
+| **`curator`**  | **Curator**  | **Knowledge**  | **`agl-hermes-curator`**  | @hermes_jarvis_h_curator_bot | **llm-wiki** lint/ingest (todos)             |
+| **`orion`**    | **Orion**    | **Media**      | **`agl-hermes-orion`**    | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber              |
+| **`argus`**    | **Argus**    | **FinOps**     | **`agl-hermes-argus`**    | @hermes_jarvis_h_argus_bot   | **Limites/quota LLM**, gate LiteLLM          |
+| **`verifier`** | **Verifier** | **Quality**    | **`agl-hermes-verifier`** | — (interno)                  | **Gate QA PASS/FAIL** vs acceptance criteria |
 
 UI Laravel: `HermesAgentCatalog` inclui os oito perfis.
 
@@ -103,8 +103,8 @@ Desde 2026-06-29 o Jarvis segue o modo de operação dos "Managers" do [Verdent]
 
 Para decisões de alto impacto na fase **Plan**, o Jarvis invoca `scripts/hermes/strategic-debate.sh` (instalado em `/opt/data/scripts/` no CT188):
 
-| Persona  | Modelo                | Papel |
-| -------- | --------------------- | ----- |
+| Persona  | Modelo                | Papel                           |
+| -------- | --------------------- | ------------------------------- |
 | Advocate | `or-qwen3-coder-free` | Defende direcção / oportunidade |
 | Skeptic  | `or-hermes-free`      | Riscos, premissas, alternativas |
 | Síntese  | `or-qwen3-next-free`  | Recomendação + decisões humanas |
@@ -119,12 +119,12 @@ Para decisões de alto impacto na fase **Plan**, o Jarvis invoca `scripts/hermes
 
 Auditoria 2026-06-29: Jarvis estava sobrecarregado como executor (e vários `makemoney-*` partidos). `scripts/proxmox/migrate-hermes-jarvis-crons-ct188.sh` move (com fix de scripts):
 
-| Destino | Crons |
-| ------- | ----- |
-| **Werner** | daily-maintenance, daily-backup, health-check |
-| **Elon** | AI Opportunity Research, AI Implementation Planning Sprint |
-| **Satya** | 6× makemoney-* (sync-crons, deep-dive, wiki-feed, generate-dossiers, pipeline-report, git-sync) |
-| **Jarvis (mantém)** | daily-briefing, 3× email, jarvis-standup-2h |
+| Destino             | Crons                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| **Werner**          | daily-maintenance, daily-backup, health-check                                                    |
+| **Elon**            | AI Opportunity Research, AI Implementation Planning Sprint                                       |
+| **Satya**           | 6× makemoney-\* (sync-crons, deep-dive, wiki-feed, generate-dossiers, pipeline-report, git-sync) |
+| **Jarvis (mantém)** | daily-briefing, 3× email, jarvis-standup-2h                                                      |
 
 ---
 
@@ -136,11 +136,11 @@ Gate de qualidade da agência (equivalente ao `@Verifier` do Verdent): valida en
 
 ### Ficheiros (repo)
 
-| Path                                                        | Descrição          |
-| ----------------------------------------------------------- | ------------------ |
-| `docker/hermes/profiles/verifier/SOUL.md`                   | Persona            |
-| `scripts/proxmox/bootstrap-hermes-verifier-profile-ct188.sh`| Bootstrap CT188    |
-| `scripts/proxmox/hermes-review-queue.sh`                    | Helper review-queue |
+| Path                                                         | Descrição           |
+| ------------------------------------------------------------ | ------------------- |
+| `docker/hermes/profiles/verifier/SOUL.md`                    | Persona             |
+| `scripts/proxmox/bootstrap-hermes-verifier-profile-ct188.sh` | Bootstrap CT188     |
+| `scripts/proxmox/hermes-review-queue.sh`                     | Helper review-queue |
 
 ### Modelo
 
@@ -329,25 +329,35 @@ ficam restritos. Todos os agentes leem o **segundo cérebro** (`llm-wiki`: infra
 
 ### Tiers de privacidade
 
-| Tier | Quando | Modelos |
-| ---- | ------ | ------- |
-| **`--no-logging`** (default) | swarm geral, paralelismo, dados AGL | free **no-logging** (`data_collection=deny`) + fallback local |
-| **`--local`** | soberania máxima / OpenRouter indisponível | 100% on-prem (`agl-sensitive` → família `agl-primary`) |
-| **`--logging-public`** | SÓ tarefas públicas, sem dados AGL | `or-owl-alpha`/`or-nemotron-*` (LOGAM) |
+> **⚠️ 2026-06-29 — VMs GPU (VM310/VM110) SUSPENSAS.** O tier `--local` (on-prem) está
+> indisponível. Enquanto isso, o **tier sensível usa cloud ZDR no-logging**
+> (`data_collection=deny` + `zdr=true` → providers que **NÃO treinam NEM retêm**, ex. Venice ZDR /
+> Groq). O alias `agl-sensitive` e a família `agl-primary*` foram redirecionados p/ cloud ZDR no
+> `config.yaml` (notas "SUSPENSA" + `data_policy: zdr-no-logging-cloud`). **Reverter via git** quando
+> as GPUs voltarem (cada bloco tem a indicação de reversão). Trade-off temporário: mantém-se a
+> privacidade (não-treino + não-retenção), perde-se a soberania on-prem.
+
+| Tier                         | Quando                                                    | Modelos                                                                                         |
+| ---------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **`--no-logging`** (default) | swarm geral, paralelismo, dados AGL                       | free **ZDR no-logging** (`data_collection=deny` + `zdr`) + fallback `agl-sensitive` (ZDR cloud) |
+| **`--local`**                | soberania máxima (**indisponível enquanto GPU suspensa**) | on-prem (`agl-sensitive` → família `agl-primary`) — hoje resolve p/ ZDR cloud                   |
+| **`--logging-public`**       | SÓ tarefas públicas, sem dados AGL                        | `or-owl-alpha`/`or-nemotron-*` (LOGAM)                                                          |
 
 Swarm **`--no-logging`** (default; seguro p/ dados AGL; bom p/ parallel tool calling):
 
-| Agente | Primário (no-logging) | Fallback |
-| ------ | --------------------- | -------- |
-| Jarvis, Curator | `or-qwen3-coder-free` (Qwen3 Coder 480B) | `or-hermes-free` → `or-qwen3-next-free` → `or-llama-3.3-70b-free` → `agl-sensitive` |
-| Elon, Satya, Werner, Orion | `or-qwen3-next-free` (Qwen3 Next 80B MoE) | `or-llama-3.3-70b-free` → `or-hermes-free` → `or-qwen3-coder-free` → `agl-sensitive` |
-| Aux / delegation | `or-qwen3-next-free` | — |
-| Crons (vault/leads/email) | `agl-sensitive` (local) | `agl-primary-vm110` |
+| Agente                     | Primário (no-logging)                      | Fallback                                                                             |
+| -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Jarvis, Curator            | `or-qwen3-coder-free` (Qwen3 Coder 480B)   | `or-hermes-free` → `or-qwen3-next-free` → `or-llama-3.3-70b-free` → `agl-sensitive`  |
+| Elon, Satya, Werner, Orion | `or-qwen3-next-free` (Qwen3 Next 80B MoE)  | `or-llama-3.3-70b-free` → `or-hermes-free` → `or-qwen3-coder-free` → `agl-sensitive` |
+| Aux / delegation           | `or-qwen3-next-free`                       | —                                                                                    |
+| Crons (vault/leads/email)  | `agl-sensitive` (ZDR cloud — GPU suspensa) | `or-qwen3-next-free`                                                                 |
 
-> **No-logging free** (LiteLLM `data_policy: no-logging-data-collection-deny`): `or-qwen3-coder-free`,
+> **ZDR no-logging free** (LiteLLM `data_policy: zdr-no-logging-cloud`): `or-qwen3-coder-free`,
 > `or-qwen3-next-free`, `or-hermes-free` (Nous Hermes 3 405B), `or-llama-3.3-70b-free` — todos com
-> `provider.data_collection=deny` no `extra_body`. Fallback final sempre `agl-sensitive` (local).
-> **`agl-sensitive`** = VM310 local, fallback 100% local (tier de soberania).
+> `provider.data_collection=deny` + `zdr=true` no `extra_body`. Fallback final sempre `agl-sensitive`.
+> **`agl-sensitive`** (2026-06-29): VMs GPU suspensas → cloud ZDR (Qwen3 Coder Venice), fallback ZDR
+> cloud (`or-qwen3-next-free` → `or-hermes-free` → `or-llama-3.3-70b-free` → `groq-llama-31-8b`).
+> Reverter p/ VM310 local + cadeia `agl-primary*` quando as GPUs voltarem.
 
 ```bash
 # Default (no-logging free + fallback local)

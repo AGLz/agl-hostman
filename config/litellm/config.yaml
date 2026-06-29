@@ -1,5 +1,8 @@
-# Ollama dual: VM310 agl-primary qwen3:4b ctx=32768 @ http://100.67.253.52:11434; VM110 agl-primary-vm110 ctx=8192 @ http://100.74.118.51:11434
-# Tune VM310: scripts/aglsrv3/tune-vm310-ollama-context.sh
+# !!! VMs GPU Ollama SUSPENSAS 2026-06-29 (VM310 e VM110 em baixo). !!!
+# Aliases agl-primary*/agl-sensitive/ollama-* redirecionados p/ cloud ZDR no-logging
+# (provider.data_collection=deny + zdr=true → só providers que NÃO treinam NEM retêm).
+# REVERTER (git revert) para Ollama local quando as GPUs voltarem.
+# Tune VM310 (pós-retoma): scripts/aglsrv3/tune-vm310-ollama-context.sh
 cache_params:
   host: 192.168.0.137
   password: os.environ/REDIS_PASSWORD
@@ -120,13 +123,15 @@ litellm_settings:
         - groq-llama-31-8b
         - zai-glm-5
         - or-nemotron-super-free
-    # agl-sensitive: cadeia 100% LOCAL (zero egress/logging). Tier de soberania máxima.
+    # agl-sensitive: tier sensível. VMs GPU (VM110/VM310) SUSPENSAS 2026-06-29 →
+    # fallback cloud ZDR no-logging (data_collection=deny + zdr=true). Não treina NEM retém.
     # Dados sensíveis (segundo cérebro, infra, agência, emails/LinkedIn, leads).
-    # NUNCA adicionar modelos cloud/free aqui — mesmo no-logging sai da infra.
+    # REVERTER para cadeia 100% local (agl-primary-strong/vm110/fast) quando as GPUs voltarem.
     - agl-sensitive:
-        - agl-primary-strong
-        - agl-primary-vm110
-        - agl-primary-fast
+        - or-qwen3-next-free
+        - or-hermes-free
+        - or-llama-3.3-70b-free
+        - groq-llama-31-8b
     # No-logging free (provider.data_collection=deny → só providers que NÃO treinam/retêm).
     # Seguros p/ dados AGL. Encadeiam só entre si + local; NUNCA owl-alpha/nemotron (logam).
     - or-qwen3-coder-free:
@@ -465,82 +470,80 @@ model_list:
       tpm: 100000
     model_name: infra-agent
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/qwen3:4b
-      timeout: 12
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
       max_tokens: 8192
-      think: false
       extra_body:
-        options:
-          num_ctx: 32768
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 32768
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "VM310 GPU0 — qwen3:4b ctx-long (primário local AGL)"
+      note: "SUSPENSO o local (VM310 GPU0 qwen3:4b em baixo, 2026-06-29). Agora cloud ZDR no-logging (qwen3-next-80b, data_collection=deny + zdr). REVERTER para ollama/qwen3:4b na VM310 (porta 11434) quando as GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: agl-primary
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/qwen3:4b
-      timeout: 12
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-coder:free
+      timeout: 90
       max_tokens: 8192
-      think: false
       extra_body:
-        options:
-          num_ctx: 32768
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 32768
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "ZERO-LOGGING local (VM310 GPU0 qwen3:4b). USAR para dados sensíveis: segundo cérebro (infra+agência), emails/LinkedIn privados, leads makemoney. Fallbacks 100% locais — nunca sai da infra AGL. NÃO trocar por modelos cloud/free (logam prompts)."
+      note: "SUSPENSO o local (VM110/VM310 GPU em baixo, 2026-06-29). Tier sensível agora = cloud ZDR no-logging: provider.data_collection=deny + zdr=true → só providers que NÃO treinam NEM retêm (Venice ZDR). Dados sensíveis (segundo cérebro infra+agência, emails/LinkedIn, leads). REVERTER para ollama/qwen3:4b na VM310 (porta 11434) quando as VMs GPU voltarem (git revert)."
       output_cost_per_token: 0
-      data_policy: local-only-zero-logging
+      data_policy: zdr-no-logging-cloud
     model_name: agl-sensitive
   - litellm_params:
-      api_base: http://100.67.253.52:11435
-      api_key: ollama
-      model: ollama/qwen3:8b
-      timeout: 240
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-coder:free
+      timeout: 90
       max_tokens: 8192
-      think: false
       extra_body:
-        options:
-          num_ctx: 16384
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 16384
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "VM310 GPU1 — qwen3:8b ctx médio"
+      note: "SUSPENSO o local (VM310 GPU1 qwen3:8b em baixo, 2026-06-29). Agora cloud ZDR no-logging (qwen3-coder, data_collection=deny + zdr). REVERTER para ollama/qwen3:8b na VM310 (porta 11435) quando as GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: agl-primary-strong
   - litellm_params:
-      api_base: http://100.74.118.51:11434
-      api_key: ollama
-      model: ollama/qwen3:4b
-      timeout: 30
-      stream: true
-      max_tokens: 4096
-      think: false
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
+      max_tokens: 8192
+      extra_body:
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 8192
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
-      max_tokens: 4096
-      note: "VM110 GTX 1650 — qwen3:4b (failover quando VM310 offline)"
+      max_tokens: 8192
+      note: "SUSPENSO o local (VM110 GTX 1650 qwen3:4b em baixo, 2026-06-29). Agora cloud ZDR no-logging (qwen3-next-80b, data_collection=deny + zdr). REVERTER para ollama/qwen3:4b na VM110 (porta 11434) quando as GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: agl-primary-vm110
   - litellm_params:
       api_base: https://api.z.ai/api/anthropic
@@ -1177,6 +1180,7 @@ model_list:
       context_window: 131072
       free_tier: true
       max_tokens: 8192
+      data_policy: no-logging-groq
     model_name: groq-llama-31-8b
   - litellm_params:
       api_key: os.environ/GROQ_API_KEY2
@@ -1200,148 +1204,148 @@ model_list:
       max_tokens: 65536
     model_name: groq-gpt-oss-120b-k2
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/qwen3:4b
-      timeout: 240
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
       max_tokens: 8192
-      think: false
       extra_body:
-        options:
-          num_ctx: 32768
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 32768
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias legado → VM310 qwen3:4b :11434"
+      note: "SUSPENSO o local — alias legado VM310 qwen3:4b (porta 11434) em baixo 2026-06-29. Agora cloud ZDR no-logging (qwen3-next-80b). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: ollama-qwen3-4b
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/qwen3:4b
-      timeout: 240
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
       max_tokens: 8192
-      think: false
       extra_body:
-        options:
-          num_ctx: 32768
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 32768
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias OpenAI-compat → VM310 qwen3:4b"
+      note: "SUSPENSO o local — alias OpenAI-compat VM310 qwen3:4b em baixo 2026-06-29. Agora cloud ZDR no-logging (qwen3-next-80b). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: openai/ollama-qwen3-4b
   - litellm_params:
-      api_base: http://100.67.253.52:11435
-      api_key: ollama
-      model: ollama/qwen3:8b
-      timeout: 240
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-coder:free
+      timeout: 90
       max_tokens: 8192
-      think: false
       extra_body:
-        options:
-          num_ctx: 16384
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 16384
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM310 qwen3:8b :11435"
+      note: "SUSPENSO o local — alias VM310 qwen3:8b (porta 11435) em baixo 2026-06-29. Agora cloud ZDR no-logging (qwen3-coder). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: ollama-qwen3-8b
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/qwen3:4b
-      timeout: 240
-      stream: true
+      api_key: os.environ/GROQ_API_KEY
+      model: groq/llama-3.1-8b-instant
+      timeout: 30
       max_tokens: 8192
-      think: false
-      extra_body:
-        options:
-          num_ctx: 32768
     model_info:
       access: direct
-      context_window: 32768
+      context_window: 131072
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM310 qwen3:4b :11434"
+      note: "SUSPENSO o local — alias fast VM310 qwen3:4b (porta 11434) em baixo 2026-06-29. Agora Groq llama-3.1-8b-instant (rápido, não treina). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: no-logging-groq
     model_name: ollama-qwen3-4b-fast
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/llama3.1:8b
-      timeout: 120
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/meta-llama/llama-3.3-70b-instruct:free
+      timeout: 60
       max_tokens: 8192
+      extra_body:
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 8192
+      access: openrouter
+      context_window: 131072
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM310 llama3.1:8b :11434"
+      note: "SUSPENSO o local — alias VM310 llama3.1:8b (porta 11434) em baixo 2026-06-29. Agora cloud ZDR no-logging (llama-3.3-70b). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: ollama-llama31-8b
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/gemma4-qat
-      timeout: 120
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
       max_tokens: 8192
+      extra_body:
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 8192
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias legado gemma3 → VM310 gemma4-qat :11434"
+      note: "SUSPENSO o local — alias legado gemma3 VM310 gemma4-qat (porta 11434) em baixo 2026-06-29. Agora cloud ZDR no-logging (qwen3-next-80b). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: ollama-gemma3-4b
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/gemma4-qat
-      timeout: 120
-      stream: true
+      api_key: os.environ/OPENROUTER_API_KEY
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      timeout: 60
       max_tokens: 8192
+      extra_body:
+        provider:
+          data_collection: deny
+          zdr: true
     model_info:
-      access: direct
-      context_window: 8192
+      access: openrouter
+      context_window: 262144
       free_tier: true
       input_cost_per_token: 0
       max_tokens: 8192
-      note: "Alias → VM310 gemma4-qat :11434"
+      note: "SUSPENSO o local — alias VM310 gemma4-qat (porta 11434) em baixo 2026-06-29. Agora cloud ZDR no-logging (qwen3-next-80b). Reverter quando GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: zdr-no-logging-cloud
     model_name: ollama-gemma4-qat
   - litellm_params:
-      api_base: http://100.67.253.52:11434
-      api_key: ollama
-      model: ollama/gemma4-qat
-      timeout: 120
-      stream: true
-      max_tokens: 4096
+      api_key: os.environ/GROQ_API_KEY
+      model: groq/llama-3.1-8b-instant
+      timeout: 30
+      max_tokens: 8192
     model_info:
       access: direct
-      context_window: 8192
+      context_window: 131072
       free_tier: true
       input_cost_per_token: 0
-      max_tokens: 4096
-      note: "VM310 GPU0 — gemma4-qat rápido (ctx curto)"
+      max_tokens: 8192
+      note: "SUSPENSO o local (VM310 GPU0 gemma4-qat rápido em baixo, 2026-06-29). Agora Groq llama-3.1-8b-instant (rápido, não treina). REVERTER para ollama/gemma4-qat na VM310 (porta 11434) quando as GPUs voltarem (git revert)."
       output_cost_per_token: 0
+      data_policy: no-logging-groq
     model_name: agl-primary-fast
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
@@ -1367,12 +1371,13 @@ model_list:
       extra_body:
         provider:
           data_collection: deny
+          zdr: true
     model_info:
       access: openrouter
       free_tier: true
       max_tokens: 8192
-      data_policy: no-logging-data-collection-deny
-      note: "Free no-logging — provider.data_collection=deny (só providers que NÃO treinam/retêm, ex. Venice ZDR). Seguro p/ dados AGL."
+      data_policy: zdr-no-logging-cloud
+      note: "Free ZDR no-logging — provider.data_collection=deny + zdr=true (só providers que NÃO treinam NEM retêm, ex. Venice ZDR). Seguro p/ dados AGL."
     model_name: or-llama-3.3-70b-free
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
@@ -1381,13 +1386,14 @@ model_list:
       extra_body:
         provider:
           data_collection: deny
+          zdr: true
     model_info:
       access: openrouter
       context_window: 262144
       free_tier: true
       max_tokens: 8192
-      data_policy: no-logging-data-collection-deny
-      note: "Free no-logging — Qwen3 Coder 480B, melhor coding free + parallel tool calling. provider.data_collection=deny. Seguro p/ dados AGL."
+      data_policy: zdr-no-logging-cloud
+      note: "Free ZDR no-logging — Qwen3 Coder 480B, melhor coding free + parallel tool calling. provider.data_collection=deny + zdr=true. Seguro p/ dados AGL."
     model_name: or-qwen3-coder-free
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
@@ -1396,13 +1402,14 @@ model_list:
       extra_body:
         provider:
           data_collection: deny
+          zdr: true
     model_info:
       access: openrouter
       context_window: 262144
       free_tier: true
       max_tokens: 8192
-      data_policy: no-logging-data-collection-deny
-      note: "Free no-logging — Qwen3 Next 80B MoE (rápido, all-round, tool calling). provider.data_collection=deny. Seguro p/ dados AGL."
+      data_policy: zdr-no-logging-cloud
+      note: "Free ZDR no-logging — Qwen3 Next 80B MoE (rápido, all-round, tool calling). provider.data_collection=deny + zdr=true. Seguro p/ dados AGL."
     model_name: or-qwen3-next-free
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY
@@ -1442,12 +1449,13 @@ model_list:
       extra_body:
         provider:
           data_collection: deny
+          zdr: true
     model_info:
       access: openrouter
       free_tier: true
       max_tokens: 8192
-      data_policy: no-logging-data-collection-deny
-      note: "Free no-logging — Nous Hermes 3 405B (tool-use tuned). provider.data_collection=deny (Venice ZDR). Seguro p/ dados AGL."
+      data_policy: zdr-no-logging-cloud
+      note: "Free ZDR no-logging — Nous Hermes 3 405B (tool-use tuned). provider.data_collection=deny + zdr=true (Venice ZDR). Seguro p/ dados AGL."
     model_name: or-hermes-free
   - litellm_params:
       api_key: os.environ/OPENROUTER_API_KEY

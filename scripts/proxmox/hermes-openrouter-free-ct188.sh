@@ -10,7 +10,11 @@
 #   default                    → free no-logging (qwen3-coder/next, hermes3, llama70b) + fallback local
 #   HERMES_USE_LOGGING_FREE=1  → owl-alpha/nemotron (LOGAM prompts) — SO tarefas publicas, sem dados AGL
 #
-# Alternativa 100% on-prem (soberania máxima): hermes-secure-routing-ct188.sh
+# NOTA (2026-06-29): VMs GPU Ollama (VM110/VM310) SUSPENSAS. O "fallback local"
+# (agl-sensitive) resolve agora para cloud ZDR no-logging (data_collection=deny + zdr).
+# Reverter para 100% on-prem quando as GPUs voltarem (git revert).
+#
+# Alternativa "soberania máxima" (pós-retoma das GPUs): hermes-secure-routing-ct188.sh
 #
 # Uso (root no CT188):
 #   bash hermes-openrouter-free-ct188.sh
@@ -27,9 +31,9 @@ OTHER_AGENTS=(elon satya werner orion)
 if [[ "${HERMES_USE_LOGGING_FREE:-0}" == "1" ]]; then
   echo "AVISO: a usar free models que LOGAM (owl-alpha/nemotron). Só para tarefas públicas, sem dados AGL." >&2
   CRIT_PRIMARY="or-nemotron-ultra-free"; CRIT_FALLBACK="or-owl-alpha"
-  CRIT_FP="or-owl-alpha,or-nemotron-super-free,groq-llama-31-8b,agl-primary-vm110"
+  CRIT_FP="or-owl-alpha,or-nemotron-super-free,groq-llama-31-8b"
   OTHER_PRIMARY="or-owl-alpha"; OTHER_FALLBACK="or-nemotron-super-free"
-  OTHER_FP="or-nemotron-super-free,groq-llama-31-8b,agl-primary-vm110"
+  OTHER_FP="or-nemotron-super-free,groq-llama-31-8b"
   AUX_MODEL="or-owl-alpha"
 else
   # No-logging (data_collection=deny). Seguro p/ dados AGL.
@@ -122,4 +126,4 @@ else
 fi
 echo "  Criticos (${CRIT_PRIMARY}): ${CRITICAL_AGENTS[*]}"
 echo "  Restantes (${OTHER_PRIMARY}): ${OTHER_AGENTS[*]}"
-echo "  Aux: ${AUX_MODEL} | Fallback final: agl-sensitive (local)"
+echo "  Aux: ${AUX_MODEL} | Fallback final: agl-sensitive (ZDR cloud — VMs GPU suspensas)"
