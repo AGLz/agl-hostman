@@ -50,8 +50,9 @@ Enquanto o scheduler Laravel não estiver validado em prod:
 Após confirmar sync Laravel:
 
 ```bash
-# agldv04 — remover cron t.me se existir
-crontab -l | grep -v pc-gamer-cotacoes | crontab -
+bash scripts/uninstall-tme-cron.sh
+# ou manualmente:
+crontab -l | grep -v pc-gamer-cotacoes-tme-scraper | crontab -
 ```
 
 ## Credenciais opcionais (melhor cobertura mercado)

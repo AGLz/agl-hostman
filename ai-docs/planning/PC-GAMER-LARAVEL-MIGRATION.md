@@ -121,9 +121,10 @@
 - [x] **T6.1** Suite Pest PcGamer (Unit + Feature)
 - [x] **T6.3** README sidecar Python aponta para Laravel
 - [x] **T6.4** Runbook deploy CT134: `docs/runbooks/PC-GAMER-CT134-DEPLOY.md` + `scripts/proxmox/deploy-pcgamer-ct134.sh`
+- [x] **T6.4** Deploy produção CT134 executado (2026-06-30, `deploy-pcgamer-ct134.sh`)
+- [x] Cron sidecar Python desligado (agldv03 + agldv04) — `uninstall-tme-cron.sh`
 - [ ] **T6.2** `vendor/bin/pint` + larastan limpos (domínio PcGamer)
-- [ ] **T6.4** Deploy produção CT134 executado + PR `develop` → `main`
-- [ ] Sidecar Python cron desligado em agldv04 após validação prod
+- [ ] PR para `main`: **N/A** — branch default do repo é `develop`; deploy CT134 manual ou via pipeline quando `main` existir no remoto
 
 ---
 
