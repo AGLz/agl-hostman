@@ -50,6 +50,15 @@ Este ficheiro guarda conhecimento específico do projeto, convenções e prefer�
 
 ## Project Conventions
 
+### Operar CTs/VMs Proxmox via Tailscale SSH (2026-06-29)
+
+- **`pct`/`qm` só existem no host Proxmox.** A partir de agldv0x/Cursor (sem `pct` local), operar qualquer CT/VM dos hosts **aglsrv\*** e **fgsrv7** assim: **Tailscale SSH ao host Proxmox respetivo** → `pct exec <vmid> -- …` de lá.
+- Padrão: `ssh root@<TS_DO_HOST> 'pct exec <vmid> -- bash <script>'` (ou `tailscale ssh root@<host> -- pct …`).
+- **CT188 (Hermes) está no aglsrv1** → `ssh root@100.107.113.33 'pct exec 188 -- …'`.
+- **fgsrv7 é o seu próprio host Proxmox** (cluster com aglsrv5) → `pct` corre lá; CT548/evonexus etc. via `ssh root@100.109.181.93 'pct exec <vmid> -- …'`.
+- IPs Tailscale dos hosts Proxmox: aglsrv1 `100.107.113.33` · aglsrv3 `100.123.5.81` · aglsrv5 `100.119.223.113` · aglsrv6/man6 `100.98.108.66` (man6c `100.124.53.91`, man6d `100.76.201.83`) · fgsrv7 `100.109.181.93`.
+- Validado em: `docs/AGLZ-HERMES-ONLY-AGENCY.md` (linha 102), `docs/HOSTS.md`, `docs/INFRA.md`, `docs/PROXMOX-CLUSTER-AGLSRV5-FGSRV7.md`, `scripts/monitoring/host-health.sh`.
+
 - LiteLLM gateway em **CT186** (`100.125.249.8:4000`); deploy via `scripts/litellm/deploy-litellm-callbacks-ct186.sh`.
 - Validar YAML do `config/litellm/config.yaml` dentro do container `litellm-proxy` (host não tem `pyyaml`).
 - Conhecimento durável → **llm-wiki** (`/mnt/overpower/apps/dev/agl/llm-wiki/wiki/`); atualizar `index.md`/`log.md` após mudanças relevantes.
