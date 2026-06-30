@@ -1,0 +1,57 @@
+name: Skill Security Scan
+
+on:
+  pull_request:
+    paths:
+      - ".cursor/skills/**"
+      - ".claude/skills/**"
+      - ".agents/skills/**"
+      - "scripts/skills/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  skillspector:
+    name: SkillSpector (agent skills)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SkillSpector
+        run: pip install 'git+https://github.com/NVIDIA/skillspector.git'
+
+      - name: Scan project skills
+        run: |
+          set -euo pipefail
+          mapfile -t dirs < <(find .cursor/skills .claude/skills .agents/skills -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort -u)
+          if [[ ${#dirs[@]} -eq 0 ]]; then
+            echo "Sem diretórios de skills para scan"
+            exit 0
+          fi
+          for d in "${dirs[@]}"; do
+            echo "=== Scan: $d ==="
+            skillspector scan "$d" --no-llm --format terminal || {
+              echo "::warning::SkillSpector reportou issues em $d — rever manualmente"
+            }
+          done
+
+      - name: SARIF upload (optional aggregate)
+        if: always()
+        run: |
+          mapfile -t dirs < <(find .cursor/skills -maxdepth 1 -mindepth 1 -type d 2>/dev/null | head -5)
+          [[ ${#dirs[@]} -gt 0 ]] || exit 0
+          skillspector scan "${dirs[0]}" --no-llm --format sarif --output skillspector.sarif || true
+          [[ -f skillspector.sarif ]] || exit 0
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('skillspector.sarif') != ''
+        with:
+          sarif_file: skillspector.sarif
+          category: skillspector-skills
