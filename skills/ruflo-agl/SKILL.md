@@ -3,7 +3,7 @@ name: ruflo-agl
 description: >
   Manage Ruflo and Claude-Flow v3 orchestration on AGL infrastructure. Use when working with
   Claude-Flow v3 multi-agent swarms, Ruflo platform configuration, agent coordination,
-  spec-driven development, or deploying orchestration tasks across AGL hosts (agldv03/04/05/12/fgsrv06).
+  spec-driven development, or deploying orchestration tasks across AGL hosts (agldv02/03/04/05/12/fgsrv06).
   Covers config sync, IS_SANDBOX deployment, ZSHRC patching, and swarm topology management.
 ---
 
@@ -16,13 +16,16 @@ Claude-Flow v3 provides hierarchical multi-agent swarm orchestration.
 
 ## Hosts Running Ruflo/Claude-Flow
 
-| Host    | Tailscale IP   | Role                     |
-| ------- | -------------- | ------------------------ |
-| agldv03 | 100.94.221.87  | Main orchestration host  |
-| agldv04 | 100.113.9.98   | Secondary orchestration  |
-| agldv05 | 100.82.71.49   | Remote orchestration     |
-| agldv12 | 100.71.217.115 | Turbo Flow orchestration |
-| fgsrv06 | 100.83.51.9    | VPS orchestration        |
+| Host    | Tailscale IP   | VMID | Role                     |
+| ------- | -------------- | ---- | ------------------------ |
+| agldv02 | 100.95.204.85  | CT174 (aglsrv1) | Dev CT — Ruflo+Z.AI tests |
+| agldv03 | 100.94.221.87  | CT179 | Main orchestration host  |
+| agldv04 | 100.113.9.98   | CT181 | Secondary orchestration  |
+| agldv05 | 100.82.71.49   | CT536 | Remote orchestration     |
+| agldv12 | 100.71.217.115 | CT185 | Turbo Flow orchestration |
+| fgsrv06 | 100.83.51.9    | —    | VPS orchestration        |
+
+> **agldv01** (VM147 aglsrv1) — stopped/offline; fora dos targets default até arrancar.
 
 ## Configuration Files
 

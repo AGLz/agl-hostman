@@ -23,12 +23,13 @@ fi
 MARKER="Claude-Flow + LiteLLM (agl-hostman)"
 
 declare -A HOST_IPS
+HOST_IPS[agldv02]="100.95.204.85"
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
 HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 
-[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv04 agldv12 fgsrv06)
+[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv04 agldv12 fgsrv06)
 
 echo "=============================================="
 echo "  Patch ~/.zshrc — Claude-Flow + LiteLLM"

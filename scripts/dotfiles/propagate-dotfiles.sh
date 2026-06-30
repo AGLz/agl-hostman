@@ -11,6 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOSTMAN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+AGLDV02_HOST="${AGLDV02_HOST:-root@100.95.204.85}"
 AGLDV03_HOST="${AGLDV03_HOST:-root@100.94.221.87}"
 AGLDV04_HOST="${AGLDV04_HOST:-root@100.113.9.98}"
 AGLDV05_HOST="${AGLDV05_HOST:-root@100.82.71.49}"
@@ -203,6 +204,7 @@ REMOTE_PREP
 }
 
 case "$HOST" in
+  agldv02) propagate_one agldv02 "$AGLDV02_HOST" ;;
   agldv03) propagate_one agldv03 "$AGLDV03_HOST" ;;
   agldv04) propagate_one agldv04 "$AGLDV04_HOST" ;;
   agldv05) propagate_one agldv05 "$AGLDV05_HOST" ;;
@@ -212,6 +214,7 @@ case "$HOST" in
   aglwk45) propagate_aglwk45 ;;
   local) propagate_one "$(hostname -s)" local ;;
   agldv-all)
+    propagate_one agldv02 "$AGLDV02_HOST" || warn "agldv02 skip"
     propagate_one agldv03 "$AGLDV03_HOST" || warn "agldv03 skip"
     propagate_one agldv04 "$AGLDV04_HOST" || warn "agldv04 skip"
     propagate_one agldv05 "$AGLDV05_HOST" || warn "agldv05 skip"
@@ -221,11 +224,12 @@ case "$HOST" in
     ;;
   all)
     propagate_one "$(hostname -s)" local
-    for h in agldv03 agldv04 agldv05 agldv06 agldv07 agldv12; do
+    for h in agldv02 agldv03 agldv04 agldv05 agldv06 agldv07 agldv12; do
       var="${h^^}_HOST"
       var="${var//AGLDV/AGLDV}"
       # bash indirection: use case
       case "$h" in
+        agldv02) propagate_one agldv02 "$AGLDV02_HOST" || true ;;
         agldv03) propagate_one agldv03 "$AGLDV03_HOST" || true ;;
         agldv04) propagate_one agldv04 "$AGLDV04_HOST" || true ;;
         agldv05) propagate_one agldv05 "$AGLDV05_HOST" || true ;;

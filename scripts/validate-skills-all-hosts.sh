@@ -16,6 +16,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 declare -A HOST_IPS
+HOST_IPS[agldv02]="100.95.204.85"
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
 HOST_IPS[agldv05]="100.82.71.49"

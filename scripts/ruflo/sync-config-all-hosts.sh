@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sync Claude Flow / Ruflo / Claude Code config para todos os hosts
 # Uso: ./scripts/ruflo/sync-config-all-hosts.sh [host1 host2 ...]
-# Sem args: sync para agldv03, agldv04, agldv12, fgsrv06
+# Sem args: sync para agldv02, agldv03, agldv04, agldv05, agldv12, fgsrv06
 # Ref: docs/CLAUDE-FLOW-CONFIG.md
 
 set -e
@@ -10,6 +10,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REPO_PATH_REMOTE="/mnt/overpower/apps/dev/agl/agl-hostman"
 
 declare -A HOST_IPS
+HOST_IPS[agldv02]="100.95.204.85"
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
 HOST_IPS[agldv05]="100.82.71.49"
@@ -18,7 +19,7 @@ HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 
 # Hosts alvo (default: todos)
-[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv03 agldv04 agldv05 agldv12 fgsrv06)
+[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv03 agldv04 agldv05 agldv12 fgsrv06)
 
 echo "=============================================="
 echo "  Claude Flow / Ruflo — Sync Config → Hosts"

@@ -38,6 +38,7 @@ test('propagate-six-repos.sh --host all --dry-run lista hosts', () => {
   const propagate = path.join(ROOT, 'scripts/skills/propagate-six-repos.sh');
   assert.ok(fs.existsSync(propagate));
   const out = execFileSync(propagate, ['--dry-run', '--host', 'all'], { encoding: 'utf8' });
+  assert.match(out, /agldv02/);
   assert.match(out, /agldv03/);
   assert.match(out, /ct188/);
   assert.match(out, /aglwk45/);

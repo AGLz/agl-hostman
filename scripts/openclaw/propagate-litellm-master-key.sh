@@ -15,6 +15,7 @@ SSH_OPTS=(
 )
 
 DEFAULT_HOSTS=(
+  "root@100.95.204.85"   # agldv02 (CT174 aglsrv1)
   "root@100.94.221.87"   # agldv03 (local — no-op se já igual)
   "root@100.83.51.9"     # fgsrv6 (se IP Tailscale mudar, ajustar ou usar OPENCLAW_KEY_HOSTS)
   "root@100.113.9.98"    # agldv04

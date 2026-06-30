@@ -47,6 +47,7 @@ run_pct() {
          pct exec ${vmid} -- env CLOUDFLARE_API_TOKEN_AGLZ='${AGLZ_TOKEN}' CLOUDFLARE_ACCOUNT_ID_AGLZ='${AGLZ_ACCOUNT}' bash /tmp/setup-dual-cf-env-agldv.sh ${extra[*]}"
 }
 
+run_direct agldv02 100.95.204.85
 run_direct agldv03 100.94.221.87
 run_direct agldv04 100.113.9.98
 run_direct agldv06 100.71.229.12

@@ -23,6 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOSTMAN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LLM_WIKI_DIR="${LLM_WIKI_DIR:-/mnt/overpower/apps/dev/agl/llm-wiki}"
 
+AGLDV02_HOST="${AGLDV02_HOST:-root@100.95.204.85}"
 AGLDV03_HOST="${AGLDV03_HOST:-root@100.94.221.87}"
 AGLDV04_HOST="${AGLDV04_HOST:-root@100.113.9.98}"
 AGLDV05_HOST="${AGLDV05_HOST:-root@100.82.71.49}"
@@ -41,11 +42,11 @@ SSH=(ssh -o BatchMode=yes -o ConnectTimeout=25 -o StrictHostKeyChecking=accept-n
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") --host <agldv03|agldv04|agldv05|agldv06|agldv07|agldv12|agldv-all|ct188|aglwk45|all> [--dry-run]
+Usage: $(basename "$0") --host <agldv02|agldv03|agldv04|agldv05|agldv06|agldv07|agldv12|agldv-all|ct188|aglwk45|all> [--dry-run]
 
 Propaga instalação Six Repos + post skills (sync + verify + Claude Code plugins).
 
-  agldv03..12  Dev LXC — install-post-skills-claude-code.sh + verify
+  agldv02..12  Dev LXC/CT — install-post-skills-claude-code.sh + verify
   agldv-all    Todos os agldv* acima (best-effort SSH)
   ct188        Hermes — ensure llm-wiki NFS + smoke leitura
   aglwk45      Windows VM104 — propagate-six-repos-wk45-qemu.sh
@@ -135,6 +136,7 @@ propagate_agldv_host() {
   ok "$name propagate concluído"
 }
 
+propagate_agldv02() { propagate_agldv_host agldv02 "$AGLDV02_HOST"; }
 propagate_agldv03() { propagate_agldv_host agldv03 "$AGLDV03_HOST"; }
 propagate_agldv04() { propagate_agldv_host agldv04 "$AGLDV04_HOST"; }
 propagate_agldv05() { propagate_agldv_host agldv05 "$AGLDV05_HOST"; }
@@ -144,6 +146,7 @@ propagate_agldv12() { propagate_agldv_host agldv12 "$AGLDV12_HOST"; }
 
 propagate_agldv_all() {
   local FAIL=0
+  propagate_agldv02 || { warn "agldv02 falhou"; FAIL=1; }
   propagate_agldv03 || { warn "agldv03 falhou"; FAIL=1; }
   propagate_agldv04 || { warn "agldv04 falhou"; FAIL=1; }
   propagate_agldv05 || { warn "agldv05 falhou"; FAIL=1; }
@@ -209,6 +212,7 @@ done
 
 run_host() {
   case "$1" in
+    agldv02) propagate_agldv02 ;;
     agldv03) propagate_agldv03 ;;
     agldv04) propagate_agldv04 ;;
     agldv05) propagate_agldv05 ;;

@@ -1,7 +1,7 @@
 # Claude Flow / Ruflo / Claude Code — Config e Sync Multi-Host
 
-> **Objetivo**: Mesmas configs em agldv03, agldv04, agldv12 e fgsrv06.  
-> **Regra**: Cada host com LiteLLM local usa `localhost:4000`. Hosts sem LiteLLM usam override apontando para agldv03.
+> **Objetivo**: Mesmas configs em agldv02, agldv03, agldv04, agldv12 e fgsrv06.  
+> **Gateway canónico**: LiteLLM CT186 `100.125.249.8:4000` (via `zshrc-openclaw-litellm.env`).
 
 ---
 
@@ -47,12 +47,15 @@
 
 ## 2. Hosts e IPs
 
-| Host | Tailscale IP | LiteLLM local | settings |
-|------|--------------|---------------|----------|
-| agldv03 | 100.94.221.87 | ✅ | settings.json (localhost:4000) |
-| agldv04 | 100.113.9.98 | Opcional | settings.json ou settings.agldv04.json |
-| agldv12 | 100.71.217.115 | Opcional | settings.json ou settings.agldv04.json |
-| fgsrv06 | 100.83.51.9 | ✅ | settings.json (localhost:4000) |
+| Host | Tailscale IP | VMID | LiteLLM | settings |
+|------|--------------|------|---------|----------|
+| agldv02 | 100.95.204.85 | CT174 | Gateway CT186 | settings.json |
+| agldv03 | 100.94.221.87 | CT179 | Gateway CT186 | settings.json |
+| agldv04 | 100.113.9.98 | CT181 | Gateway CT186 | settings.json ou settings.agldv04.json |
+| agldv12 | 100.71.217.115 | CT185 | Gateway CT186 | settings.json ou settings.agldv04.json |
+| fgsrv06 | 100.83.51.9 | — | Gateway CT186 | settings.json |
+
+> **agldv01** (VM147) — stopped; incluir manualmente quando online.
 
 **Override para hosts sem LiteLLM**: `cp .claude/settings.agldv04.json .claude/settings.json` (aponta para agldv03:4000).
 
@@ -61,7 +64,7 @@
 ## 3. Sync de config para todos os hosts
 
 ```bash
-# Sync completo (agldv03, agldv04, agldv12, fgsrv06)
+# Sync completo (agldv02, agldv03, agldv04, agldv05, agldv12, fgsrv06)
 ./scripts/ruflo/sync-config-all-hosts.sh
 
 # Sync apenas hosts específicos

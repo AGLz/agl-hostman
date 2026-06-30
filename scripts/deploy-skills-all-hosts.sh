@@ -3,7 +3,7 @@
 # Deploy ALL Agent Skills to AGL Infrastructure
 # ============================================================
 # Deploys custom AGL skills + community skills to all hosts:
-#   agldv03, agldv04, agldv05, agldv06, agldv07, agldv12, fgsrv06
+#   agldv02, agldv03, agldv04, agldv05, agldv06, agldv07, agldv12, fgsrv06
 #
 # Also dep to macOS local (~/.qwen/skills/)
 #
@@ -74,6 +74,7 @@ COMMUNITY_SKILLS[tailscale]="https://raw.githubusercontent.com/sundial-org/aweso
 # Remote hosts
 # ============================================================
 declare -A HOST_IPS
+HOST_IPS[agldv02]="100.95.204.85"
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
 HOST_IPS[agldv05]="100.82.71.49"

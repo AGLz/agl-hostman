@@ -335,12 +335,15 @@ sync_ruflo() {
     return 0
   fi
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "  [dry-run] npm i -g ruflo@latest @claude-flow/cli@latest"
+    echo "  [dry-run] npm i -g --force ruflo@latest @claude-flow/cli@latest"
+    echo "  [dry-run] python3 scripts/ruflo/apply-claude-flow-headless-dsp.py"
     echo "  [dry-run] npx --yes ruflo@latest init --minimal (em $HOSTMAN_ROOT)"
   else
-    if ! command -v ruflo >/dev/null 2>&1; then
-      run_or_echo npm i -g ruflo@latest @claude-flow/cli@latest
-    fi
+    # ponytail: sempre @latest — versões antigas do claude-flow quebram hive-mind com Claude Code
+    run_or_echo npm i -g --force ruflo@latest @claude-flow/cli@latest
+    npm uninstall -g claude-flow 2>/dev/null || true
+    run_or_echo python3 "$HOSTMAN_ROOT/scripts/ruflo/apply-claude-flow-headless-dsp.py"
+    run_or_echo python3 "$HOSTMAN_ROOT/scripts/ruflo/apply-ruv-swarm-mcp-fix.py" || true
     if [[ "${SKIP_RUFLO_INIT:-0}" != "1" && ! -d "$HOSTMAN_ROOT/.claude-flow" ]]; then
       (cd "$HOSTMAN_ROOT" && npx --yes ruflo@latest init --minimal) || log_warn "ruflo init falhou — verificar manualmente"
     elif [[ "${SKIP_RUFLO_INIT:-0}" == "1" ]]; then

@@ -914,8 +914,9 @@ zpool status -v local-zfs
 
 | VMID    | Name             | IP (LAN)          | IP (WG/TS)                                | RAM  | Purpose                                                                                                     |
 | ------- | ---------------- | ----------------- | ----------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
-| 103     | portainer        | 192.168.0.103     | -                                         | -    | Docker mgmt                                                                                                 |
+| 147     | agldv01          | 192.168.0.147     | — (VM stopped)                              | 32GB | Dev VM — offline; fora dos targets default                                                                  |
 | 178     | aglfs1           | 192.168.0.178     | -                                         | -    | File server                                                                                                 |
+| 174     | agldv02          | 192.168.0.174     | WG: 10.6.0.25, TS: 100.95.204.85          | -    | Dev CT — Ruflo+Z.AI tests                                                                                   |
 | 179     | agldv03          | 192.168.0.179     | WG: 10.6.0.19, TS: 100.94.221.87          | 48GB | **Primary Dev**                                                                                             |
 | **193** | **agl-obsidian** | **192.168.0.193** | **100.125.112.35** (`agl-obsidian-ct193`) | 2GB  | **Obsidian hub 24/7** + CouchDB LiveSync + Git bridge llm-wiki — [`OBSIDIAN-CT-AGL.md`](OBSIDIAN-CT-AGL.md) |
 | 185     | agldv12          | 192.168.0.185     | TS: 100.71.217.115                        | -    | Turbo Flow v4.0 (clone agldv03)                                                                             |

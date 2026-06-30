@@ -59,9 +59,58 @@ HIVE_SPAWN_FN_AFTER = """async function spawnClaudeCodeInstance(swarmId, swarmNa
 HIVE_SKIP_LINE = "Skipping --dangerously-skip-permissions (not allowed with root/sudo)"
 
 
-def npm_global_root() -> Path:
-    root = subprocess.check_output(["npm", "root", "-g"], text=True).strip()
-    return Path(root)
+def _headless_candidates(roots: list[Path]) -> list[Path]:
+    rels = (
+        "@claude-flow/cli/dist/src/services/headless-worker-executor.js",
+        "ruflo/node_modules/@claude-flow/cli/dist/src/services/headless-worker-executor.js",
+    )
+    out: list[Path] = []
+    for root in roots:
+        for rel in rels:
+            p = root / rel
+            if p.is_file():
+                out.append(p)
+    return out
+
+
+def npm_global_roots() -> list[Path]:
+    """Candidatos a npm global modules dir (nvm, /usr, nested ruflo)."""
+    candidates: list[Path] = []
+    try:
+        candidates.append(Path(subprocess.check_output(["npm", "root", "-g"], text=True).strip()))
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    try:
+        ruflo_bin = subprocess.check_output(["which", "ruflo"], text=True).strip()
+        if ruflo_bin:
+            candidates.append(Path(ruflo_bin).resolve().parent.parent / "lib" / "node_modules")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    nvm_glob = Path.home() / ".nvm" / "versions" / "node"
+    if nvm_glob.is_dir():
+        for node_dir in sorted(nvm_glob.iterdir(), reverse=True):
+            candidates.append(node_dir / "lib" / "node_modules")
+    # dedupe preservando ordem
+    seen: set[str] = set()
+    uniq: list[Path] = []
+    for c in candidates:
+        key = str(c)
+        if key not in seen:
+            seen.add(key)
+            uniq.append(c)
+    return uniq
+
+
+def resolve_claude_flow_paths() -> tuple[Path, Path]:
+    roots = npm_global_roots()
+    headless_list = _headless_candidates(roots)
+    if not headless_list:
+        raise FileNotFoundError(
+            f"@claude-flow/cli headless-worker-executor.js não encontrado em {roots}"
+        )
+    headless = headless_list[0]
+    hive = headless.parent.parent / "commands" / "hive-mind.js"
+    return headless, hive
 
 
 def patch_headless(path: Path) -> list[str]:
@@ -138,13 +187,10 @@ def patch_hive_mind(path: Path) -> list[str]:
 
 def main() -> int:
     try:
-        root = npm_global_root()
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"npm root -g falhou: {e}", file=sys.stderr)
+        headless, hive = resolve_claude_flow_paths()
+    except FileNotFoundError as e:
+        print(str(e), file=sys.stderr)
         return 1
-
-    headless = root / "@claude-flow" / "cli" / "dist" / "src" / "services" / "headless-worker-executor.js"
-    hive = root / "@claude-flow" / "cli" / "dist" / "src" / "commands" / "hive-mind.js"
 
     if not headless.is_file():
         print(f"Ficheiro inexistente: {headless}", file=sys.stderr)
