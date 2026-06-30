@@ -10,6 +10,7 @@ from src.catalog.repository import (
     upsert_telegram_source,
 )
 from src.config import monitor_chats
+from src.telegram.laravel_ingest import laravel_ingest_enabled, post_offer_to_laravel
 from src.telegram.parsers.offer_parser import message_hash, parse_offer
 from src.telegram.scraper_tme import fetch_channel_posts, iso_now
 
@@ -39,14 +40,32 @@ def sync_channel(chat_key: str, *, limit: int = 20) -> SyncChannelResult:
             skipped += 1
             continue
 
+        msg_hash = message_hash(post.text, post.chat_key, post.message_id)
+        parsed_dump = parsed.model_dump()
+
+        if laravel_ingest_enabled():
+            if post_offer_to_laravel(
+                chat_key=post.chat_key,
+                message_id=post.message_id,
+                message_hash=msg_hash,
+                raw_text=post.text,
+                parsed=parsed_dump,
+                posted_at=iso_now(),
+                source_title=post.chat_key,
+            ):
+                imported += 1
+            else:
+                skipped += 1
+            last_id = max(last_id, post.message_id)
+            continue
+
         offer_id = save_telegram_offer(
             source_id=source_id,
             message_id=post.message_id,
-            message_hash=message_hash(
-                post.text, post.chat_key, post.message_id),
+            message_hash=msg_hash,
             raw_text=post.text,
             posted_at=iso_now(),
-            parsed=parsed.model_dump(),
+            parsed=parsed_dump,
         )
         if offer_id:
             imported += 1

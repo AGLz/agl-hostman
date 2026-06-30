@@ -48,6 +48,16 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('daily-memory', \App\Http\Controllers\DailyMemoryController::class);
 
+    // PC Gamer — cotações (Inertia)
+    Route::prefix('pc-gamer')->name('pc-gamer.')->group(function () {
+        Route::get('/builds', [\App\Http\Controllers\PcGamer\BuildController::class, 'index'])->name('builds.index');
+        Route::post('/builds', [\App\Http\Controllers\PcGamer\BuildController::class, 'store'])->name('builds.store');
+        Route::get('/builds/{build}', [\App\Http\Controllers\PcGamer\BuildController::class, 'show'])->name('builds.show');
+        Route::put('/builds/{build}/items/{item}', [\App\Http\Controllers\PcGamer\BuildController::class, 'updateItem'])->name('builds.items.update');
+        Route::get('/market-prices', [\App\Http\Controllers\PcGamer\MarketPriceController::class, 'index'])->name('market-prices.index');
+        Route::get('/presets', [\App\Http\Controllers\PcGamer\PresetController::class, 'index'])->name('presets.index');
+    });
+
     // Monitoring Dashboard Routes
     Route::prefix('monitoring')->name('monitoring.')->group(function () {
         Route::get('/', [\App\Http\Controllers\DashboardController::class, 'index'])->name('index');
