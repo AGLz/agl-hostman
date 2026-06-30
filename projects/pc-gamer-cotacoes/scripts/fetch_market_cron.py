@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Automação agendável — busca preços ML, AliExpress e 4Gamers."""
+"""Automação agendável — busca preços ML, Pichau, AliExpress e 4Gamers."""
 
 from __future__ import annotations
 

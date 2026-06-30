@@ -11,6 +11,7 @@ from urllib.parse import quote_plus, urlencode
 from src.config import (
     ALIEXPRESS_APP_KEY,
     ALIEXPRESS_APP_SECRET,
+    ALIEXPRESS_SHIP_FROM,
     ALIEXPRESS_TRACKING_ID,
 )
 from src.market.http import get_client
@@ -55,7 +56,11 @@ class AliExpressProvider(MarketProvider):
             "page_size": str(min(limit, 20)),
             "target_currency": "BRL",
             "target_language": "PT",
+            "sort": "SALE_PRICE_ASC",
         }
+        if ALIEXPRESS_SHIP_FROM:
+            # preço/elegibilidade conforme país de destino (Brasil)
+            params["ship_to_country"] = ALIEXPRESS_SHIP_FROM
         if ALIEXPRESS_TRACKING_ID:
             params["tracking_id"] = ALIEXPRESS_TRACKING_ID
         params["sign"] = self._sign(params)
@@ -111,6 +116,10 @@ class AliExpressProvider(MarketProvider):
     ) -> list[MarketListing]:
         slug = quote_plus(query.lower().replace(" ", "-"))
         url = f"https://pt.aliexpress.com/w/wholesale-{slug}.html"
+        if ALIEXPRESS_SHIP_FROM:
+            # filtro "Enviar de" = Brasil (armazém nacional)
+            url += f"?shipFromCountry={ALIEXPRESS_SHIP_FROM}"
+        ship_note = f"ship_from:{ALIEXPRESS_SHIP_FROM}" if ALIEXPRESS_SHIP_FROM else ""
         try:
             with get_client(timeout=30.0) as client:
                 response = client.get(url)
@@ -146,7 +155,8 @@ class AliExpressProvider(MarketProvider):
                     price_cents=price,
                     url=url,
                     query=query,
-                    notes="html:formattedPrice",
+                    notes=" ".join(
+                        filter(None, ["html:formattedPrice", ship_note])),
                     confidence=0.55,
                 )
             )
@@ -168,7 +178,7 @@ class AliExpressProvider(MarketProvider):
                     currency="BRL",
                     url=url,
                     query=query,
-                    notes="html:minPrice",
+                    notes=" ".join(filter(None, ["html:minPrice", ship_note])),
                     confidence=0.5,
                 )
             )

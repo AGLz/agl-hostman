@@ -28,16 +28,22 @@ DEFAULT_MARGIN_PERCENT = float(os.getenv("DEFAULT_MARGIN_PERCENT", "15"))
 
 # Mercado Livre (opcional — API pública funciona sem token na maioria dos IPs residenciais)
 MERCADOLIVRE_ACCESS_TOKEN = os.getenv("MERCADOLIVRE_ACCESS_TOKEN", "")
+# Restringir a lojas oficiais (vendedores BR verificados). Default: todos os vendedores BR.
+MERCADOLIVRE_ONLY_OFFICIAL = os.getenv(
+    "MERCADOLIVRE_ONLY_OFFICIAL", "false"
+).lower() in {"1", "true", "yes", "sim"}
 
 # AliExpress Affiliate / IOP (https://portals.aliexpress.com/)
 ALIEXPRESS_APP_KEY = os.getenv("ALIEXPRESS_APP_KEY", "")
 ALIEXPRESS_APP_SECRET = os.getenv("ALIEXPRESS_APP_SECRET", "")
 ALIEXPRESS_TRACKING_ID = os.getenv("ALIEXPRESS_TRACKING_ID", "")
+# País de envio/destino para priorizar armazém Brasil ("BR" ou vazio para global)
+ALIEXPRESS_SHIP_FROM = os.getenv("ALIEXPRESS_SHIP_FROM", "BR").strip().upper()
 
 
 def market_fetch_providers() -> list[str]:
     raw = os.getenv("MARKET_FETCH_PROVIDERS",
-                    "mercadolivre,aliexpress,4gamers")
+                    "mercadolivre,pichau,aliexpress,4gamers")
     return [part.strip() for part in raw.split(",") if part.strip()]
 
 

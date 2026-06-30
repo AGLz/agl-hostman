@@ -381,7 +381,7 @@ def cmd_retailers() -> None:
 @click.option(
     "--providers",
     default=None,
-    help="mercadolivre,aliexpress,4gamers (default: MARKET_FETCH_PROVIDERS)",
+    help="mercadolivre,pichau,aliexpress,4gamers (default: MARKET_FETCH_PROVIDERS)",
 )
 @click.option("--limit", default=2, type=int, help="Resultados por provider/query")
 @click.option("--all-categories", is_flag=True, help="Buscar todas as categorias padrão")
@@ -395,7 +395,7 @@ def cmd_fetch_market(
     all_categories: bool,
     dry_run: bool,
 ) -> None:
-    """Automatiza cotações: Mercado Livre, AliExpress e 4Gamers."""
+    """Automatiza cotações: Mercado Livre, Pichau, AliExpress e 4Gamers."""
     provider_list = (
         [p.strip() for p in providers.split(",") if p.strip()]
         if providers

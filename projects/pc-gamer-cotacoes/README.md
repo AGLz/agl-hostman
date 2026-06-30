@@ -26,15 +26,15 @@ draft → quoted → approved → ordered → assembly → completed
                                               ↘ cancelled
 ```
 
-| Estado | Significado |
-|--------|-------------|
-| `draft` | Montagem/cotação em elaboração |
-| `quoted` | Proposta enviada ao cliente |
-| `approved` | Cliente aceitou |
-| `ordered` | Peças compradas (links/ofertas fechadas) |
-| `assembly` | Cliente enviou peças / montagem em curso |
-| `completed` | Entregue |
-| `cancelled` | Cancelada |
+| Estado      | Significado                              |
+| ----------- | ---------------------------------------- |
+| `draft`     | Montagem/cotação em elaboração           |
+| `quoted`    | Proposta enviada ao cliente              |
+| `approved`  | Cliente aceitou                          |
+| `ordered`   | Peças compradas (links/ofertas fechadas) |
+| `assembly`  | Cliente enviou peças / montagem em curso |
+| `completed` | Entregue                                 |
+| `cancelled` | Cancelada                                |
 
 Cada transição fica em `build_events` (histórico auditável).
 
@@ -90,11 +90,12 @@ python scripts/cli.py new-from-preset amd-mid-7800x3d-5070 --customer "Cliente"
 python scripts/cli.py seed-market
 python scripts/cli.py compare-build 1
 
-# Automação Mercado Livre + AliExpress + 4Gamers
+# Automação Mercado Livre + Pichau + AliExpress + 4Gamers (vendedores BR)
 python scripts/cli.py fetch-market --build 1
 python scripts/cli.py fetch-market --category placa_video --query "RTX 5070"
 python scripts/cli.py fetch-market --all-categories
-python scripts/cli.py market-prices --retailer mercadolivre
+python scripts/cli.py fetch-market --category processador --providers pichau,mercadolivre
+python scripts/cli.py market-prices --retailer pichau
 ```
 
 ## Telegram
@@ -107,18 +108,18 @@ Comparativo de configuradores e estratégia de preços: [docs/REFERENCIAS_SITES_
 
 Principais referências:
 
-| Site | Uso no projeto |
-|------|----------------|
-| [MEUPC.NET](https://meupc.net/build) | Comparar preços multi-loja |
-| [KaBuM!](https://www.kabum.com.br/monte-seu-pc) | Compatibilidade + montagem |
-| [Pichau](https://www.pichau.com.br/monte-seu-pc) | Ordem do wizard de slots |
+| Site                                                                         | Uso no projeto               |
+| ---------------------------------------------------------------------------- | ---------------------------- |
+| [MEUPC.NET](https://meupc.net/build)                                         | Comparar preços multi-loja   |
+| [KaBuM!](https://www.kabum.com.br/monte-seu-pc)                              | Compatibilidade + montagem   |
+| [Pichau](https://www.pichau.com.br/monte-seu-pc)                             | Ordem do wizard de slots     |
 | [Terabyte Full Custom](https://www.terabyteshop.com.br/pc-gamer/full-custom) | Tiers AM5 / presets high-end |
 
 4 **presets** (`entry`, `mid`, `high`, `enthusiast`) com preços indicativos para baseline e `compare-build`.
 
-## Automação de preços (ML, AliExpress, 4Gamers)
+## Automação de preços (ML, Pichau, AliExpress, 4Gamers)
 
-Ver [docs/MARKET_FETCH.md](docs/MARKET_FETCH.md). Comando principal: `fetch-market` grava em `market_prices` para uso em `compare-build`.
+Ver [docs/MARKET_FETCH.md](docs/MARKET_FETCH.md). Comando principal: `fetch-market` grava em `market_prices` para uso em `compare-build`. Providers priorizam **vendedores do Brasil** (MLB nacional, Pichau/4Gamers lojas BR, AliExpress `ship_from=BR`).
 
 ## Estrutura
 

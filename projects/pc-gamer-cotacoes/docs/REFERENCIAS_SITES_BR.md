@@ -4,18 +4,18 @@ Pesquisa para basear o projeto `pc-gamer-cotacoes`: fluxo de montagem, categoria
 
 ## Mapa rápido
 
-| Site | Tipo | URL | Melhor para |
-|------|------|-----|-------------|
-| **MEUPC.NET** | Agregador | [meupc.net/build](https://meupc.net/build) | **Comparar preços** entre KaBuM, Pichau, Terabyte, ML |
-| **KaBuM!** | Loja | [kabum.com.br/monte-seu-pc](https://www.kabum.com.br/monte-seu-pc) | Compatibilidade + montagem Customiza |
-| **Pichau** | Loja | [pichau.com.br/monte-seu-pc](https://www.pichau.com.br/monte-seu-pc) | Wizard clássico; custo-benefício |
-| **Terabyteshop** | Loja | [terabyteshop.com.br/pc-gamer/full-custom](https://www.terabyteshop.com.br/pc-gamer/full-custom) | Full Custom por plataforma (AM5, etc.) |
-| **Rocketz** | Loja | [rocketz.com.br/monte-seu-pc](https://rocketz.com.br/monte-seu-pc) | UX visual + total em tempo real |
-| **StudioPC** | Pré-montado | [studiopc.com.br](https://www.studiopc.com.br) | Tiers fechados (Supreme…) + opcionais |
-| **PC Builder SP** | Serviço | [pcbuilder.com.br/build-personalizada](https://pcbuilder.com.br/build-personalizada) | Orçamento consultivo + montagem Moema |
-| **4Gamers** | Loja | [4gamers.com.br/monte-seu-computador](https://www.4gamers.com.br/monte-seu-computador) | Linhas Starter→Colosseum; wizard Nuvemshop |
-| **Mercado Livre** | Marketplace | [mercadolivre.com.br](https://www.mercadolivre.com.br) | Preços variados; API `sites/MLB/search` |
-| **AliExpress** | Importação | [pt.aliexpress.com](https://pt.aliexpress.com) | Peças importadas; API afiliados IOP |
+| Site              | Tipo        | URL                                                                                              | Melhor para                                           |
+| ----------------- | ----------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| **MEUPC.NET**     | Agregador   | [meupc.net/build](https://meupc.net/build)                                                       | **Comparar preços** entre KaBuM, Pichau, Terabyte, ML |
+| **KaBuM!**        | Loja        | [kabum.com.br/monte-seu-pc](https://www.kabum.com.br/monte-seu-pc)                               | Compatibilidade + montagem Customiza                  |
+| **Pichau**        | Loja        | [pichau.com.br/monte-seu-pc](https://www.pichau.com.br/monte-seu-pc)                             | Wizard clássico; custo-benefício                      |
+| **Terabyteshop**  | Loja        | [terabyteshop.com.br/pc-gamer/full-custom](https://www.terabyteshop.com.br/pc-gamer/full-custom) | Full Custom por plataforma (AM5, etc.)                |
+| **Rocketz**       | Loja        | [rocketz.com.br/monte-seu-pc](https://rocketz.com.br/monte-seu-pc)                               | UX visual + total em tempo real                       |
+| **StudioPC**      | Pré-montado | [studiopc.com.br](https://www.studiopc.com.br)                                                   | Tiers fechados (Supreme…) + opcionais                 |
+| **PC Builder SP** | Serviço     | [pcbuilder.com.br/build-personalizada](https://pcbuilder.com.br/build-personalizada)             | Orçamento consultivo + montagem Moema                 |
+| **4Gamers**       | Loja        | [4gamers.com.br/monte-seu-computador](https://www.4gamers.com.br/monte-seu-computador)           | Linhas Starter→Colosseum; wizard Nuvemshop            |
+| **Mercado Livre** | Marketplace | [mercadolivre.com.br](https://www.mercadolivre.com.br)                                           | Preços variados; API `sites/MLB/search`               |
+| **AliExpress**    | Importação  | [pt.aliexpress.com](https://pt.aliexpress.com)                                                   | Peças importadas; API afiliados IOP                   |
 
 ---
 
@@ -64,7 +64,7 @@ Wizard em **passos fixos** (ordem que adotámos no projeto):
 5. HD & SSD
 6. Gabinete
 7. Fonte
-8. Periféricos *(excluímos monitor/teclado/rato)*
+8. Periféricos _(excluímos monitor/teclado/rato)_
 9. Revisão
 
 **Atenção:** configuração personalizada nesta ferramenta **não é enviada montada** (aviso no site).
@@ -126,13 +126,13 @@ Inspirou o nosso fluxo de **efetivação** (`approved → ordered → assembly �
 
 ## O que implementámos no projeto
 
-| Conceito BR | Implementação local |
-|-------------|---------------------|
-| Passos Pichau/KaBuM | `BUILD_WIZARD_STEPS` em `src/catalog/reference_sites.py` |
-| Tiers StudioPC/Terabyte | 4 presets AMD em `src/catalog/presets.py` |
-| Compare MEUPC | `market_prices` + `compare-build` |
-| Lojas cadastradas | tabela `retailers` (7 entradas) |
-| Preços indicativos | `seed-market` a partir dos presets |
+| Conceito BR             | Implementação local                                      |
+| ----------------------- | -------------------------------------------------------- |
+| Passos Pichau/KaBuM     | `BUILD_WIZARD_STEPS` em `src/catalog/reference_sites.py` |
+| Tiers StudioPC/Terabyte | 4 presets AMD em `src/catalog/presets.py`                |
+| Compare MEUPC           | `market_prices` + `compare-build`                        |
+| Lojas cadastradas       | tabela `retailers` (7 entradas)                          |
+| Preços indicativos      | `seed-market` a partir dos presets                       |
 
 ### CLI novo
 
@@ -154,7 +154,7 @@ python scripts/cli.py compare-build 1    # sua cotação vs mercado + Telegram
 ## Estratégia de preços recomendada
 
 1. **Baseline:** presets com valores indicativos (atualizar trimestralmente)
-2. **Automação:** `fetch-market` para Mercado Livre, AliExpress e 4Gamers → `market_prices`
+2. **Automação:** `fetch-market` para Mercado Livre, Pichau, AliExpress e 4Gamers (vendedores BR) → `market_prices`
 3. **Mercado manual:** após simular no MEUPC/KaBuM, gravar com `add-market-price`
 4. **Ofertas:** sync Telegram para promoções relâmpago
 5. **Cotação cliente:** `compare-build` mostra Δ por slot vs melhor fonte
