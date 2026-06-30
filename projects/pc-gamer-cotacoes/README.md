@@ -1,5 +1,7 @@
 # PC Gamer — Cotações e Catálogo
 
+> **Migração Laravel:** a app em `src/` (agl-hostman) é agora o caminho principal — sync Telegram nativo (`pcg:sync-tme`), validação (`pcg:validate-offers`) e UI em `/pc-gamer/*`. Este sidecar Python mantém-se como fallback até F6; use `LARAVEL_INGEST_URL` + `LARAVEL_API_KEY` para dual-write ou desligue o cron local quando o scheduler Laravel estiver activo em produção.
+
 Projeto local em `projects/pc-gamer-cotacoes` para montar **cotações de PCs gamer** (AMD), guardar histórico de montagens/efetivações e importar **ofertas de grupos Telegram**.
 
 ## Escopo da montagem (template)

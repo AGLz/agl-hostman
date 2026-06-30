@@ -54,6 +54,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/builds', [\App\Http\Controllers\PcGamer\BuildController::class, 'store'])->name('builds.store');
         Route::get('/builds/{build}', [\App\Http\Controllers\PcGamer\BuildController::class, 'show'])->name('builds.show');
         Route::put('/builds/{build}/items/{item}', [\App\Http\Controllers\PcGamer\BuildController::class, 'updateItem'])->name('builds.items.update');
+        Route::post('/builds/{build}/transition', [\App\Http\Controllers\PcGamer\BuildController::class, 'transition'])->name('builds.transition');
+        Route::get('/catalog', [\App\Http\Controllers\PcGamer\CatalogController::class, 'index'])->name('catalog.index');
+        Route::post('/catalog/components', [\App\Http\Controllers\PcGamer\CatalogController::class, 'store'])->name('catalog.components.store');
         Route::get('/market-prices', [\App\Http\Controllers\PcGamer\MarketPriceController::class, 'index'])->name('market-prices.index');
         Route::get('/presets', [\App\Http\Controllers\PcGamer\PresetController::class, 'index'])->name('presets.index');
     });
@@ -192,7 +195,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 });
 
 // Dokploy Dashboard Routes
-require __DIR__.'/dokploy.php';
+require __DIR__ . '/dokploy.php';
 
 // =============================================================================
 // Health Check Endpoints (Load Balancer & Monitoring)

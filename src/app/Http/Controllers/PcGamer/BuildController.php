@@ -6,9 +6,11 @@ namespace App\Http\Controllers\PcGamer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PcGamer\StoreBuildRequest;
+use App\Http\Requests\PcGamer\TransitionBuildStatusRequest;
 use App\Http\Requests\PcGamer\UpdateBuildItemRequest;
 use App\Services\PcGamer\BuildComparisonService;
 use App\Services\PcGamer\BuildService;
+use App\Enums\PcGamer\BuildStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -74,5 +76,24 @@ class BuildController extends Controller
         return redirect()
             ->route('pc-gamer.builds.show', $build)
             ->with('success', 'Item actualizado.');
+    }
+
+    public function transition(TransitionBuildStatusRequest $request, int $build): RedirectResponse
+    {
+        $validated = $request->validated();
+        $status = $validated['status'] instanceof BuildStatus
+            ? $validated['status']
+            : BuildStatus::from($validated['status']);
+
+        $this->buildService->transitionStatus(
+            $build,
+            $status,
+            $validated['notes'] ?? null,
+            $validated['payload'] ?? null,
+        );
+
+        return redirect()
+            ->route('pc-gamer.builds.show', $build)
+            ->with('success', 'Estado da montagem actualizado.');
     }
 }

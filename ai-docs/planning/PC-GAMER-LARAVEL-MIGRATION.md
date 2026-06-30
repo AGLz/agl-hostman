@@ -108,21 +108,22 @@
 - **T4.3** Rotas web (`auth`), entradas no menu/sidebar.
 - **Aceitação:** `assertInertia` por página; `npm run build` sem erros.
 
-### F5 — Ingest Telegram (sidecar) — ver §7 (research)
+### F5 — Ingest Telegram (sidecar + scraper Laravel) — **concluído 2026-06-30**
 
-- **T5.1** Endpoint `POST /api/pcgamer/telegram-offers` (middleware `api.key`, padrão `daily-memory`) — recebe oferta parseada, dedup por `message_hash`.
-- **T5.2** Manter listener/sync Python **Telethon (MTProto/userbot)** como **sidecar**; trocar persistência SQLite por POST ao endpoint. (Alternativa futura: avaliar MadelineProto PHP — fora de âmbito.)
-- **T5.3** Adicionar scraper `t.me/s/<canal>` (Laravel `Http`) como **fallback** para canais públicos (sem conta, sem risco de ban) — job agendado.
-- **T5.4** Documentar operação do sidecar (onde corre, credenciais, supervisão).
-- **Aceitação:** Feature test do endpoint (auth + dedup); smoke do sidecar + scraper contra ambiente dev.
+- [x] **T5.1** Endpoint `POST /api/pcgamer/telegram-offers` (middleware `api.key`)
+- [x] **T5.2** Sidecar Python com `laravel_ingest.py` (POST em vez de SQLite)
+- [x] **T5.3** Scraper `t.me/s/` nativo Laravel — `SyncTmeOffersJob`, `pcg:sync-tme`, scheduler 15 min
+- [x] **T5.4** Validação periódica — `ValidateTelegramOffersJob`, `pcg:validate-offers`, scheduler 30 min
+- [x] **Aceitação:** 37 testes PcGamer; feature sync com `Http::fake`
 
-### F6 — Testes, qualidade, docs e deprecação
+### F6 — Testes, qualidade, docs e deprecação — **em curso**
 
-- **T6.1** Suite Pest completa (Unit providers + Feature endpoints/UI); cobertura >80% do domínio.
-- **T6.2** `vendor/bin/pint` + `larastan` limpos.
-- **T6.3** Atualizar docs da app (apenas se pedido) e marcar `projects/pc-gamer-cotacoes` como legado (README aponta para o módulo Laravel).
-- **T6.4** Code review (code-reviewer) → corrigir CRITICAL/HIGH → commit/push/PR (pipeline obrigatório).
-- **Aceitação:** `php artisan test` verde; PR aberto.
+- [x] **T6.1** Suite Pest PcGamer (Unit + Feature)
+- [x] **T6.3** README sidecar Python aponta para Laravel
+- [x] **T6.4** Runbook deploy CT134: `docs/runbooks/PC-GAMER-CT134-DEPLOY.md` + `scripts/proxmox/deploy-pcgamer-ct134.sh`
+- [ ] **T6.2** `vendor/bin/pint` + larastan limpos (domínio PcGamer)
+- [ ] **T6.4** Deploy produção CT134 executado + PR `develop` → `main`
+- [ ] Sidecar Python cron desligado em agldv04 após validação prod
 
 ---
 

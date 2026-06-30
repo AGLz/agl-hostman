@@ -25,7 +25,7 @@ class MarketPriceController extends Controller
             ->orderBy('price_cents')
             ->limit(100)
             ->get()
-            ->map(fn (PcgMarketPrice $row) => [
+            ->map(fn(PcgMarketPrice $row) => [
                 'id' => $row->id,
                 'retailer_name' => $row->retailer?->name,
                 'retailer_slug' => $row->retailer?->slug,

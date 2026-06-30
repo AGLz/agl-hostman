@@ -1,15 +1,21 @@
-import React from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BUILD_STATUS_LABELS, formatCents, pcgRoutes } from '@/lib/pcgamer';
-import { Head, Link, useForm } from '@inertiajs/react';
+import React from "react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { BUILD_STATUS_LABELS, formatCents, pcgRoutes } from "@/lib/pcgamer";
+import { Head, Link, useForm } from "@inertiajs/react";
 
 export default function Index({ auth, builds, filters, flash }) {
     const form = useForm({
-        title: '',
-        customer_name: '',
+        title: "",
+        customer_name: "",
         margin_percent: 15,
     });
 
@@ -17,7 +23,7 @@ export default function Index({ auth, builds, filters, flash }) {
         e.preventDefault();
         form.post(pcgRoutes.buildsStore, {
             preserveScroll: true,
-            onSuccess: () => form.reset('title', 'customer_name'),
+            onSuccess: () => form.reset("title", "customer_name"),
         });
     };
 
@@ -30,11 +36,20 @@ export default function Index({ auth, builds, filters, flash }) {
                         PC Gamer — Cotações
                     </h2>
                     <div className="flex gap-2">
+                        <Link href={pcgRoutes.catalog}>
+                            <Button variant="outline" size="sm">
+                                Catálogo
+                            </Button>
+                        </Link>
                         <Link href={pcgRoutes.presets}>
-                            <Button variant="outline" size="sm">Presets</Button>
+                            <Button variant="outline" size="sm">
+                                Presets
+                            </Button>
                         </Link>
                         <Link href={pcgRoutes.marketPrices}>
-                            <Button variant="outline" size="sm">Preços mercado</Button>
+                            <Button variant="outline" size="sm">
+                                Preços mercado
+                            </Button>
                         </Link>
                     </div>
                 </div>
@@ -52,16 +67,23 @@ export default function Index({ auth, builds, filters, flash }) {
                 <Card>
                     <CardHeader>
                         <CardTitle>Nova montagem</CardTitle>
-                        <CardDescription>Template AMD com 10 slots de peças</CardDescription>
+                        <CardDescription>
+                            Template AMD com 10 slots de peças
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={createBuild} className="flex flex-wrap items-end gap-4">
+                        <form
+                            onSubmit={createBuild}
+                            className="flex flex-wrap items-end gap-4"
+                        >
                             <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-sm">
                                 Título
                                 <input
                                     className="rounded-md border border-input bg-background px-3 py-2"
                                     value={form.data.title}
-                                    onChange={(e) => form.setData('title', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData("title", e.target.value)
+                                    }
                                     required
                                 />
                             </label>
@@ -70,7 +92,12 @@ export default function Index({ auth, builds, filters, flash }) {
                                 <input
                                     className="rounded-md border border-input bg-background px-3 py-2"
                                     value={form.data.customer_name}
-                                    onChange={(e) => form.setData('customer_name', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            "customer_name",
+                                            e.target.value,
+                                        )
+                                    }
                                 />
                             </label>
                             <label className="flex w-28 flex-col gap-1 text-sm">
@@ -81,7 +108,12 @@ export default function Index({ auth, builds, filters, flash }) {
                                     max="100"
                                     className="rounded-md border border-input bg-background px-3 py-2"
                                     value={form.data.margin_percent}
-                                    onChange={(e) => form.setData('margin_percent', Number(e.target.value))}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            "margin_percent",
+                                            Number(e.target.value),
+                                        )
+                                    }
                                 />
                             </label>
                             <Button type="submit" disabled={form.processing}>
@@ -95,7 +127,11 @@ export default function Index({ auth, builds, filters, flash }) {
                     <CardHeader>
                         <CardTitle>Montagens</CardTitle>
                         {filters.status && (
-                            <CardDescription>Filtro: {BUILD_STATUS_LABELS[filters.status] ?? filters.status}</CardDescription>
+                            <CardDescription>
+                                Filtro:{" "}
+                                {BUILD_STATUS_LABELS[filters.status] ??
+                                    filters.status}
+                            </CardDescription>
                         )}
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
@@ -105,38 +141,60 @@ export default function Index({ auth, builds, filters, flash }) {
                                     <th className="py-2 pr-4">Código</th>
                                     <th className="py-2 pr-4">Título</th>
                                     <th className="py-2 pr-4">Estado</th>
-                                    <th className="py-2 pr-4 text-right">Custo</th>
-                                    <th className="py-2 pr-4 text-right">Cliente</th>
+                                    <th className="py-2 pr-4 text-right">
+                                        Custo
+                                    </th>
+                                    <th className="py-2 pr-4 text-right">
+                                        Cliente
+                                    </th>
                                     <th className="py-2">Itens</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {builds.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                                        <td
+                                            colSpan={6}
+                                            className="py-8 text-center text-muted-foreground"
+                                        >
                                             Nenhuma montagem ainda.
                                         </td>
                                     </tr>
                                 )}
                                 {builds.map((build) => (
-                                    <tr key={build.id} className="border-b border-border/50 hover:bg-muted/30">
+                                    <tr
+                                        key={build.id}
+                                        className="border-b border-border/50 hover:bg-muted/30"
+                                    >
                                         <td className="py-3 pr-4 font-mono text-xs">
                                             <Link
-                                                href={pcgRoutes.buildsShow(build.id)}
+                                                href={pcgRoutes.buildsShow(
+                                                    build.id,
+                                                )}
                                                 className="text-primary hover:underline"
                                             >
                                                 {build.code}
                                             </Link>
                                         </td>
-                                        <td className="py-3 pr-4">{build.title}</td>
+                                        <td className="py-3 pr-4">
+                                            {build.title}
+                                        </td>
                                         <td className="py-3 pr-4">
                                             <Badge variant="secondary">
-                                                {BUILD_STATUS_LABELS[build.status] ?? build.status}
+                                                {BUILD_STATUS_LABELS[
+                                                    build.status
+                                                ] ?? build.status}
                                             </Badge>
                                         </td>
-                                        <td className="py-3 pr-4 text-right">{formatCents(build.cost_cents)}</td>
-                                        <td className="py-3 pr-4 text-right font-medium">{formatCents(build.quote_cents)}</td>
-                                        <td className="py-3">{build.item_count}</td>
+                                        <td className="py-3 pr-4 text-right">
+                                            {formatCents(build.cost_cents)}
+                                        </td>
+                                        <td className="py-3 pr-4 text-right font-medium">
+                                            {formatCents(build.quote_cents)}
+                                        </td>
+                                        <td className="py-3">
+                                            {build.item_count}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -4,6 +4,8 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use App\Jobs\MonitorInfrastructure;
 use App\Jobs\PcGamer\FetchMarketPricesJob;
+use App\Jobs\PcGamer\SyncTmeOffersJob;
+use App\Jobs\PcGamer\ValidateTelegramOffersJob;
 use App\Jobs\PerformBackup;
 use Illuminate\Support\Facades\Schedule;
 
@@ -57,5 +59,19 @@ Schedule::job(new FetchMarketPricesJob(allCategories: true))
     ->dailyAt('08:00')
     ->timezone('America/Sao_Paulo')
     ->name('pcg-daily-market-fetch')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// PC Gamer — sync Telegram t.me/s/ a cada 15 min
+Schedule::job(new SyncTmeOffersJob)
+    ->everyFifteenMinutes()
+    ->name('pcg-tme-sync')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// PC Gamer — validação de ofertas a cada 30 min
+Schedule::job(new ValidateTelegramOffersJob)
+    ->everyThirtyMinutes()
+    ->name('pcg-telegram-validate')
     ->withoutOverlapping()
     ->onOneServer();
