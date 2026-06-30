@@ -2,14 +2,14 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use App\Jobs\MonitorInfrastructure;
+use App\Jobs\PcGamer\FetchMarketPricesJob;
+use App\Jobs\PerformBackup;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
-
-use App\Jobs\MonitorInfrastructure;
-use App\Jobs\PerformBackup;
-use Illuminate\Support\Facades\Schedule;
 
 // Schedule infrastructure monitoring every 5 minutes
 Schedule::job(new MonitorInfrastructure(
@@ -51,3 +51,11 @@ Schedule::command('analytics:report')
     ->weeklyOn(1, '08:00') // Monday at 8 AM
     ->name('weekly-analytics-report')
     ->withoutOverlapping();
+
+// PC Gamer — fetch diário de preços de mercado (08:00 BRT)
+Schedule::job(new FetchMarketPricesJob(allCategories: true))
+    ->dailyAt('08:00')
+    ->timezone('America/Sao_Paulo')
+    ->name('pcg-daily-market-fetch')
+    ->withoutOverlapping()
+    ->onOneServer();

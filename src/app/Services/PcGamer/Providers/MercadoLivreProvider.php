@@ -54,7 +54,7 @@ class MercadoLivreProvider implements MarketProvider
         }
 
         $response = $request->get(
-            'https://api.mercadolibre.com/sites/'.self::SITE_ID.'/search',
+            'https://api.mercadolibre.com/sites/' . self::SITE_ID . '/search',
             $params,
         );
 

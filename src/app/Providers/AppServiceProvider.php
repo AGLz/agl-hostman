@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\PcGamer\MarketFetchService;
 use App\Services\PcGamer\MarketProviderRegistry;
 use App\Auth\ActiveEloquentUserProvider;
 use App\Validation\SecureValidator;
@@ -91,6 +92,7 @@ class AppServiceProvider extends ServiceProvider
 
         // PC Gamer — providers de mercado
         $this->app->singleton(MarketProviderRegistry::class);
+        $this->app->singleton(MarketFetchService::class);
     }
 
     /**
