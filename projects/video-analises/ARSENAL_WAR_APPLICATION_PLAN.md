@@ -43,7 +43,7 @@ Replicar no ecossistema AGL (Cursor, Claude Code, Hermes CT188, multi-projetos) 
 - [x] Wiki [[Arsenal de Guerra — Vibe Coding com IA]] em `/opt/llm-wiki` no CT188
 - [x] Curator cron `curator-maintenance` (4×/dia) — ingest wiki-ingest + stubs
 - [x] CI SkillSpector **bloqueante** em PRs que alteram skills
-- [ ] PR `develop` → `main`
+- [x] Branch default remoto é `develop` (já pushed — sem PR `main`)
 
 ---
 

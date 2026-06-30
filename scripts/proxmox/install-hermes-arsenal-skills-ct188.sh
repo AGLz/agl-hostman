@@ -48,6 +48,14 @@ RESTART_CONTAINERS="${RESTART_CONTAINERS:-1}"
 
 install_ponytail_in_container() {
   local container="$1"
+  if docker exec "$container" bash -lc \
+    "export HOME=/opt/data; ${HERMES_BIN} plugins list 2>/dev/null | grep -qi ponytail"; then
+    docker exec "$container" bash -lc \
+      "export HOME=/opt/data; ${HERMES_BIN} plugins enable ponytail" \
+      2>/dev/null && log "OK ponytail já instalado em ${container} (enabled)" \
+      || log "WARN enable ponytail falhou em ${container}"
+    return 0
+  fi
   docker exec "$container" bash -lc \
     "export HOME=/opt/data; ${HERMES_BIN} plugins install DietrichGebert/ponytail --enable" \
     2>/dev/null && log "OK ponytail plugin em ${container}" \
