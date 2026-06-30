@@ -206,11 +206,54 @@ def cmd_status(build_id: int, to_status: str, notes: str | None) -> None:
 @click.option("--limit", default=15, type=int)
 def cmd_offers(category: str | None, limit: int) -> None:
     for offer in list_recent_offers(category_slug=category, limit=limit):
+        req = (offer.get("parsed") or {}).get("requirements") or {}
+        flags = []
+        if req.get("requires_coins"):
+            flags.append("moedas")
+        if req.get("requires_app"):
+            flags.append("app")
+        if req.get("requires_pix"):
+            flags.append("pix")
+        if req.get("coupon_codes"):
+            flags.append(f"cupom:{','.join(req['coupon_codes'][:2])}")
+        flag_txt = f" [{','.join(flags)}]" if flags else ""
+        val = offer.get("status") or "new"
         click.echo(
-            f"#{offer['id']} [{offer['matched_category_slug'] or '?'}] "
+            f"#{offer['id']} {val} [{offer['matched_category_slug'] or '?'}] "
             f"{format_price(offer['price_cents'])} | "
-            f"{offer['product_name'] or offer['raw_text'][:70]}"
+            f"{offer['product_name'] or offer['raw_text'][:70]}{flag_txt}"
         )
+
+
+@cli.command("sync-tme")
+@click.option("--limit", default=None, type=int, help="Mensagens por canal (default: TME_SYNC_LIMIT)")
+def cmd_sync_tme(limit: int | None) -> None:
+    """Importa ofertas dos canais via scraper t.me/s/ (sem Telethon)."""
+    from src.config import TME_SYNC_LIMIT
+    from src.telegram.sync_tme import sync_all_channels
+
+    per_channel = limit if limit is not None else TME_SYNC_LIMIT
+    for row in sync_all_channels(limit=per_channel):
+        click.echo(
+            f"{row.chat_key}: +{row.imported} novas, {row.skipped} ignoradas, "
+            f"erros={row.errors}"
+        )
+
+
+@cli.command("validate-offers")
+@click.option("--limit", default=None, type=int, help="Batch size (default: OFFER_VALIDATION_BATCH)")
+def cmd_validate_offers(limit: int | None) -> None:
+    """Revalida links de ofertas recentes (estoque + preço)."""
+    from src.config import OFFER_VALIDATION_BATCH
+    from src.telegram.validate_offers import validate_pending_offers
+
+    result = validate_pending_offers(
+        batch_size=limit or OFFER_VALIDATION_BATCH)
+    click.echo(
+        f"checked={result.checked} active={result.active} "
+        f"price_changed={result.price_changed} unavailable={result.unavailable} "
+        f"needs_manual={result.needs_manual}"
+    )
 
 
 @cli.command("sync-telegram")

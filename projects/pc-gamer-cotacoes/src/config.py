@@ -40,6 +40,15 @@ ALIEXPRESS_TRACKING_ID = os.getenv("ALIEXPRESS_TRACKING_ID", "")
 # País de envio/destino para priorizar armazém Brasil ("BR" ou vazio para global)
 ALIEXPRESS_SHIP_FROM = os.getenv("ALIEXPRESS_SHIP_FROM", "BR").strip().upper()
 
+# Scraper t.me/s/ e validação de ofertas
+TME_SYNC_LIMIT = int(os.getenv("TME_SYNC_LIMIT", "20"))
+OFFER_VALIDATION_MAX_AGE_HOURS = int(
+    os.getenv("OFFER_VALIDATION_MAX_AGE_HOURS", "72"))
+OFFER_REVALIDATE_MINUTES = int(os.getenv("OFFER_REVALIDATE_MINUTES", "30"))
+OFFER_VALIDATION_BATCH = int(os.getenv("OFFER_VALIDATION_BATCH", "25"))
+OFFER_PRICE_TOLERANCE_PERCENT = float(
+    os.getenv("OFFER_PRICE_TOLERANCE_PERCENT", "5"))
+
 
 def market_fetch_providers() -> list[str]:
     raw = os.getenv("MARKET_FETCH_PROVIDERS",

@@ -356,7 +356,8 @@ def list_recent_offers(
     query = """
         SELECT o.id, s.chat_key, s.title AS source_title, o.product_name,
                o.price_cents, o.currency, o.url, o.matched_category_slug,
-               o.posted_at, o.raw_text
+               o.posted_at, o.raw_text, o.status, o.validated_price_cents,
+               o.validation_notes, o.parsed_json
         FROM telegram_offers o
         JOIN telegram_sources s ON s.id = o.source_id
     """
@@ -369,7 +370,64 @@ def list_recent_offers(
 
     with connect() as conn:
         rows = conn.execute(query, params).fetchall()
-    return [dict(row) for row in rows]
+    result = []
+    for row in rows:
+        item = dict(row)
+        item["parsed"] = json.loads(item.pop("parsed_json") or "{}")
+        result.append(item)
+    return result
+
+
+def list_offers_for_validation(
+    *,
+    max_age_hours: int = 72,
+    revalidate_minutes: int = 30,
+    limit: int = 25,
+) -> list[dict[str, Any]]:
+    """Ofertas recentes com URL que precisam de revalidação."""
+    query = """
+        SELECT o.id, o.url, o.price_cents, o.status, o.parsed_json,
+               o.last_validated_at, o.created_at
+        FROM telegram_offers o
+        WHERE o.url IS NOT NULL AND o.url != ''
+          AND o.status NOT IN ('unavailable', 'expired')
+          AND datetime(o.created_at) >= datetime('now', ?)
+          AND (
+            o.last_validated_at IS NULL
+            OR datetime(o.last_validated_at) <= datetime('now', ?)
+          )
+        ORDER BY o.last_validated_at IS NOT NULL, o.created_at DESC
+        LIMIT ?
+    """
+    age_param = f"-{max_age_hours} hours"
+    reval_param = f"-{revalidate_minutes} minutes"
+    with connect() as conn:
+        rows = conn.execute(query, (age_param, reval_param, limit)).fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        item["parsed"] = json.loads(item.pop("parsed_json") or "{}")
+        result.append(item)
+    return result
+
+
+def update_offer_validation(
+    *,
+    offer_id: int,
+    status: str,
+    validated_price_cents: int | None,
+    notes: str,
+) -> None:
+    with connect() as conn:
+        conn.execute(
+            """
+            UPDATE telegram_offers
+            SET status = ?, validated_price_cents = ?, validation_notes = ?,
+                last_validated_at = datetime('now')
+            WHERE id = ?
+            """,
+            (status, validated_price_cents, notes[:500], offer_id),
+        )
 
 
 def update_source_sync_cursor(source_id: int, message_id: int) -> None:

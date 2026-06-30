@@ -49,6 +49,18 @@ BUILD_TEMPLATE_AMD_GAMER: list[dict[str, Any]] = [
 ]
 
 
+class OfferRequirements(BaseModel):
+    """Condições da promo (moedas, cupom, PIX, app-only, urgência)."""
+
+    requires_coins: bool = False
+    requires_app: bool = False
+    requires_pix: bool = False
+    coupon_codes: list[str] = Field(default_factory=list)
+    retailer: str | None = None
+    is_flash: bool = False
+    conditions: list[str] = Field(default_factory=list)
+
+
 class ParsedOffer(BaseModel):
     product_name: str | None = None
     price_cents: int | None = None
@@ -57,6 +69,7 @@ class ParsedOffer(BaseModel):
     matched_category_slug: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     keywords: list[str] = Field(default_factory=list)
+    requirements: OfferRequirements = Field(default_factory=OfferRequirements)
 
 
 class BuildSummary(BaseModel):

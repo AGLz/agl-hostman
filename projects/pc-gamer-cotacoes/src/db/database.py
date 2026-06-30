@@ -20,6 +20,9 @@ def init_db() -> None:
     sql = schema_path.read_text(encoding="utf-8")
     with connect() as conn:
         conn.executescript(sql)
+        from src.db.migrations import apply_migrations
+
+        apply_migrations(conn)
 
     from src.catalog.repository import seed_build_presets
 

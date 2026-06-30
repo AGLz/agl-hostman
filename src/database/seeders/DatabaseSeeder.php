@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // Create admin users with default passwords
         $this->call([
             AdminUserSeeder::class,
+            PcgCatalogSeeder::class,
         ]);
 
         // Uncomment to create additional test users

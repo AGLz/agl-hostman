@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS telegram_offers (
     matched_category_slug TEXT,
     matched_component_id INTEGER REFERENCES components(id),
     status TEXT NOT NULL DEFAULT 'new',
+    last_validated_at TEXT,
+    validated_price_cents INTEGER,
+    validation_notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(source_id, message_id),
     UNIQUE(message_hash)
