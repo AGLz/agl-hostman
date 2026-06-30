@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\PcGamer\MarketProviderRegistry;
 use App\Auth\ActiveEloquentUserProvider;
 use App\Validation\SecureValidator;
 use Illuminate\Support\Facades\Auth;
@@ -87,6 +88,9 @@ class AppServiceProvider extends ServiceProvider
                 config('agent-os.consensus')
             );
         });
+
+        // PC Gamer — providers de mercado
+        $this->app->singleton(MarketProviderRegistry::class);
     }
 
     /**
