@@ -34,12 +34,15 @@ jobs:
             echo "Sem diretórios de skills para scan"
             exit 0
           fi
+          failed=0
           for d in "${dirs[@]}"; do
             echo "=== Scan: $d ==="
-            skillspector scan "$d" --no-llm --format terminal || {
-              echo "::warning::SkillSpector reportou issues em $d — rever manualmente"
-            }
+            if ! skillspector scan "$d" --no-llm --format terminal; then
+              echo "::error::SkillSpector reportou issues em $d"
+              failed=1
+            fi
           done
+          exit "$failed"
 
       - name: SARIF upload (optional aggregate)
         if: always()

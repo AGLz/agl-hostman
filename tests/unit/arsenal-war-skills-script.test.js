@@ -55,6 +55,7 @@ test("install-hermes-arsenal liga skills nos profiles quartet+", () => {
   assert.match(content, /agl-architecture-diagram/);
   assert.match(content, /drawio-skill/);
   assert.match(content, /ponytail/);
+  assert.match(content, /docker exec/);
 });
 
 test("youtube_002 documenta as 4 pérolas", () => {

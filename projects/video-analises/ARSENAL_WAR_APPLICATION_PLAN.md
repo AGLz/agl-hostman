@@ -2,7 +2,7 @@
 
 > **Fonte:** [youtube_002.md](./youtube_002.md) — Maestros da IA (4 pérolas GitHub)  
 > **Criado:** 2026-06-29  
-> **Status:** Fase 1 implementada
+> **Status:** Fases 1–2 concluídas; Fase 3 em curso (2026-06-29)
 
 ---
 
@@ -36,11 +36,14 @@ Replicar no ecossistema AGL (Cursor, Claude Code, Hermes CT188, multi-projetos) 
 3. **Hermes Ponytail** — `install-hermes-arsenal-skills-ct188.sh` tenta `hermes plugins install`
 4. **Wiki** — [[Arsenal de Guerra — Vibe Coding com IA]] no llm-wiki
 
-### Fase 3 (opcional)
+### Fase 3 (2026-06-29)
 
-- Correr install no CT188 em produção
-- Ingest automático Curator cron
-- Gate CI bloqueante (hoje warning) em findings SkillSpector
+- [x] Install CT188 produção (`ssh root@100.107.113.33 'pct exec 188 -- …'`)
+- [x] Ponytail plugin nos 6 gateways (`hermes plugins install` via Docker)
+- [x] Wiki [[Arsenal de Guerra — Vibe Coding com IA]] em `/opt/llm-wiki` no CT188
+- [x] Curator cron `curator-maintenance` (4×/dia) — ingest wiki-ingest + stubs
+- [x] CI SkillSpector **bloqueante** em PRs que alteram skills
+- [ ] PR `develop` → `main`
 
 ---
 
@@ -83,6 +86,5 @@ bash scripts/proxmox/install-hermes-arsenal-skills-ct188.sh
 - [x] Scripts de propagação e scan
 - [x] Skill workflow `agl-video-analysis`
 - [x] Script Hermes CT188
-- [ ] Teste unitário scripts
-- [ ] Code review
-- [ ] Ingest llm-wiki (opcional fase 2)
+- [x] Teste unitário scripts (`tests/unit/arsenal-war-skills-script.test.js`)
+- [x] Ingest llm-wiki — [[Arsenal de Guerra — Vibe Coding com IA]]

@@ -43,21 +43,40 @@ link_skill() {
   log "OK ${agent} ← ${skill_name}"
 }
 
+HERMES_BIN="${HERMES_BIN:-/opt/hermes/.venv/bin/hermes}"
+RESTART_CONTAINERS="${RESTART_CONTAINERS:-1}"
+
+install_ponytail_in_container() {
+  local container="$1"
+  docker exec "$container" bash -lc \
+    "export HOME=/opt/data; ${HERMES_BIN} plugins install DietrichGebert/ponytail --enable" \
+    2>/dev/null && log "OK ponytail plugin em ${container}" \
+    || log "WARN ponytail plugin falhou em ${container}"
+}
+
 install_ponytail_plugin() {
   [[ "$INSTALL_PONYTAIL_PLUGIN" == "1" ]] || { log "INSTALL_PONYTAIL_PLUGIN=0 — saltar"; return 0; }
-  if ! command -v hermes >/dev/null 2>&1; then
-    log "WARN hermes CLI ausente — Ponytail plugin manual:"
-    log "  hermes plugins install DietrichGebert/ponytail --enable"
+  if ! command -v docker >/dev/null 2>&1; then
+    log "WARN docker ausente — Ponytail plugin manual por contentor:"
+    log "  docker exec agl-hermes-jarvis bash -lc 'export HOME=/opt/data; ${HERMES_BIN} plugins install DietrichGebert/ponytail --enable'"
     return 0
   fi
-  if id "$HERMES_USER" &>/dev/null; then
-  log "instalar Ponytail plugin (user $HERMES_USER)"
-  su - "$HERMES_USER" -c 'hermes plugins install DietrichGebert/ponytail --enable' 2>/dev/null \
-    || log "WARN ponytail plugin falhou — instalar manualmente no CT188"
-  else
-    hermes plugins install DietrichGebert/ponytail --enable 2>/dev/null \
-      || log "WARN ponytail plugin falhou"
-  fi
+  for agent in "${AGENTS[@]}"; do
+    local c="agl-hermes-${agent}"
+    docker ps --format '{{.Names}}' | grep -qx "$c" || { log "WARN contentor ausente: $c"; continue; }
+    install_ponytail_in_container "$c"
+  done
+}
+
+restart_agent_containers() {
+  [[ "$RESTART_CONTAINERS" == "1" ]] || { log "RESTART_CONTAINERS=0 — saltar restart"; return 0; }
+  command -v docker >/dev/null 2>&1 || return 0
+  for agent in "${AGENTS[@]}"; do
+    local c="agl-hermes-${agent}"
+    docker ps --format '{{.Names}}' | grep -qx "$c" || continue
+    docker restart "$c" >/dev/null 2>&1 && log "restart $c" || log "WARN restart falhou: $c"
+    sleep 2
+  done
 }
 
 VTD_SRC="${AGL_HOSTMAN}/.agents/skills/video-transcript-downloader"
@@ -78,6 +97,6 @@ for agent in "${AGENTS[@]}"; do
 done
 
 install_ponytail_plugin
+restart_agent_containers
 
 log "=== Arsenal skills ligadas em ${#AGENTS[@]} profiles ==="
-log "Reiniciar contentores Hermes se necessário: docker compose restart"
