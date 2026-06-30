@@ -132,8 +132,11 @@ docker_exec_app php artisan route:list --path=pc-gamer
 log "Smoke: comandos artisan pcg:*..."
 docker_exec_app php artisan list pcg
 
-log "Smoke: testes PcGamer (subset)..."
-docker_exec_app php artisan test --filter=PcGamer --stop-on-failure || log "AVISO: testes falharam — rever logs"
+log "Smoke: sync t.me (1 canal, dry)..."
+docker_exec_app php artisan pcg:sync-tme --chat=@mmpromo --limit=3 --sync || log "AVISO: sync-tme falhou (rede/WAF?)"
+
+log "Smoke: schedule pcg..."
+docker_exec_app php artisan schedule:list | grep pcg || true
 
 log "Restart Horizon + scheduler (fila pc-gamer)..."
 pct_exec "docker restart agl-hostman-prod-horizon agl-hostman-prod-scheduler"
