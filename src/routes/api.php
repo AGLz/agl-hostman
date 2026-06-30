@@ -28,6 +28,7 @@ require __DIR__.'/api/hermes.php';
 require __DIR__.'/api/harness.php';
 require __DIR__.'/api/llm-monitor.php';
 require __DIR__.'/api/openclaw.php';
+require __DIR__.'/api/pcgamer.php';
 
 // N8N Integration routes
 Route::prefix('n8n')->group(function () {

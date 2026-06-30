@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Services\PcGamer\BuildComparisonService;
+use App\Services\PcGamer\BuildService;
+use App\Services\PcGamer\CatalogService;
 use App\Services\PcGamer\MarketFetchService;
 use App\Services\PcGamer\MarketProviderRegistry;
+use App\Services\PcGamer\TelegramOfferIngestService;
 use App\Auth\ActiveEloquentUserProvider;
 use App\Validation\SecureValidator;
 use Illuminate\Support\Facades\Auth;
@@ -93,6 +97,10 @@ class AppServiceProvider extends ServiceProvider
         // PC Gamer — providers de mercado
         $this->app->singleton(MarketProviderRegistry::class);
         $this->app->singleton(MarketFetchService::class);
+        $this->app->singleton(CatalogService::class);
+        $this->app->singleton(BuildService::class);
+        $this->app->singleton(BuildComparisonService::class);
+        $this->app->singleton(TelegramOfferIngestService::class);
     }
 
     /**

@@ -48,4 +48,18 @@ return [
         'suporte_vga' => 'suporte placa de video',
     ],
 
+    /** Template AMD 10 slots (espelha BUILD_TEMPLATE_AMD_GAMER do Python). */
+    'build_template_amd' => [
+        ['category_slug' => 'gabinete', 'label' => 'Gabinete'],
+        ['category_slug' => 'motherboard', 'label' => 'Placa-mãe (Asus/Gigabyte/MSI/ASRock)'],
+        ['category_slug' => 'processador', 'label' => 'Processador AMD'],
+        ['category_slug' => 'memoria_ddr5', 'label' => 'Memória DDR5'],
+        ['category_slug' => 'nvme', 'label' => 'SSD NVMe 1TB (ex.: Samsung)'],
+        ['category_slug' => 'placa_video', 'label' => 'Placa de vídeo'],
+        ['category_slug' => 'water_cooler', 'label' => 'Water cooler'],
+        ['category_slug' => 'fan', 'label' => 'Fans adicionais'],
+        ['category_slug' => 'fonte', 'label' => 'Fonte'],
+        ['category_slug' => 'suporte_vga', 'label' => 'Suporte/conector VGA (ex.: 3 fans)'],
+    ],
+
 ];
