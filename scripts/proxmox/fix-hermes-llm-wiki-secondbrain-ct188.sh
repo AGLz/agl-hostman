@@ -17,7 +17,7 @@ HERMES_GID="${HERMES_GID:-10000}"
 WIKI_PATH="${WIKI_PATH:-/opt/llm-wiki/wiki}"
 SECOND_BRAIN_SRC="${AGL_HOSTMAN}/docker/hermes/profiles/SECOND-BRAIN.md"
 
-AGENTS=(jarvis elon satya werner curator orion argus)
+AGENTS=(jarvis elon satya werner curator orion argus verifier composio)
 SKILL_SRC="${HERMES_ROOT}/data/skills/research/llm-wiki"
 CURATOR_DATA="${CURATOR_DATA_DIR:-${HERMES_ROOT}/profiles/curator}"
 LLM_WIKI_HOST="${LLM_WIKI_DIR:-/opt/agl-llm-wiki}"

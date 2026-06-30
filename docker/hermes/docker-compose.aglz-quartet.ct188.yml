@@ -1,4 +1,4 @@
-# AGLz Agency — 6 agentes Hermes (Jarvis + quartet + Curator + Orion)
+# AGLz Agency — 9 agentes Hermes (Jarvis + quartet + Curator + Orion + Argus + Verifier + Composio)
 
 # Hermes 0.14.x: multi-bot = profiles separados (PR #25660 / #10452 ainda não mergeados)
 
@@ -283,6 +283,31 @@ services:
 
     volumes:
       - ${VERIFIER_DATA_DIR:-./profiles/verifier}:/opt/data
+
+      - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
+
+      - ${AGL_HOSTMAN_DIR:-/mnt/overpower/apps/dev/agl/agl-hostman}:/opt/agl-hostman:ro
+
+      - ${AGL_DEV_DIR:-/mnt/overpower/apps/dev}:/mnt/overpower/apps/dev:rw
+
+      - ${AGL_INFRA_SSH_DIR:-/root/.ssh}:/opt/data/.ssh:ro
+
+    healthcheck: *hermes-health-process
+
+    networks:
+      - default
+      - langfuse
+
+  hermes-composio:
+    <<: *hermes-gateway
+
+    container_name: agl-hermes-composio
+
+    env_file:
+      - ${COMPOSIO_DATA_DIR:-./profiles/composio}/.env
+
+    volumes:
+      - ${COMPOSIO_DATA_DIR:-./profiles/composio}:/opt/data
 
       - ${LLM_WIKI_DIR:-/opt/agl-llm-wiki}:/opt/llm-wiki:rw
 

@@ -24,9 +24,20 @@ it('returns curator metadata', function () {
         ->and($meta['group'])->toBe('Knowledge');
 });
 
-it('returns orion metadata', function () {
-    $meta = HermesAgentCatalog::metadata('orion');
+it('includes composio integrations operator in agency catalog', function () {
+    expect(HermesAgentCatalog::CATALOG)->toHaveKey('composio');
 
-    expect($meta['name'])->toBe('Orion')
-        ->and($meta['group'])->toBe('Media');
+    $meta = HermesAgentCatalog::metadata('composio');
+
+    expect($meta['name'])->toBe('Composio')
+        ->and($meta['group'])->toBe('Integrations');
+});
+
+it('includes verifier qa gate in agency catalog', function () {
+    expect(HermesAgentCatalog::CATALOG)->toHaveKey('verifier');
+
+    $meta = HermesAgentCatalog::metadata('verifier');
+
+    expect($meta['name'])->toBe('Verifier')
+        ->and($meta['group'])->toBe('Quality');
 });

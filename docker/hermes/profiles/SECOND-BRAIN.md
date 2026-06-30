@@ -41,6 +41,7 @@ Quando alterares infra, deploy, media, produto ou decisões de arquitectura:
 | **Curator** | Vault inteiro        | Ingest/lint agendado (2h), consolida stubs de todos |
 | **Argus**   | Limites LLM, planos  | Quotas/providers, incidentes FinOps, stubs monitor  |
 | **Verifier**| Critérios, runbooks  | Padrões de falha QA recorrentes (`hermes/verifier`) |
+| **Composio**| Integrações SaaS     | Toolkits/conexões Composio, runbooks de ações (`hermes/composio`) |
 
 Curator **não** monopoliza escrita — mantém qualidade e cron; os restantes escrevem no domínio deles.
 

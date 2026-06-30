@@ -27,8 +27,17 @@
 set -euo pipefail
 
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
-HERMES_DATA="${HERMES_DATA:-${HERMES_ROOT}/data}"
 HERMES_CONTAINER="${HERMES_CONTAINER:-agl-hermes-jarvis}"
+# Perfil data: jarvis → data/ ; outros agentes → profiles/<agent>/
+if [[ -z "${HERMES_DATA:-}" ]]; then
+  if [[ "${HERMES_CONTAINER}" == "agl-hermes-jarvis" ]]; then
+    HERMES_DATA="${HERMES_ROOT}/data"
+  else
+    _agent="${HERMES_CONTAINER#agl-hermes-}"
+    HERMES_DATA="${HERMES_ROOT}/profiles/${_agent}"
+  fi
+fi
+HERMES_DATA="${HERMES_DATA:-${HERMES_ROOT}/data}"
 ENV_FILE="${HERMES_DATA}/.env"
 CFG="${HERMES_DATA}/config.yaml"
 TOKENS_DIR="${HERMES_DATA}/mcp-tokens"

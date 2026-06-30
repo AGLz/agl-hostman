@@ -50,6 +50,18 @@ final class HermesAgentCatalog
             'group' => 'FinOps',
             'profile' => 'argus',
         ],
+        'verifier' => [
+            'name' => 'Verifier',
+            'role' => 'QA Gate — veredito PASS/FAIL vs acceptance criteria',
+            'group' => 'Quality',
+            'profile' => 'verifier',
+        ],
+        'composio' => [
+            'name' => 'Composio',
+            'role' => 'Integrations Operator — ações SaaS via Composio MCP',
+            'group' => 'Integrations',
+            'profile' => 'composio',
+        ],
     ];
 
     /**

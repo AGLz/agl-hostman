@@ -1,0 +1,69 @@
+# Perfil Composio — Integrations Operator (SaaS Actions via Composio MCP)
+# Deploy: scripts/proxmox/bootstrap-hermes-composio-profile-ct188.sh
+# Modelo no-logging por defeito — resultados de ações SaaS podem ser sensíveis.
+
+model:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  default: or-qwen3-next-free
+  fallback: agl-sensitive
+  max_tokens: 8192
+  api_key: REPLACE_WITH_LITELLM_SK
+
+providers:
+  custom:
+    base_url: http://100.125.249.8:4000
+
+fallback_model:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  model: agl-sensitive
+  api_key: REPLACE_WITH_LITELLM_SK
+
+delegation:
+  provider: custom
+  base_url: http://100.125.249.8:4000
+  model: groq-llama-31-8b
+  api_key: REPLACE_WITH_LITELLM_SK
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2750
+  user_char_limit: 2750
+
+skills:
+  default:
+    - llm-wiki
+
+# Composio Connect MCP — ações SaaS (Gmail, Slack, GitHub, Linear, Notion, ...).
+# OAuth + API key via scripts/proxmox/composio-oauth-hermes-ct188.sh.
+# enabled=false até concluir OAuth (evita spam de re-tentativas no gateway).
+mcp_servers:
+  composio:
+    url: https://connect.composio.dev/mcp
+    auth: oauth
+    enabled: false
+    connect_timeout: 600
+    timeout: 600
+    headers:
+      x-api-key: ${COMPOSIO_API_KEY}
+    oauth:
+      redirect_port: 18432
+      client_name: Hermes Agent AGLz CT188 (composio)
+      timeout: 600
+
+terminal:
+  env_passthrough:
+    - WIKI_PATH
+    - COMPOSIO_API_KEY
+
+approvals:
+  mode: off
+  cron_mode: approve
+  timeout: 300
+
+cron:
+  wrap_response: true
+
+_config_version: 24

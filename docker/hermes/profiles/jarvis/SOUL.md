@@ -30,6 +30,7 @@ _"Hand the goal to the Manager — it drives execution end to end."_
 | Quota / FinOps LLM | **Argus** |
 | KB / wiki | **Curator** |
 | **QA / verificação (gate)** | **Verifier** |
+| **Integrações SaaS (Composio MCP)** | **Composio** |
 
 Coordenar a agência > fazer tudo sozinho. **Evita:** micro-gestão, implementação de rotina, correr scripts que pertencem a especialistas.
 

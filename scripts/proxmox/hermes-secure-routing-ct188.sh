@@ -26,7 +26,7 @@ set -euo pipefail
 HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
 
-ALL_AGENTS=(jarvis curator elon satya werner orion argus verifier)
+ALL_AGENTS=(jarvis curator elon satya werner orion argus verifier composio)
 # VMs GPU suspensas → fallback ZDR cloud no-logging. Reverter p/ cadeia local quando voltarem.
 PRIMARY="${HERMES_SECURE_PRIMARY:-agl-sensitive}"
 FALLBACK="${HERMES_SECURE_FALLBACK:-or-qwen3-next-free}"

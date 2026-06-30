@@ -15,8 +15,9 @@
 | **`orion`**    | **Orion**    | **Media**      | **`agl-hermes-orion`**    | @hermes_jarvis_h_orion_bot   | **Media \*arr** / media-grabber              |
 | **`argus`**    | **Argus**    | **FinOps**     | **`agl-hermes-argus`**    | @hermes_jarvis_h_argus_bot   | **Limites/quota LLM**, gate LiteLLM          |
 | **`verifier`** | **Verifier** | **Quality**    | **`agl-hermes-verifier`** | — (interno)                  | **Gate QA PASS/FAIL** vs acceptance criteria |
+| **`composio`** | **Composio** | **Integrations** | **`agl-hermes-composio`** | @hermes_jarvis_h_composio_bot | **Ações SaaS** via Composio MCP              |
 
-UI Laravel: `HermesAgentCatalog` inclui os oito perfis.
+UI Laravel: `HermesAgentCatalog` inclui os nove perfis.
 
 > **Modelo operacional:** o Jarvis opera como **Manager** (modelo [Verdent](https://docs.verdent.ai/verdent-manager/core-features/manager)) — ver secção [Modelo Manager (Verdent)](#modelo-manager-verdent) abaixo. Não é executor: decompõe, delega e verifica via Verifier.
 
@@ -306,6 +307,53 @@ Bot sugerido: `@hermes_jarvis_h_argus_bot` (criar no BotFather antes do script a
 
 ---
 
+## Composio — Integrations Operator (SaaS Actions)
+
+### Missão
+
+Operador de **integrações externas** da agência: executa ações em Gmail, Google Calendar, Slack, GitHub, Linear, Notion e outros toolkits via **Composio Connect MCP**, sob delegação do Jarvis. Centraliza credenciais OAuth/API num único gateway dedicado.
+
+### Ficheiros (repo)
+
+| Path                                                         | Descrição                    |
+| ------------------------------------------------------------ | ---------------------------- |
+| `docker/hermes/profiles/composio/SOUL.md`                    | Persona                      |
+| `docker/hermes/profiles/composio/config.yaml.example`        | Template (MCP + no-logging)  |
+| `scripts/proxmox/bootstrap-hermes-composio-profile-ct188.sh` | Bootstrap CT188              |
+| `scripts/proxmox/configure-hermes-composio-ct188.sh`         | Deploy completo              |
+| `scripts/proxmox/composio-oauth-hermes-ct188.sh`             | OAuth MCP (perfil composio)  |
+
+### Modelo
+
+`or-qwen3-next-free` (no-logging, tool-calling) · fallback `agl-sensitive` · aux `groq-llama-31-8b`.
+
+### Privacidade
+
+Resultados de ações SaaS podem conter dados sensíveis — **nunca** usar modelos que logam (owl-alpha/nemotron) neste agente. Composio MCP fala com SaaS reais; confirma ações com efeito externo irreversível.
+
+### Deploy
+
+```bash
+bash scripts/proxmox/configure-hermes-composio-ct188.sh /mnt/overpower/apps/dev/agl/agl-hostman [/root/.aglz-telegram-tokens.env]
+docker compose -f docker-compose.aglz-quartet.yml up -d hermes-composio
+```
+
+OAuth Composio (no contentor dedicado):
+
+```bash
+export COMPOSIO_API_KEY='ck_...'
+HERMES_CONTAINER=agl-hermes-composio \
+  bash scripts/proxmox/composio-oauth-hermes-ct188.sh configure
+HERMES_CONTAINER=agl-hermes-composio \
+  bash scripts/proxmox/composio-oauth-hermes-ct188.sh login
+HERMES_CONTAINER=agl-hermes-composio \
+  bash scripts/proxmox/composio-oauth-hermes-ct188.sh enable
+```
+
+Token Telegram: `TELEGRAM_TOKEN_COMPOSIO=...` · bot sugerido: `@hermes_jarvis_h_composio_bot`.
+
+---
+
 ## Docker Compose
 
 Serviços em `docker/hermes/docker-compose.aglz-quartet.ct188.yml`:
@@ -314,6 +362,7 @@ Serviços em `docker/hermes/docker-compose.aglz-quartet.ct188.yml`:
 - `hermes-orion` → `ORION_DATA_DIR=./profiles/orion`
 - `hermes-argus` → `ARGUS_DATA_DIR=./profiles/argus`
 - `hermes-verifier` → `VERIFIER_DATA_DIR=./profiles/verifier`
+- `hermes-composio` → `COMPOSIO_DATA_DIR=./profiles/composio`
 
 Mesma imagem `agl-hermes-agency` que o quartet.
 
