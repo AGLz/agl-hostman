@@ -39,7 +39,7 @@ install_turbo_flow_devpods() {
 }
 
 configure_openclaw_zshrc() {
-  local hook='[[ -f "$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env" ]] && source "$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env" && cclitellm'
+  local hook='[[ -f "$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env" ]] && source "$WORKSPACE_FOLDER/config/openclaw/zshrc-openclaw.env" && ccll'
   local zshrc_openclaw="${WORKSPACE}/config/openclaw/zshrc-openclaw.env"
 
   if [[ ! -f "${zshrc_openclaw}" ]]; then

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Patch ~/.zshrc em cada host com bloco Claude-Flow + LiteLLM (source + cclitellm)
+# Patch ~/.zshrc em cada host com bloco Claude-Flow + LiteLLM (source + ccll)
 # Uso: ./scripts/ruflo/patch-zshrc-all-hosts.sh [host1 host2 ...]
 # Sem args: patch em agldv04, agldv12, fgsrv06 (agldv03 = host atual, já tem)
 # Ref: docs/CLAUDE-FLOW-LITELLM.md
@@ -13,9 +13,9 @@ PATCH_FILE="$REPO_ROOT/scripts/ruflo/zshrc-claude-flow-block.txt"
 if [[ ! -f "$PATCH_FILE" ]]; then
   cat > "$PATCH_FILE" << 'ENDBLOCK'
 
-# Claude-Flow + LiteLLM (agl-hostman) — source e cclitellm com key dinâmica
+# Claude-Flow + LiteLLM (agl-hostman) — source e ccll com key dinâmica
 for _cf_root in "$WORKSPACE_FOLDER" "$DEVPOD_WORKSPACE_FOLDER" "/mnt/overpower/apps/dev/agl/agl-hostman" "/workspaces/agl-hostman"; do
-  [[ -n "$_cf_root" && -f "$_cf_root/config/openclaw/zshrc-openclaw.env" ]] && source "$_cf_root/config/openclaw/zshrc-openclaw.env" && cclitellm && break
+  [[ -n "$_cf_root" && -f "$_cf_root/config/openclaw/zshrc-openclaw.env" ]] && source "$_cf_root/config/openclaw/zshrc-openclaw.env" && ccll && break
 done
 ENDBLOCK
 fi
@@ -26,10 +26,13 @@ declare -A HOST_IPS
 HOST_IPS[agldv02]="100.95.204.85"
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
+HOST_IPS[agldv05]="100.82.71.49"
+HOST_IPS[agldv06]="100.71.229.12"
+HOST_IPS[agldv07]="100.64.175.89"
 HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 
-[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv04 agldv12 fgsrv06)
+[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv03 agldv05 agldv06 agldv07 agldv12 fgsrv06)
 
 echo "=============================================="
 echo "  Patch ~/.zshrc — Claude-Flow + LiteLLM"

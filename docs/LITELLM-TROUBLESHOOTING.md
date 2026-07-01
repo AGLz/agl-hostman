@@ -1,6 +1,7 @@
 # LiteLLM — Troubleshooting
 
-> **Last Updated**: 2026-06-05  
+> **Wiki (shell zsh):** [[agl-hostman — Claude Code Shell zsh]] — `ccll`, `ccs`, `cccl`, `CC_PROVIDER`, templates em `config/templates/`.  
+> **Last Updated**: 2026-07-01  
 > **Host canónico**: CT186 (agl-litellm) — LAN `http://192.168.0.186:4000`, Tailscale `http://100.125.249.8:4000`, path `/opt/agl-litellm`  
 > **agldv03 (CT179):** LiteLLM descontinuado — não troubleshootar `:4000` em `100.94.221.87`
 
@@ -230,20 +231,20 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
 
 ---
 
-### 8a. agldv04 — Erro ao usar Claude Code/Claude-Flow após `cclitellm`
+### 8a. agldv04 — Erro ao usar Claude Code/Claude-Flow após `ccll`
 
-**Causa**: O `cclitellm` antigo usava `sk-litellm-default` fixo, mas o LiteLLM em execução (CT186) espera a chave de `/opt/agl-litellm/.env`. Ou o `.claude/settings.json` usa localhost sem stack local.
+**Causa**: O `ccll` antigo usava `sk-litellm-default` fixo, mas o LiteLLM em execução (CT186) espera a chave de `/opt/agl-litellm/.env`. Ou o `.claude/settings.json` usa localhost sem stack local.
 
 **Solução** (uma das opções):
 
-1. **Usar cclitellm atualizado** (recomendado para terminal):
+1. **Usar ccll atualizado** (recomendado para terminal):
    ```bash
    cd /caminho/agl-hostman
    source config/openclaw/zshrc-openclaw.env
-   cclitellm
+   ccll
    claude-flow hive-mind spawn "tarefa" --claude
    ```
-   O `cclitellm` em `zshrc-openclaw.env` usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env).
+   O `ccll` em `zshrc-openclaw.env` usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env).
 
 2. **Aplicar settings para agldv04** (para Cursor/Claude Code na IDE):
    ```bash
@@ -264,7 +265,7 @@ export ANTHROPIC_API_KEY=sk-litellm-default    # mesmo valor
    # ou: ssh root@100.107.113.33 'pct exec 186 -- curl -sf http://127.0.0.1:4000/health/readiness'
    ```
 
-5. **Se usar `cclitellm` no terminal**: Use `source config/openclaw/zshrc-openclaw.env` e depois `cclitellm` — a função agora usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env). O Cursor iniciado pelo menu **não herda** variáveis do shell; use settings.agldv04.json para Cursor.
+5. **Se usar `ccll` no terminal**: Use `source config/openclaw/zshrc-openclaw.env` e depois `ccll` — a função agora usa `get-litellm-key.sh` (chave de /opt/litellm/.env ou config/litellm/.env). O Cursor iniciado pelo menu **não herda** variáveis do shell; use settings.agldv04.json para Cursor.
 
 **Erros comuns**:
 - `Connection refused` / `ECONNREFUSED` → URL errada ou LiteLLM parado no CT186

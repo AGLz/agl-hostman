@@ -105,6 +105,29 @@ litellm_settings:
     - groq-llama-31-8b
     - agl-primary-zai-glm-flash
     - agl-primary
+  - claude-sonnet-5:
+    - glm
+    - glm-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
+  - claude-opus-4-8:
+    - glm
+    - glm-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
+  - claude-opus-4-5-20251101:
+    - glm
+    - glm-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
+  - claude-3-5-haiku-20241022:
+    - glm-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
   - qwen3.5-plus:
     - glm-flash
     - kimi
@@ -277,6 +300,50 @@ litellm_settings:
     - groq-llama-31-8b
     - agl-primary-zai-glm-flash
   - claude-haiku-4-5-20251001:
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - glm-4.7-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+  - claude-sonnet-5:
+    - zai-glm-5
+    - glm-5
+    - agl-primary
+    - gpt-5.4-mini
+    - claude-haiku
+    - glm-4.7-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+  - claude-opus-4-8:
+    - claude-opus-4-7
+    - claude-sonnet
+    - glm-5
+    - gpt-5.4-mini
+    - glm-4.7-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
+  - claude-opus-4-5-20251101:
+    - claude-opus-4-7
+    - claude-sonnet
+    - glm-5
+    - gpt-5.4-mini
+    - glm-4.7-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
+  - claude-opus-4-6-20250514:
+    - claude-opus-4-6
+    - claude-sonnet
+    - glm-5
+    - gpt-5.4-mini
+    - glm-4.7-flash
+    - groq-llama-31-8b
+    - agl-primary-zai-glm-flash
+    - agl-primary
+  - claude-3-5-haiku-20241022:
     - zai-glm-5
     - glm-5
     - agl-primary
@@ -720,6 +787,79 @@ model_list:
     max_tokens: 8192
     output_cost_per_token: 5.0e-06
   model_name: claude-haiku-4-5-20251001
+# Claude Code CLI — aliases pedidos pelo cliente (sem estes model_name → 400 no proxy)
+- litellm_params:
+    api_key: os.environ/ANTHROPIC_API_KEY
+    model: anthropic/claude-sonnet-4-6
+    timeout: 90
+  model_info:
+    access: direct
+    context_window: 200000
+    input_cost_per_token: 3.0e-06
+    max_tokens: 8192
+    note: 'Alias CC: claude-sonnet-5 → sonnet-4-6 (+ fallbacks agl-*)'
+    output_cost_per_token: 1.5e-05
+  model_name: claude-sonnet-5
+- litellm_params:
+    api_key: os.environ/ANTHROPIC_API_KEY
+    model: anthropic/claude-opus-4-7
+    timeout: 90
+  model_info:
+    access: direct
+    context_window: 1000000
+    input_cost_per_token: 5.0e-06
+    max_tokens: 8192
+    note: 'Alias CC: claude-opus-4-8 → opus-4-7 (+ fallbacks agl-*)'
+    output_cost_per_token: 2.5e-05
+  model_name: claude-opus-4-8
+- litellm_params:
+    api_key: os.environ/ANTHROPIC_API_KEY
+    model: anthropic/claude-opus-4-7
+    timeout: 90
+  model_info:
+    access: direct
+    context_window: 1000000
+    input_cost_per_token: 5.0e-06
+    max_tokens: 8192
+    note: 'Alias CC: claude-opus-4-5-20251101 → opus-4-7'
+    output_cost_per_token: 2.5e-05
+  model_name: claude-opus-4-5-20251101
+- litellm_params:
+    api_key: os.environ/ANTHROPIC_API_KEY
+    model: anthropic/claude-opus-4-6
+    timeout: 90
+  model_info:
+    access: direct
+    context_window: 1000000
+    input_cost_per_token: 5.0e-06
+    max_tokens: 8192
+    note: 'Alias CC: claude-opus-4-6-20250514 → opus-4-6'
+    output_cost_per_token: 2.5e-05
+  model_name: claude-opus-4-6-20250514
+- litellm_params:
+    api_key: os.environ/ANTHROPIC_API_KEY
+    model: anthropic/claude-haiku-4-5-20251001
+    timeout: 60
+  model_info:
+    access: direct
+    context_window: 200000
+    input_cost_per_token: 1.0e-06
+    max_tokens: 8192
+    note: 'Alias CC: claude-3-5-haiku-20241022 → haiku-4-5'
+    output_cost_per_token: 5.0e-06
+  model_name: claude-3-5-haiku-20241022
+- litellm_params:
+    api_key: os.environ/ANTHROPIC_API_KEY
+    model: anthropic/claude-haiku-4-5-20251001
+    timeout: 60
+  model_info:
+    access: direct
+    context_window: 200000
+    input_cost_per_token: 1.0e-06
+    max_tokens: 8192
+    note: 'Alias CC: claude-haiku-3-5 → haiku-4-5'
+    output_cost_per_token: 5.0e-06
+  model_name: claude-haiku-3-5
 - litellm_params:
     api_base: https://api.z.ai/api/openai/v1
     api_key: os.environ/ZAI_API_KEY

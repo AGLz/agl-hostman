@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# cclitellm — Configura Claude Code / Claude-Flow para usar LiteLLM
-# Uso: source scripts/cclitellm.sh   ou   . scripts/cclitellm.sh
+# ccll — Configura Claude Code / Claude-Flow para usar LiteLLM
+# Uso: source scripts/ccll.sh   ou   . scripts/ccll.sh
 # Ref: docs/LITELLM-TROUBLESHOOTING.md
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 KEY="$("$REPO_ROOT/.claude/helpers/get-litellm-key.sh")"
 
 if [[ -z "$KEY" ]]; then
-  echo "⚠️  cclitellm: LITELLM_MASTER_KEY não encontrado em config/litellm/.env ou /opt/litellm/.env"
+  echo "⚠️  ccll: LITELLM_MASTER_KEY não encontrado em config/litellm/.env ou /opt/litellm/.env"
   echo "   Usando fallback sk-litellm-default (pode falhar com 401)"
   KEY="sk-litellm-default"
 fi

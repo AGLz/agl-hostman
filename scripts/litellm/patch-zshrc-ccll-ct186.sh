@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Corrige cclitellm() no ~/.zshrc: URL CT186 + chave real + modelo agl-primary (glm-5 dá timeout no proxy).
+# Corrige ccll() no ~/.zshrc: URL CT186 + chave real + modelo agl-primary (glm-5 dá timeout no proxy).
 set -euo pipefail
 
 ZSHRC="${1:-$HOME/.zshrc}"
@@ -20,7 +20,7 @@ zshrc = Path(sys.argv[1])
 key_helper = sys.argv[2]
 text = zshrc.read_text(encoding="utf-8")
 
-new_fn = f'''cclitellm () {{
+new_fn = f'''ccll () {{
     export MODEL_ROBUST="zai-glm-5"
     export MODEL_FAST="zai-glm-flash"
     export MODEL_BASE_URL="${{LITELLM_GATEWAY_URL:-http://100.125.249.8:4000}}"
@@ -33,15 +33,15 @@ new_fn = f'''cclitellm () {{
 }}'''
 
 pattern = re.compile(
-    r"cclitellm\s*\(\s*\)\s*\{[^}]*export MODEL_BASE_URL[^}]*cc_envs[^}]*\}",
+    r"(?:ccll|cclitellm)\s*\(\s*\)\s*\{[^}]*export MODEL_BASE_URL[^}]*cc_envs[^}]*\}",
     re.DOTALL,
 )
 
 if not pattern.search(text):
-    print("AVISO: bloco cclitellm() não encontrado — nada alterado", file=sys.stderr)
+    print("AVISO: bloco ccll() não encontrado — nada alterado", file=sys.stderr)
     sys.exit(0)
 
 updated = pattern.sub(new_fn, text, count=1)
 zshrc.write_text(updated, encoding="utf-8")
-print(f"OK: cclitellm() atualizado em {zshrc}")
+print(f"OK: ccll() atualizado em {zshrc}")
 PY

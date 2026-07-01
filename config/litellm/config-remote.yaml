@@ -106,6 +106,53 @@ model_list:
       context_window: 200000
       access: direct
 
+  # Claude Code v2.x — Sonnet 5 / Opus 4.8 (aliases até IDs Anthropic estáveis no proxy)
+  - model_name: "claude-sonnet-5"
+    litellm_params:
+      model: "anthropic/claude-sonnet-4-6"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      context_window: 200000
+      access: direct
+      note: "Alias CC → sonnet-4-6"
+
+  - model_name: "claude-opus-4-8"
+    litellm_params:
+      model: "anthropic/claude-opus-4-7"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      input_cost_per_token: 0.000005
+      output_cost_per_token: 0.000025
+      context_window: 1000000
+      access: direct
+      note: "Alias CC → opus-4-7"
+
+  - model_name: "claude-opus-4-5-20251101"
+    litellm_params:
+      model: "anthropic/claude-opus-4-7"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      context_window: 1000000
+      access: direct
+
+  - model_name: "claude-opus-4-6-20250514"
+    litellm_params:
+      model: "anthropic/claude-opus-4-6"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 90
+    model_info:
+      max_tokens: 8192
+      context_window: 1000000
+      access: direct
+
   - model_name: "claude-haiku"
     litellm_params:
       model: "anthropic/claude-haiku-4-5-20251001"
@@ -126,6 +173,26 @@ model_list:
       max_tokens: 8192
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000005
+      context_window: 200000
+      access: direct
+
+  - model_name: "claude-3-5-haiku-20241022"
+    litellm_params:
+      model: "anthropic/claude-haiku-4-5-20251001"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 60
+    model_info:
+      max_tokens: 8192
+      context_window: 200000
+      access: direct
+
+  - model_name: "claude-haiku-3-5"
+    litellm_params:
+      model: "anthropic/claude-haiku-4-5-20251001"
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 60
+    model_info:
+      max_tokens: 8192
       context_window: 200000
       access: direct
 
@@ -570,6 +637,10 @@ litellm_settings:
     - claude-sonnet: [or-glm-air-free]
     - claude-sonnet-4-6: [or-glm-air-free]
     - claude-sonnet-4-5-20250929: [or-glm-air-free]
+    - claude-sonnet-5: [or-glm-air-free]
+    - claude-opus-4-8: [or-glm-air-free]
+    - claude-opus-4-5-20251101: [or-glm-air-free]
+    - claude-opus-4-6-20250514: [or-glm-air-free]
     - claude-haiku: [or-glm-air-free]
     - claude-haiku-4-5-20251001: [or-glm-air-free]
 

@@ -1,6 +1,6 @@
 # Adicionar ao ~/.zshrc (ex.: tail -n +2 config/openclaw/zshrc-append.txt >> ~/.zshrc)
 # Ajustar AGL_HOSTMAN ao root do repo. Predefinição: providers directos (sem LiteLLM).
-# LiteLLM: export OPENCLAW_ENV_MODE=litellm antes do source; ver zshrc-openclaw-litellm.env e cclitellm.
+# LiteLLM: export OPENCLAW_ENV_MODE=litellm antes do source; ver zshrc-openclaw-litellm.env e ccll.
 
 export AGL_HOSTMAN="${AGL_HOSTMAN:-$HOME/apps/dev/agl/agl-hostman}"
 source "${AGL_HOSTMAN}/config/openclaw/zshrc-openclaw.env"

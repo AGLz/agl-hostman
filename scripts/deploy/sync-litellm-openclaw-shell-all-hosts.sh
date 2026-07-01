@@ -14,12 +14,17 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SKIP_ZSHRC="${SKIP_ZSHRC:-0}"
-# Host de onde copiar ~/.zshrc (default: agldv03)
-ZSHRC_SOURCE_HOST="${ZSHRC_SOURCE_HOST:-100.94.221.87}"
+# Host de onde copiar ~/.zshrc (default: agldv04 — shell CC_PROVIDER canónico)
+ZSHRC_SOURCE_HOST="${ZSHRC_SOURCE_HOST:-$(tailscale ip -4 2>/dev/null | head -1)}"
+ZSHRC_SOURCE_HOST="${ZSHRC_SOURCE_HOST:-100.113.9.98}"
 
 declare -A HOST_IPS
+HOST_IPS[agldv02]="100.95.204.85"
 HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
+HOST_IPS[agldv05]="100.82.71.49"
+HOST_IPS[agldv06]="100.71.229.12"
+HOST_IPS[agldv07]="100.64.175.89"
 HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 

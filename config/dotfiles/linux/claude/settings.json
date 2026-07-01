@@ -1,12 +1,12 @@
 {
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "LITELLM_GATEWAY_URL": "http://100.125.249.8:4000",
-    "ANTHROPIC_BASE_URL": "http://100.125.249.8:4000"
+    "LITELLM_GATEWAY_URL": "http://100.125.249.8:4000"
   },
-  "language": "Português",
   "statusLine": {
     "type": "command",
     "command": "/root/.claude/statusline-command.sh"
-  }
+  },
+  "language": "Português",
+  "model": "claude-sonnet-5"
 }

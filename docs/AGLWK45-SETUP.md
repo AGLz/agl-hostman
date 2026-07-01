@@ -253,7 +253,7 @@ export KIMI_URL="https://api.moonshot.ai/anthropic"
 export DEEPSEEK_URL="https://api.deepseek.com/anthropic"
 
 # === Funções úteis ===
-cclitellm() {
+ccll() {
     export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
     export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
     echo "Claude Code usando LiteLLM Gateway (agldv03)"
@@ -306,7 +306,7 @@ export OPENROUTER_API_KEY="sk-or-v1-29d2fe3f150e333c9a46af7938cfe578fd845d0f73d9
 export DASHSCOPE_API_KEY="sk-48f612bb16634018a21eec165e13f78a"
 
 # === Funções úteis ===
-cclitellm() {
+ccll() {
     export ANTHROPIC_BASE_URL="http://100.125.249.8:4000"
     export ANTHROPIC_AUTH_TOKEN="sk-litellm-default"
     echo "Claude Code usando LiteLLM Gateway (agldv03)"
@@ -553,7 +553,7 @@ curl -s -H "Authorization: Bearer sk-litellm-default" \
 
 ```bash
 # No Git Bash, com variáveis carregadas
-cclitellm
+ccll
 
 # Verificar se está usando o gateway
 echo $ANTHROPIC_BASE_URL
