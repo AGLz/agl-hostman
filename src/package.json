@@ -37,7 +37,7 @@
         "cytoscape": "3.33.1",
         "cytoscape-cola": "2.5.1",
         "cytoscape-cose-bilkent": "4.1.0",
-        "cytoscape-dagre": "2.5.0",
+        "cytoscape-dagre": "4.0.0",
         "date-fns": "^3.6.0",
         "framer-motion": "12.23.26",
         "laravel-echo": "^1.19.0",
