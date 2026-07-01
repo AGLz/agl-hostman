@@ -28,6 +28,22 @@ const PROPAGATE_FG = path.join(
   ROOT,
   "scripts/proxmox/propagate-arsenal-war-fg-legacy-ct549.sh",
 );
+const INSTALL_SIX_FG = path.join(
+  ROOT,
+  "scripts/skills/install-six-repos-secondbrain-fg-legacy.sh",
+);
+const VERIFY_SIX_FG = path.join(
+  ROOT,
+  "scripts/skills/verify-six-repos-fg-legacy.sh",
+);
+const PROPAGATE_SIX_FG = path.join(
+  ROOT,
+  "scripts/proxmox/propagate-six-repos-fg-legacy-ct549.sh",
+);
+const ENSURE_WIKI_FG = path.join(
+  ROOT,
+  "scripts/proxmox/ensure-llm-wiki-fg-legacy-ct549.sh",
+);
 
 test("install-arsenal-war-skills referencia ponytail, improve e video-transcript", () => {
   const content = readFileSync(INSTALL, "utf8");
@@ -83,6 +99,28 @@ test("propagate fg-legacy usa fgsrv7 e pct exec 549", () => {
   assert.match(content, /pct exec/);
 });
 
+test("install-six-repos-fg-legacy cobre llm-wiki e subset skills", () => {
+  const content = readFileSync(INSTALL_SIX_FG, "utf8");
+  assert.match(content, /llm-wiki-second-brain/);
+  assert.match(content, /llm-wiki-fs/);
+  assert.match(content, /obsidian-cli/);
+  assert.match(content, /humanizer/);
+  assert.match(content, /SKIP_RUFLO_SYNC/);
+});
+
+test("propagate-six-repos-fg-legacy empacota wiki do NFS", () => {
+  const content = readFileSync(PROPAGATE_SIX_FG, "utf8");
+  assert.match(content, /llm-wiki/);
+  assert.match(content, /agl-llm-wiki-bundle/);
+  assert.match(content, /verify-six-repos-fg-legacy/);
+});
+
+test("ensure-llm-wiki-fg-legacy usa bundle tar sem same-owner", () => {
+  const content = readFileSync(ENSURE_WIKI_FG, "utf8");
+  assert.match(content, /--no-same-owner/);
+  assert.match(content, /opt\/agl-llm-wiki/);
+});
+
 test("youtube_002 documenta as 4 pérolas", () => {
   const md = readFileSync(
     path.join(ROOT, "projects/video-analises/youtube_002.md"),
@@ -95,7 +133,18 @@ test("youtube_002 documenta as 4 pérolas", () => {
 });
 
 test("scripts passam bash -n", () => {
-  for (const script of [INSTALL, SCAN, HERMES, INSTALL_SKILLSPECTOR, INSTALL_FG, PROPAGATE_FG]) {
+  for (const script of [
+    INSTALL,
+    SCAN,
+    HERMES,
+    INSTALL_SKILLSPECTOR,
+    INSTALL_FG,
+    PROPAGATE_FG,
+    INSTALL_SIX_FG,
+    VERIFY_SIX_FG,
+    PROPAGATE_SIX_FG,
+    ENSURE_WIKI_FG,
+  ]) {
     const { status, stderr } = spawnSync("bash", ["-n", script], {
       encoding: "utf8",
     });

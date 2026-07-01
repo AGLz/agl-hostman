@@ -7,6 +7,7 @@
 #   ./scripts/skills/propagate-six-repos.sh --host agldv-all
 #   ./scripts/skills/propagate-six-repos.sh --host ct188
 #   ./scripts/skills/propagate-six-repos.sh --host aglwk45
+#   ./scripts/skills/propagate-six-repos.sh --host fg-legacy
 #   ./scripts/skills/propagate-six-repos.sh --host all --dry-run
 #
 # Variáveis:
@@ -31,7 +32,10 @@ AGLDV06_HOST="${AGLDV06_HOST:-root@100.71.229.12}"
 AGLDV07_HOST="${AGLDV07_HOST:-root@100.64.175.89}"
 AGLDV12_HOST="${AGLDV12_HOST:-root@100.71.217.115}"
 AGLSRV1_HOST="${AGLSRV1_HOST:-root@100.107.113.33}"
+FGSRV7_HOST="${FGSRV7_HOST:-root@100.109.181.93}"
 CT188_VMID="${CT188_VMID:-188}"
+CT549_VMID="${CT549_VMID:-549}"
+FG_LEGACY_ROOT="${FG_LEGACY_ROOT:-/var/www/fg_antigo}"
 AGLWK45_VMID="${AGLWK45_VMID:-104}"
 WK45_REPO_WIN="${WK45_REPO_WIN:-U:\\\\apps\\\\dev\\\\agl\\\\agl-hostman}"
 
@@ -42,15 +46,17 @@ SSH=(ssh -o BatchMode=yes -o ConnectTimeout=25 -o StrictHostKeyChecking=accept-n
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") --host <agldv02|agldv03|agldv04|agldv05|agldv06|agldv07|agldv12|agldv-all|ct188|aglwk45|all> [--dry-run]
+Usage: $(basename "$0") --host <agldv02|agldv03|agldv04|agldv05|agldv06|agldv07|agldv12|agldv-all|ct188|fg-legacy|ct549|aglwk45|all> [--dry-run]
 
 Propaga instalação Six Repos + post skills (sync + verify + Claude Code plugins).
 
   agldv02..12  Dev LXC/CT — install-post-skills-claude-code.sh + verify
   agldv-all    Todos os agldv* acima (best-effort SSH)
   ct188        Hermes — ensure llm-wiki NFS + smoke leitura
+  fg-legacy    fg_antigo CT549 (fgsrv7) — six-repos subset + llm-wiki clone
+  ct549        Alias de fg-legacy
   aglwk45      Windows VM104 — propagate-six-repos-wk45-qemu.sh
-  all          agldv-all + ct188 + aglwk45
+  all          agldv-all + ct188 + fg-legacy + aglwk45
 USAGE
 }
 
@@ -182,6 +188,23 @@ propagate_ct188() {
   ok "CT188 propagate + smoke concluído (sem superpowers no contentor)"
 }
 
+propagate_fg_legacy() {
+  log "=== fg-legacy CT${CT549_VMID} ($FGSRV7_HOST) ==="
+  local prop="$HOSTMAN_ROOT/scripts/proxmox/propagate-six-repos-fg-legacy-ct549.sh"
+  if [[ ! -f "$prop" ]]; then
+    warn "propagate-six-repos-fg-legacy-ct549.sh em falta"
+    return 1
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+  FGSRV7_HOST="$FGSRV7_HOST" CT_VMID="$CT549_VMID" FG_LEGACY_ROOT="$FG_LEGACY_ROOT" \
+    bash "$prop" --dry-run
+    return 0
+  fi
+  FGSRV7_HOST="$FGSRV7_HOST" CT_VMID="$CT549_VMID" FG_LEGACY_ROOT="$FG_LEGACY_ROOT" \
+    bash "$prop"
+  ok "fg-legacy CT${CT549_VMID} propagate concluído"
+}
+
 propagate_aglwk45() {
   log "=== aglwk45 (VM$AGLWK45_VMID via AGLSRV1 guest agent) ==="
   local qemu="$HOSTMAN_ROOT/scripts/skills/propagate-six-repos-wk45-qemu.sh"
@@ -221,6 +244,7 @@ run_host() {
     agldv12) propagate_agldv12 ;;
     agldv-all) propagate_agldv_all ;;
     ct188) propagate_ct188 ;;
+    fg-legacy|ct549) propagate_fg_legacy ;;
     aglwk45) propagate_aglwk45 ;;
     *) echo "Host desconhecido: $1" >&2; exit 1 ;;
   esac
@@ -230,6 +254,7 @@ if [[ "$HOST" == "all" ]]; then
   FAIL=0
   propagate_agldv_all || FAIL=1
   run_host ct188 || FAIL=1
+  run_host fg-legacy || { warn "fg-legacy skipped/failed"; FAIL=1; }
   run_host aglwk45 || { warn "aglwk45 skipped/failed (VM offline ou U: indisponível)"; FAIL=1; }
   [[ "$FAIL" -eq 0 ]] || exit 1
 else

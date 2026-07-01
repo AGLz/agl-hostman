@@ -1,0 +1,53 @@
+---
+description: Segundo cérebro AGL (llm-wiki) — fg_antigo CT549; consultar vault antes de implementar
+globs:
+alwaysApply: false
+---
+
+# llm-wiki — segundo cérebro (fg-legacy)
+
+O repositório **[llm-wiki](https://github.com/AGLz/llm-wiki)** é a **fonte de verdade curada** para conhecimento AGL. O projeto `fg_antigo` (CT549) é **capacidade operacional PHP legado** — não duplicar runbooks em `docs/` solto.
+
+## Paths (fg-legacy CT549)
+
+| Camada   | Path                                      |
+| -------- | ----------------------------------------- |
+| Vault    | `/opt/agl-llm-wiki`                       |
+| Catálogo | `wiki/index.md` — **começar sempre aqui** |
+| Wiki     | `wiki/`                                   |
+| Fontes   | `raw/` — **só leitura**                   |
+| Project  | `/var/www/fg_antigo`                      |
+
+## Antes de implementar
+
+1. **Query** — Ler `wiki/index.md` e páginas relevantes (MCP `llm-wiki-fs`, skill `obsidian-cli`, ou Read).
+2. **Honcho vs wiki** — Factos documentados → **llm-wiki**; preferências de sessão → Honcho (se disponível).
+3. **Linear** — Backlog; não substitui runbooks no wiki.
+
+## Depois de mudanças relevantes
+
+1. Actualizar ou criar página em `wiki/` (wikilinks `[[...]]`, frontmatter).
+2. Actualizar `wiki/index.md` e `wiki/log.md`.
+3. No `fg_antigo`, pointers curtos + link wiki — **não** copiar runbooks completos.
+
+## Ferramentas Cursor (fg_antigo)
+
+| Ferramenta | Uso |
+| ---------- | --- |
+| MCP `llm-wiki-fs` | Leitura/escrita `wiki/` e `raw/` |
+| Skill `obsidian-cli` | Operações vault (search, append) |
+| Skill `llm-wiki-ingest` | Síntese e ingest no wiki |
+| `/llm-wiki-ingest` | Comando Cursor |
+| `scripts/skills/verify-six-repos-fg-legacy.sh` | Verificação Six Repos + vault |
+
+## Six Repos (subset CT549)
+
+obsidian-cli, humanizer, fact-check, prompt-improver, superpowers (subset), karpathy-skills.
+
+Instalar/atualizar: `bash scripts/skills/install-six-repos-secondbrain-fg-legacy.sh`
+
+## Referências wiki
+
+- `[[Plano Six Repos Multi-Agente]]`
+- `[[Obsidian CLI Skill]]`
+- `[[agl-hostman — Contrato Agentes Cursor]]`
