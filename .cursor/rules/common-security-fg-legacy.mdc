@@ -1,0 +1,22 @@
+---
+description: Segurança geral fg-legacy — secrets, inputs, checklist pré-commit
+alwaysApply: false
+---
+
+# Security — fg-legacy
+
+## Antes de commit
+
+- [ ] Sem secrets no diff (DB, API, SSH keys)
+- [ ] `.env`, `conectar.php`, `configs.php` fora do Git
+- [ ] Inputs de utilizador validados nos paths alterados
+- [ ] Mensagens de erro não revelam paths internos ou SQL
+
+## Resposta a incidente
+
+1. Parar deploy se credencial exposta
+2. Rotacionar secret
+3. Revisar histórico Git do ficheiro
+4. Documentar em llm-wiki se decisão durável
+
+Ver também: `php-security-fg-legacy.mdc`, skill `security-web-basics`.

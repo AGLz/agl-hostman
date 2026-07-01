@@ -1,0 +1,33 @@
+---
+description: Pipeline de entrega fg-legacy — nginx, curl, git; Cursor no CT549
+alwaysApply: false
+---
+
+# Pipeline de Entrega — fg-legacy (CT549)
+
+> Aplica a alterações em `public_html/`, Nginx, skills Cursor e scripts versionados.
+
+## Definition of Done
+
+1. **Implementar** — diff mínimo; ponytail + `php-dev-legacy`.
+2. **Validar PHP/site** — smoke manual ou script do path alterado.
+3. **Nginx** (se tocado): `nginx -t` → `systemctl reload nginx` → `curl -sI https://www5.aglz.io/`.
+4. **Console JS** — sem erros novos (skill `legacy-console-triage`).
+5. **Review** — pedir review em mudanças >3 ficheiros ou auth/CSP/SQL.
+6. **Commit** — conventional commits; branch `dev`; push quando política da sessão exigir.
+7. **Propagação skills** — se alteraste pack AGL: `verify-fg-legacy-pack.sh` no CT.
+
+## Comandos típicos (CT549)
+
+```bash
+cd /var/www/fg_antigo
+nginx -t && systemctl reload nginx
+bash scripts/skills/verify-fg-legacy-pack.sh
+git status && git diff --stat
+```
+
+## Proibições
+
+- Não declarar feito sem validar Nginx quando headers/vhost mudaram.
+- Não converter encoding ISO-8859-1 → UTF-8 em massa.
+- Não `--no-verify` em hooks sem pedido explícito.

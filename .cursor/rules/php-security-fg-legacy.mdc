@@ -1,0 +1,41 @@
+---
+description: Segurança PHP 5.6 legado — fg_antigo (SQL, XSS, sessões, secrets)
+globs: ["public_html/**/*.php", "**/conectar.php", "**/configs.php"]
+alwaysApply: false
+---
+
+# PHP Security — fg legado
+
+> Extensão de `common-security.mdc` para **PHP 5.6** e código em `public_html/`.
+
+## SQL
+
+- Preferir **mysqli** com prepared statements (`mysqli_prepare` / bind) em código novo.
+- Código antigo com concatenação: ao tocar, parametrizar — não expandir scope.
+- Nunca expor erros SQL ao browser em produção.
+
+## XSS e output
+
+- Escapar output HTML com `htmlspecialchars($x, ENT_QUOTES, 'ISO-8859-1')` quando o ficheiro é Latin-1.
+- Não injectar `$_GET`/`$_POST` em HTML/JS sem escape.
+
+## Sessões e auth
+
+- `session_regenerate_id(true)` após login bem-sucedido.
+- Não commitar `conectar.php`, `configs.php`, `.env` (já no `.gitignore`).
+
+## Secrets
+
+- Credenciais DB só em ficheiros ignorados pelo Git.
+- Rotacionar se algum agente/commit as expôs.
+
+## Uploads e ficheiros
+
+- Validar extensão e MIME; paths sem traversal (`..`).
+- `public_html/vendas/fotos/` — dados de utilizador, não versionar.
+
+## Checklist pré-commit (PHP)
+
+- [ ] Sem passwords/API keys no diff
+- [ ] Inputs de formulário validados no path alterado
+- [ ] Diff mínimo (ponytail) — sem reformat em massa

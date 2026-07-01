@@ -78,12 +78,18 @@ install_second_brain_rule() {
 
 install_mcp_wiki() {
   mkdir -p "$FG_LEGACY_ROOT/.cursor"
+  local npx_bin="npx"
+  if [[ -x /usr/local/bin/npx20 ]]; then
+    npx_bin="/usr/local/bin/npx20"
+  elif command -v npx20 >/dev/null 2>&1; then
+    npx_bin="$(command -v npx20)"
+  fi
   cat >"$FG_LEGACY_ROOT/.cursor/mcp.json" <<JSON
 {
   "mcpServers": {
     "llm-wiki-fs": {
       "type": "stdio",
-      "command": "npx",
+      "command": "${npx_bin}",
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
@@ -95,7 +101,7 @@ install_mcp_wiki() {
   }
 }
 JSON
-  ok ".cursor/mcp.json (llm-wiki-fs)"
+  ok ".cursor/mcp.json (llm-wiki-fs, ${npx_bin})"
 }
 
 install_wiki_ingest_pack() {
@@ -157,6 +163,33 @@ sync_superpowers_subset() {
     [[ -f "$repo/skills/$name/SKILL.md" ]] || continue
     sync_skill_to_project "$repo/skills/$name" "$name"
   done
+  local sd="$repo/skills/systematic-debugging"
+  if [[ -f "$sd/root-cause-tracing.md" ]]; then
+    for root in "$FG_LEGACY_ROOT/.cursor/skills" "$FG_LEGACY_ROOT/.claude/skills"; do
+      mkdir -p "$root/root-cause-tracing"
+      {
+        echo "---"
+        echo "name: root-cause-tracing"
+        echo "description: Rastrear causa raiz antes de corrigir bugs."
+        echo "---"
+        echo ""
+        cat "$sd/root-cause-tracing.md"
+      } >"$root/root-cause-tracing/SKILL.md"
+    done
+  fi
+  if [[ -f "$sd/defense-in-depth.md" ]]; then
+    for root in "$FG_LEGACY_ROOT/.cursor/skills" "$FG_LEGACY_ROOT/.claude/skills"; do
+      mkdir -p "$root/defense-in-depth"
+      {
+        echo "---"
+        echo "name: defense-in-depth"
+        echo "description: Validação em múltiplas camadas."
+        echo "---"
+        echo ""
+        cat "$sd/defense-in-depth.md"
+      } >"$root/defense-in-depth/SKILL.md"
+    done
+  fi
   ok "superpowers subset"
 }
 

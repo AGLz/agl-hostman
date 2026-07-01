@@ -46,7 +46,11 @@ obsidian-cli, humanizer, fact-check, prompt-improver, superpowers (subset), karp
 
 Instalar/atualizar: `bash scripts/skills/install-six-repos-secondbrain-fg-legacy.sh`
 
-## Referências wiki
+## Cursor no CT549
+
+- **Node 20:** `bash scripts/maint/install-node20-ct549.sh` → `npx20` para MCP
+- Pack completo: `propagate-fg-legacy-full-ct549.sh` (agl-hostman)
+- Verificar: `bash scripts/skills/verify-fg-legacy-pack.sh`
 
 - `[[Plano Six Repos Multi-Agente]]`
 - `[[Obsidian CLI Skill]]`

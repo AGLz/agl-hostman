@@ -1,0 +1,52 @@
+---
+description: Memória operacional fg-legacy CT549 — Cursor no CT, PHP 5.6, Nginx, Tailscale
+globs:
+alwaysApply: false
+---
+
+# Memória fg-legacy (CT549)
+
+Consultar antes de operar infra ou propagar skills neste projeto.
+
+## Host e acesso
+
+| Item | Valor |
+| ---- | ----- |
+| Host Proxmox | **fgsrv7** — Tailscale `100.109.181.93` |
+| CT | **549** (fg-legacy) |
+| Projeto | `/var/www/fg_antigo` — branch Git **`dev`** |
+| Site | `https://www5.aglz.io/` (Nginx) |
+| llm-wiki | `/opt/agl-llm-wiki` (bundle tar do agldv; sem clone Git privado) |
+
+**Padrão AGL:** `ssh root@100.109.181.93 'pct exec 549 -- …'`
+
+## Stack runtime (CT549)
+
+- **PHP produção:** 5.6 FPM (`php5.6-fpm`) — **não** assumir PHP 8.x no vhost.
+- **Encoding:** muitos ficheiros `public_html/**` em **ISO-8859-1** — não converter para UTF-8 sem pedido explícito.
+- **Node:** alvo **20 LTS** em `/usr/local/bin/node20` (MCP Cursor, `npx`, video-transcript). Node 12 Ubuntu pode coexistir em `/usr/bin/node`.
+- **Docker:** ausente no CT — SkillSpector local e contentores **não** disponíveis.
+
+## Nginx / CSP
+
+- Vhost: `/etc/nginx/sites-available/fg-antigo-www5.conf`
+- Sempre: `nginx -t` → `systemctl reload nginx`
+- Headers: `curl -sI https://www5.aglz.io/ | tr -d '\r' | sed -n '1,40p'`
+- Skill: `.cursor/skills/nginx-csp-triage`
+
+## Cursor no CT
+
+- Regras: `.cursor/rules/` (ponytail, llm-wiki-second-brain, pipeline fg, security)
+- MCP: `.cursor/mcp.json` → `llm-wiki-fs` (usa `npx20` se instalado)
+- Propagação completa: `bash scripts/proxmox/propagate-fg-legacy-full-ct549.sh` (agl-hostman)
+- Verificar pack: `bash scripts/skills/verify-fg-legacy-pack.sh`
+- Node 20: `bash scripts/maint/install-node20-ct549.sh`
+
+## O que NÃO aplicar aqui
+
+- `laravel-boost`, `primary-guide` agl-hostman, Ruflo, harness-router ECC completo
+- LiteLLM/Hermes runbooks (só consulta wiki se relevante ao site)
+
+## Wiki
+
+Runbook: `[[fg-legacy — Operações CT549]]`

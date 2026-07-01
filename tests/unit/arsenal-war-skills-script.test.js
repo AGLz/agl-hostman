@@ -121,6 +121,31 @@ test("ensure-llm-wiki-fg-legacy usa bundle tar sem same-owner", () => {
   assert.match(content, /opt\/agl-llm-wiki/);
 });
 
+const INSTALL_ESSENTIALS = path.join(
+  ROOT,
+  "scripts/skills/install-fg-legacy-essentials.sh",
+);
+const VERIFY_PACK = path.join(ROOT, "scripts/skills/verify-fg-legacy-pack.sh");
+const PROPAGATE_FULL = path.join(
+  ROOT,
+  "scripts/proxmox/propagate-fg-legacy-full-ct549.sh",
+);
+const NODE20 = path.join(ROOT, "scripts/maint/install-node20-ct549.sh");
+
+test("install-fg-legacy-essentials cobre regras e node20", () => {
+  const content = readFileSync(INSTALL_ESSENTIALS, "utf8");
+  assert.match(content, /learned-memories-fg-legacy/);
+  assert.match(content, /npx20/);
+  assert.match(content, /prune-fg-legacy-skills/);
+});
+
+test("propagate-fg-legacy-full orquestra arsenal six-repos essentials", () => {
+  const content = readFileSync(PROPAGATE_FULL, "utf8");
+  assert.match(content, /propagate-arsenal-war-fg-legacy/);
+  assert.match(content, /propagate-six-repos-fg-legacy/);
+  assert.match(content, /install-node20-ct549/);
+});
+
 test("youtube_002 documenta as 4 pérolas", () => {
   const md = readFileSync(
     path.join(ROOT, "projects/video-analises/youtube_002.md"),
@@ -144,6 +169,10 @@ test("scripts passam bash -n", () => {
     VERIFY_SIX_FG,
     PROPAGATE_SIX_FG,
     ENSURE_WIKI_FG,
+    INSTALL_ESSENTIALS,
+    VERIFY_PACK,
+    PROPAGATE_FULL,
+    NODE20,
   ]) {
     const { status, stderr } = spawnSync("bash", ["-n", script], {
       encoding: "utf8",
