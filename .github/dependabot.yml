@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # NPM dependencies
+  # NPM dependencies — raiz (API Fastify)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -20,9 +20,7 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    # Security updates take priority
     target-branch: "develop"
-    # Group minor and patch updates together
     groups:
       production-dependencies:
         patterns:
@@ -40,6 +38,79 @@ updates:
           - "eslint*"
           - "prettier"
         dependency-type: "development"
+
+  # Laravel + Vite (frontend principal)
+  - package-ecosystem: "npm"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:30"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "aguileraz"
+    labels:
+      - "dependencies"
+      - "security"
+      - "frontend"
+    commit-message:
+      prefix: "chore(deps)"
+    target-branch: "develop"
+
+  # Vite standalone (src/web)
+  - package-ecosystem: "npm"
+    directory: "/src/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:45"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "aguileraz"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+    target-branch: "develop"
+
+  # MCP search server
+  - package-ecosystem: "npm"
+    directory: "/mcp-servers/search"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "aguileraz"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+    target-branch: "develop"
+
+  # Skill post-job (pnpm)
+  - package-ecosystem: "npm"
+    directory: "/.agents/skills/post-job"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:15"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "aguileraz"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+    target-branch: "develop"
 
   # Docker dependencies
   - package-ecosystem: "docker"
