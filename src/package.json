@@ -39,7 +39,7 @@
         "cytoscape-cose-bilkent": "4.1.0",
         "cytoscape-dagre": "2.5.0",
         "date-fns": "^3.6.0",
-        "framer-motion": "12.23.26",
+        "framer-motion": "12.42.2",
         "laravel-echo": "^1.19.0",
         "lodash": "^4.17.21",
         "lucide-react": "^0.553.0",
