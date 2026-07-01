@@ -1,0 +1,35 @@
+<?php
+/**
+ * Template homologação Bradesco — copiar para config.homolog.php e preencher.
+ * Não commitar config.homolog.php (dados reais do cedente).
+ */
+return array(
+    'banco_codigo' => '237',
+    'banco_nome' => 'Bradesco',
+    'razao_social' => 'EMPRESA EXEMPLO LTDA',
+    'cedente_nome_curto' => 'EMPRESA EXEMPLO LTDA',
+    'cnpj' => '00.000.000/0001-00',
+    'endereco_cedente' => 'Rua Exemplo, 100',
+    'bairro_cedente' => 'Centro',
+    'cidade_cedente' => 'Cidade',
+    'uf_cedente' => 'SP',
+    'cep_cedente' => '00000-000',
+    'convenio' => '0000000',
+    'carteira' => '09',
+    'agencia' => '0000',
+    'agencia_dv' => '0',
+    'conta' => '000000',
+    'conta_dv' => '0',
+    'layout' => 'cnab400',
+    'sequencial_remessa_inicial' => 1,
+    'nosso_numero_inicial' => 1,
+    'pagador_nome' => 'LOCATARIO TESTE HOMOLOGACAO',
+    'pagador_documento' => '000.000.000-00',
+    'pagador_endereco' => 'Rua Exemplo, 100',
+    'pagador_bairro' => 'Centro',
+    'pagador_cidade' => 'Cidade',
+    'pagador_uf' => 'SP',
+    'pagador_cep' => '00000-000',
+    'valor_teste' => 298.00,
+    'dias_vencimento' => 15,
+);

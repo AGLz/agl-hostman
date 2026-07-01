@@ -10,15 +10,23 @@ from pathlib import Path
 VM310_GPU0 = os.environ.get("VM310_OLLAMA_GPU0", "http://100.67.253.52:11434")
 VM310_GPU1 = os.environ.get("VM310_OLLAMA_GPU1", "http://100.67.253.52:11435")
 VM110_BASE = os.environ.get("VM110_OLLAMA_BASE", "http://100.74.118.51:11434")
+CPU_MODE = os.environ.get("VM310_CPU_MODE", "").lower() in ("1", "true", "yes")
 
 # Contexto alvo (tunable via env antes de deploy; validar com tune-vm310-ollama-context.sh)
-CTX_PRIMARY = int(os.environ.get("VM310_AGL_PRIMARY_CTX", "32768"))
-CTX_STRONG = int(os.environ.get("VM310_AGL_PRIMARY_STRONG_CTX", "16384"))
-CTX_FAST = int(os.environ.get("VM310_AGL_PRIMARY_FAST_CTX", "8192"))
+_default_ctx_primary = "8192" if CPU_MODE else "32768"
+CTX_PRIMARY = int(os.environ.get(
+    "VM310_AGL_PRIMARY_CTX", _default_ctx_primary))
+CTX_STRONG = int(os.environ.get(
+    "VM310_AGL_PRIMARY_STRONG_CTX", "8192" if CPU_MODE else "16384"))
+CTX_FAST = int(os.environ.get("VM310_AGL_PRIMARY_FAST_CTX",
+               "4096" if CPU_MODE else "8192"))
 CTX_VM110 = int(os.environ.get("VM110_AGL_PRIMARY_CTX", "8192"))
-OUT_PRIMARY = int(os.environ.get("VM310_AGL_PRIMARY_MAX_OUT", "8192"))
-TIMEOUT_LONG = int(os.environ.get("VM310_OLLAMA_TIMEOUT", "240"))
-TIMEOUT_PRIMARY = int(os.environ.get("VM310_AGL_PRIMARY_TIMEOUT", "12"))
+OUT_PRIMARY = int(os.environ.get("VM310_AGL_PRIMARY_MAX_OUT",
+                  "2048" if CPU_MODE else "8192"))
+TIMEOUT_LONG = int(os.environ.get(
+    "VM310_OLLAMA_TIMEOUT", "600" if CPU_MODE else "240"))
+TIMEOUT_PRIMARY = int(os.environ.get(
+    "VM310_AGL_PRIMARY_TIMEOUT", "300" if CPU_MODE else "12"))
 TIMEOUT_VM110 = int(os.environ.get("VM110_OLLAMA_TIMEOUT", "90"))
 
 AGL_PRIMARY_FALLBACKS = [
@@ -68,101 +76,119 @@ def _block(
 """
 
 
-PATCHES: dict[str, str] = {
-    # Primário local: modelo menor + contexto longo (qwen3:4b ~5GB VRAM → margem para KV 32k)
-    "agl-primary": _block(
-        "ollama/qwen3:4b",
-        VM310_GPU0,
-        "VM310 GPU0 — qwen3:4b ctx-long (primário local AGL)",
-        ctx=CTX_PRIMARY,
-        timeout=TIMEOUT_PRIMARY,
-        max_out=OUT_PRIMARY,
-        think=False,
-        num_ctx=CTX_PRIMARY,
-    ),
-    "agl-primary-fast": _block(
-        "ollama/gemma4-qat",
-        VM310_GPU0,
-        "VM310 GPU0 — gemma4-qat rápido (ctx curto)",
-        ctx=CTX_FAST,
-        timeout=120,
-        max_out=4096,
-    ),
-    "agl-primary-strong": _block(
-        "ollama/qwen3:8b",
-        VM310_GPU1,
-        "VM310 GPU1 — qwen3:8b ctx médio",
-        ctx=CTX_STRONG,
-        timeout=TIMEOUT_LONG,
-        max_out=8192,
-        think=False,
-        num_ctx=CTX_STRONG,
-    ),
-    "agl-primary-vm110": _block(
-        "ollama/qwen3:4b",
-        VM110_BASE,
-        "VM110 GTX 1650 — qwen3:4b (failover quando VM310 offline)",
-        ctx=CTX_VM110,
-        timeout=TIMEOUT_VM110,
-        max_out=4096,
-        think=False,
-        num_ctx=CTX_VM110,
-    ),
-    "ollama-gemma4-qat": _block(
-        "ollama/gemma4-qat",
-        VM310_GPU0,
-        "Alias → VM310 gemma4-qat :11434",
-        ctx=CTX_FAST,
-    ),
-    "ollama-qwen3-8b": _block(
-        "ollama/qwen3:8b",
-        VM310_GPU1,
-        "Alias → VM310 qwen3:8b :11435",
-        ctx=CTX_STRONG,
-        timeout=TIMEOUT_LONG,
-        think=False,
-        num_ctx=CTX_STRONG,
-    ),
-    "ollama-qwen3-4b-fast": _block(
-        "ollama/qwen3:4b",
-        VM310_GPU0,
-        "Alias → VM310 qwen3:4b :11434",
-        ctx=CTX_PRIMARY,
-        timeout=TIMEOUT_LONG,
-        think=False,
-        num_ctx=CTX_PRIMARY,
-    ),
-    "ollama-qwen3-4b": _block(
-        "ollama/qwen3:4b",
-        VM310_GPU0,
-        "Alias legado → VM310 qwen3:4b :11434",
-        ctx=CTX_PRIMARY,
-        timeout=TIMEOUT_LONG,
-        think=False,
-        num_ctx=CTX_PRIMARY,
-    ),
-    "openai/ollama-qwen3-4b": _block(
-        "ollama/qwen3:4b",
-        VM310_GPU0,
-        "Alias OpenAI-compat → VM310 qwen3:4b",
-        ctx=CTX_PRIMARY,
-        timeout=TIMEOUT_LONG,
-        think=False,
-        num_ctx=CTX_PRIMARY,
-    ),
-    "ollama-llama31-8b": _block(
-        "ollama/llama3.1:8b",
-        VM310_GPU0,
-        "Alias → VM310 llama3.1:8b :11434",
-        ctx=CTX_FAST,
-    ),
-    "ollama-gemma3-4b": _block(
-        "ollama/gemma4-qat",
-        VM310_GPU0,
-        "Alias legado gemma3 → VM310 gemma4-qat :11434",
-        ctx=CTX_FAST,
-    ),
-}
+def _patches() -> dict[str, str]:
+    # Reason: benchmark CPU 2026-06-30 — llama3.1:8b ~0.85 tok/s vs qwen3:4b ~0.28
+    primary_model = "ollama/llama3.1:8b" if CPU_MODE else "ollama/qwen3:4b"
+    primary_note = (
+        "VM310 CPU-only — llama3.1:8b (~0.85 tok/s, melhor CPU 2026-06-30)"
+        if CPU_MODE
+        else "VM310 GPU0 — qwen3:4b ctx-long (primário local AGL)"
+    )
+    strong_api = VM310_GPU0 if CPU_MODE else VM310_GPU1
+    strong_note = (
+        "VM310 CPU — qwen3:8b :11434 (secundário CPU)"
+        if CPU_MODE
+        else "VM310 GPU1 — qwen3:8b ctx médio"
+    )
+    return {
+        # Primário local
+        "agl-primary": _block(
+            primary_model,
+            VM310_GPU0,
+            primary_note,
+            ctx=CTX_PRIMARY,
+            timeout=TIMEOUT_PRIMARY,
+            max_out=OUT_PRIMARY,
+            think=False if not CPU_MODE else None,
+            num_ctx=CTX_PRIMARY,
+        ),
+        "agl-primary-fast": _block(
+            "ollama/gemma4-qat",
+            VM310_GPU0,
+            "VM310 GPU0 — gemma4-qat rápido (ctx curto)",
+            ctx=CTX_FAST,
+            timeout=120,
+            max_out=4096,
+        ),
+        "agl-primary-strong": _block(
+            "ollama/qwen3:8b",
+            strong_api,
+            strong_note,
+            ctx=CTX_STRONG,
+            timeout=TIMEOUT_LONG,
+            max_out=4096 if CPU_MODE else 8192,
+            think=False,
+            num_ctx=CTX_STRONG,
+        ),
+        "agl-primary-vm110": _block(
+            "ollama/qwen3:4b",
+            VM110_BASE,
+            "VM110 GTX 1650 — qwen3:4b (failover quando VM310 offline)",
+            ctx=CTX_VM110,
+            timeout=TIMEOUT_VM110,
+            max_out=4096,
+            think=False,
+            num_ctx=CTX_VM110,
+        ),
+        "ollama-gemma4-qat": _block(
+            "ollama/gemma4-qat",
+            VM310_GPU0,
+            "Alias → VM310 gemma4-qat :11434",
+            ctx=CTX_FAST,
+        ),
+        "ollama-qwen3-8b": _block(
+            "ollama/qwen3:8b",
+            VM310_GPU1,
+            "Alias → VM310 qwen3:8b :11435",
+            ctx=CTX_STRONG,
+            timeout=TIMEOUT_LONG,
+            think=False,
+            num_ctx=CTX_STRONG,
+        ),
+        "ollama-qwen3-4b-fast": _block(
+            "ollama/qwen3:4b",
+            VM310_GPU0,
+            "Alias → VM310 qwen3:4b :11434",
+            ctx=CTX_PRIMARY,
+            timeout=TIMEOUT_LONG,
+            think=False,
+            num_ctx=CTX_PRIMARY,
+        ),
+        "ollama-qwen3-4b": _block(
+            "ollama/qwen3:4b",
+            VM310_GPU0,
+            "Alias legado → VM310 qwen3:4b :11434",
+            ctx=CTX_PRIMARY,
+            timeout=TIMEOUT_LONG,
+            think=False,
+            num_ctx=CTX_PRIMARY,
+        ),
+        "openai/ollama-qwen3-4b": _block(
+            "ollama/qwen3:4b",
+            VM310_GPU0,
+            "Alias OpenAI-compat → VM310 qwen3:4b",
+            ctx=CTX_PRIMARY,
+            timeout=TIMEOUT_LONG,
+            think=False,
+            num_ctx=CTX_PRIMARY,
+        ),
+        "ollama-llama31-8b": _block(
+            "ollama/llama3.1:8b",
+            VM310_GPU0,
+            "Alias → VM310 llama3.1:8b :11434",
+            ctx=CTX_FAST,
+            timeout=TIMEOUT_LONG if CPU_MODE else 120,
+        ),
+        "ollama-gemma3-4b": _block(
+            "ollama/gemma4-qat",
+            VM310_GPU0,
+            "Alias legado gemma3 → VM310 gemma4-qat :11434",
+            ctx=CTX_FAST,
+        ),
+    }
+
+
+PATCHES: dict[str, str] = _patches()
 
 
 def _insert_after_model(text: str, after: str, name: str, block: str) -> str:
@@ -249,10 +275,12 @@ def patch_config(text: str) -> str:
             raise SystemExit(f"model_name não encontrado: {name}")
     text = _replace_model_blocks(text, PATCHES)
     text = _patch_agl_primary_fallbacks(text)
+    mode = "CPU llama3.1:8b" if CPU_MODE else "GPU qwen3:4b"
     header = (
-        f"# Ollama dual: VM310 agl-primary qwen3:4b ctx={CTX_PRIMARY} @ {VM310_GPU0}; "
+        f"# Ollama VM310 agl-primary {mode} ctx={CTX_PRIMARY} @ {VM310_GPU0}; "
         f"VM110 agl-primary-vm110 ctx={CTX_VM110} @ {VM110_BASE}\n"
         "# Tune VM310: scripts/aglsrv3/tune-vm310-ollama-context.sh\n"
+        + ("# CPU-only: scripts/aglsrv3/apply-vm310-cpu-ollama.sh\n" if CPU_MODE else "")
     )
     if text.startswith("#"):
         text = re.sub(r"^(?:#.*\n)+", header, text, count=1)

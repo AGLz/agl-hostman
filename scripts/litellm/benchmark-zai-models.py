@@ -44,7 +44,8 @@ from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
-LITELLM_URL = os.environ.get("LITELLM_URL", "http://100.125.249.8:4000").rstrip("/")
+LITELLM_URL = os.environ.get(
+    "LITELLM_URL", "http://100.125.249.8:4000").rstrip("/")
 LITELLM_KEY = os.environ.get("LITELLM_KEY", "")
 TIMEOUT = int(os.environ.get("BENCH_TIMEOUT", "120"))
 REPEATS = max(1, int(os.environ.get("BENCH_REPEATS", "2")))
@@ -53,7 +54,8 @@ DELAY_SEC = float(os.environ.get("BENCH_DELAY_SEC", "0.6"))
 
 _TS = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
 _OUT_DIR = _REPO_ROOT / "docs" / "litellm-battery"
-OUT_JSON = os.environ.get("OUT_JSON", str(_OUT_DIR / f"zai-benchmark-{_TS}.json"))
+OUT_JSON = os.environ.get("OUT_JSON", str(
+    _OUT_DIR / f"zai-benchmark-{_TS}.json"))
 OUT_MD = os.environ.get("OUT_MD", str(_OUT_DIR / f"zai-benchmark-{_TS}.md"))
 
 # Lista curada: aliases cujo backend é mesmo api.z.ai (ver config/litellm/config.yaml).
@@ -120,12 +122,12 @@ def _json_tool_check(text: str) -> bool:
         cleaned = cleaned.strip("`")
         nl = cleaned.find("\n")
         if nl != -1:
-            cleaned = cleaned[nl + 1 :]
+            cleaned = cleaned[nl + 1:]
     start, end = cleaned.find("{"), cleaned.rfind("}")
     if start == -1 or end == -1 or end <= start:
         return False
     try:
-        obj = json.loads(cleaned[start : end + 1])
+        obj = json.loads(cleaned[start: end + 1])
     except json.JSONDecodeError:
         return False
     return obj.get("tool") == "read_file" and isinstance(obj.get("args"), dict)
@@ -227,14 +229,16 @@ def run_sample(alias: str, prompt_id: str) -> Sample:
         "temperature": 0,
     }
     start = time.perf_counter()
-    status, body = _post(f"{LITELLM_URL}/v1/chat/completions", payload, LITELLM_KEY)
+    status, body = _post(
+        f"{LITELLM_URL}/v1/chat/completions", payload, LITELLM_KEY)
     latency_ms = int((time.perf_counter() - start) * 1000)
 
     if status != 200:
         msg = ""
         if isinstance(body, dict):
             err = body.get("error")
-            msg = err.get("message", "") if isinstance(err, dict) else str(err or body)
+            msg = err.get("message", "") if isinstance(
+                err, dict) else str(err or body)
         return Sample(prompt_id, False, status, latency_ms, error=msg[:200])
 
     try:
@@ -245,7 +249,8 @@ def run_sample(alias: str, prompt_id: str) -> Sample:
 
     usage = body.get("usage", {}) or {}
     comp = usage.get("completion_tokens")
-    tps = round(comp / (latency_ms / 1000), 1) if comp and latency_ms > 0 else None
+    tps = round(comp / (latency_ms / 1000),
+                1) if comp and latency_ms > 0 else None
     returned_model = body.get("model", "") or ""
     provider = str(body.get("provider", "") or "")
     backend = classify_backend(returned_model, provider)
@@ -348,7 +353,8 @@ def render_md(reports: list[ModelReport]) -> str:
     zai_ok = [r for r in ranked if _fidelity(r) >= 0.99 and r.ok_runs]
     lines += ["", "## Recomendação", ""]
     if zai_ok:
-        best = min(zai_ok, key=lambda r: (-_quality(r), r.median_latency_ms or 10**9))
+        best = min(zai_ok, key=lambda r: (-_quality(r),
+                   r.median_latency_ms or 10**9))
         lines.append(
             f"**`{best.alias}`** — 100% servido pela Z.AI, qualidade "
             f"{_quality(best)*100:.0f}%, latência mediana "
@@ -357,7 +363,8 @@ def render_md(reports: list[ModelReport]) -> str:
         others = [r.alias for r in zai_ok if r.alias != best.alias]
         if others:
             lines.append("")
-            lines.append("Alternativas 100% Z.AI: " + ", ".join(f"`{a}`" for a in others) + ".")
+            lines.append("Alternativas 100% Z.AI: " +
+                         ", ".join(f"`{a}`" for a in others) + ".")
     else:
         lines.append(
             "_Nenhum alias serviu 100% pela Z.AI no período — ver coluna de fallback "
@@ -369,16 +376,20 @@ def render_md(reports: list[ModelReport]) -> str:
         lines += ["", "## ⚠ Aliases que caíram em fallback", ""]
         for r in fallbacks:
             seen = ", ".join(r.backends_seen)
-            lines.append(f"- `{r.alias}`: {r.fallback_runs}/{r.ok_runs} fallback (backends: {seen})")
+            lines.append(
+                f"- `{r.alias}`: {r.fallback_runs}/{r.ok_runs} fallback (backends: {seen})")
 
     lines += ["", "## Detalhe por modelo", ""]
     for r in ranked:
         lines.append(f"### `{r.alias}`")
         lines.append("")
-        lines.append("| Prompt | ok | HTTP | ms | tok/s | backend | qualidade | preview |")
-        lines.append("|--------|----|------|----|-------|---------|-----------|---------|")
+        lines.append(
+            "| Prompt | ok | HTTP | ms | tok/s | backend | qualidade | preview |")
+        lines.append(
+            "|--------|----|------|----|-------|---------|-----------|---------|")
         for s in r.samples:
-            q = "—" if s["quality_ok"] is None else ("✓" if s["quality_ok"] else "✗")
+            q = "—" if s["quality_ok"] is None else (
+                "✓" if s["quality_ok"] else "✗")
             prev = (s["preview"] or s["error"]).replace("|", "\\|")[:60]
             lines.append(
                 f"| {s['prompt_id']} | {'✓' if s['ok'] else '✗'} | {s['http_status']} | "
@@ -394,15 +405,18 @@ def main() -> int:
         return 2
 
     models_env = os.environ.get("ZAI_MODELS", "").strip()
-    models = [m.strip() for m in models_env.split(",") if m.strip()] if models_env else list(DEFAULT_ZAI_MODELS)
+    models = [m.strip() for m in models_env.split(",") if m.strip()
+              ] if models_env else list(DEFAULT_ZAI_MODELS)
     if os.environ.get("ZAI_INCLUDE_TRAPS", "0").lower() in ("1", "true", "yes"):
         models += TRAP_MODELS
 
     prompts_env = os.environ.get("BENCH_PROMPTS", "").strip()
-    prompt_ids = [p.strip() for p in prompts_env.split(",") if p.strip()] if prompts_env else list(PROMPTS)
+    prompt_ids = [p.strip() for p in prompts_env.split(
+        ",") if p.strip()] if prompts_env else list(PROMPTS)
     unknown = [p for p in prompt_ids if p not in PROMPTS]
     if unknown:
-        print(f"ERRO: prompts desconhecidos: {unknown}. Válidos: {list(PROMPTS)}", file=sys.stderr)
+        print(
+            f"ERRO: prompts desconhecidos: {unknown}. Válidos: {list(PROMPTS)}", file=sys.stderr)
         return 2
 
     print(f"Z.AI benchmark → {LITELLM_URL}")
@@ -427,7 +441,8 @@ def main() -> int:
         "models": [asdict(r) for r in reports],
     }
     Path(OUT_JSON).parent.mkdir(parents=True, exist_ok=True)
-    Path(OUT_JSON).write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    Path(OUT_JSON).write_text(json.dumps(
+        payload, indent=2, ensure_ascii=False), encoding="utf-8")
     Path(OUT_MD).write_text(render_md(reports), encoding="utf-8")
     print(f"\nJSON: {OUT_JSON}")
     print(f"MD:   {OUT_MD}")

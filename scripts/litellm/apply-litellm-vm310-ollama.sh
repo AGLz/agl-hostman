@@ -22,8 +22,14 @@ fi
 python3 "${REPO}/scripts/litellm/patch_config_vm310_ollama.py" "$SRC" "$PATCHED"
 cp -a "$PATCHED" "$SRC"
 
+if [[ "${VM310_CPU_MODE:-}" =~ ^(1|true|yes)$ ]]; then
+  log "Modo CPU (llama3.1:8b primário)"
+else
+  log "Modo GPU (qwen3:4b primário)"
+fi
+
 log "Pre-warm VM310 (best effort)..."
-bash "${REPO}/scripts/aglsrv3/prewarm-vm310-dual-ollama.sh" || log "AVISO: pre-warm falhou — continuar deploy"
+VM310_CPU_MODE="${VM310_CPU_MODE:-}" bash "${REPO}/scripts/aglsrv3/prewarm-vm310-dual-ollama.sh" || log "AVISO: pre-warm falhou — continuar deploy"
 
 bash "${REPO}/scripts/litellm/deploy-litellm-callbacks-ct186.sh"
 

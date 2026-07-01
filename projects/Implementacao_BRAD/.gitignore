@@ -1,0 +1,5 @@
+# Credenciais reais — copiar de config.homolog.php.example
+config.homolog.php
+
+# Artefactos gerados por gerar_homologacao.php
+output/

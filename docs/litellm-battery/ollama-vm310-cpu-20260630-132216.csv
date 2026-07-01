@@ -1,0 +1,5 @@
+model,status,case,load_ms,wall_ms,eval,tok_per_s,notes
+qwen3:4b,OK,warm,312.5,122139,32,0.28,CPU-only VM310 2026-06-30
+gemma4-qat,OK,warm,901.2,39164,11,0.36,CPU-only VM310 2026-06-30
+qwen3:8b,OK,warm,401.1,46072,11,0.29,CPU-only VM310 2026-06-30
+llama3.1:8b,OK,warm,210.7,40981,32,0.85,WINNER — agl-primary CPU

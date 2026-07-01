@@ -19,15 +19,15 @@
 
 ## Situação de referência (2026-06-06)
 
-| Recurso | Valor |
-|---------|-------|
-| `spark` livre | ~315 GB |
-| `spark` uso | ~6,83 TB (95%) |
-| `overpower` uso | ~97% (PBS actual — a abandonar) |
+| Recurso                  | Valor                                  |
+| ------------------------ | -------------------------------------- |
+| `spark` livre            | ~315 GB                                |
+| `spark` uso              | ~6,83 TB (95%)                         |
+| `overpower` uso          | ~97% (PBS actual — a abandonar)        |
 | Backups em `spark` (dir) | ~130 ficheiros `.tar.zst` / `.vma.zst` |
-| Snapshots PBS | 0 (datastores vazios) |
-| Job activo | `small-vms-backup` → `spark` @ 03:15 |
-| Job desactivado | `large-vms-backup` → `spark` @ 03:30 |
+| Snapshots PBS            | 0 (datastores vazios)                  |
+| Job activo               | `small-vms-backup` → `spark` @ 03:15   |
+| Job desactivado          | `large-vms-backup` → `spark` @ 03:30   |
 
 ---
 
@@ -39,23 +39,23 @@ Estas regras **não mudam** com a migração; apenas o destino passa de `spark` 
 
 **VMIDs:** `101, 102, 111, 112, 117, 176`
 
-| Parâmetro | Valor |
-|-----------|-------|
-| Horário | 03:15 diário |
-| Modo | `snapshot` |
-| Compressão | `zstd` |
+| Parâmetro    | Valor                                                             |
+| ------------ | ----------------------------------------------------------------- |
+| Horário      | 03:15 diário                                                      |
+| Modo         | `snapshot`                                                        |
+| Compressão   | `zstd`                                                            |
 | Retenção job | `keep-last=7`, `keep-weekly=4`, `keep-monthly=6`, `keep-yearly=1` |
 
 ### Tier Large — disco ≥ 10 GB
 
 **VMIDs:** lista em `large-vms-backup` (job actualmente **desactivado**)
 
-| Parâmetro | Valor |
-|-----------|-------|
-| Horário | 03:30 diário (quando reactivado) |
-| Modo | `snapshot` |
-| Compressão | `zstd` |
-| Retenção job | `keep-last=1`, `keep-monthly=1` |
+| Parâmetro    | Valor                            |
+| ------------ | -------------------------------- |
+| Horário      | 03:30 diário (quando reactivado) |
+| Modo         | `snapshot`                       |
+| Compressão   | `zstd`                           |
+| Retenção job | `keep-last=1`, `keep-monthly=1`  |
 
 > **Nota:** O storage `dir: spark` tem prune global `keep-last=3, keep-weekly=2, keep-monthly=3, keep-yearly=1`. Durante a migração, o prune em `spark` é **manual por VMID**; após cutover total, remover backups `dir` ou desactivar conteúdo `backup` em `spark`.
 
@@ -131,10 +131,10 @@ pvesm set pbs-spark --datastore spark \
 
 ### 0.5 Critério de aceitação Fase 0
 
-- [x] `pct exec 240 -- proxmox-backup-manager datastore list` → só `spark` *(2026-06-06)*
-- [x] `pvesm status | grep pbs-spark` → `active` *(quota 80G em spark/pbs)*
+- [x] `pct exec 240 -- proxmox-backup-manager datastore list` → só `spark` _(2026-06-06)_
+- [x] `pvesm status | grep pbs-spark` → `active` _(quota 80G em spark/pbs)_
 - [x] Nenhum mount do CT240 em `/overpower/pbs-*`
-- [x] Teste: `vzdump 117 --storage pbs-spark` + `verify spark` OK *(~580 MiB no datastore)*
+- [x] Teste: `vzdump 117 --storage pbs-spark` + `verify spark` OK _(~580 MiB no datastore)_
 
 ---
 
@@ -192,14 +192,14 @@ pvesm free "${LATEST}"   # último vzdump legado
 
 Ordem sugerida (menor footprint de backup primeiro → liberta mais cedo):
 
-| Ordem | VMID | Nome | Disco | Backups em spark | Tamanho total spark | Último backup |
-|-------|------|------|-------|------------------|---------------------|---------------|
-| 1 | 117 | — | 2 GB | 12 | ~9,1 GB | 2026-06-05 |
-| 2 | 176 | — | 2 GB | 12 | ~8,8 GB | 2026-06-05 |
-| 3 | 111 | — | 4 GB | 12 | ~14,9 GB | 2026-06-05 |
-| 4 | 112 | — | 4 GB | 12 | ~13,8 GB | 2026-06-05 |
-| 5 | 102 | pihole | 8 GB | 12 | ~34,6 GB | 2026-06-05 |
-| 6 | 101 | — | 0,5 GB | 0 | 0 | — (backup inicial) |
+| Ordem | VMID | Nome   | Disco  | Backups em spark | Tamanho total spark | Último backup      |
+| ----- | ---- | ------ | ------ | ---------------- | ------------------- | ------------------ |
+| 1     | 117  | —      | 2 GB   | 12               | ~9,1 GB             | 2026-06-05         |
+| 2     | 176  | —      | 2 GB   | 12               | ~8,8 GB             | 2026-06-05         |
+| 3     | 111  | —      | 4 GB   | 12               | ~14,9 GB            | 2026-06-05         |
+| 4     | 112  | —      | 4 GB   | 12               | ~13,8 GB            | 2026-06-05         |
+| 5     | 102  | pihole | 8 GB   | 12               | ~34,6 GB            | 2026-06-05         |
+| 6     | 101  | —      | 0,5 GB | 0                | 0                   | — (backup inicial) |
 
 **Espaço:** ~7 GB novos no PBS (últimos backups) + manter 1 cópia legada cada até verificação.  
 **Libertação estimada após prune (manter 1 em spark, depois remover):** ~80 GB.
@@ -222,11 +222,11 @@ Desactivar escrita de backup em `spark` dir quando todos os 6 tiverem ≥1 snaps
 
 ## Leva 2 — CTs 10–20 GB
 
-| VMIDs | Disco aprox. | Notas |
-|-------|--------------|-------|
-| 151–156 | 10,5 GB | QEMU parados |
-| 157 | 20 GB | LXC |
-| 182 | 16 GB | Sem backup em spark hoje — backup inicial PBS |
+| VMIDs   | Disco aprox. | Notas                                         |
+| ------- | ------------ | --------------------------------------------- |
+| 151–156 | 10,5 GB      | QEMU parados                                  |
+| 157     | 20 GB        | LXC                                           |
+| 182     | 16 GB        | Sem backup em spark hoje — backup inicial PBS |
 
 **Pré-requisito:** Leva 1 concluída + `spark` livre ≥ 200 GB (aumentar `quota` em `spark/pbs`).
 
@@ -236,13 +236,15 @@ Reactivar job parcial ou migrar manualmente com o workflow por guest; aplicar re
 
 ---
 
-## Leva 3 — CTs 32 GB
+## Leva 3 — CTs ~32 GB (na prática 1–20 GB)
 
-VMIDs: `120, 122, 123, 124, 126, 132, 137, 139, 157, 159, 161, 162, 163, 165, 170, 171, 172, 178, 201`, etc.
+VMIDs: `120, 122, 123, 124, 126, 132, 137, 139, 159, 161, 162, 163, 165, 170, 171, 172, 178, 201` (18 CTs; **157** já na Leva 2).
 
 - Migrar **2–3 CTs por noite** (janela 22:00–06:00).
 - Monitorizar `zfs list spark/pbs` e `spark` avail após cada prune.
 - VMs QEMU 32 GB: idem workflow; backups `.vma.zst` maiores.
+
+**Estado (2026-06-30):** Leva 3 concluída — 18 CTs migrados; quota `spark/pbs` = **180G** (~68G usados); job `small-vms-backup` actualizado com Leva 1 + Leva 3 (24 VMIDs).
 
 ---
 
@@ -267,13 +269,13 @@ Inclui `103, 113, 121, 141, 144, 180, 182–192`, LiteLLM/OpenClaw (`186–187`)
 
 ## Gestão de espaço durante a migração
 
-| Acção | Quando |
-|-------|--------|
-| `zfs set quota=NG spark/pbs` | Antes de cada leva (+20–50G) |
-| Prune spark legado | Imediatamente após verify PBS (manter 1) |
-| `proxmox-backup-manager garbage-collection spark` | Após cada leva |
-| Remover último vzdump spark | Após 2º backup PBS ou 7 dias estável |
-| Aumentar quota PBS | Se `avail` spark &lt; 100 GB |
+| Acção                                             | Quando                                   |
+| ------------------------------------------------- | ---------------------------------------- |
+| `zfs set quota=NG spark/pbs`                      | Antes de cada leva (+20–50G)             |
+| Prune spark legado                                | Imediatamente após verify PBS (manter 1) |
+| `proxmox-backup-manager garbage-collection spark` | Após cada leva                           |
+| Remover último vzdump spark                       | Após 2º backup PBS ou 7 dias estável     |
+| Aumentar quota PBS                                | Se `avail` spark &lt; 100 GB             |
 
 **Alarmes:**
 
@@ -285,11 +287,11 @@ Inclui `103, 113, 121, 141, 144, 180, 182–192`, LiteLLM/OpenClaw (`186–187`)
 
 ## Jobs finais (estado alvo)
 
-| Job ID | Storage | VMIDs | Retenção |
-|--------|---------|-------|----------|
-| `small-vms-backup` | `pbs-spark` | 101,102,111,112,117,176 | 7/4/6/1 |
-| `large-vms-backup` | `pbs-spark` | (lista large) | 1/0/1/0 |
-| Job antigo `9c5aa827…` | — | — | **permanece desactivado** |
+| Job ID                 | Storage     | VMIDs                                                                                           | Retenção                  |
+| ---------------------- | ----------- | ----------------------------------------------------------------------------------------------- | ------------------------- |
+| `small-vms-backup`     | `pbs-spark` | 101,102,111,112,117,120,122,123,124,126,132,137,139,159,161,162,163,165,170,171,172,176,178,201 | 7/4/6/1                   |
+| `large-vms-backup`     | `pbs-spark` | (lista large)                                                                                   | 1/0/1/0                   |
+| Job antigo `9c5aa827…` | —           | —                                                                                               | **permanece desactivado** |
 
 `dir: spark` — remover `backup` do `content` quando não restarem vzdump legados:
 

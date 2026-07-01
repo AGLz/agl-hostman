@@ -1,10 +1,10 @@
-import React from 'react';
-import { Link, router } from '@inertiajs/react';
+import React from "react";
+import { Link, router } from "@inertiajs/react";
 
 export default function AuthenticatedLayout({ user, header, children }) {
     const logout = (e) => {
         e.preventDefault();
-        router.post('/logout');
+        router.post("/logout");
     };
 
     return (
@@ -39,7 +39,9 @@ export default function AuthenticatedLayout({ user, header, children }) {
                     </div>
                     {user && (
                         <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{user.name}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {user.name}
+                            </span>
                             <button
                                 type="button"
                                 onClick={logout}
@@ -54,7 +56,9 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
             {header && (
                 <header className="border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{header}</div>
+                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                        {header}
+                    </div>
                 </header>
             )}
 

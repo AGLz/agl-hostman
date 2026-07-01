@@ -7,10 +7,12 @@ import importlib.util
 import sys
 from pathlib import Path
 
-_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "litellm" / "benchmark-zai-models.py"
+_SCRIPT = Path(__file__).resolve(
+).parents[2] / "scripts" / "litellm" / "benchmark-zai-models.py"
 _spec = importlib.util.spec_from_file_location("benchmark_zai_models", _SCRIPT)
 bz = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = bz  # necessário para @dataclass resolver cls.__module__
+# necessário para @dataclass resolver cls.__module__
+sys.modules[_spec.name] = bz
 _spec.loader.exec_module(bz)
 
 
@@ -27,7 +29,8 @@ class TestClassifyBackend:
 
     def test_fallback_groq_openrouter(self):
         assert bz.classify_backend("llama-3.1-8b", "Groq") == "fallback"
-        assert bz.classify_backend("z-ai/glm-4.5-air:free", "OpenRouter") == "fallback"
+        assert bz.classify_backend(
+            "z-ai/glm-4.5-air:free", "OpenRouter") == "fallback"
 
     def test_model_name_heuristic_when_no_provider(self):
         assert bz.classify_backend("glm-5", "") == "zai"
@@ -39,7 +42,8 @@ class TestClassifyBackend:
 
     def test_openrouter_glm_air_is_fallback_not_zai(self):
         # nome tem "glm" mas provider OpenRouter manda → fallback (não Z.AI directo)
-        assert bz.classify_backend("z-ai/glm-4.5-air:free", "OpenRouter") == "fallback"
+        assert bz.classify_backend(
+            "z-ai/glm-4.5-air:free", "OpenRouter") == "fallback"
 
 
 class TestJsonToolCheck:
@@ -47,7 +51,8 @@ class TestJsonToolCheck:
         assert bz._json_tool_check('{"tool":"read_file","args":{"path":"x"}}')
 
     def test_markdown_fenced_json(self):
-        assert bz._json_tool_check('```json\n{"tool":"read_file","args":{}}\n```')
+        assert bz._json_tool_check(
+            '```json\n{"tool":"read_file","args":{}}\n```')
 
     def test_wrong_tool(self):
         assert not bz._json_tool_check('{"tool":"write_file","args":{}}')
@@ -69,8 +74,10 @@ class TestRank:
 
     def test_fidelity_beats_latency(self):
         # modelo Z.AI mais lento deve ranquear acima de fallback rápido
-        zai_slow = self._rep("zai-glm-5", ok=4, zai=4, q_ok=4, q_total=4, lat=900)
-        fb_fast = self._rep("glm-4.7-flash", ok=4, zai=0, q_ok=4, q_total=4, lat=200)
+        zai_slow = self._rep("zai-glm-5", ok=4, zai=4,
+                             q_ok=4, q_total=4, lat=900)
+        fb_fast = self._rep("glm-4.7-flash", ok=4, zai=0,
+                            q_ok=4, q_total=4, lat=200)
         ranked = bz.rank([fb_fast, zai_slow])
         assert ranked[0].alias == "zai-glm-5"
 

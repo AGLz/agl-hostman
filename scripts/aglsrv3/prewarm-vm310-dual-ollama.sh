@@ -7,6 +7,8 @@ GPU1="${OLLAMA_GPU1:-http://100.67.253.52:11435}"
 KEEP_ALIVE="${KEEP_ALIVE:-30m}"
 VMID="${VMID:-310}"
 AGLSRV3="${AGLSRV3:-root@100.123.5.81}"
+# Reason: benchmark CPU 2026-06-30 — llama3.1:8b ~3× mais rápido que qwen3:4b
+PRIMARY_MODEL="${VM310_PRIMARY_MODEL:-$([ "${VM310_CPU_MODE:-}" = 1 ] && echo llama3.1:8b || echo qwen3:4b)}"
 
 log() { printf '[prewarm-vm310] %s\n' "$*" >&2; }
 
@@ -19,15 +21,16 @@ warm_one() {
 }
 
 warm_remote() {
-  ssh -o BatchMode=yes -o ConnectTimeout=20 "$AGLSRV3" bash -s -- "$VMID" "$KEEP_ALIVE" <<'REMOTE'
+  ssh -o BatchMode=yes -o ConnectTimeout=20 "$AGLSRV3" bash -s -- "$VMID" "$KEEP_ALIVE" "$PRIMARY_MODEL" <<'REMOTE'
 set -euo pipefail
 VMID="$1"
 KEEP="$2"
+PRIMARY="$3"
 qm guest exec "$VMID" -- bash -lc "
 set -e
 warm() { curl -sf --max-time 300 \"\$1/api/chat\" -d \"{\\\"model\\\":\\\"\$2\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"ok\\\"}],\\\"stream\\\":false,\\\"think\\\":false,\\\"keep_alive\\\":\\\"\$3\\\",\\\"options\\\":{\\\"num_predict\\\":8}}\" >/dev/null; }
-warm http://127.0.0.1:11434 qwen3:4b '$KEEP'
 warm http://127.0.0.1:11434 gemma4-qat '$KEEP'
+warm http://127.0.0.1:11434 '$PRIMARY' '$KEEP'
 if curl -sf --max-time 3 http://127.0.0.1:11435/api/tags >/dev/null 2>&1; then
   warm http://127.0.0.1:11435 qwen3:8b '$KEEP'
   echo GPU1_WARM_OK
@@ -45,8 +48,8 @@ main() {
     warm_remote
     return
   fi
-  warm_one "$GPU0" "qwen3:4b"
   warm_one "$GPU0" "gemma4-qat"
+  warm_one "$GPU0" "$PRIMARY_MODEL"
   if curl -sf --max-time 3 "${GPU1}/api/tags" >/dev/null 2>&1; then
     warm_one "$GPU1" "qwen3:8b"
     log "GPU1: $(curl -sf --max-time 10 "${GPU1}/api/ps" | python3 -c "import json,sys;print([m['name'] for m in json.load(sys.stdin).get('models',[])])")"
