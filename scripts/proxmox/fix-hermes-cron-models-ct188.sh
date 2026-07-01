@@ -16,8 +16,8 @@ HERMES_ROOT="${HERMES_ROOT:-/opt/agl-hermes}"
 JOBS="${HERMES_ROOT}/data/cron/jobs.json"
 CFG="${HERMES_ROOT}/data/config.yaml"
 HERMES_UID="${HERMES_UID:-10000}"
-CRON_MODEL="${CRON_MODEL:-agl-sensitive}"
-CRON_FALLBACK="${CRON_FALLBACK:-or-qwen3-next-free}"
+CRON_MODEL="${CRON_MODEL:-agl-primary-zai-glm-flash}"
+CRON_FALLBACK="${CRON_FALLBACK:-groq-llama-31-8b}"
 
 python3 - "${JOBS}" "${CRON_MODEL}" <<'PY'
 import json, sys, re

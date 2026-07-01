@@ -26,6 +26,9 @@ LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
 MODE="${1:---no-logging}"
 
 case "${MODE}" in
+  --zero-openrouter|--no-or)
+    exec bash "$(dirname "$0")/fix-hermes-zero-openrouter-ct188.sh"
+    ;;
   --no-logging|--secure|--openrouter-free)
     # Default: free NO-LOGGING (provider.data_collection=deny) + fallback local. Seguro p/ dados AGL.
     exec bash "$(dirname "$0")/hermes-openrouter-free-ct188.sh"

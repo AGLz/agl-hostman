@@ -197,7 +197,8 @@ decide_action() {
 apply_hermes_free_tier() {
   # Budget baixo → free NO-LOGGING (data_collection=deny, custo $0) + fallback local.
   # Seguro p/ dados AGL (não usa owl-alpha/nemotron que logam). Não cai para paid.
-  local fix_script="${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh"
+  local fix_script="${REPO_ROOT}/scripts/proxmox/fix-hermes-zero-openrouter-ct188.sh"
+  [[ -f "$fix_script" ]] || fix_script="${REPO_ROOT}/scripts/proxmox/hermes-openrouter-free-ct188.sh"
   [[ -f "$fix_script" ]] || { log "ERRO: fix script em falta"; return 1; }
   if [[ "$DRY_RUN" -eq 1 ]]; then
     log "[dry-run] Hermes free no-logging via ${HERMES_SSH_HOST}"
