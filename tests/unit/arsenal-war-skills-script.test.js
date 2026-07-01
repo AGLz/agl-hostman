@@ -20,6 +20,15 @@ const INSTALL_SKILLSPECTOR = path.join(
   "scripts/skills/install-skillspector.sh",
 );
 
+const INSTALL_FG = path.join(
+  ROOT,
+  "scripts/skills/install-arsenal-war-skills-fg-legacy.sh",
+);
+const PROPAGATE_FG = path.join(
+  ROOT,
+  "scripts/proxmox/propagate-arsenal-war-fg-legacy-ct549.sh",
+);
+
 test("install-arsenal-war-skills referencia ponytail, improve e video-transcript", () => {
   const content = readFileSync(INSTALL, "utf8");
   assert.match(content, /DietrichGebert\/ponytail/);
@@ -58,6 +67,22 @@ test("install-hermes-arsenal liga skills nos profiles quartet+", () => {
   assert.match(content, /docker exec/);
 });
 
+test("install-arsenal-war-fg-legacy adapta ponytail para PHP legado", () => {
+  const content = readFileSync(INSTALL_FG, "utf8");
+  assert.match(content, /FG legado override/);
+  assert.match(content, /public_html/);
+  assert.match(content, /FG_LEGACY_ROOT/);
+  assert.match(content, /install_cursor_agent_pack/);
+});
+
+test("propagate fg-legacy usa fgsrv7 e pct exec 549", () => {
+  const content = readFileSync(PROPAGATE_FG, "utf8");
+  assert.match(content, /100\.109\.181\.93/);
+  assert.match(content, /549/);
+  assert.match(content, /fg_antigo/);
+  assert.match(content, /pct exec/);
+});
+
 test("youtube_002 documenta as 4 pérolas", () => {
   const md = readFileSync(
     path.join(ROOT, "projects/video-analises/youtube_002.md"),
@@ -70,7 +95,7 @@ test("youtube_002 documenta as 4 pérolas", () => {
 });
 
 test("scripts passam bash -n", () => {
-  for (const script of [INSTALL, SCAN, HERMES, INSTALL_SKILLSPECTOR]) {
+  for (const script of [INSTALL, SCAN, HERMES, INSTALL_SKILLSPECTOR, INSTALL_FG, PROPAGATE_FG]) {
     const { status, stderr } = spawnSync("bash", ["-n", script], {
       encoding: "utf8",
     });
