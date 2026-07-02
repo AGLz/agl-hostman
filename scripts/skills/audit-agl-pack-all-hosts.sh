@@ -140,8 +140,8 @@ audit_hermes() {
     for a in jarvis elon satya werner curator orion argus; do
       p=\$H/profiles/\$a
       [[ \"\$a\" == jarvis ]] && p=\$H/data
-      check \$p/skills/llm-wiki llm-wiki-\$a
-      check \$p/SECOND-BRAIN.md SECOND-BRAIN-\$a
+    check \$p/skills/research/llm-wiki llm-wiki-\$a
+    check \$p/SECOND-BRAIN.md SECOND-BRAIN-\$a
     done
     if command -v docker >/dev/null 2>&1; then
       docker exec agl-hermes-jarvis test -r /opt/llm-wiki/wiki/index.md 2>/dev/null \

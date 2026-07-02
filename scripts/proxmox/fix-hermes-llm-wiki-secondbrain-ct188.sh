@@ -156,9 +156,14 @@ PY
     fi
   fi
 
-  install -d -m 775 -o "${HERMES_UID}" -g "${HERMES_GID}" "${CURATOR_DATA}/wiki-ingest/${agent}"
+  install -d -m 775 "${CURATOR_DATA}/wiki-ingest/${agent}" 2>/dev/null \
+    || mkdir -p "${CURATOR_DATA}/wiki-ingest/${agent}"
+  chown "${HERMES_UID}:${HERMES_GID}" "${CURATOR_DATA}/wiki-ingest/${agent}" 2>/dev/null || true
   if [[ -d "${LLM_WIKI_HOST}/raw" ]]; then
-    install -d -m 775 -o "${HERMES_UID}" -g "${HERMES_GID}" "${LLM_WIKI_HOST}/raw/hermes/${agent}"
+    # ponytail: NFS pode recusar chown em raw/ — não abortar symlinks dos restantes agentes
+    mkdir -p "${LLM_WIKI_HOST}/raw/hermes/${agent}" 2>/dev/null || true
+    chown "${HERMES_UID}:${HERMES_GID}" "${LLM_WIKI_HOST}/raw/hermes/${agent}" 2>/dev/null \
+      || echo "AVISO: chown raw/hermes/${agent} ignorado (NFS)" >&2
   fi
 done
 
