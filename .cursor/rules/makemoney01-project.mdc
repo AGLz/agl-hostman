@@ -1,0 +1,46 @@
+---
+description: makemoney01 — pipeline de oportunidades AI, Hermes, llm-wiki e monetização AGLz
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# makemoney01 — AI Opportunity System
+
+Repo canónico: `/mnt/overpower/apps/dev/agl/makemoney01` (NFS). Wiki: [[makemoney01]].
+
+## Antes de implementar
+
+1. Ler `README.md`, `data/pipeline/board.json` e wiki `[[makemoney01-Q3-Decisao-Speed-to-Lead]]`.
+2. Consultar `llm-wiki-second-brain.mdc` + MCP `llm-wiki-fs`.
+3. Crons Hermes (Satya): scripts em `agl-hostman/scripts/monitoring/hermes-makemoney-*.sh`.
+
+## Estrutura
+
+| Path | Uso |
+|------|-----|
+| `data/opportunities/` | JSON por dia/tipo (research, deep-dive) |
+| `data/dossiers/{id}-{slug}/` | research.md + implementation-plan.md |
+| `data/pipeline/board.json` | Kanban prospect → qualify → execute |
+| `wiki-ingest/` | Fila Curator → llm-wiki |
+| `scripts/` | Python/bash utilitários locais |
+
+## Regras
+
+- **Idioma:** Português (pt-BR) em conteúdo de negócio.
+- **Secrets:** nunca commitar `.env`; usar `config/` exemplos.
+- **Diff mínimo:** `ponytail.mdc` — não reformatar dossiês inteiros.
+- **Wiki:** decisões duráveis → llm-wiki; `wiki-ingest/` só fila, não duplicar runbooks.
+- **Testes:** `python3 tests/test_*.py` antes de fechar alterações em `scripts/`.
+
+## Prioridade Q3 (decisão 2026-06-29)
+
+**Speed-to-Lead Imobiliária P0** — métrica: R$2,5k MRR. Ver `scripts/lib/speed_to_lead.py`, `lead_reply.py`.
+
+## Graphify
+
+```bash
+bash scripts/wiki/graphify-makemoney.sh
+```
+
+Gera `data/graph/graph.json` a partir de wiki makemoney + wiki-ingest + dossiês.
