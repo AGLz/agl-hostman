@@ -26,8 +26,8 @@ export OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-your-openrouter-key}"
 _AGL_HOSTMAN="${AGL_HOSTMAN_ROOT:-/path/to/agl-hostman}"
 
 # --- helpers internos ---
+# Dev AGL: DSP por defeito com IS_SANDBOX=1 (incl. root nos AGLDV*)
 _claude_use_dsp() {
-    [[ $EUID -eq 0 ]] && return 1
     [[ -n "$IS_SANDBOX" && "$IS_SANDBOX" != "0" ]]
 }
 
@@ -94,6 +94,7 @@ _cc_provider_settings_args() {
 
 # cc  — sessão interactiva (TUI)
 cc() {
+    export IS_SANDBOX="${IS_SANDBOX:-1}"
     local -a cmd=()
     if _cc_provider_settings_args; then cmd=("${REPLY[@]}"); fi
     if _claude_use_dsp; then
@@ -105,12 +106,11 @@ cc() {
 
 # ccs — one-shot (claude -p), imprime e sai
 ccs() {
+    export IS_SANDBOX="${IS_SANDBOX:-1}"
     local -a cmd=(claude)
     if _cc_provider_settings_args; then cmd+=("${REPLY[@]}"); fi
     cmd+=(-p --output-format text)
     if _claude_use_dsp; then
-        cmd+=(--dangerously-skip-permissions)
-    elif [[ $EUID -eq 0 && -n "${IS_SANDBOX:-}" && "${IS_SANDBOX}" != "0" ]]; then
         cmd+=(--dangerously-skip-permissions)
     fi
     [[ $# -gt 0 ]] || { echo "Uso: ccs 'prompt'" >&2; return 1; }

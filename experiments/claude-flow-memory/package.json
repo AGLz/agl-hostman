@@ -1,0 +1,13 @@
+{
+  "name": "agl-claude-flow-memory-experiment",
+  "private": true,
+  "type": "module",
+  "description": "Experimento AutoMemoryBridge (@claude-flow/memory) — não substitui package.json da raiz",
+  "scripts": {
+    "test-memory": "node test-memory.js",
+    "test-simple": "node test-simple-memory.js"
+  },
+  "dependencies": {
+    "@claude-flow/memory": "latest"
+  }
+}

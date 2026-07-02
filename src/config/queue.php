@@ -68,9 +68,19 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 600), // 10 minutos para operações longas
             'block_for' => null,
             'after_commit' => false,
+        ],
+
+        'containers' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('REDIS_QUEUE', 'containers'), // Queue específica para containers
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 1800), // 30 minutos para operações de containers
+            'block_for' => null,
+            'after_commit' => false,
+            'sync' => false, // Desativar modo sync para garantir async processing
         ],
 
         'deferred' => [

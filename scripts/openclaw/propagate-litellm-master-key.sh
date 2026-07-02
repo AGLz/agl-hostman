@@ -22,6 +22,7 @@ DEFAULT_HOSTS=(
   "root@100.71.217.115"  # agldv12
   "root@100.82.71.49"   # agldv05
   "root@100.71.229.12"   # agldv06
+  "root@100.64.175.89"   # agldv07
 )
 
 if [[ ! -f "$SECRET_SRC" ]]; then

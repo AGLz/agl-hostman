@@ -30,7 +30,7 @@ if [[ -z "${ZSHRC_SOURCE_HOST:-}" ]]; then
   ZSHRC_SOURCE_HOST="${ZSHRC_SOURCE_HOST:-100.113.9.98}"
 fi
 
-[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv03 agldv05 agldv06 agldv07 agldv12 fgsrv06)
+[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv03 agldv04 agldv05 agldv06 agldv07 agldv12 fgsrv06)
 
 SETTINGS_LITELLM_SRC="${SETTINGS_LITELLM_SRC:-$HOME/.claude/settings-litellm.json}"
 SETTINGS_ANTHROPIC_SRC="${SETTINGS_ANTHROPIC_SRC:-$HOME/.claude/settings-anthropic.json}"
@@ -126,10 +126,10 @@ for host in "${TARGETS[@]}"; do
   ssh "root@${ip}" "umask 077; mkdir -p ~/.claude/helpers"
   scp -q "$SETTINGS_LITELLM_SRC" "root@${ip}:/root/.claude/settings-litellm.json"
   scp -q "$SETTINGS_ANTHROPIC_SRC" "root@${ip}:/root/.claude/settings-anthropic.json"
+  scp -q "$REPO_ROOT/.claude/helpers/get-litellm-key.sh" "root@${ip}:/root/.claude/helpers/get-litellm-key.sh"
   ssh "root@${ip}" "
-    ln -sf ${REPO_PATH_REMOTE}/.claude/helpers/get-litellm-key.sh ~/.claude/helpers/get-litellm-key.sh 2>/dev/null || \
-    ln -sf ${REPO_PATH_REMOTE}/.claude/helpers/get-litellm-key.sh ~/.claude/helpers/get-litellm-key.sh
-    # Normalizar apiKeyHelper para path absoluto no home
+    chmod 700 ~/.claude/helpers/get-litellm-key.sh
+    # Normalizar apiKeyHelper — ficheiro local (symlink NFS falha como apiKeyHelper)
     if command -v python3 >/dev/null 2>&1; then
       python3 - <<'PY'
 import json, pathlib
@@ -140,7 +140,32 @@ p.write_text(json.dumps(d, indent=2) + '\n')
 PY
     fi
   " 2>/dev/null
-  echo "  OK ~/.claude/settings-{litellm,anthropic}.json + symlink key helper"
+  echo "  OK ~/.claude/settings-{litellm,anthropic}.json + get-litellm-key.sh (cópia local)"
+
+  # --- Gateway LiteLLM (CT186 — agldv03:4000 descontinuado) ---
+  gw_src="$REPO_ROOT/config/openclaw/litellm-gateway-client.env"
+  if [[ -f "$gw_src" ]]; then
+    scp -q "$gw_src" "root@${ip}:/root/.openclaw/litellm-gateway.env"
+    echo "  OK ~/.openclaw/litellm-gateway.env → CT186"
+  fi
+
+  # --- Claude Code (>=2.1 para --bare) ---
+  cc_fix="$(ssh "root@${ip}" "
+    export PATH=\"/root/.nvm/versions/node/\$(ls /root/.nvm/versions/node 2>/dev/null | tail -1)/bin:\$PATH\"
+    if ! command -v npm >/dev/null 2>&1; then
+      echo 'WARN: npm ausente — instalar Node antes de claude'
+      exit 0
+    fi
+    ver=\$(claude --version 2>/dev/null | awk '{print \$2}' || echo 0)
+    if ! command -v claude >/dev/null 2>&1 || ! claude --help 2>&1 | grep -q -- '--bare'; then
+      npm install -g @anthropic-ai/claude-code@latest >/dev/null 2>&1 && echo \"UPGRADED: \$(claude --version 2>/dev/null)\"
+    else
+      echo \"OK: \$(claude --version 2>/dev/null)\"
+    fi
+  " 2>&1)" || cc_fix="WARN: claude upgrade falhou"
+  echo "  claude: $cc_fix"
+
+  ssh "root@${ip}" "chmod +x ${REPO_PATH_REMOTE}/.claude/helpers/get-litellm-key.sh 2>/dev/null || true"
 
   # --- OpenClaw env ---
   for f in zshrc-openclaw.env zshrc-openclaw-litellm.env zshrc-openclaw-direct.env; do

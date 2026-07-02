@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy IS_SANDBOX + --dangerously-skip-permissions para agldv04, agldv05, agldv12, fgsrv06
+# Deploy IS_SANDBOX + --dangerously-skip-permissions para todos os AGLDV*
 # Uso: ./scripts/ruflo/deploy-is-sandbox-all-hosts.sh [host1 host2 ...]
 # Executar de agldv03 (ou host com .zshrc e .claude/settings.json atualizados)
 
@@ -11,13 +11,15 @@ SOURCE_CLAUDE_SETTINGS="${SOURCE_CLAUDE_SETTINGS:-/root/.claude/settings.json}"
 
 declare -A HOST_IPS
 HOST_IPS[agldv02]="100.95.204.85"
+HOST_IPS[agldv03]="100.94.221.87"
 HOST_IPS[agldv04]="100.113.9.98"
 HOST_IPS[agldv05]="100.82.71.49"
+HOST_IPS[agldv06]="100.71.229.12"
 HOST_IPS[agldv07]="100.64.175.89"
 HOST_IPS[agldv12]="100.71.217.115"
 HOST_IPS[fgsrv06]="100.83.51.9"
 
-[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv04 agldv05 agldv12 fgsrv06)
+[[ $# -gt 0 ]] && TARGETS=("$@") || TARGETS=(agldv02 agldv03 agldv04 agldv05 agldv06 agldv07 agldv12 fgsrv06)
 
 echo "=============================================="
 echo "  Deploy IS_SANDBOX → Hosts"
