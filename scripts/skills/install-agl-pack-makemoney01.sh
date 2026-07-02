@@ -23,14 +23,25 @@ trap cleanup EXIT
 sync_skill_to_project() {
   local src="$1" name="$2"
   [[ -f "$src/SKILL.md" ]] || { warn "SKILL.md em falta: $src"; return 1; }
+  local src_real
+  src_real="$(cd "$src" && pwd -P)"
   for dest_root in "$MAKEMONEY01_ROOT/.cursor/skills" "$MAKEMONEY01_ROOT/.claude/skills"; do
     mkdir -p "$dest_root"
+    local dest="$dest_root/$name"
+    if [[ -d "$dest" ]]; then
+      local dest_real
+      dest_real="$(cd "$dest" && pwd -P)"
+      if [[ "$src_real" == "$dest_real" ]]; then
+        ok "skill $name (já em $(basename "$dest_root"))"
+        continue
+      fi
+    fi
     if command -v rsync >/dev/null 2>&1; then
-      rsync -a --delete --exclude '.git' "$src/" "$dest_root/$name/"
+      rsync -a --delete --exclude '.git' "$src/" "$dest/"
     else
-      rm -rf "$dest_root/$name"
-      mkdir -p "$dest_root/$name"
-      cp -a "$src/." "$dest_root/$name/"
+      rm -rf "$dest"
+      mkdir -p "$dest"
+      cp -a "$src/." "$dest/"
     fi
   done
   ok "skill $name"
