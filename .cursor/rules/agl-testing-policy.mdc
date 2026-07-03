@@ -1,0 +1,30 @@
+---
+description: Política de testes AGL — precedência entre TDD, ponytail e velocity mode. Activar em testes, PRs e features.
+globs:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/tests/**"
+  - "**/*Test.php"
+  - "src/tests/**"
+alwaysApply: false
+---
+
+# Política de Testes AGL
+
+Consultar skill **`agl-testing-policy`** para modos (strict-tdd, regression-min, velocity, agent-meta).
+
+## Precedência rápida
+
+1. Pedido explícito do utilizador
+2. `mandatory-delivery-pipeline.mdc`
+3. Skill `agl-testing-policy`
+4. `ponytail.mdc` (diff mínimo — não elimina testes em P0)
+
+## Comandos
+
+```bash
+npm test
+cd src && php artisan test
+```
+
+Skill operacional: **`agl-stack-testing`**.

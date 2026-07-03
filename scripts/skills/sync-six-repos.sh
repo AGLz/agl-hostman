@@ -31,7 +31,7 @@ Sincroniza repos GitHub (plano Six Repos) para harnesses locais.
 Options:
   --dry-run              Mostrar acções sem executar
   --method copy|symlink  Método para skills (default: copy)
-  --repo <name|all>      obsidian|superpowers|ecc|ruflo|open-design|karpathy|harness-router|content-skills|humanizer|fact-check|prompt-improver|all
+  --repo <name|all>      obsidian|superpowers|ecc|qa-devsecops|ruflo|open-design|karpathy|harness-router|content-skills|humanizer|fact-check|prompt-improver|all
   --harness <csv|all>    claude,cursor,codex,verdent,llm-wiki,hostman (default: all)
   -h, --help
 
@@ -295,6 +295,20 @@ sync_superpowers() {
     sync_skill_dir "$skill_path" "$name" "$harness_csv"
   done
   log_warn "Claude Code: usar plugin 'superpowers@superpowers-marketplace' como fonte principal"
+}
+
+sync_qa_devsecops() {
+  log_info "=== QA + DevSecOps pack (agl-hostman) ==="
+  if [[ -x "$HOSTMAN_ROOT/scripts/skills/install-agl-pack-qa-devsecops.sh" ]]; then
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "  [dry-run] install-agl-pack-qa-devsecops.sh"
+      return 0
+    fi
+    SKIP_SCAN="${SKIP_SCAN:-0}" bash "$HOSTMAN_ROOT/scripts/skills/install-agl-pack-qa-devsecops.sh" || log_warn "qa-devsecops pack parcial"
+    log_ok "QA+DevSecOps pack aplicado"
+  else
+    log_warn "install-agl-pack-qa-devsecops.sh em falta"
+  fi
 }
 
 sync_ecc() {
@@ -567,6 +581,7 @@ should_run_content() {
 should_run obsidian && sync_obsidian
 should_run superpowers && sync_superpowers
 should_run ecc && sync_ecc
+should_run qa-devsecops && sync_qa_devsecops
 should_run ruflo && sync_ruflo
 should_run open-design && sync_open_design
 should_run karpathy && sync_karpathy

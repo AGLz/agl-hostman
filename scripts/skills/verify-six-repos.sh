@@ -328,6 +328,24 @@ else
 fi
 
 echo ""
+echo "-- 10. QA + DevSecOps pack --"
+check_skill "agl-stack-testing (project)" "$HOSTMAN_ROOT/.cursor/skills/agl-stack-testing"
+check_skill "agl-devsecops (project)" "$HOSTMAN_ROOT/.cursor/skills/agl-devsecops"
+check_skill "agl-testing-policy (project)" "$HOSTMAN_ROOT/.cursor/skills/agl-testing-policy"
+check_skill "verification-loop (project)" "$HOSTMAN_ROOT/.cursor/skills/verification-loop"
+check_skill "e2e-testing (project)" "$HOSTMAN_ROOT/.cursor/skills/e2e-testing"
+if [[ -f "$HOSTMAN_ROOT/scripts/skills/install-agl-pack-qa-devsecops.sh" ]]; then
+  pass "install-agl-pack-qa-devsecops.sh"
+else
+  warn "install-agl-pack-qa-devsecops.sh em falta"
+fi
+if [[ -f "$HOME/.cursor/skills/agl-stack-testing/SKILL.md" ]]; then
+  pass "global agl-stack-testing"
+else
+  warn "global agl-stack-testing — correr install-agl-pack-qa-devsecops.sh"
+fi
+
+echo ""
 if [[ "$SKIP_LLM_WIKI" != "1" ]]; then
   echo "-- llm-wiki vault --"
   if [[ -f "$LLM_WIKI_DIR/wiki/index.md" ]]; then

@@ -36,6 +36,26 @@ Laravel: `src/README.md`, `composer install`, `php artisan test`.
 
 Instalar/propagar: `bash scripts/skills/install-cursor-agent-rules.sh`
 
+## Pack QA + DevSecOps
+
+```bash
+bash scripts/skills/install-agl-pack-qa-devsecops.sh
+bash scripts/skills/verify-agl-qa-devsecops-pack.sh
+bash scripts/skills/eval-agl-qa-devsecops-skills.sh
+bash scripts/skills/propagate-agl-pack-full-agldv.sh   # AGLDV*
+```
+
+## Plugins Claude Code + Codex
+
+```bash
+bash scripts/skills/install-agl-claude-codex-plugins.sh
+bash scripts/skills/verify-agl-claude-codex-plugins.sh
+```
+
+Activa: `superpowers@marketplace`, github, context7, code-review, commit-commands, feature-dev, frontend-design, prompt-improver; sync ECC + open-design; prepara Codex CLI/config.
+
+Skills: `agl-stack-testing`, `agl-devsecops`, `agl-testing-policy`, `agl-sast-gate`. Wiki: [[agl-hostman-qa-devsecops-pack]].
+
 ## Agentes
 
 - Orquestração: `.cursor/rules/common-agents.mdc`

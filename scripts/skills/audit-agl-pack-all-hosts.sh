@@ -59,6 +59,14 @@ check "$HOME/.claude/skills/mandatory-delivery-pipeline/SKILL.md" "claude:delive
 check "$HOME/.claude/rules/mandatory-delivery-pipeline.md" "claude:delivery-rule"
 check "$HOME/.claude/skills/andrej-karpathy-skills/SKILL.md" "claude:karpathy"
 
+# QA + DevSecOps pack
+check "$HOME/.claude/skills/agl-stack-testing/SKILL.md" "claude:agl-stack-testing"
+check "$HOME/.claude/skills/agl-devsecops/SKILL.md" "claude:agl-devsecops"
+check "$HOME/.claude/skills/agl-testing-policy/SKILL.md" "claude:agl-testing-policy"
+check "$HOME/.claude/skills/verification-loop/SKILL.md" "claude:verification-loop"
+check "$HOME/.claude/skills/e2e-testing/SKILL.md" "claude:e2e-testing"
+check "$HOME/.claude/skills/review-security/SKILL.md" "claude:review-security"
+
 # agl-hostman project (Cursor)
 check "$HOSTMAN/.cursor/rules/llm-wiki-second-brain.mdc" "proj:llm-wiki-second-brain"
 check "$HOSTMAN/.cursor/rules/karpathy-skills.mdc" "proj:karpathy-skills"
@@ -68,6 +76,16 @@ check "$HOSTMAN/.cursor/rules/learned-memories.mdc" "proj:learned-memories"
 check "$HOSTMAN/.cursor/skills/llm-wiki-ingest/SKILL.md" "proj:llm-wiki-ingest"
 check "$HOSTMAN/.cursor/skills/humanizer/SKILL.md" "proj:humanizer"
 check "$HOSTMAN/.cursor/content-skills-sync-state.json" "proj:content-skills-state"
+
+# QA + DevSecOps (project)
+check "$HOSTMAN/.cursor/skills/agl-stack-testing/SKILL.md" "proj:agl-stack-testing"
+check "$HOSTMAN/.cursor/skills/agl-devsecops/SKILL.md" "proj:agl-devsecops"
+check "$HOSTMAN/.cursor/skills/agl-testing-policy/SKILL.md" "proj:agl-testing-policy"
+check "$HOSTMAN/.cursor/skills/agl-sast-gate/SKILL.md" "proj:agl-sast-gate"
+check "$HOSTMAN/.cursor/skills/e2e-testing/SKILL.md" "proj:e2e-testing"
+check "$HOSTMAN/.cursor/skills/verification-loop/SKILL.md" "proj:verification-loop"
+check "$HOSTMAN/.cursor/rules/agl-testing-policy.mdc" "proj:agl-testing-policy-rule"
+check "$HOSTMAN/scripts/skills/install-agl-pack-qa-devsecops.sh" "proj:install-qa-devsecops"
 if [[ -f "$HOSTMAN/.cursor/mcp.json" ]] && grep -q llm-wiki-fs "$HOSTMAN/.cursor/mcp.json" 2>/dev/null; then
   echo "OK:proj:mcp-llm-wiki-fs"
 else
@@ -90,6 +108,41 @@ else
 fi
 
 command -v claude >/dev/null 2>&1 && echo "OK:claude-cli" || echo "MISS:claude-cli"
+
+# Claude Code plugins (formais)
+if [[ -d "$HOME/.claude/plugins/cache/superpowers-marketplace/superpowers" ]]; then
+  echo "OK:claude:superpowers-cache"
+else
+  echo "MISS:claude:superpowers-cache"
+fi
+if command -v claude >/dev/null 2>&1; then
+  check_claude_plugin_enabled() {
+    local id="$1" label="$2"
+    if claude plugin list 2>/dev/null | awk -v id="$1" '
+      index($0, id) { block=1 }
+      block && /Status: ✔ enabled/ { found=1; exit }
+      block && /^  ❯/ && index($0, id) == 0 { block=0 }
+      END { exit !found }
+    '; then
+      echo "OK:$2"
+    else
+      echo "MISS:$2"
+    fi
+  }
+  check_claude_plugin_enabled 'github@claude-plugins-official' 'claude:github-enabled'
+  check_claude_plugin_enabled 'superpowers@superpowers-marketplace' 'claude:superpowers-enabled'
+else
+  echo "MISS:claude:github-enabled"
+  echo "MISS:claude:superpowers-enabled"
+fi
+check "$HOME/.claude/ecc/install-state.json" "claude:ecc-home"
+check "$HOME/.claude/skills/od-design-md/SKILL.md" "claude:od-design-md"
+
+# Codex
+check "$HOME/.codex/config.toml" "codex:config-toml"
+check "$HOME/.codex/plugins" "codex:plugins-dir"
+check "$HOME/.codex/ecc-install-state.json" "codex:ecc-state"
+command -v codex >/dev/null 2>&1 && echo "OK:codex-cli" || echo "MISS:codex-cli"
 REMOTE
 
 audit_agldv() {

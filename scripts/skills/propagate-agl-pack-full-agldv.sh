@@ -31,16 +31,19 @@ set -euo pipefail
 HOSTMAN="/mnt/overpower/apps/dev/agl/agl-hostman"
 LLM="/mnt/overpower/apps/dev/agl/llm-wiki"
 export LLM_WIKI_DIR="$LLM"
-export SKIP_PROMPT_IMPROVER_PLUGIN=1
+export SKIP_SCAN=1
 cd "$HOSTMAN"
-for repo in obsidian superpowers content-skills karpathy; do
+for repo in obsidian superpowers content-skills karpathy qa-devsecops; do
   echo "[sync] $repo"
   ./scripts/skills/sync-six-repos.sh --repo "$repo"
 done
 ./scripts/agl/sync-harness-skills.sh 2>/dev/null || echo "[WARN] harness sync skip"
 ./scripts/skills/install-global-delivery-rules.sh
 ./scripts/skills/install-cursor-agent-rules.sh
-./scripts/skills/verify-six-repos.sh || echo "[WARN] verify-six-repos com FAIL/WARN (open-design/ecc opcionais)"
+./scripts/skills/install-agl-claude-codex-plugins.sh || echo "[WARN] claude/codex plugins parcial"
+./scripts/skills/verify-agl-qa-devsecops-pack.sh || echo "[WARN] verify qa-devsecops FAIL"
+./scripts/skills/verify-agl-claude-codex-plugins.sh || echo "[WARN] verify claude/codex plugins FAIL"
+./scripts/skills/verify-six-repos.sh || echo "[WARN] verify-six-repos com FAIL/WARN"
 REMOTE
 
 install_local() {
@@ -63,7 +66,11 @@ install_remote() {
 
 run_host() {
   local name="$1"
-  local ip="${HOST_IPS[$name]}"
+  local ip="${HOST_IPS[$name]:-}"
+  if [[ -z "$ip" ]]; then
+    warn "Host desconhecido: $name"
+    return 1
+  fi
   local local_short
   local_short="$(hostname -s 2>/dev/null || hostname)"
   if [[ "$local_short" == "$name" ]]; then
