@@ -29,6 +29,10 @@ ENV HERMES_AGENT_DIR=/opt/hermes \
 
 RUN mkdir -p /opt/minions/data /opt/minions/workspace /opt/minions/logs /opt/minions/skills
 
+# ponytail: worker Python demora >10s no cold start — evita "agent features unavailable"
+RUN sed -i 's/WORKER_READY_TIMEOUT_MS = 10_000/WORKER_READY_TIMEOUT_MS = 60_000/' \
+    /usr/local/lib/node_modules/minionsai/dist/server/server/adapters/hermes-worker.js
+
 EXPOSE 6969
 
 # Imagem base Hermes usa s6 — só queremos o servidor Minions

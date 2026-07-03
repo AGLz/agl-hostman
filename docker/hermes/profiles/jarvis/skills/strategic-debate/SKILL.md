@@ -19,11 +19,11 @@ Ferramenta **Opção B**: duas personas LLM debatem uma decisão estratégica; t
 
 | Persona   | Modelo                 | Papel                          |
 | --------- | ---------------------- | ------------------------------ |
-| Advocate  | `or-qwen3-coder-free`  | Defende a direcção / oportunidade |
-| Skeptic   | `or-hermes-free`       | Riscos, premissas, alternativas |
-| Síntese   | `or-qwen3-next-free`   | Recomendação equilibrada       |
+| Advocate  | `agl-primary-zai-glm-flash` | Defende a direcção / oportunidade |
+| Skeptic   | `groq-llama-31-8b`          | Riscos, premissas, alternativas |
+| Síntese   | `zai-glm-flash`             | Recomendação equilibrada       |
 
-**Proibido** neste fluxo: `or-owl-alpha`, `or-nemotron-*`, Sonoma, Horizon (logam prompts). O script bloqueia por defeito.
+**Proibido** neste fluxo: modelos OpenRouter (`or-*`) enquanto créditos esgotados; Sonoma, Horizon (logam prompts).
 
 ## Privacidade
 
