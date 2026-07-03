@@ -53,6 +53,20 @@ const [,, command, ...args] = process.argv;
 // Get prompt from environment variable (set by Claude Code hooks)
 const prompt = process.env.PROMPT || process.env.TOOL_INPUT_command || args.join(' ') || '';
 
+// Cursor/Claude Code PreToolUse hooks expect JSON on stdout (not plain text).
+function emitPreToolUse(decision, additionalContext = '') {
+  const payload = {
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: decision,
+    },
+  };
+  if (additionalContext) {
+    payload.hookSpecificOutput.additionalContext = additionalContext;
+  }
+  console.log(JSON.stringify(payload));
+}
+
 const handlers = {
   'route': () => {
     // Inject ranked intelligence context before routing
@@ -124,25 +138,11 @@ const handlers = {
     const dangerous = ['rm -rf /', 'format c:', 'del /s /q c:\\', ':(){:|:&};:'];
     for (const d of dangerous) {
       if (lower.includes(d)) {
-        const out = {
-          hookSpecificOutput: {
-            hookEventName: 'PreToolUse',
-            permissionDecision: 'deny',
-            permissionDecisionReason: `Dangerous command blocked: ${d}`,
-          },
-        };
-        process.stdout.write(JSON.stringify(out));
-        process.exit(0);
+        emitPreToolUse('deny', `Dangerous command blocked: ${d}`);
+        return;
       }
     }
-    const allow = {
-      hookSpecificOutput: {
-        hookEventName: 'PreToolUse',
-        permissionDecision: 'allow',
-        permissionDecisionReason: 'Command validated',
-      },
-    };
-    process.stdout.write(JSON.stringify(allow));
+    emitPreToolUse('allow', 'Command validated');
   },
 
   'post-edit': () => {

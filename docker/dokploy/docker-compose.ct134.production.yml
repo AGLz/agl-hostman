@@ -47,6 +47,13 @@ services:
     depends_on:
       app:
         condition: service_started
+    # ponytail: imagem herda HEALTHCHECK HTTP (nginx) — inválido sem porta 80
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan horizon:status | grep -q running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   scheduler:
     image: ${IMAGE:-harbor.aglz.io/agl-hostman-prod/hostman:prod-latest}
@@ -63,6 +70,12 @@ services:
     depends_on:
       app:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'schedule:run' >/dev/null || pgrep -x sleep >/dev/null"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 networks:
   agl-prod:
