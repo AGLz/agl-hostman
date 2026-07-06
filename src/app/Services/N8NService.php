@@ -743,6 +743,58 @@ class N8NService
     }
 
     /**
+     * Trigger infrastructure monitoring workflow in N8N
+     */
+    public function triggerMonitoring(array $servers): array
+    {
+        $workflowId = config('n8n.workflows.monitoring');
+
+        if (! $workflowId) {
+            Log::info('N8N monitoring workflow not configured — skipped', [
+                'servers' => $servers,
+            ]);
+
+            return [
+                'success' => false,
+                'skipped' => true,
+                'reason' => 'N8N_WORKFLOW_MONITORING not set',
+            ];
+        }
+
+        return $this->executeWorkflow($workflowId, [
+            'servers' => $servers,
+            'source' => 'agl-hostman',
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Trigger AI agent workflow in N8N
+     */
+    public function triggerAIAgent(string $model, string $prompt, array $context = []): array
+    {
+        $workflowId = config('n8n.workflows.ai_agent');
+
+        if (! $workflowId) {
+            Log::info('N8N AI agent workflow not configured — skipped', [
+                'model' => $model,
+            ]);
+
+            return [
+                'success' => false,
+                'skipped' => true,
+                'reason' => 'N8N_WORKFLOW_AI_AGENT not set',
+            ];
+        }
+
+        return $this->executeWorkflow($workflowId, [
+            'model' => $model,
+            'prompt' => $prompt,
+            'context' => $context,
+        ]);
+    }
+
+    /**
      * Get workflow statistics
      */
     public function getStatistics(): array

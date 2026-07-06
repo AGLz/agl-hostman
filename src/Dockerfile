@@ -36,6 +36,7 @@ RUN apk add --no-cache \
     libxml2-dev \
     # Database drivers
     postgresql-dev \
+    postgresql-client \
     # Internationalization
     icu-dev \
     # Archive handling

@@ -17,12 +17,12 @@ class BackupService
     public function __construct()
     {
         $this->backupConfig = config('backup', [
-            'databases' => ['mysql'],
+            'databases' => [config('database.default', 'pgsql')],
             'paths' => ['app', 'config', 'database', 'resources'],
             'exclude' => ['node_modules', 'vendor', '.git', 'storage/logs'],
-            'retention' => 30, // days
+            'retention' => 30,
             'compression' => true,
-            'encrypt' => true,
+            'encrypt' => false,
         ]);
 
         $this->backupPath = storage_path('backups');
@@ -76,8 +76,8 @@ class BackupService
                 $results['archive'] = $archivePath;
                 $results['size'] = filesize($archivePath);
 
-                // Encrypt if enabled
-                if ($this->backupConfig['encrypt']) {
+                // Encrypt if enabled and password configured
+                if ($this->backupConfig['encrypt'] && config('backup.encryption_password')) {
                     $encryptedPath = $this->encryptBackup($archivePath);
                     $results['encrypted'] = true;
                     $results['archive'] = $encryptedPath;
@@ -135,42 +135,72 @@ class BackupService
         foreach ($this->backupConfig['databases'] as $connection) {
             $config = config("database.connections.{$connection}");
 
-            if ($connection === 'mysql') {
-                $filename = "{$path}/database_{$connection}.sql";
-                $command = sprintf(
-                    'mysqldump --host=%s --port=%s --user=%s --password=%s %s > %s',
-                    escapeshellarg($config['host']),
-                    escapeshellarg($config['port']),
-                    escapeshellarg($config['username']),
-                    escapeshellarg($config['password']),
-                    escapeshellarg($config['database']),
-                    escapeshellarg($filename)
-                );
+            if (! is_array($config) || empty($config['driver'])) {
+                $results[$connection] = [
+                    'success' => false,
+                    'error' => "Database connection {$connection} not configured",
+                ];
 
-                exec($command, $output, $returnCode);
-
-                if ($returnCode === 0) {
-                    $results[$connection] = [
-                        'success' => true,
-                        'file' => basename($filename),
-                        'size' => filesize($filename),
-                    ];
-                } else {
-                    $results[$connection] = [
-                        'success' => false,
-                        'error' => 'Database dump failed',
-                    ];
-                }
+                continue;
             }
 
-            // Add support for other database types
-            // PostgreSQL, SQLite, etc.
+            $filename = "{$path}/database_{$connection}.sql";
+            $command = match ($config['driver']) {
+                'mysql', 'mariadb' => sprintf(
+                    'mysqldump --host=%s --port=%s --user=%s --password=%s %s > %s',
+                    escapeshellarg($config['host'] ?? '127.0.0.1'),
+                    escapeshellarg((string) ($config['port'] ?? '3306')),
+                    escapeshellarg($config['username'] ?? ''),
+                    escapeshellarg($config['password'] ?? ''),
+                    escapeshellarg($config['database'] ?? ''),
+                    escapeshellarg($filename)
+                ),
+                'pgsql' => sprintf(
+                    'PGPASSWORD=%s pg_dump --host=%s --port=%s --username=%s --dbname=%s --file=%s --no-owner --no-acl',
+                    escapeshellarg($config['password'] ?? ''),
+                    escapeshellarg($config['host'] ?? '127.0.0.1'),
+                    escapeshellarg((string) ($config['port'] ?? '5432')),
+                    escapeshellarg($config['username'] ?? ''),
+                    escapeshellarg($config['database'] ?? ''),
+                    escapeshellarg($filename)
+                ),
+                'sqlite' => sprintf(
+                    'sqlite3 %s .dump > %s',
+                    escapeshellarg($config['database'] ?? database_path('database.sqlite')),
+                    escapeshellarg($filename)
+                ),
+                default => null,
+            };
+
+            if ($command === null) {
+                $results[$connection] = [
+                    'success' => false,
+                    'error' => "Unsupported driver: {$config['driver']}",
+                ];
+
+                continue;
+            }
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode === 0 && is_file($filename) && filesize($filename) > 0) {
+                $results[$connection] = [
+                    'success' => true,
+                    'file' => basename($filename),
+                    'size' => filesize($filename),
+                ];
+            } else {
+                $results[$connection] = [
+                    'success' => false,
+                    'error' => 'Database dump failed',
+                    'driver' => $config['driver'],
+                ];
+            }
         }
 
-        // Backup Redis if configured
+        // Backup Redis if configured (best-effort)
         if (config('database.redis.default')) {
-            $redisBackup = $this->backupRedis($path);
-            $results['redis'] = $redisBackup;
+            $results['redis'] = $this->backupRedis($path);
         }
 
         return $results;
@@ -386,6 +416,12 @@ class BackupService
      */
     protected function storeBackupMetadata(array $metadata): void
     {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('backups')) {
+            Log::warning('backups table missing — skip metadata insert');
+
+            return;
+        }
+
         DB::table('backups')->insert([
             'name' => $metadata['name'],
             'type' => $metadata['type'],

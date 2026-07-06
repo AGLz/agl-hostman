@@ -68,6 +68,14 @@ class MonitorInfrastructure implements ShouldQueue
             }
         }
 
+        if ($results === []) {
+            Log::warning('Infrastructure monitoring skipped — no physical_locations matched', [
+                'servers' => $this->servers,
+            ]);
+
+            return;
+        }
+
         // Send results to N8N for workflow processing
         $n8nService->triggerMonitoring($this->servers);
 
