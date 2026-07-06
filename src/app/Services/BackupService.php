@@ -401,7 +401,11 @@ class BackupService
         $retentionDays = $this->backupConfig['retention'];
         $cutoffDate = Carbon::now()->subDays($retentionDays);
 
-        $files = glob("{$this->backupPath}/backup_*.{zip,enc}", GLOB_BRACE);
+        // ponytail: dois globs em vez de GLOB_BRACE (namespace + compat Alpine)
+        $files = array_merge(
+            glob("{$this->backupPath}/backup_*.zip") ?: [],
+            glob("{$this->backupPath}/backup_*.enc") ?: [],
+        );
 
         foreach ($files as $file) {
             if (filemtime($file) < $cutoffDate->timestamp) {

@@ -53,4 +53,20 @@ describe('BackupService database dump', function () {
 
         @rmdir($temp);
     });
+
+    it('cleanOldBackups does not throw on empty backup dir', function () {
+        $temp = sys_get_temp_dir().'/backup-clean-'.uniqid();
+        mkdir($temp);
+
+        Config::set('backup.path', $temp);
+        Config::set('backup.retention', 7);
+
+        $service = new \App\Services\BackupService;
+        $method = new ReflectionMethod($service, 'cleanOldBackups');
+        $method->setAccessible(true);
+        $method->invoke($service);
+
+        expect(true)->toBeTrue();
+        @rmdir($temp);
+    });
 });
