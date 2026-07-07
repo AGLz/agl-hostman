@@ -1,0 +1,19 @@
+[Unit]
+Description=makemoney01 WhatsApp webhook (Speed-to-Lead multi-tenant)
+After=network.target makemoney-lead-reply-api.service
+Requires=makemoney-lead-reply-api.service
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/overpower/apps/dev/agl/makemoney01
+Environment=PYTHONUNBUFFERED=1
+Environment=MAKEMONEY_LEAD_REPLY_URL=http://127.0.0.1:8765
+EnvironmentFile=-/etc/makemoney/whatsapp-webhook.env
+ExecStart=/usr/bin/python3 /mnt/overpower/apps/dev/agl/makemoney01/scripts/whatsapp_webhook.py --host 127.0.0.1 --port 8766
+Restart=on-failure
+RestartSec=5
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
