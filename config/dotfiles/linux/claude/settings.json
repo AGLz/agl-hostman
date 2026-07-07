@@ -3,10 +3,12 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "LITELLM_GATEWAY_URL": "http://100.125.249.8:4000"
   },
+  "model": "claude-sonnet-5",
+  "apiKeyHelper": "/root/.claude/helpers/get-litellm-key.sh",
   "statusLine": {
     "type": "command",
     "command": "/root/.claude/statusline-command.sh"
   },
-  "language": "Português",
-  "model": "claude-sonnet-5"
+  "language": "Portugu\u00eas",
+  "skipDangerousModePermissionPrompt": true
 }

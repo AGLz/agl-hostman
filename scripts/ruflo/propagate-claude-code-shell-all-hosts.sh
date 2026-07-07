@@ -123,7 +123,7 @@ for host in "${TARGETS[@]}"; do
   done
 
   # --- ~/.claude (home) ---
-  ssh "root@${ip}" "umask 077; mkdir -p ~/.claude/helpers"
+  ssh "root@${ip}" "umask 077; mkdir -p ~/.claude/helpers; rm -f ~/.claude/helpers/get-litellm-key.sh"
   scp -q "$SETTINGS_LITELLM_SRC" "root@${ip}:/root/.claude/settings-litellm.json"
   scp -q "$SETTINGS_ANTHROPIC_SRC" "root@${ip}:/root/.claude/settings-anthropic.json"
   scp -q "$REPO_ROOT/.claude/helpers/get-litellm-key.sh" "root@${ip}:/root/.claude/helpers/get-litellm-key.sh"
@@ -133,11 +133,20 @@ for host in "${TARGETS[@]}"; do
     if command -v python3 >/dev/null 2>&1; then
       python3 - <<'PY'
 import json, pathlib
-p = pathlib.Path('/root/.claude/settings-litellm.json')
-d = json.loads(p.read_text())
-d['apiKeyHelper'] = '/root/.claude/helpers/get-litellm-key.sh'
-p.write_text(json.dumps(d, indent=2) + '\n')
+helper = '/root/.claude/helpers/get-litellm-key.sh'
+for name in ('settings-litellm.json', 'settings.json'):
+    p = pathlib.Path('/root/.claude') / name
+    if not p.exists():
+        continue
+    d = json.loads(p.read_text())
+    d['apiKeyHelper'] = helper
+    p.write_text(json.dumps(d, indent=2) + '\n')
 PY
+    fi
+    # ponytail: confirmar que não ficou symlink NFS
+    if [ -L ~/.claude/helpers/get-litellm-key.sh ]; then
+      echo 'WARN: get-litellm-key.sh ainda é symlink'
+      exit 1
     fi
   " 2>/dev/null
   echo "  OK ~/.claude/settings-{litellm,anthropic}.json + get-litellm-key.sh (cópia local)"

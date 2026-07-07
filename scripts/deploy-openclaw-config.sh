@@ -26,12 +26,16 @@ HOSTS=(
   "root@100.83.51.9"     # fgsrv6 (se timeout: tailscale status; alternativa comum 100.98.108.66)
 )
 
-# Hosts sem OpenClaw: apenas zshrc (multi-models env)
+# Hosts sem OpenClaw: apenas zshrc (multi-models env) — gateway central CT186
 ZSHRC_ONLY_HOSTS=(
   "root@100.113.9.98"    # agldv04
-  "root@100.82.71.49"   # agldv05
+  "root@100.71.217.115"  # agldv12
+  "root@100.82.71.49"    # agldv05
   "root@100.71.229.12"   # agldv06
 )
+
+CLAUDE_LITELLM_SETTINGS="$REPO_ROOT/.claude/settings.litellm.json"
+CLAUDE_KEY_HELPER="$REPO_ROOT/.claude/helpers/get-litellm-key.sh"
 
 OPENCLAW_CONFIG="$HOME/.openclaw/openclaw.json"
 OPENCLAW_REMOTE="~/.openclaw/openclaw.json"
@@ -57,7 +61,11 @@ else
 fi
 cp "$ZSHRC_ENV" "$HOME/.openclaw/zshrc-openclaw.env" 2>/dev/null || true
 cp "$LITELLM_LOCAL_ENV" "$HOME/.openclaw/litellm-gateway.env" 2>/dev/null || true
-echo "  OK: litellm-gateway.env → localhost:4000 (Claude + OpenClaw)"
+mkdir -p "$HOME/.claude/helpers"
+cp "$CLAUDE_LITELLM_SETTINGS" "$HOME/.claude/settings.litellm.json" 2>/dev/null || true
+cp "$CLAUDE_KEY_HELPER" "$HOME/.claude/helpers/get-litellm-key.sh" 2>/dev/null || true
+chmod +x "$HOME/.claude/helpers/get-litellm-key.sh" 2>/dev/null || true
+echo "  OK: litellm-gateway.env → CT186 + settings-litellm.json"
 if ! grep -q "$ZSHRC_MARKER" "$HOME/.zshrc" 2>/dev/null; then
   echo "" >> "$HOME/.zshrc"
   echo "$ZSHRC_MARKER" >> "$HOME/.zshrc"
@@ -99,6 +107,10 @@ for host in "${HOSTS[@]}"; do
   # 2. Copiar zshrc + LiteLLM local (cada host com proxy em :4000 usa localhost)
   "${OPENCLAW_SCP[@]}" "$ZSHRC_ENV" "$host:~/.openclaw/zshrc-openclaw.env" 2>/dev/null || true
   "${OPENCLAW_SCP[@]}" "$LITELLM_LOCAL_ENV" "$host:~/.openclaw/litellm-gateway.env" 2>/dev/null || true
+  "${OPENCLAW_SSH[@]}" "$host" "mkdir -p ~/.claude/helpers" 2>/dev/null || true
+  "${OPENCLAW_SCP[@]}" "$CLAUDE_LITELLM_SETTINGS" "$host:~/.claude/settings.litellm.json" 2>/dev/null || true
+  "${OPENCLAW_SCP[@]}" "$CLAUDE_KEY_HELPER" "$host:~/.claude/helpers/get-litellm-key.sh" 2>/dev/null || true
+  "${OPENCLAW_SSH[@]}" "$host" "chmod +x ~/.claude/helpers/get-litellm-key.sh" 2>/dev/null || true
   "${OPENCLAW_SCP[@]}" -q "$LITELLM_LOCAL_JQ" "$host:/tmp/openclaw-litellm-local.jq" 2>/dev/null || true
   "${OPENCLAW_SSH[@]}" "$host" "if [[ -f ~/.openclaw/openclaw.json ]] && [[ -f /tmp/openclaw-litellm-local.jq ]]; then jq -f /tmp/openclaw-litellm-local.jq ~/.openclaw/openclaw.json > /tmp/oc-litellm.json && mv /tmp/oc-litellm.json ~/.openclaw/openclaw.json && echo OK-openclaw-litellm-local; fi" || true
 
@@ -123,6 +135,10 @@ for host in "${ZSHRC_ONLY_HOSTS[@]}"; do
   "${OPENCLAW_SSH[@]}" "$host" "mkdir -p ~/.openclaw" 2>/dev/null || true
   "${OPENCLAW_SCP[@]}" "$ZSHRC_ENV" "$host:~/.openclaw/zshrc-openclaw.env" 2>/dev/null || true
   "${OPENCLAW_SCP[@]}" "$LITELLM_CLIENT_ENV" "$host:~/.openclaw/litellm-gateway.env" 2>/dev/null || true
+  "${OPENCLAW_SSH[@]}" "$host" "mkdir -p ~/.claude/helpers" 2>/dev/null || true
+  "${OPENCLAW_SCP[@]}" "$CLAUDE_LITELLM_SETTINGS" "$host:~/.claude/settings.litellm.json" 2>/dev/null || true
+  "${OPENCLAW_SCP[@]}" "$CLAUDE_KEY_HELPER" "$host:~/.claude/helpers/get-litellm-key.sh" 2>/dev/null || true
+  "${OPENCLAW_SSH[@]}" "$host" "chmod +x ~/.claude/helpers/get-litellm-key.sh" 2>/dev/null || true
   if ! "${OPENCLAW_SSH[@]}" "$host" "grep -q '$ZSHRC_MARKER' ~/.zshrc 2>/dev/null"; then
     echo "  Adicionando vars + multi-model ao .zshrc..."
     "${OPENCLAW_SSH[@]}" "$host" "echo '' >> ~/.zshrc && echo '$ZSHRC_MARKER' >> ~/.zshrc && echo '[[ -f ~/.openclaw/litellm-gateway.env ]] && source ~/.openclaw/litellm-gateway.env' >> ~/.zshrc && echo '[[ -f ~/.openclaw/litellm-master.secret.env ]] && source ~/.openclaw/litellm-master.secret.env' >> ~/.zshrc && echo '[[ -f ~/.openclaw/zshrc-openclaw.env ]] && source ~/.openclaw/zshrc-openclaw.env' >> ~/.zshrc"

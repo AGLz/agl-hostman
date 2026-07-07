@@ -1,0 +1,197 @@
+name: Deploy CT134 Production (Harbor → Dokploy)
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ct134-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  HARBOR_REGISTRY: harbor.aglz.io
+  HARBOR_PROJECT: agl-hostman-prod
+  IMAGE_NAME: hostman
+  DOCKERFILE: ./src/Dockerfile
+  BUILD_CONTEXT: ./src
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    name: Test (Pest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, pdo, pdo_pgsql, bcmath, intl, zip, redis
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        working-directory: ./src
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Pest
+        working-directory: ./src
+        run: vendor/bin/pest --parallel --stop-on-failure
+
+  build-push:
+    name: Build & Push Harbor
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 30
+    outputs:
+      image_tag: ${{ steps.tags.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trust Harbor CA
+        if: ${{ secrets.HARBOR_CA_CERT != '' }}
+        run: |
+          sudo mkdir -p "/etc/docker/certs.d/${{ env.HARBOR_REGISTRY }}"
+          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d | sudo tee "/etc/docker/certs.d/${{ env.HARBOR_REGISTRY }}/ca.crt" >/dev/null
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Resolve image tags
+        id: tags
+        run: |
+          SHA="${GITHUB_SHA::7}"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TAG="pr-${{ github.event.pull_request.number }}-${SHA}"
+          else
+            TAG="prod-${SHA}"
+          fi
+          IMAGE="${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}"
+          echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "${IMAGE}:prod-latest" >> "$GITHUB_OUTPUT"
+          fi
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.BUILD_CONTEXT }}
+          file: ${{ env.DOCKERFILE }}
+          target: production
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy scan (prod tags only)
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.image_tag }}
+          format: table
+          severity: CRITICAL
+          exit-code: "1"
+
+  deploy-prod:
+    name: Deploy CT134 (main)
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production-ct134
+      url: https://ah.aglz.io
+    timeout-minutes: 15
+    steps:
+      - name: Trigger Dokploy (API ou webhook)
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL || 'https://dok.aglz.io/api' }}
+          DOKPLOY_PROD_WEBHOOK_URL: ${{ secrets.DOKPLOY_PROD_WEBHOOK_URL }}
+          IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
+        run: |
+          if [[ -n "${DOKPLOY_API_KEY}" ]]; then
+            curl -fsS -X POST "${DOKPLOY_URL%/}/trpc/application.deploy?batch=1" \
+              -H "x-api-key: ${DOKPLOY_API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d '{"0":{"json":{"applicationId":"app_prod_123456789"}}}' || true
+          fi
+          if [[ -n "${DOKPLOY_PROD_WEBHOOK_URL}" ]]; then
+            curl -fsS -X POST "${DOKPLOY_PROD_WEBHOOK_URL}" \
+              -H "Content-Type: application/json" \
+              -d "{\"tag\":\"${IMAGE_TAG}\",\"commit\":\"${{ github.sha }}\",\"branch\":\"main\"}" || true
+          fi
+
+      - name: Rolling update CT134 via aglsrv1 (recomendado)
+        if: ${{ secrets.AGLSRV1_SSH_KEY != '' }}
+        env:
+          AGLSRV1_SSH_KEY: ${{ secrets.AGLSRV1_SSH_KEY }}
+          AGLSRV1_HOST: ${{ secrets.AGLSRV1_HOST }}
+          IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
+        run: |
+          HOST="${AGLSRV1_HOST:-100.107.113.33}"
+          install -m 600 -D /dev/stdin ~/.ssh/aglsrv1_key <<< "${AGLSRV1_SSH_KEY}"
+          ssh -i ~/.ssh/aglsrv1_key -o StrictHostKeyChecking=no "root@${HOST}" \
+            "cd /mnt/overpower/apps/dev/agl/agl-hostman && IMAGE_TAG=${IMAGE_TAG} bash scripts/dokploy/trigger-ct134-deploy.sh"
+
+      - name: Rolling update CT134 (fallback SSH directo)
+        if: ${{ secrets.AGLSRV1_SSH_KEY == '' && secrets.CT134_SSH_KEY != '' }}
+        env:
+          CT134_HOST: ${{ secrets.CT134_HOST }}
+          IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
+          CT134_SSH_KEY: ${{ secrets.CT134_SSH_KEY }}
+          FULL_IMAGE: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}
+        run: |
+          HOST="${CT134_HOST:-192.168.0.134}"
+          install -m 600 -D /dev/stdin ~/.ssh/ct134_key <<< "${CT134_SSH_KEY}"
+          ssh -i ~/.ssh/ct134_key -o StrictHostKeyChecking=no "root@${HOST}" \
+            "cd /opt/agl-hostman-prod && \
+             grep -q '^IMAGE=' .env && sed -i 's|^IMAGE=.*|IMAGE=${FULL_IMAGE}:${IMAGE_TAG}|' .env || echo 'IMAGE=${FULL_IMAGE}:${IMAGE_TAG}' >> .env && \
+             docker compose pull && docker compose up -d"
+
+      - name: Health check
+        env:
+          HEALTH_URL: ${{ secrets.CT134_HEALTH_URL || 'https://ah.aglz.io/health/' }}
+        run: |
+          for i in $(seq 1 36); do
+            if curl -fsS "${HEALTH_URL}"; then
+              echo "Health OK"
+              exit 0
+            fi
+            echo "Aguardar deploy... ($i/36)"
+            sleep 10
+          done
+          echo "Health check falhou: ${HEALTH_URL}" >&2
+          exit 1
+
+  pr-comment:
+    name: PR — imagem Harbor
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ needs.build-push.outputs.image_tag }}';
+            const image = `${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${tag}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ Imagem CT134 prod publicada no Harbor:\n\`${image}\`\n\nDeploy prod ocorre após merge em \`main\`.`
+            });

@@ -68,7 +68,7 @@ Preencher aqui antes do cutover:
 | ------------------ | ----------------------------- |
 | Host dev           | ex. CT179 `192.168.0.179`     |
 | Porta              | ex. `80` ou `8080`            |
-| Service URL tunnel | ex. `http://192.168.0.179:80` |
+| Service URL tunnel (dev) | `http://192.168.0.181:8055` (agldv04 nginx NFS) |
 
 ---
 

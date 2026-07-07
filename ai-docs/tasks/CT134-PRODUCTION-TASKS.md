@@ -33,28 +33,30 @@ Legenda: `[ ]` pendente · `[x]` feito · `[~]` em progresso
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
 | CT134-2.1 | Projecto Harbor `agl-hostman-prod` | P0 | [x] |
-| CT134-2.2 | Robot account → GitHub Secrets | P0 | [ ] |
+| CT134-2.2 | Robot account → GitHub Secrets | P0 | [x] |
 | CT134-2.3 | DB `agl_hostman_prod` CT149 | P0 | [x] |
 | CT134-2.6 | Certificado Harbor `harbor.aglz.io` + trust Docker CT134 | P0 | [x] |
-| CT134-2.4 | Push imagem smoke manual | P1 | [ ] |
+| CT134-2.4 | Push imagem smoke manual | P1 | [x] |
 | CT134-2.5 | Política retention Harbor | P2 | [ ] |
 
 ### Fase 3 — Dokploy
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-3.1 | Registar CT134 como Server | P0 | [ ] |
-| CT134-3.2 | App `agl-hostman-prod` | P0 | [ ] |
-| CT134-3.3 | Deploy manual primeira imagem | P0 | [ ] |
-| CT134-3.4 | Webhook → `DOKPLOY_PROD_WEBHOOK_URL` | P0 | [ ] |
+| CT134-3.1 | Registar CT134 como Server | P0 | [x] |
+| CT134-3.2 | App `agl-hostman-prod` + compose API | P0 | [x] |
+| CT134-3.3 | Deploy manual primeira imagem | P0 | [x] |
+| CT134-3.4 | Webhook + `DOKPLOY_API_KEY` GitHub | P0 | [~] |
 | CT134-3.5 | Preview PR (opcional) | P2 | [ ] |
+
+Descoberta 2026-07-06: API Dokploy OK (`scripts/dokploy/setup-ct134-via-api.sh`); deploy rolling real via `trigger-ct134-deploy.sh` (SSH aglsrv1→CT134). Ingress `dok.aglz.io` pendente (`update-dok-aglz-tunnel-ingress.sh`).
 
 ### Fase 4 — GitHub CI/CD
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-4.1 | Secrets GitHub completos | P0 | [ ] |
-| CT134-4.2 | Environment `production-ct134` | P1 | [ ] |
+| CT134-4.1 | Secrets GitHub completos | P0 | [~] |
+| CT134-4.2 | Environment `production-ct134` | P1 | [x] |
 | CT134-4.3 | Branch protection `main` | P1 | [ ] |
 | CT134-4.4 | PR teste → tag `pr-*` Harbor | P0 | [ ] |
 | CT134-4.5 | Merge teste → deploy automático (LAN) | P0 | [ ] |
@@ -63,10 +65,10 @@ Legenda: `[ ]` pendente · `[x]` feito · `[~]` em progresso
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-5.1 | Documentar origin dev actual `ah.aglz.io` | P0 | [ ] |
-| CT134-5.2 | Criar `ah-dev.aglz.io` → dev | P0 | [ ] |
-| CT134-5.3 | Repoint `ah.aglz.io` → CT134 | P0 | [ ] |
-| CT134-5.4 | `CT134_HEALTH_URL` público | P0 | [ ] |
+| CT134-5.1 | Documentar origin dev actual `ah.aglz.io` | P0 | [x] |
+| CT134-5.2 | Criar `ah-dev.aglz.io` → dev | P0 | [x] |
+| CT134-5.3 | Repoint `ah.aglz.io` → CT134 | P0 | [x] |
+| CT134-5.4 | `CT134_HEALTH_URL` público | P0 | [x] |
 
 Runbook: [`docs/runbooks/CT134-CLOUDFLARE-CUTOVER.md`](../../docs/runbooks/CT134-CLOUDFLARE-CUTOVER.md)
 
@@ -101,4 +103,4 @@ _Registar aqui durante a implementação._
 | Data | Nota |
 |------|------|
 | 2026-06-12 | Plano criado; cutover depende de origin dev documentado em §3 runbook Cloudflare |
-| 2026-06-12 | **F1 CT134 criado AGLSRV1:** VMID 134 `agl-hostman` · IP `192.168.0.134/24` · Docker 29.5.3 · compose+env em `/opt/agl-hostman-prod` · AppArmor unconfined · `docker compose up` aguarda imagem Harbor (F2) · Harbor :443/:5000 recusado de CT134→182 (validar CT182) · Tailscale instalado, falta `tailscale up` |
+| 2026-07-06 | **Harbor** `harbor.aglz.io` ingress aglsrv1 + `:5000` LAN CT182 · **ah-dev** → `192.168.0.181:8055` (agldv04) · **Secrets** Harbor/CA/health no GitHub · workflow `deploy-ct134-production.yml` |

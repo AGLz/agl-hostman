@@ -10,8 +10,12 @@ const CONFIG_REMOTE = path.join(__dirname, '../../config/litellm/config-remote.y
 
 function assertGroqOpenrouterStack(yaml, label, requireCerebras = false) {
   assert.match(yaml, /model_name:\s*"?openrouter-free"?/, label);
-  assert.match(yaml, /model:\s*"?openrouter\/openrouter\/free"?/, label);
-  assert.match(yaml, /OPENROUTER_API_KEY/, label);
+  assert.match(yaml, /model_name:\s*"?openrouter\/openrouter\/free"?/, label);
+  if (label === 'config.yaml') {
+    assert.match(yaml, /zero-openrouter/, label);
+  } else {
+    assert.match(yaml, /OPENROUTER_API_KEY/, label);
+  }
   assert.match(yaml, /GROQ_API_KEY/, label);
   assert.match(yaml, /GROQ_API_KEY2/, label);
   assert.match(yaml, /groq\/llama-3\.3-70b-versatile/, label);
@@ -25,7 +29,9 @@ function assertGroqOpenrouterStack(yaml, label, requireCerebras = false) {
 }
 
 test('LiteLLM: OpenRouter :free + Groq em config.yaml (Cerebras opcional)', () => {
-  assertGroqOpenrouterStack(fs.readFileSync(CONFIG, 'utf8'), 'config.yaml', false);
+  const yaml = fs.readFileSync(CONFIG, 'utf8');
+  assert.match(yaml, /zero-openrouter/, 'config.yaml: aliases zero-openrouter');
+  assertGroqOpenrouterStack(yaml, 'config.yaml', false);
 });
 
 test('LiteLLM: OpenRouter :free + Groq + Cerebras em config-remote.yaml (fgsrv06)', () => {

@@ -101,8 +101,9 @@ echo -e "${GREEN}Container created successfully!${NC}"
 echo -e "${GREEN}Configuring container features...${NC}"
 cat >> /etc/pve/lxc/${CTID}.conf << EOF
 
-# Harbor Docker Requirements
+# Harbor Docker Requirements (runc 1.3+ / CVE-2025-52881 — Ubuntu precisa mount.entry)
 lxc.apparmor.profile: unconfined
+lxc.mount.entry: /dev/null sys/module/apparmor/parameters/enabled none bind 0 0
 lxc.cgroup2.devices.allow: a
 lxc.cap.drop:
 lxc.mount.auto: proc:rw sys:rw

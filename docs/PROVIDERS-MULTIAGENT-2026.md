@@ -1,9 +1,20 @@
 # Providers para Multi-Agent no OpenClaw — Abril 2026
 
 > Análise baseada no setup atual (`config/litellm/config.yaml`, `config/openclaw/`) e pesquisa de mercado.
-> Última atualização: 2026-04-02 — Groq: `GROQ_API_KEY` / `GROQ_API_KEY2`, `scripts/litellm/validate-groq-keys.sh`, sync em `sync-systemd-openclaw-env.sh`.
+> Última atualização: 2026-07-03 — **Tier A (Jun/2026):** aliases `claude-*` no LiteLLM CT186 mapeiam para **Z.AI Anthropic `glm-4.5-flash`** (OpenAI quota e glm-5 limitados até ~2026-06-01). Reconfig: `scripts/litellm/reconfigure-provider-tiers.sh`.
 
 ---
+
+## 0. Política de tiers activa (Jul/2026)
+
+| Tier | Consumidor | Primário | Fallbacks |
+|------|------------|----------|-----------|
+| **A** | Claude Code (`ccs`), OpenClaw Anthropic | `claude-*` → Z.AI `glm-4.5-flash` | `zai-glm-flash`, `glm-flash`, `groq-llama-31-8b`, `agl-primary` |
+| **B** | Hermes, tools OpenAI-compat | `groq-llama-31-8b` | `or-nemotron-super-free`, `ollama-qwen3-4b` |
+| **C** | Quando billing OK | Anthropic direct, OpenAI `gpt-5.4-mini` | reactivar em `config.yaml` |
+
+Gateway canónico: **CT186** `http://100.125.249.8:4000` (todos os AGLDV*). Teste: `source ~/.zshrc && ccs 'olá'`.
+
 
 ## 1. Setup Atual — O Que Você Já Tem
 

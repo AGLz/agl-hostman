@@ -151,6 +151,19 @@ Route::prefix('infrastructure')->middleware('auth:sanctum')->group(function () {
     Route::get('/optimizations', [App\Http\Controllers\Api\InfrastructureAnalyticsController::class, 'optimizations']);
 });
 
+// Container CRUD (listagem/gestão LXC)
+Route::prefix('containers')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [App\Http\Controllers\API\ContainerController::class, 'index']);
+    Route::get('/{id}', [App\Http\Controllers\API\ContainerController::class, 'show'])->whereNumber('id');
+    Route::post('/', [App\Http\Controllers\API\ContainerController::class, 'store']);
+    Route::post('/clone', [App\Http\Controllers\API\ContainerController::class, 'clone']);
+    Route::post('/{id}/start', [App\Http\Controllers\API\ContainerController::class, 'start'])->whereNumber('id');
+    Route::post('/{id}/stop', [App\Http\Controllers\API\ContainerController::class, 'stop'])->whereNumber('id');
+    Route::post('/{id}/restart', [App\Http\Controllers\API\ContainerController::class, 'restart'])->whereNumber('id');
+    Route::delete('/{id}', [App\Http\Controllers\API\ContainerController::class, 'destroy'])->whereNumber('id');
+    Route::get('/{id}/status', [App\Http\Controllers\API\ContainerController::class, 'status'])->whereNumber('id');
+});
+
 // Container Lifecycle Management Routes
 Route::prefix('containers')->middleware('auth:sanctum')->group(function () {
     // Create and restore operations

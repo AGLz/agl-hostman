@@ -1,6 +1,12 @@
 # Dokploy + Harbor — CT134 agl-hostman produção
 
-Executar no **Dokploy UI** (https://dok.aglz.io) ou via API após CT134 bootstrap.
+Automatizado via API: `bash scripts/dokploy/setup-ct134-via-api.sh`  
+Deploy rolling real: `IMAGE_TAG=prod-<sha> bash scripts/dokploy/trigger-ct134-deploy.sh`
+
+> **Nota (2026-07-06):** Dokploy CT180 sem Traefik não faz compose remoto no CT134;
+> a API regista app/servidor/webhooks; o `trigger-ct134-deploy.sh` aplica `docker compose` no CT134 via SSH (aglsrv1).
+
+UI: https://dok.aglz.io (após `scripts/cloudflare/update-dok-aglz-tunnel-ingress.sh`)
 
 ## 1. Registar CT134 como Server
 
@@ -25,7 +31,7 @@ Executar no **Dokploy UI** (https://dok.aglz.io) ou via API após CT134 bootstra
 |-------|--------|
 | Type | Docker Compose **ou** Docker Image |
 | Server | CT134 |
-| Image | `harbor.aglz.io:5000/agl-hostman-prod/hostman:prod-latest` |
+| Image | `harbor.aglz.io/agl-hostman-prod/hostman:prod-latest` |
 | Registry auth | robot Harbor |
 | Compose path | `/opt/agl-hostman-prod/docker-compose.yml` (se compose) |
 | Branch | N/A (image-based) |
