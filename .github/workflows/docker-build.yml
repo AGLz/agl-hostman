@@ -21,7 +21,7 @@ on:
 
 env:
   HARBOR_REGISTRY: harbor.aglz.io
-  HARBOR_PROJECT: agl
+  HARBOR_PROJECT: agl-hostman-prod
   IMAGE_NAME: hostman
 
 jobs:
@@ -37,11 +37,10 @@ jobs:
 
       # GHA alcança harbor.aglz.io via Cloudflare (TLS público); CA interno só em self-hosted runners.
       - name: Log in to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.HARBOR_REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
+        env:
+          HARBOR_USERNAME: ${{ secrets.HARBOR_USERNAME }}
+          HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+        run: echo "${HARBOR_PASSWORD}" | docker login "${{ env.HARBOR_REGISTRY }}" -u "${HARBOR_USERNAME}" --password-stdin
 
       - name: Extract metadata
         id: meta
@@ -59,8 +58,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: docker/production/Dockerfile
+          context: ./src
+          file: ./src/Dockerfile
+          target: production
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
