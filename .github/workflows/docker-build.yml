@@ -35,15 +35,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Trust Harbor CA
-        env:
-          HARBOR_CA_CERT: ${{ secrets.HARBOR_CA_CERT }}
-        run: |
-          if [[ -n "${HARBOR_CA_CERT}" ]]; then
-            sudo mkdir -p "/etc/docker/certs.d/${{ env.HARBOR_REGISTRY }}"
-            echo "${HARBOR_CA_CERT}" | base64 -d | sudo tee "/etc/docker/certs.d/${{ env.HARBOR_REGISTRY }}/ca.crt" >/dev/null
-          fi
-
+      # GHA alcança harbor.aglz.io via Cloudflare (TLS público); CA interno só em self-hosted runners.
       - name: Log in to Harbor
         uses: docker/login-action@v3
         with:
