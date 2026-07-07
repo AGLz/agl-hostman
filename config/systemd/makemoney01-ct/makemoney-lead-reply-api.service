@@ -1,0 +1,16 @@
+[Unit]
+Description=makemoney01 lead_reply API (Speed-to-Lead)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/overpower/apps/dev/agl/makemoney01
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /mnt/overpower/apps/dev/agl/makemoney01/scripts/lead_reply_api.py --host 127.0.0.1 --port 8765
+Restart=on-failure
+RestartSec=5
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
