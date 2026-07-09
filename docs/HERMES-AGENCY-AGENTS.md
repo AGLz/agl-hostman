@@ -25,7 +25,7 @@ UI Laravel: `HermesAgentCatalog` inclui os nove perfis.
 
 ## Gateway: um contentor = um gateway (não “presos” ao Jarvis)
 
-Hermes **0.14.x** não suporta vários bots Telegram no **mesmo** processo gateway ([PR #25660](https://github.com/NousResearch/hermes-agent/pull/25660)). Por isso **cada agente** tem:
+Hermes **0.14.x** não suporta vários bots Telegram no **mesmo** processo gateway ([PR #25660](https://github.com/NousResearch/hermes-agent/pull/25660)). Plano de validação pós-merge: **[`HERMES-MULTI-GATEWAY-SPIKE.md`](HERMES-MULTI-GATEWAY-SPIKE.md)**. Por isso **cada agente** tem:
 
 - contentor Docker próprio (`agl-hermes-<agente>`)
 - comando `gateway run` (processo Hermes independente)
