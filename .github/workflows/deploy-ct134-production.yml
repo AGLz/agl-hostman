@@ -129,8 +129,9 @@ jobs:
             curl -fsS -X POST "${DOKPLOY_URL%/}/trpc/application.deploy?batch=1" \
               -H "x-api-key: ${DOKPLOY_API_KEY}" \
               -H "Content-Type: application/json" \
-              -d "{\"0\":{\"json\":{\"applicationId\":\"${DOKPLOY_APP_ID}\"}}}"
-          elif [[ -n "${DOKPLOY_API_KEY:-}" || -n "${DOKPLOY_URL:-}" ]]; then
+              -d "{\"0\":{\"json\":{\"applicationId\":\"${DOKPLOY_APP_ID}\"}}}" \
+              || echo "::warning::application.deploy Dokploy falhou; deploy SSH continua."
+          elif [[ -n "${DOKPLOY_API_KEY:-}" || -n "${DOKPLOY_URL:-}" || -n "${DOKPLOY_APP_ID:-}" ]]; then
             echo "::warning::DOKPLOY_API_KEY/DOKPLOY_URL/DOKPLOY_APP_ID incompletos; deploy API Dokploy ignorado."
           fi
           if [[ -n "${DOKPLOY_PROD_WEBHOOK_URL:-}" ]]; then
@@ -154,6 +155,7 @@ jobs:
       - name: Rolling update CT134 via aglsrv1 (recomendado)
         if: steps.deploy-method.outputs.method == 'aglsrv1'
         env:
+          AGLSRV1_SSH_KEY: ${{ secrets.AGLSRV1_SSH_KEY }}
           AGLSRV1_HOST: ${{ secrets.AGLSRV1_HOST }}
           DOKPLOY_APP_ID: ${{ secrets.DOKPLOY_APP_ID }}
           IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
@@ -166,6 +168,7 @@ jobs:
       - name: Rolling update CT134 (fallback SSH directo)
         if: steps.deploy-method.outputs.method == 'ct134-direct'
         env:
+          CT134_SSH_KEY: ${{ secrets.CT134_SSH_KEY }}
           CT134_HOST: ${{ secrets.CT134_HOST }}
           IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
           FULL_IMAGE: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}
