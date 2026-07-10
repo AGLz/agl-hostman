@@ -110,6 +110,10 @@ jobs:
       name: production-ct134
       url: https://ah.aglz.io
     timeout-minutes: 15
+    # ponytail: secrets em `if:` com `!= ''` são inconsistentes no GHA; resolver via env + shell.
+    env:
+      AGLSRV1_SSH_KEY: ${{ secrets.AGLSRV1_SSH_KEY }}
+      CT134_SSH_KEY: ${{ secrets.CT134_SSH_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -117,14 +121,17 @@ jobs:
         env:
           DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
           DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_APP_ID: ${{ secrets.DOKPLOY_APP_ID }}
           DOKPLOY_PROD_WEBHOOK_URL: ${{ secrets.DOKPLOY_PROD_WEBHOOK_URL }}
           IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
         run: |
-          if [[ -n "${DOKPLOY_API_KEY:-}" && -n "${DOKPLOY_URL:-}" ]]; then
+          if [[ -n "${DOKPLOY_API_KEY:-}" && -n "${DOKPLOY_URL:-}" && -n "${DOKPLOY_APP_ID:-}" ]]; then
             curl -fsS -X POST "${DOKPLOY_URL%/}/trpc/application.deploy?batch=1" \
               -H "x-api-key: ${DOKPLOY_API_KEY}" \
               -H "Content-Type: application/json" \
-              -d '{"0":{"json":{"applicationId":"app_prod_123456789"}}}' || true
+              -d "{\"0\":{\"json\":{\"applicationId\":\"${DOKPLOY_APP_ID}\"}}}"
+          elif [[ -n "${DOKPLOY_API_KEY:-}" || -n "${DOKPLOY_URL:-}" ]]; then
+            echo "::warning::DOKPLOY_API_KEY/DOKPLOY_URL/DOKPLOY_APP_ID incompletos; deploy API Dokploy ignorado."
           fi
           if [[ -n "${DOKPLOY_PROD_WEBHOOK_URL:-}" ]]; then
             curl -fsS -X POST "${DOKPLOY_PROD_WEBHOOK_URL}" \
@@ -132,24 +139,35 @@ jobs:
               -d "{\"tag\":\"${IMAGE_TAG}\",\"commit\":\"${{ github.sha }}\",\"branch\":\"main\"}" || true
           fi
 
+      - name: Determine deploy method
+        id: deploy-method
+        run: |
+          if [[ -n "${AGLSRV1_SSH_KEY}" ]]; then
+            echo "method=aglsrv1" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${CT134_SSH_KEY}" ]]; then
+            echo "method=ct134-direct" >> "$GITHUB_OUTPUT"
+          else
+            echo "method=none" >> "$GITHUB_OUTPUT"
+            echo "::warning::Nenhuma chave SSH configurada; deploy SSH ignorado."
+          fi
+
       - name: Rolling update CT134 via aglsrv1 (recomendado)
-        if: ${{ secrets.AGLSRV1_SSH_KEY != '' }}
+        if: steps.deploy-method.outputs.method == 'aglsrv1'
         env:
-          AGLSRV1_SSH_KEY: ${{ secrets.AGLSRV1_SSH_KEY }}
           AGLSRV1_HOST: ${{ secrets.AGLSRV1_HOST }}
+          DOKPLOY_APP_ID: ${{ secrets.DOKPLOY_APP_ID }}
           IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
         run: |
           HOST="${AGLSRV1_HOST:-100.107.113.33}"
           install -m 600 -D /dev/stdin ~/.ssh/aglsrv1_key <<< "${AGLSRV1_SSH_KEY}"
           ssh -i ~/.ssh/aglsrv1_key -o StrictHostKeyChecking=no "root@${HOST}" \
-            "cd /mnt/overpower/apps/dev/agl/agl-hostman && IMAGE_TAG=${IMAGE_TAG} bash scripts/dokploy/trigger-ct134-deploy.sh"
+            "cd /mnt/overpower/apps/dev/agl/agl-hostman && IMAGE_TAG=${IMAGE_TAG} DOKPLOY_APP_ID=${DOKPLOY_APP_ID:-} bash scripts/dokploy/trigger-ct134-deploy.sh"
 
       - name: Rolling update CT134 (fallback SSH directo)
-        if: ${{ secrets.AGLSRV1_SSH_KEY == '' && secrets.CT134_SSH_KEY != '' }}
+        if: steps.deploy-method.outputs.method == 'ct134-direct'
         env:
           CT134_HOST: ${{ secrets.CT134_HOST }}
           IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
-          CT134_SSH_KEY: ${{ secrets.CT134_SSH_KEY }}
           FULL_IMAGE: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}
         run: |
           HOST="${CT134_HOST:-192.168.0.134}"

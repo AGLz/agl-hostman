@@ -71,6 +71,13 @@ if [[ -n "${DOKPLOY_URL:-}" ]]; then
   log "DOKPLOY_URL definido"
 fi
 
+if [[ -n "${DOKPLOY_APP_ID:-}" ]]; then
+  gh secret set DOKPLOY_APP_ID --repo "${REPO}" --body "${DOKPLOY_APP_ID}"
+  log "DOKPLOY_APP_ID definido"
+else
+  log "AVISO: DOKPLOY_APP_ID não definido — obrigatório para deploy API Dokploy"
+fi
+
 if [[ -n "${AGLSRV1_SSH_KEY:-}" ]]; then
   gh secret set AGLSRV1_SSH_KEY --repo "${REPO}" --body "${AGLSRV1_SSH_KEY}"
   log "AGLSRV1_SSH_KEY definido"
