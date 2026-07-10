@@ -1,0 +1,20 @@
+[Unit]
+Description=makemoney01 crm-clinica (preview)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/tmp/tmp5gtspfjm/crm-clinica/src
+Environment=MAKEMONEY_ROOT=/tmp/tmp5gtspfjm/makemoney01
+Environment=DB_CONNECTION=sqlite
+Environment=DB_DATABASE=/var/lib/makemoney/crm-clinica/database.sqlite
+Environment=LARAVEL_STORAGE_PATH=/var/lib/makemoney/crm-clinica/storage
+Environment=TMPDIR=/var/lib/makemoney/crm-clinica/tmp
+ExecStart=/usr/bin/php8.4 artisan serve --host=127.0.0.1 --port=8102 --no-reload
+Restart=on-failure
+RestartSec=5
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target

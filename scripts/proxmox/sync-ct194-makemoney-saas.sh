@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sync-ct194-makemoney-saas.sh — nginx path /s/, PHP 8.4, systemd SaaS + lead_reply API
+# sync-ct194-makemoney-saas.sh — nginx path /s/, PHP 8.4, systemd todos os nichos
 # Uso (agldv12): bash agl-hostman/scripts/proxmox/sync-ct194-makemoney-saas.sh
 set -euo pipefail
 
@@ -31,7 +31,7 @@ fi
 php8.4 -v | head -1
 '
 
-echo "==> nginx configs (mm01 path-based SaaS)"
+echo "==> nginx configs (mm01 path-based SaaS — 12 nichos)"
 pct "
 set -e
 for f in mm01-landing.conf demo-gateway.conf assistencia-saas.conf; do
@@ -45,14 +45,20 @@ nginx -t
 systemctl reload nginx
 "
 
-echo "==> systemd units (SaaS + lead_reply)"
+echo "==> systemd units (SaaS + lead_reply + 12 nichos)"
 pct "
 set -e
-for u in makemoney-lead-reply-api makemoney-whatsapp-webhook makemoney-erp-assistencia makemoney-crm-imobiliaria; do
+for u in makemoney-lead-reply-api makemoney-whatsapp-webhook; do
   cp '${HOSTMAN}/config/systemd/makemoney01-ct/'\"\${u}\".service /etc/systemd/system/
 done
+for u in '${HOSTMAN}'/config/systemd/makemoney01-ct/makemoney-*.service; do
+  cp \"\$u\" /etc/systemd/system/
+done
 systemctl daemon-reload
-systemctl enable makemoney-lead-reply-api makemoney-whatsapp-webhook makemoney-erp-assistencia makemoney-crm-imobiliaria
+systemctl enable makemoney-lead-reply-api makemoney-whatsapp-webhook
+for u in /etc/systemd/system/makemoney-*.service; do
+  systemctl enable \"\$(basename \"\$u\" .service)\"
+done
 mkdir -p /etc/makemoney
 if [ ! -f /etc/makemoney/whatsapp-webhook.env ]; then
   secret=\$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
@@ -68,9 +74,11 @@ pct "
 set -e
 init_local_app() {
   local name=\"\$1\"
-  local seeder=\"\$2\"
+  local seeder=\"\${2:-}\"
   local local=\"/var/lib/makemoney/\${name}\"
   local src='${AGL_ROOT}/'\"\${name}\"/src
+  [ -d \"\${src}\" ] || return 0
+  [ -f \"\${src}/artisan\" ] || return 0
   mkdir -p \"\${local}/storage/framework/cache/data\" \"\${local}/storage/framework/sessions\"
   mkdir -p \"\${local}/storage/framework/views\" \"\${local}/storage/logs\" \"\${local}/tmp\"
   chown -R nobody:nogroup \"\${local}\"
@@ -83,7 +91,9 @@ init_local_app() {
   cd \"\${src}\"
   if [ ! -f \"\${local}/database.sqlite\" ]; then
     php8.4 artisan migrate --force --no-interaction
-    php8.4 artisan db:seed --class=\"\${seeder}\" --force --no-interaction
+    if [ -n \"\${seeder}\" ]; then
+      php8.4 artisan db:seed --class=\"\${seeder}\" --force --no-interaction
+    fi
   else
     php8.4 artisan migrate --force --no-interaction 2>/dev/null || true
   fi
@@ -92,18 +102,36 @@ init_local_app() {
 }
 init_local_app erp-assistencia AssistenciaPilotSeeder
 init_local_app crm-imobiliaria ImobiliariaPilotSeeder
+for app in crm-clinica crm-dentista erp-padaria crm-beleza erp-estacionamento erp-supermercado crm-academia erp-restaurante erp-farmacia; do
+  init_local_app \"\$app\"
+done
 if command -v npm >/dev/null 2>&1; then
   cd '${AGL_ROOT}/crm-imobiliaria/src' && npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
   npm run build
 fi
+python3 '${MM}/scripts/sync_mm01_landing.py'
 "
 
 echo "==> restart services"
 pct "
+set -e
 systemctl restart makemoney-lead-reply-api makemoney-whatsapp-webhook
-systemctl restart makemoney-erp-assistencia makemoney-crm-imobiliaria
-sleep 2
-systemctl is-active makemoney-lead-reply-api makemoney-whatsapp-webhook makemoney-erp-assistencia makemoney-crm-imobiliaria nginx
+for u in /etc/systemd/system/makemoney-*.service; do
+  base=\$(basename \"\$u\" .service)
+  case \"\$base\" in
+    makemoney-lead-reply-api|makemoney-whatsapp-webhook) continue ;;
+  esac
+  systemctl restart \"\$base\"
+done
+sleep 3
+systemctl is-active makemoney-lead-reply-api makemoney-whatsapp-webhook nginx
+for u in /etc/systemd/system/makemoney-*.service; do
+  base=\$(basename \"\$u\" .service)
+  case \"\$base\" in
+    makemoney-lead-reply-api|makemoney-whatsapp-webhook) continue ;;
+  esac
+  systemctl is-active \"\$base\" || echo \"WARN inactive: \$base\"
+done
 curl -sf -o /dev/null -w 'lead_reply:%{http_code}\n' -X POST http://127.0.0.1:8765/reply \
   -H 'Content-Type: application/json' \
   -d '{\"client\":\"demo-assistencia\",\"message\":\"ping\"}' || echo lead_reply:fail
@@ -111,10 +139,26 @@ secret=\$(grep -E '^MAKEMONEY_WHATSAPP_WEBHOOK_SECRET=' /etc/makemoney/whatsapp-
 curl -sf -o /dev/null -w 'whatsapp_webhook:%{http_code}\n' -X POST http://127.0.0.1:8766/webhook/whatsapp \
   -H \"Content-Type: application/json\" -H \"X-Webhook-Secret: \${secret}\" \
   -d '{\"instance_id\":\"demo-imobiliaria\",\"from\":\"5511999999999\",\"message\":\"ping\"}' || echo whatsapp_webhook:fail
-curl -sf -o /dev/null -w 'assistencia:%{http_code}\n' http://127.0.0.1:8105/login || echo assistencia:fail
-curl -sf -o /dev/null -w 'imobiliaria:%{http_code}\n' http://127.0.0.1:8101/login || echo imobiliaria:fail
+check() {
+  local label=\"\$1\" port=\"\$2\" path=\"\${3:-/}\"
+  curl -sf -o /dev/null -w \"\${label}:%{http_code}\n\" \"http://127.0.0.1:\${port}\${path}\" || echo \"\${label}:fail\"
+}
+check assistencia 8105 /login
+check imobiliaria 8101 /login
+check clinica 8102 /
+check dentista 8103 /
+check padaria 8104 /
+check beleza 8106 /
+check pme_finance 8107 /
+check estacionamento 8108 /
+check supermercado 8109 /
+check academia 8110 /
+check restaurante 8111 /
+check farmacia 8112 /
 curl -sf -o /dev/null -w 'mm01_s_assist:%{http_code}\n' http://127.0.0.1/s/assistencia/login -H 'Host: mm01.aglz.io' || echo mm01_s_assist:fail
 curl -sf -o /dev/null -w 'mm01_s_imob:%{http_code}\n' http://127.0.0.1/s/imobiliaria/login -H 'Host: mm01.aglz.io' || echo mm01_s_imob:fail
+curl -sf -o /dev/null -w 'mm01_s_clinica:%{http_code}\n' http://127.0.0.1/s/clinica/ -H 'Host: mm01.aglz.io' || echo mm01_s_clinica:fail
+curl -sf -o /dev/null -w 'mm01_s_pme:%{http_code}\n' http://127.0.0.1/s/pme-finance/ -H 'Host: mm01.aglz.io' || echo mm01_s_pme:fail
 "
 
-echo "OK sync CT${VMID} SaaS"
+echo "OK sync CT${VMID} SaaS (12 nichos)"
