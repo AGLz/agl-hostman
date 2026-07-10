@@ -123,7 +123,7 @@ for u in /etc/systemd/system/makemoney-*.service; do
   esac
   systemctl restart \"\$base\"
 done
-sleep 3
+sleep 8
 systemctl is-active makemoney-lead-reply-api makemoney-whatsapp-webhook nginx
 for u in /etc/systemd/system/makemoney-*.service; do
   base=\$(basename \"\$u\" .service)
