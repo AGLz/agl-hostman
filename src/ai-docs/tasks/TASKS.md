@@ -4,6 +4,7 @@
 
 ### 🔄 Em Progresso
 
+- [ ] **TASK-INFRA-AGLSRV6-BACKUP-PBS-TF** (🔴 P0): Força-tarefa backups man6 + PBS — VM620 sem backup válido (MSSQL prod + shares). Plano: [`docs/maint/AGLSRV6-BACKUP-PBS-TASK-FORCE.md`](../../docs/maint/AGLSRV6-BACKUP-PBS-TASK-FORCE.md); health: `scripts/proxmox/aglsrv6-backup-health.sh --remote`. **P0.1 feito 2026-07-09:** job `backup-vm620-production` → `man6-pbs`. Pendente: backup manual, tiers, USB, SQL native + shares, restore test.
 - [ ] **TASK-LLM-MONITOR-F4**: Probes complexas + matriz harness (ver plano)
 
 ## ✅ Concluído

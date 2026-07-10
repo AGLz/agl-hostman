@@ -22,7 +22,9 @@ DRY_RUN=true
 
 AGLSRV1_SSH="${AGLSRV1_SSH:-root@100.107.113.33}"
 AGLFS3_SERVER="${AGLSRV3_AGLFS3_TS_IP:-100.89.170.85}"
-PBS_SERVER="${AGLSRV3_PBS_TS_IP:-100.70.155.60}"
+PBS_SERVER="${AGLSRV3_PBS_TS_IP:-100.117.110.95}"
+# Fallback proxy host se TS CT318 offline: AGLSRV3 @ :8007 via aglsrv3-pbs-host-proxy.sh
+PBS_SERVER_FALLBACK="${AGLSRV3_PBS_PROXY_HOST:-100.123.5.81}"
 PBS_PORT="${AGLSRV3_PBS_PORT:-8007}"
 PBS_USER="${PBS_USER:-root@pam}"
 AGLSRV1_PBS_VMID="${AGLSRV1_PBS_VMID:-240}"
@@ -126,7 +128,13 @@ add_pbs_remote() {
   pass="$(cat /root/.pbs-link-password)"
 
   local fingerprint
-  fingerprint="$(get_pbs_fingerprint)" || die "Fingerprint PBS ${PBS_SERVER} indisponível"
+  fingerprint="$(get_pbs_fingerprint)" || fingerprint=""
+  if [[ -z "${fingerprint}" && "${PBS_SERVER}" != "${PBS_SERVER_FALLBACK}" ]]; then
+    log "PBS TS ${PBS_SERVER} indisponível — tentar proxy host ${PBS_SERVER_FALLBACK}:${PBS_PORT}"
+    PBS_SERVER="${PBS_SERVER_FALLBACK}"
+    fingerprint="$(get_pbs_fingerprint)" || die "Fingerprint PBS indisponível"
+  fi
+  [[ -n "${fingerprint}" ]] || die "Fingerprint PBS ${PBS_SERVER} indisponível"
 
   if [[ "${DRY_RUN}" == true ]]; then
     log "DRY-RUN: pvesm add pbs ${pvesm_id} server=${PBS_SERVER} datastore=${datastore}"

@@ -90,6 +90,7 @@
 
 ## Pré-requisitos pendentes (checklist)
 
+- [ ] **Backups VM620 operacionais** — força-tarefa [`AGLSRV6-BACKUP-PBS-TASK-FORCE.md`](AGLSRV6-BACKUP-PBS-TASK-FORCE.md); health: `scripts/proxmox/aglsrv6-backup-health.sh --remote`
 - [ ] Password SA VM620 documentada em `mssql-sync.env` (local)
 - [ ] `MSSQL_REPL_PASSWORD` definido e logins aplicados
 - [ ] SQL Agent activo no CT610

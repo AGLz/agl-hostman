@@ -76,6 +76,15 @@ showmount -e 192.168.15.138   # desde AGLSRV5 (LAN AGLFG)
 
 Exports herdados incluem `192.168.0.0/16` — válido para `192.168.15.x`.
 
+## Setup cross-site (PBS + Samba/NFS + aglfs1 gateway)
+
+```bash
+# Um comando — PBS aglsrv3-tb + exports + aglfs1 gateway + link AGLSRV1
+bash scripts/proxmox/aglsrv3-cross-site-setup.sh --apply
+```
+
+Documentação completa: [`AGLSRV3-PBS-FILESHARE.md`](AGLSRV3-PBS-FILESHARE.md)
+
 ## Acesso remoto (AGLSRV1 + PBS)
 
 NFS via Tailscale **`aglsrv3-aglfs3` @ `100.89.170.85`** (use `nfsvers=3`).

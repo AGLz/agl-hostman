@@ -1,3 +1,5 @@
+# Ollama VM310 agl-primary GPU qwen3:4b ctx=32768 @ http://100.67.253.52:11434; VM110 agl-primary-vm110 ctx=8192 @ http://100.74.118.51:11434
+# Tune VM310: scripts/aglsrv3/tune-vm310-ollama-context.sh
 cache_params:
   host: 192.168.0.137
   password: os.environ/REDIS_PASSWORD
@@ -167,8 +169,7 @@ litellm_settings:
     - glm-4.7-flash
     - groq-llama-31-8b
     - zai-glm-flash
-    - agl-primary-zai-glm-flash
-    - agl-primary
+    - or-nemotron-super-free
   - agl-primary-strong:
     - zai-glm-flash
     - glm-4.7-flash
@@ -592,6 +593,7 @@ litellm_settings:
   forward_client_headers_to_llm_api: true
   num_retries: 2
   request_timeout: 240
+  max_parallel_requests: 32
   drop_params: true
 model_list:
 - litellm_params:
@@ -623,19 +625,24 @@ model_list:
 - litellm_params:
     api_base: http://100.67.253.52:11434
     api_key: ollama
-    model: ollama/llama3.1:8b
-    timeout: 300
+    model: ollama/qwen3:4b
+    timeout: 120
     stream: true
-    max_tokens: 2048
-    drop_params: true
+    max_tokens: 8192
+    think: false
+    extra_body:
+      options:
+        num_ctx: 32768
   model_info:
     access: direct
-    context_window: 8192
+    context_window: 32768
     free_tier: true
     input_cost_per_token: 0
-    max_tokens: 2048
-    note: VM310 CPU-only — llama3.1:8b (~0.85 tok/s, melhor CPU 2026-06-30)
+    max_tokens: 8192
+    note: "VM310 GPU0 — qwen3:4b ctx-long (~41 tok/s, primário local AGL)"
     output_cost_per_token: 0
+    rpm: 6
+    tpm: 48000
   model_name: agl-primary
 - litellm_params:
     api_base: https://api.z.ai/api/anthropic
@@ -658,19 +665,23 @@ model_list:
     api_base: http://100.67.253.52:11434
     api_key: ollama
     model: ollama/qwen3:8b
-    timeout: 600
+    timeout: 240
     stream: true
-    max_tokens: 4096
+    max_tokens: 8192
     think: false
-    drop_params: true
+    extra_body:
+      options:
+        num_ctx: 16384
   model_info:
     access: direct
-    context_window: 8192
+    context_window: 16384
     free_tier: true
     input_cost_per_token: 0
-    max_tokens: 4096
-    note: VM310 CPU — qwen3:8b :11434 (secundário CPU)
+    max_tokens: 8192
+    note: "VM310 GPU0 — qwen3:8b (1× RX580, :11434)"
     output_cost_per_token: 0
+    rpm: 4
+    tpm: 32000
   model_name: agl-primary-strong
 - litellm_params:
     api_base: http://100.74.118.51:11434
@@ -680,15 +691,16 @@ model_list:
     stream: true
     max_tokens: 4096
     think: false
-    drop_params: true
   model_info:
     access: direct
     context_window: 8192
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 4096
-    note: VM110 GTX 1650 — qwen3:4b (failover quando VM310 offline)
+    note: "VM110 GTX 1650 — qwen3:4b (failover quando VM310 offline)"
     output_cost_per_token: 0
+    rpm: 4
+    tpm: 24000
   model_name: agl-primary-vm110
 - litellm_params:
     api_base: https://api.z.ai/api/anthropic
@@ -1425,89 +1437,96 @@ model_list:
     api_base: http://100.67.253.52:11434
     api_key: ollama
     model: ollama/qwen3:4b
-    timeout: 600
+    timeout: 240
     stream: true
     max_tokens: 8192
     think: false
-    drop_params: true
+    extra_body:
+      options:
+        num_ctx: 32768
   model_info:
     access: direct
-    context_window: 8192
+    context_window: 32768
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias legado → VM310 qwen3:4b :11434
+    note: "Alias legado → VM310 qwen3:4b :11434"
     output_cost_per_token: 0
   model_name: ollama-qwen3-4b
 - litellm_params:
     api_base: http://100.67.253.52:11434
     api_key: ollama
     model: ollama/qwen3:4b
-    timeout: 600
+    timeout: 240
     stream: true
     max_tokens: 8192
     think: false
-    drop_params: true
+    extra_body:
+      options:
+        num_ctx: 32768
   model_info:
     access: direct
-    context_window: 8192
+    context_window: 32768
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias OpenAI-compat → VM310 qwen3:4b
+    note: "Alias OpenAI-compat → VM310 qwen3:4b"
     output_cost_per_token: 0
   model_name: openai/ollama-qwen3-4b
 - litellm_params:
-    api_base: http://100.67.253.52:11435
+    api_base: http://100.67.253.52:11434
     api_key: ollama
     model: ollama/qwen3:8b
-    timeout: 600
+    timeout: 240
     stream: true
     max_tokens: 8192
     think: false
-    drop_params: true
+    extra_body:
+      options:
+        num_ctx: 16384
   model_info:
     access: direct
-    context_window: 8192
+    context_window: 16384
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias → VM310 qwen3:8b :11435
+    note: "Alias → VM310 qwen3:8b :11434"
     output_cost_per_token: 0
   model_name: ollama-qwen3-8b
 - litellm_params:
     api_base: http://100.67.253.52:11434
     api_key: ollama
     model: ollama/qwen3:4b
-    timeout: 600
+    timeout: 240
     stream: true
     max_tokens: 8192
     think: false
-    drop_params: true
+    extra_body:
+      options:
+        num_ctx: 32768
   model_info:
     access: direct
-    context_window: 8192
+    context_window: 32768
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias → VM310 qwen3:4b :11434
+    note: "Alias → VM310 qwen3:4b :11434"
     output_cost_per_token: 0
   model_name: ollama-qwen3-4b-fast
 - litellm_params:
     api_base: http://100.67.253.52:11434
     api_key: ollama
     model: ollama/llama3.1:8b
-    timeout: 600
+    timeout: 120
     stream: true
     max_tokens: 8192
-    drop_params: true
   model_info:
     access: direct
-    context_window: 4096
+    context_window: 8192
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias → VM310 llama3.1:8b :11434
+    note: "Alias → VM310 llama3.1:8b :11434"
     output_cost_per_token: 0
   model_name: ollama-llama31-8b
 - litellm_params:
@@ -1517,14 +1536,13 @@ model_list:
     timeout: 120
     stream: true
     max_tokens: 8192
-    drop_params: true
   model_info:
     access: direct
-    context_window: 4096
+    context_window: 8192
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias legado gemma3 → VM310 gemma4-qat :11434
+    note: "Alias legado gemma3 → VM310 gemma4-qat :11434"
     output_cost_per_token: 0
   model_name: ollama-gemma3-4b
 - litellm_params:
@@ -1534,14 +1552,13 @@ model_list:
     timeout: 120
     stream: true
     max_tokens: 8192
-    drop_params: true
   model_info:
     access: direct
-    context_window: 4096
+    context_window: 8192
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 8192
-    note: Alias → VM310 gemma4-qat :11434
+    note: "Alias → VM310 gemma4-qat :11434"
     output_cost_per_token: 0
   model_name: ollama-gemma4-qat
 - litellm_params:
@@ -1551,15 +1568,16 @@ model_list:
     timeout: 120
     stream: true
     max_tokens: 4096
-    drop_params: true
   model_info:
     access: direct
-    context_window: 4096
+    context_window: 8192
     free_tier: true
     input_cost_per_token: 0
     max_tokens: 4096
-    note: VM310 GPU0 — gemma4-qat rápido (ctx curto)
+    note: "VM310 GPU0 — gemma4-qat rápido (~43 tok/s, ctx curto)"
     output_cost_per_token: 0
+    rpm: 8
+    tpm: 32000
   model_name: agl-primary-fast
 - litellm_params:
     api_base: https://api.z.ai/api/anthropic
