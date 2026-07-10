@@ -230,7 +230,6 @@ OLLAMA_GPU_MEMORY_FRACTION=0.95
 | `install-vm110-ollama-guest.sh` | VM110 root | NVIDIA + Ollama + pull qwen3:4b |
 | `install-vm110-gemma4-qat-plan-c.sh` | VM110 root | **Plan C:** HF GGUF QAT + `ollama create gemma4-qat` |
 | `verify-vm110-gemma4-qat.sh` | VM110 / remoto | Smoke gemma4-qat + qwen3:4b + VRAM |
-| `tune-vm110-cpu-cores.sh` | AGLSRV1 root | Ajusta vCPUs/NUMA (default 16; evita oversubscribe) |
 | `runbook-vm110-maintenance-23h.sh` | agldv03 | Orquestração preflight / host / guest / litellm |
 
 Cópia rápida para o host:
