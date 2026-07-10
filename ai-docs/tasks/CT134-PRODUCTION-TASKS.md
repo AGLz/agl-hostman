@@ -33,40 +33,41 @@ Legenda: `[ ]` pendente · `[x]` feito · `[~]` em progresso
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
 | CT134-2.1 | Projecto Harbor `agl-hostman-prod` | P0 | [x] |
-| CT134-2.2 | Robot account → GitHub Secrets | P0 | [ ] |
+| CT134-2.2 | Robot account → GitHub Secrets | P0 | [x] |
 | CT134-2.3 | DB `agl_hostman_prod` CT149 | P0 | [x] |
 | CT134-2.6 | Certificado Harbor `harbor.aglz.io` + trust Docker CT134 | P0 | [x] |
-| CT134-2.4 | Push imagem smoke manual | P1 | [ ] |
+| CT134-2.4 | Push imagem smoke manual | P1 | [x] |
 | CT134-2.5 | Política retention Harbor | P2 | [ ] |
 
 ### Fase 3 — Dokploy
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-3.1 | Registar CT134 como Server | P0 | [ ] |
-| CT134-3.2 | App `agl-hostman-prod` | P0 | [ ] |
-| CT134-3.3 | Deploy manual primeira imagem | P0 | [ ] |
-| CT134-3.4 | Webhook → `DOKPLOY_PROD_WEBHOOK_URL` | P0 | [ ] |
+| CT134-3.1 | Registar CT134 como Server | P0 | [x] |
+| CT134-3.2 | App `agl-hostman-prod` + scripts API | P0 | [x] |
+| CT134-3.3 | Deploy manual primeira imagem | P0 | [x] |
+| CT134-3.4 | Webhook + `DOKPLOY_API_KEY` GitHub | P0 | [x] |
 | CT134-3.5 | Preview PR (opcional) | P2 | [ ] |
 
 ### Fase 4 — GitHub CI/CD
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-4.1 | Secrets GitHub completos | P0 | [ ] |
-| CT134-4.2 | Environment `production-ct134` | P1 | [ ] |
+| CT134-4.1 | Secrets GitHub completos | P0 | [x] |
+| CT134-4.2 | Environment `production-ct134` | P1 | [x] |
 | CT134-4.3 | Branch protection `main` | P1 | [ ] |
 | CT134-4.4 | PR teste → tag `pr-*` Harbor | P0 | [ ] |
-| CT134-4.5 | Merge teste → deploy automático (LAN) | P0 | [ ] |
+| CT134-4.5 | Merge teste → deploy automático | P0 | [~] |
 
 ### Fase 5 — Cloudflare
 
 | ID | Tarefa | Prioridade | Estado |
 |----|--------|------------|--------|
-| CT134-5.1 | Documentar origin dev actual `ah.aglz.io` | P0 | [ ] |
-| CT134-5.2 | Criar `ah-dev.aglz.io` → dev | P0 | [ ] |
-| CT134-5.3 | Repoint `ah.aglz.io` → CT134 | P0 | [ ] |
-| CT134-5.4 | `CT134_HEALTH_URL` público | P0 | [ ] |
+| CT134-5.1 | Documentar origin dev actual `ah.aglz.io` | P0 | [x] |
+| CT134-5.2 | Criar `ah-dev.aglz.io` → dev | P0 | [x] |
+| CT134-5.3 | Repoint `ah.aglz.io` → CT134 | P0 | [x] |
+| CT134-5.4 | `CT134_HEALTH_URL` público | P0 | [x] |
+| CT134-5.5 | Ingress `dok.aglz.io` → CT180 | P1 | [x] |
 
 Runbook: [`docs/runbooks/CT134-CLOUDFLARE-CUTOVER.md`](../../docs/runbooks/CT134-CLOUDFLARE-CUTOVER.md)
 

@@ -29,8 +29,9 @@ test -f "${SRC}" || { echo "ERRO: falta ${SRC}" >&2; exit 1; }
 test -f "${LIB}" || { echo "ERRO: falta ${LIB}" >&2; exit 1; }
 test -f "${WERNER_CFG}" || { echo "ERRO: falta ${WERNER_CFG}" >&2; exit 1; }
 
-echo "=== 1/4 Scripts Werner ==="
+echo "=== 1/5 Scripts Werner ==="
 install -d -m 0755 -o "${HERMES_UID}" -g "${HERMES_GID}" "${WERNER_SCRIPTS}"
+install -d -m 0700 -o "${HERMES_UID}" -g "${HERMES_GID}" "${WERNER_DIR}/.ssh" 2>/dev/null || true
 for f in "${SCRIPT_NAME}" hermes-notify-lib.sh; do
   sed 's/\r$//' "${AGL_HOSTMAN}/scripts/monitoring/${f}" > "${WERNER_SCRIPTS}/${f}.tmp"
   mv "${WERNER_SCRIPTS}/${f}.tmp" "${WERNER_SCRIPTS}/${f}"
@@ -38,7 +39,22 @@ for f in "${SCRIPT_NAME}" hermes-notify-lib.sh; do
   chown "${HERMES_UID}:${HERMES_GID}" "${WERNER_SCRIPTS}/${f}"
 done
 
-echo "=== 2/4 cron_mode=allow ==="
+echo "=== 2/5 SSH aglsrv6 (known_hosts + config) ==="
+if command -v ssh-keyscan >/dev/null 2>&1; then
+  ssh-keyscan -H 100.98.108.66 2>/dev/null >> "${WERNER_DIR}/.ssh/known_hosts" || true
+  chmod 600 "${WERNER_DIR}/.ssh/known_hosts" 2>/dev/null || true
+fi
+grep -q 'Host aglsrv6' "${WERNER_DIR}/.ssh/config" 2>/dev/null || cat >> "${WERNER_DIR}/.ssh/config" <<'EOF'
+
+Host aglsrv6 man6
+  HostName 100.98.108.66
+  User root
+  IdentityFile ~/.ssh/id_ed25519
+  StrictHostKeyChecking accept-new
+EOF
+chown "${HERMES_UID}:${HERMES_GID}" "${WERNER_DIR}/.ssh/config" "${WERNER_DIR}/.ssh/known_hosts" 2>/dev/null || true
+
+echo "=== 3/5 cron_mode=allow ==="
 python3 - "${WERNER_CFG}" <<'PY'
 import sys
 from pathlib import Path
@@ -50,7 +66,7 @@ path.write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encodi
 print("OK")
 PY
 
-echo "=== 3/4 Cron ${JOB_NAME} (${CRON_SCHEDULE}) ==="
+echo "=== 4/5 Cron ${JOB_NAME} (${CRON_SCHEDULE}) ==="
 docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" \
   /opt/hermes/.venv/bin/hermes cron list 2>/dev/null | grep -q "${JOB_NAME}" && \
   docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" \
@@ -67,7 +83,7 @@ docker exec -e HERMES_HOME=/opt/data -e HERMES_ACCEPT_HOOKS=1 "${CONTAINER}" \
 chown -R "${HERMES_UID}:${HERMES_GID}" "${WERNER_DIR}/cron" 2>/dev/null || true
 chmod 600 "${WERNER_DIR}/cron/jobs.json" 2>/dev/null || true
 
-echo "=== 4/4 Restart Werner ==="
+echo "=== 5/5 Restart Werner ==="
 docker restart "${CONTAINER}"
 sleep 20
 docker exec -e HERMES_HOME=/opt/data "${CONTAINER}" /opt/hermes/.venv/bin/hermes cron list

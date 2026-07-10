@@ -16,6 +16,7 @@ MAP="${SCRIPT_DIR}/../proxmox/aglsrv-vmid-map.env"
 [[ -f "${MAP}" ]] && source "${MAP}"
 
 AGLSRV6_HOST="${AGLSRV6_SSH:-root@100.98.108.66}"
+SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=25 -o StrictHostKeyChecking=accept-new"
 PBS_VMID="${AGLSRV6_PBS_VMID:-613}"
 VZDUMP_MAX_CT_SEC="${VZDUMP_MAX_CT_SEC:-14400}"    # 4h
 VZDUMP_MAX_VM_SEC="${VZDUMP_MAX_VM_SEC:-28800}"   # 8h
@@ -26,7 +27,7 @@ MODE="${1:-}"
 ALERTS=()
 
 remote() {
-  ssh -o BatchMode=yes -o ConnectTimeout=25 "${AGLSRV6_HOST}" "$@"
+  ssh ${SSH_OPTS} "${AGLSRV6_HOST}" "$@"
 }
 
 if [[ "${MODE}" == "--dry-run" ]]; then
