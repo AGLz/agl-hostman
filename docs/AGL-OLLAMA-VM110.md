@@ -73,7 +73,7 @@ grep -rE 'hostpci.*05:00|lxc\.mount.*nvidia' /etc/pve/lxc/*.conf /etc/pve/qemu-s
 ```text
 VMID:     110
 Nome:     agl-ollama
-CPU:      8 cores, host (hidden=1 após tentativa GPU)
+CPU:      16 cores, host (hidden=1), NUMA0 socket 0
 RAM:      16384 MB, balloon 32768
 Disco:    local-zfs:240G
 Rede:     vmbr0, MAC BC:24:11:BA:72:22, IP 192.168.0.200
@@ -82,9 +82,13 @@ SO:       Ubuntu 24.04 Noble (cloud-init)
 User:     agladmin (SSH keys do host Proxmox)
 GPU:      hostpci0 05:00 (após finish-vm110-gpu-passthrough.sh)
 NUMA:     0 — GPU em `05:00.0` = **socket 0** (`numa_node` 0), não socket 1
-          affinity: 0-13,28-41
-          numa0: cpus=0-7,hostnodes=0,memory=16384,policy=bind
+          affinity: 0-15,28-43
+          numa0: cpus=0-15,hostnodes=0,memory=16384,policy=bind
 ```
+
+**CPU (2026-07-10):** revertido de 48 → **16 vCPUs** (`tune-vm110-cpu-cores.sh`) — escalar para 48 cores não melhorou inferência; pin NUMA0 junto à GPU.
+
+**GPU futura:** **RX580 8GB** na janela de manutenção (substitui GTX 1650); até lá GTX 1650 + Plan C.
 
 **NUMA (2026-06-06):** ao contrário da VM104 (NVMe em socket 1), a GTX 1650 está no **primeiro CPU**. Pin em `numa: 0` alinha vCPUs/RAM à GPU e evita tráfego QPI cross-socket. **Não** usar `numa: 1` nesta VM.
 
@@ -113,7 +117,8 @@ OLLAMA_GPU_MEMORY_FRACTION=0.95
 |--------|-------------|--------|
 | `strip-gpu-from-aglsrv1.sh` | AGLSRV1 root | Remove GPU de CTs/VMs; para CT200 |
 | `enable-vfio-gpu-host.sh` | AGLSRV1 root | vfio-gpu.conf + bind vfio |
-| `setup-vm110-agl-ollama.sh` | AGLSRV1 root | Cria VM110 + cloud-init |
+| `setup-vm110-agl-ollama.sh` | AGLSRV1 root | Cria VM110 + cloud-init (16 cores default) |
+| `tune-vm110-cpu-cores.sh` | AGLSRV1 root | Ajusta vCPUs/NUMA (default 16; evita oversubscribe) |
 | `prepare-gpu-passthrough-host.sh` | AGLSRV1 root | vfio + initramfs **antes** do reboot |
 | `finish-vm110-gpu-passthrough.sh` | AGLSRV1 root | Reanexa GPU **após** reboot |
 | `install-vm110-ollama-guest.sh` | VM110 root | NVIDIA + Ollama + pull qwen3:4b |
