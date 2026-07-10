@@ -34,7 +34,8 @@ for s in \
   hermes-ct188-health-check.sh \
   hermes-ct188-daily-maintenance.sh \
   hermes-ct188-daily-backup.sh \
-  hermes-argus-quota-digest.sh; do
+  hermes-argus-quota-digest.sh \
+  aglsrv6-backup-watchdog.sh; do
   src="${MON}/${s}"
   test -f "${src}" || { echo "ERRO: falta ${src}" >&2; exit 1; }
   for dest_root in "${HERMES_ROOT}/data/scripts" "${HERMES_ROOT}/profiles/werner/scripts" "${HERMES_ROOT}/profiles/argus/scripts"; do

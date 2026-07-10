@@ -95,7 +95,7 @@ upsert_backup_job() {
       --node "${node}" \
       --mailnotification always \
       --mode snapshot \
-      --prune-backups 'keep-daily=7,keep-weekly=4,keep-monthly=3,keep-yearly=1'
+      --prune-backups 'keep-last=1'
   else
     log "Job ${job_id}: criar"
     pvesh create /cluster/backup \
@@ -108,7 +108,7 @@ upsert_backup_job() {
       --node "${node}" \
       --mailnotification always \
       --mode snapshot \
-      --prune-backups 'keep-daily=7,keep-weekly=4,keep-monthly=3,keep-yearly=1'
+      --prune-backups 'keep-last=1'
   fi
 }
 
@@ -146,8 +146,8 @@ setup_aglsrv6() {
   if [[ "${APPLY}" == true ]]; then
     # Tier jobs — VMIDs pós-renumber (excl. 613 PBS, 107 kuber601 legacy, 616 wgtest-priv)
     upsert_backup_job "backup-pbs-tier1-sql-6h" "PBS-Tier1-SQL-6h" "man6" "man6-pbs" "*/6" "610,620" 1
-    upsert_backup_job "backup-pbs-tier2-infra-12h" "PBS-Tier2-Infra-12h" "man6" "man6-pbs" "2,14" "601,602,609,614" 1
-    upsert_backup_job "backup-pbs-tier3-daily" "PBS-Tier3-Daily" "man6" "man6-pbs" "04:00" "604,603,611,608,612,600,606" 1
+    upsert_backup_job "backup-pbs-tier2-infra-12h" "PBS-Tier2-Infra-12h" "man6" "man6-pbs" "2,14" "601,602,609,614,617,621" 1
+    upsert_backup_job "backup-pbs-tier3-daily" "PBS-Tier3-Daily" "man6" "man6-pbs" "04:00" "604,605,608,611" 1
     upsert_backup_job "backup-vm620-production" "VM620 Production - PBS" "man6" "man6-pbs" "02:00" "620" 1
     # Desactivar jobs USB/legado com IDs antigos
     for jid in backup-197c33fb-3f3e backup-f6f377ec-857a backup-44340b80-f7e5 backup-14eaa1e1-8aef backup-4487932b-284a backup-d129d288-6fc2; do

@@ -66,6 +66,11 @@ agents:
       - name: aglsrv1-qpi-numa-daily
         schedule: "0 8 * * *"
         notify: alert
+      - name: aglsrv6-backup-watchdog
+        schedule: "30 */2 * * *"
+        notify: alert
+        script: aglsrv6-backup-watchdog.sh
+        note: "vzdump preso, locks stale, PBS espaço — AGLSRV6"
 
   elon:
     home: profiles/elon
