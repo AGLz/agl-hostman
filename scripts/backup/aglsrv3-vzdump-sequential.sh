@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Backup sequencial seguro — AGLSRV3 → PBS remoto.
 #
-# Evita vzdump massivo (crash Jun 2026): um guest de cada vez, pré-checks de RAM/ZFS,
-# VM310 parada por defeito, pausa entre jobs.
+# Evita vzdump massivo (crash Jun 2026): um guest de cada vez, pré-checks de RAM/ZFS.
+# Por defeito VM310 fica UP (snapshot). Use --stop-vm310-before-backup para parar Ollama.
 #
 # Uso (no host aglsrv3 ou via SSH):
 #   ./scripts/backup/aglsrv3-vzdump-sequential.sh --dry-run
 #   ./scripts/backup/aglsrv3-vzdump-sequential.sh --apply
 #   ./scripts/backup/aglsrv3-vzdump-sequential.sh --apply --skip 301
-#   ./scripts/backup/aglsrv3-vzdump-sequential.sh --apply --keep-vm310-running  # não recomendado
+#   ./scripts/backup/aglsrv3-vzdump-sequential.sh --apply --stop-vm310-before-backup
 #
 # Remoto (agldv03):
 #   AGLSRV3_SSH=root@100.123.5.81 ./scripts/backup/aglsrv3-vzdump-sequential.sh --apply --remote
@@ -22,7 +22,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGLSRV3_SSH="${AGLSRV3_SSH:-root@100.123.5.81}"
 STORAGE="${AGLSRV3_PBS_STORAGE:-pbs-aglsrv3-tb}"
 NODE="${AGLSRV3_NODE:-aglsrv3}"
-MIN_MEM_AVAIL_MB="${AGLSRV3_BACKUP_MIN_MEM_MB:-4096}"
+MIN_MEM_AVAIL_MB="${AGLSRV3_BACKUP_MIN_MEM_MB:-2048}"
+MIN_MEM_VM310_ONLINE_MB="${AGLSRV3_BACKUP_MIN_MEM_VM310_ONLINE_MB:-1024}"
+VM310_BWLIMIT="${AGLSRV3_BACKUP_VM310_BWLIMIT:-8192}"
 MIN_PAUSE_SEC="${AGLSRV3_BACKUP_PAUSE_SEC:-45}"
 LOG_DIR="${AGLSRV3_BACKUP_LOG_DIR:-/var/log/hostman}"
 PRUNE="${AGLSRV3_BACKUP_PRUNE:-keep-daily=7,keep-monthly=3,keep-weekly=4,keep-yearly=1}"
@@ -34,7 +36,7 @@ EXCLUDE=(318)
 APPLY=false
 DRY_RUN=true
 REMOTE=false
-STOP_VM310=true
+STOP_VM310=false
 SKIP_IDS=()
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
@@ -49,8 +51,9 @@ usage() {
   echo "  --remote                Corre via SSH no AGLSRV3"
   echo "  --skip VMID             Exclui VMID (repetível)"
   echo "  --only VMID,...         Só estes IDs"
-  echo "  --keep-vm310-running    Não para VM310 antes do backup"
-  echo "  --min-mem-mb N          RAM livre mínima (default: $MIN_MEM_AVAIL_MB)"
+  echo "  --stop-vm310-before-backup  Para VM310 antes do backup (modo stop, +RAM)"
+  echo "  --keep-vm310-running        Alias explícito (default)"
+  echo "  --min-mem-mb N              RAM livre mínima (default online: $MIN_MEM_AVAIL_MB)"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -58,6 +61,7 @@ while [[ $# -gt 0 ]]; do
     --apply) APPLY=true; DRY_RUN=false; shift ;;
     --dry-run) DRY_RUN=true; APPLY=false; shift ;;
     --remote) REMOTE=true; shift ;;
+    --stop-vm310-before-backup) STOP_VM310=true; shift ;;
     --keep-vm310-running) STOP_VM310=false; shift ;;
     --skip) SKIP_IDS+=("$2"); shift 2 ;;
     --only)
@@ -90,15 +94,24 @@ run_on_host() {
 }
 
 preflight() {
-  log "Pré-checks no nó ${NODE}..."
+  local next_id="${1:-}"
+  local min_mem="${MIN_MEM_AVAIL_MB}"
+  if [[ "$STOP_VM310" == false ]]; then
+    min_mem="${MIN_MEM_AVAIL_MB}"
+    [[ "$next_id" == "310" ]] && min_mem="${MIN_MEM_VM310_ONLINE_MB}"
+  else
+    min_mem=4096
+  fi
+
+  log "Pré-checks no nó ${NODE} (min_mem=${min_mem}MB next=${next_id:-any})..."
   if ! run_on_host bash -s <<EOF
 set -euo pipefail
 if pgrep -x vzdump >/dev/null 2>&1; then
   echo "vzdump já em execução"; exit 1
 fi
 avail=\$(awk '/MemAvailable/ {print int(\$2/1024)}' /proc/meminfo)
-if [[ "\$avail" -lt ${MIN_MEM_AVAIL_MB} ]]; then
-  echo "MemAvailable=\${avail}MB < ${MIN_MEM_AVAIL_MB}MB"; exit 1
+if [[ "\$avail" -lt ${min_mem} ]]; then
+  echo "MemAvailable=\${avail}MB < ${min_mem}MB"; exit 1
 fi
 health=\$(zpool list -H -o health aglsrv3-tb 2>/dev/null || echo UNKNOWN)
 if [[ "\$health" != "ONLINE" ]]; then
@@ -106,6 +119,12 @@ if [[ "\$health" != "ONLINE" ]]; then
 fi
 if ! pvesm status -storage ${STORAGE} &>/dev/null; then
   echo "Storage ${STORAGE} indisponível"; exit 1
+fi
+if [[ "${next_id}" == "310" && "${STOP_VM310}" == "false" ]]; then
+  st=\$(qm status 310 2>/dev/null | awk '{print \$2}' || echo unknown)
+  if [[ "\$st" != "running" ]]; then
+    echo "VM310 deve estar running para backup online (status=\$st)"; exit 1
+  fi
 fi
 echo "OK mem=\${avail}MB zfs=\$health storage=${STORAGE}"
 EOF
@@ -154,7 +173,7 @@ backup_one() {
   fi
 
   if [[ "$id" == "310" && "$STOP_VM310" == true ]]; then
-    log "VM310: a parar Ollama antes do backup..."
+    log "VM310: a parar Ollama antes do backup (modo stop)..."
     if [[ "$DRY_RUN" == true ]]; then
       log "[dry-run] qm shutdown 310 --timeout 120"
     else
@@ -162,6 +181,10 @@ backup_one() {
       sleep 10
     fi
     mode="stop"
+  elif [[ "$id" == "310" && "$STOP_VM310" == false ]]; then
+    mode="snapshot"
+    log "VM310: backup online (snapshot, Ollama UP, bwlimit=${VM310_BWLIMIT}KiB/s)"
+    extra+=(--bwlimit "$VM310_BWLIMIT")
   fi
 
   local cmd=(
@@ -171,6 +194,7 @@ backup_one() {
     --mode "$mode"
     --compress zstd
     --prune-backups "$PRUNE"
+    "${extra[@]}"
   )
 
   log "Backup VMID=${id} (${gname}, ${gtype}, mode=${mode})"
@@ -199,14 +223,14 @@ main() {
   [[ ${#plan[@]} -gt 0 ]] || die "Nenhum VMID no plano"
 
   log "Plano sequencial (${#plan[@]} guests): ${plan[*]}"
-  log "Storage=${STORAGE} min_mem=${MIN_MEM_AVAIL_MB}MB pause=${MIN_PAUSE_SEC}s stop_vm310=${STOP_VM310}"
+  log "Storage=${STORAGE} min_mem=${MIN_MEM_AVAIL_MB}MB pause=${MIN_PAUSE_SEC}s vm310_online=$([[ $STOP_VM310 == false ]] && echo yes || echo no)"
 
-  preflight
+  preflight ""
 
   local failed=0 ok=0
   for id in "${plan[@]}"; do
     if [[ "$DRY_RUN" == false ]]; then
-      preflight || die "Pré-check falhou antes de VMID=${id} — abortar"
+      preflight "$id" || die "Pré-check falhou antes de VMID=${id} — abortar"
     fi
 
     local gtype gname
@@ -240,10 +264,10 @@ main() {
 
 if [[ "$REMOTE" == true && "$DRY_RUN" == false ]]; then
   scp -q "$0" "${AGLSRV3_SSH}:/root/aglsrv3-vzdump-sequential.sh"
-  ssh -o BatchMode=yes "$AGLSRV3_SSH" "bash /root/aglsrv3-vzdump-sequential.sh --apply $(
-    [[ "$STOP_VM310" == false ]] && echo --keep-vm310-running
-    for s in "${SKIP_IDS[@]}"; do echo --skip "$s"; done
-  )"
+  remote_args="--apply"
+  [[ "$STOP_VM310" == true ]] && remote_args+=" --stop-vm310-before-backup"
+  for s in "${SKIP_IDS[@]}"; do remote_args+=" --skip ${s}"; done
+  ssh -o BatchMode=yes "$AGLSRV3_SSH" "bash /root/aglsrv3-vzdump-sequential.sh ${remote_args}"
 else
   main "$@"
 fi
