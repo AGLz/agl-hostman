@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/tmp/tmp5gtspfjm/crm-dentista/src
-Environment=MAKEMONEY_ROOT=/tmp/tmp5gtspfjm/makemoney01
+WorkingDirectory=/mnt/overpower/apps/dev/agl/crm-dentista/src
+Environment=MAKEMONEY_ROOT=/mnt/overpower/apps/dev/agl/makemoney01
 Environment=DB_CONNECTION=sqlite
 Environment=DB_DATABASE=/var/lib/makemoney/crm-dentista/database.sqlite
 Environment=LARAVEL_STORAGE_PATH=/var/lib/makemoney/crm-dentista/storage

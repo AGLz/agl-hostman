@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/tmp/tmp5gtspfjm/erp-pme-finance
+WorkingDirectory=/mnt/overpower/apps/dev/agl/erp-pme-finance
 ExecStart=/usr/bin/php8.4 -S 127.0.0.1:8107 -t src/public
 Restart=on-failure
 RestartSec=5
