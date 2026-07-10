@@ -104,15 +104,13 @@ upsert(
     "a17b3c9d0e21",
     "30 7 * * *",
     "hermes-argus-quota-digest.sh",
-    "# Argus — digest diário de limites/quota dos providers LLM. Entrega via cron Argus.",
+    "# Argus — digest diário compacto (07:30, após briefing Jarvis).",
 )
-upsert(
-    "argus-limits-watch",
-    "a27c4d0e1f32",
-    "0 */6 * * *",
-    "hermes-argus-quota-digest.sh",
-    "# Argus — verificação de limites a cada 6h (5h/semanal/mensal/rate-limit).",
-)
+
+before = len(jobs)
+data["jobs"] = [j for j in jobs if j.get("name") != "argus-limits-watch"]
+if before != len(data["jobs"]):
+    print("OK removed argus-limits-watch")
 
 save(data)
 print(f"OK {len(jobs)} jobs em {path}")

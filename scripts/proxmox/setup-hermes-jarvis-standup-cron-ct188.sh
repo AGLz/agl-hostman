@@ -24,7 +24,7 @@ Responde pt-BR, máx 900 caracteres:
 - 🟢 1 linha/agente (só se houver progresso)
 - 🟡 to_review/verifying (Verifier pendente)
 - 🔴 blocked/failed (decisão humana)
-Se nada crítico: termina "sem ações humanas necessárias".
+Se nada crítico: responde exactamente [SILENT].
 TXT
 
 python3 - "${JOBS}" "${TELEGRAM_CHAT}" "${SCHEDULE}" "${PROMPT}" "${CRON_MODEL}" <<'PY'

@@ -308,7 +308,7 @@ jobs = [
         "89b6d08634a1",
         "hermes-ct188-health-check",
         "hermes-ct188-health-check.sh",
-        "*/30 7-23 * * *",
+        "0 8,20 * * *",
     ),
 ]
 

@@ -1,48 +1,51 @@
 #!/usr/bin/env bash
-# Argus — digest leve dos limites/quota dos providers LLM (sem gastar LLM).
-# Lê o estado do quota-governor e imprime um resumo legível para o Telegram (cron no_agent).
+# Argus — digest limites/quota LLM. Modos:
+#   --daily   (default) resumo no briefing matinal (07:30) — compacto
+#   --alert   só emite se houver acção/bloqueio ou LiteLLM down
 #
-# Uso:
-#   bash hermes-argus-quota-digest.sh
-#
-# Variáveis:
-#   GOVERNOR_STATE_FILE  default /var/log/hostman/quota-governor-state.json
-#   LITELLM_TS           default http://100.125.249.8:4000
-
 set -euo pipefail
 
+MODE="${1:---daily}"
 GOVERNOR_STATE_FILE="${GOVERNOR_STATE_FILE:-/var/log/hostman/quota-governor-state.json}"
 LITELLM_TS="${LITELLM_TS:-http://100.125.249.8:4000}"
 
-echo "👁️  Argus — estado dos limites LLM ($(date '+%Y-%m-%d %H:%M %Z'))"
-echo ""
-
-if [[ -f "${GOVERNOR_STATE_FILE}" ]] && command -v jq >/dev/null 2>&1; then
-  echo "Fonte: quota-governor (${GOVERNOR_STATE_FILE})"
-  jq -r '
-    (.updated_at // .timestamp // "?") as $ts
-    | "Atualizado: \($ts)",
-      (if (.action // .status) then "Ação: \(.action // .status)" else empty end),
-      (if .tiers then (.tiers | to_entries[] | "  • \(.key): \(.value.status // .value)") else empty end),
-      (if .spend then "Spend global: \(.spend)" else empty end)
-  ' "${GOVERNOR_STATE_FILE}" 2>/dev/null || {
-    echo "(estado presente mas formato inesperado — dump bruto)"
-    head -c 2000 "${GOVERNOR_STATE_FILE}"
-  }
+ALERTS=()
+litellm_ok=0
+if command -v curl >/dev/null 2>&1 && curl -sf -m 8 "${LITELLM_TS}/health/readiness" >/dev/null 2>&1; then
+  litellm_ok=1
 else
-  echo "⚠️  Sem estado do quota-governor em ${GOVERNOR_STATE_FILE}."
-  echo "    Correr: bash scripts/litellm/quota-governor.sh --notify"
+  ALERTS+=("LiteLLM CT186 inacessível (${LITELLM_TS})")
 fi
 
-echo ""
-echo "LiteLLM gateway: ${LITELLM_TS}"
-if command -v curl >/dev/null 2>&1; then
-  if curl -sf -m 8 "${LITELLM_TS}/health/readiness" >/dev/null 2>&1; then
-    echo "  health/readiness: OK"
-  else
-    echo "  health/readiness: FALHA — verificar LiteLLM CT186"
+gov_action=""
+if [[ -f "${GOVERNOR_STATE_FILE}" ]] && command -v jq >/dev/null 2>&1; then
+  gov_action="$(jq -r '.action // .status // empty' "${GOVERNOR_STATE_FILE}" 2>/dev/null || true)"
+  if [[ -n "${gov_action}" && "${gov_action}" != "ok" && "${gov_action}" != "normal" ]]; then
+    ALERTS+=("quota-governor: ${gov_action}")
   fi
 fi
 
-echo ""
-echo "Tier B (mudanças estruturais no LiteLLM) requer o teu OK aqui no Telegram → Argus delega ao Werner."
+if [[ "${MODE}" == "--alert" ]]; then
+  if [[ ${#ALERTS[@]} -eq 0 ]]; then
+    echo "[SILENT]"
+    exit 0
+  fi
+  echo "👁️ Argus — alerta limites LLM ($(date '+%Y-%m-%d %H:%M %Z'))"
+  for a in "${ALERTS[@]}"; do echo "• ${a}"; done
+  exit 0
+fi
+
+# --daily: compacto (1 bloco curto)
+echo "👁️ Argus — limites LLM ($(date '+%Y-%m-%d %H:%M %Z'))"
+if [[ "${litellm_ok}" -eq 1 ]]; then
+  echo "• LiteLLM: OK"
+else
+  echo "• LiteLLM: FALHA"
+fi
+if [[ -f "${GOVERNOR_STATE_FILE}" ]] && command -v jq >/dev/null 2>&1; then
+  ts="$(jq -r '.updated_at // .timestamp // "?"' "${GOVERNOR_STATE_FILE}" 2>/dev/null || echo "?")"
+  echo "• Governor: ${gov_action:-ok} (atualizado ${ts})"
+else
+  echo "• Governor: sem estado (${GOVERNOR_STATE_FILE})"
+fi
+echo "• Tier B (mudanças LiteLLM): OK humano via Telegram → Argus → Werner"
