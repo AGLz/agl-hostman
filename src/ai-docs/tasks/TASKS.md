@@ -4,6 +4,7 @@
 
 ### 🔄 Em Progresso
 
+- [ ] **TASK-INFRA-AGLSRV6-BACKUP-PBS-TF**: Política retenção hot/cold + watchdog Hermes — doc `docs/maint/AGLSRV6-BACKUP-RETENTION-POLICY.md`; jobs UP alinhados (605,617,621); hot keep-last=2 interim até USB ext4; deploy Werner: `deploy-hermes-werner-aglsrv6-backup-watchdog-ct188.sh`. **Alerta live:** CT611 backup >6h. Pendente: USB ext4 Fase B, deploy CT188.
 - [ ] **TASK-LLM-MONITOR-F4**: Probes complexas + matriz harness (ver plano)
 
 ## ✅ Concluído

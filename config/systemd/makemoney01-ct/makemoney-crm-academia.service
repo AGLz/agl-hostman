@@ -1,0 +1,20 @@
+[Unit]
+Description=makemoney01 crm-academia (preview)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/overpower/apps/dev/agl/crm-academia/src
+Environment=MAKEMONEY_ROOT=/mnt/overpower/apps/dev/agl/makemoney01
+Environment=DB_CONNECTION=sqlite
+Environment=DB_DATABASE=/var/lib/makemoney/crm-academia/database.sqlite
+Environment=LARAVEL_STORAGE_PATH=/var/lib/makemoney/crm-academia/storage
+Environment=TMPDIR=/var/lib/makemoney/crm-academia/tmp
+ExecStart=/usr/bin/php8.4 artisan serve --host=127.0.0.1 --port=8110 --no-reload
+Restart=on-failure
+RestartSec=5
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target

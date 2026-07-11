@@ -73,7 +73,7 @@ grep -rE 'hostpci.*05:00|lxc\.mount.*nvidia' /etc/pve/lxc/*.conf /etc/pve/qemu-s
 ```text
 VMID:     110
 Nome:     agl-ollama
-CPU:      8 cores, host (hidden=1 após tentativa GPU)
+CPU:      16 cores, host (hidden=1), NUMA0 socket 0
 RAM:      16384 MB, balloon 32768
 Disco:    local-zfs:240G
 Rede:     vmbr0, MAC BC:24:11:BA:72:22, IP 192.168.0.200
@@ -82,13 +82,123 @@ SO:       Ubuntu 24.04 Noble (cloud-init)
 User:     agladmin (SSH keys do host Proxmox)
 GPU:      hostpci0 05:00 (após finish-vm110-gpu-passthrough.sh)
 NUMA:     0 — GPU em `05:00.0` = **socket 0** (`numa_node` 0), não socket 1
-          affinity: 0-13,28-41
-          numa0: cpus=0-7,hostnodes=0,memory=16384,policy=bind
+          affinity: 0-15,28-43
+          numa0: cpus=0-15,hostnodes=0,memory=16384,policy=bind
 ```
+
+**CPU (2026-07-10):** revertido de 48 → **16 vCPUs** (`tune-vm110-cpu-cores.sh`) — escalar para 48 cores não melhorou inferência; pin NUMA0 junto à GPU.
+
+**GPU futura:** **RX580 8GB** na janela de manutenção (substitui GTX 1650); até lá GTX 1650 + Plan C.
 
 **NUMA (2026-06-06):** ao contrário da VM104 (NVMe em socket 1), a GTX 1650 está no **primeiro CPU**. Pin em `numa: 0` alinha vCPUs/RAM à GPU e evita tráfego QPI cross-socket. **Não** usar `numa: 1` nesta VM.
 
 **Recuperação GPU:** após `qm stop`/`qm start` falhado, a GTX pode ficar em D3cold e desaparecer de `lspci` — **reboot do AGLSRV1** + `qm start 110`. Hook: `local:snippets/vm110-gpu-hook.sh` (`post-stop` reenumera).
+
+---
+
+## Janela de manutenção GPU (2026-07-10)
+
+> **Estado verificado 2026-07-10 ~00:07 UTC-3** — usar este bloco como runbook na janela.
+
+### Snapshot actual (antes da janela)
+
+| Item | Estado |
+|------|--------|
+| VM110 | **running**, 16 vCPUs, balloon 32 GB |
+| `hostpci0` | **Ausente** — GPU não passada à VM |
+| Host `lspci` `05:00` | **Vazio** (GTX 1650 em D3cold / não enumerada) |
+| Guest GPU | Só **Virtio** — `nvidia-smi` falha |
+| Ollama | **active**, `qwen3:4b` carregado, **`100% CPU`** (`size_vram: 0`) |
+| API | `http://100.74.118.51:11434` (TS), `192.168.0.200:11434` (LAN) |
+| LiteLLM alias | `agl-primary-vm110` (failover; primário = VM310) |
+
+**Conclusão:** o modelo **está a correr**, mas **sem GPU**. Não confundir API OK com inferência acelerada.
+
+### Pré-requisitos da janela
+
+- [ ] Janela com **reboot do AGLSRV1** (obrigatório se `05:00` ausente em `lspci`)
+- [ ] Backup Proxmox VM110 (`vzdump 110`) ou snapshot ZFS
+- [ ] Scripts no host: `git pull` em `/root/agl-hostman` ou `PHASE=preflight bash scripts/aglsrv1/runbook-vm110-maintenance-23h.sh`
+- [ ] Avisar consumidores: Hermes/LiteLLM failover `agl-primary-vm110` ficará offline ~15–30 min
+- [ ] **Não** fazer pin de kernel &lt; 6.11 (ZFS `rpool` / `vdev_zaps_v2`)
+
+### Cenário A — Repor GTX 1650 (hardware actual)
+
+Ordem **estrita** (documentado após incidente D3cold + `hostpci` removido):
+
+```bash
+# === 1. Preflight (agldv03 ou workstation) ===
+PHASE=preflight bash scripts/aglsrv1/runbook-vm110-maintenance-23h.sh
+
+# === 2. AGLSRV1 (root) — enumerar GPU ===
+ssh root@100.107.113.33
+lspci -nn | grep -i nvidia          # deve mostrar 10de:1f82 em 05:00.0
+# Se vazio:
+bash /root/agl-hostman/scripts/aglsrv1/prepare-gpu-passthrough-host.sh
+reboot
+# Após boot:
+lspci -k -s 05:00.0 | grep vfio-pci   # Kernel driver: vfio-pci
+
+# === 3. Passthrough VM110 ===
+bash /root/agl-hostman/scripts/aglsrv1/finish-vm110-gpu-passthrough.sh
+# Reaplica: hostpci0 0000:05:00.0,pcie=1,rombar=0 + vga virtio
+
+# === 4. Guest — driver NVIDIA ===
+ssh root@100.74.118.51
+nvidia-smi                            # GTX 1650 visível
+systemctl restart ollama
+HOME=/root ollama ps                  # PROCESSOR: ~80–100% GPU (não 100% CPU)
+curl -s http://127.0.0.1:11434/api/ps | jq '.models[].size_vram'  # > 0
+
+# === 5. Smoke LiteLLM (CT186) ===
+ssh root@100.125.249.8
+source /opt/agl-litellm/.env
+bash /opt/agl-litellm/scripts/test-ollama-litellm-content.sh agl-primary-vm110
+```
+
+**Critérios de aceite (GTX 1650):**
+
+| Check | Esperado |
+|-------|----------|
+| `qm config 110` | `hostpci0: 0000:05:00.0,pcie=1,rombar=0` |
+| `nvidia-smi` | Driver OK, ~4 GB VRAM |
+| `ollama ps` | `qwen3:4b` com uso **GPU** |
+| `size_vram` em `/api/ps` | **&gt; 0** |
+| Inferência curta (`num_predict=16`) | &lt; 5 s (ordem de grandeza GPU) |
+
+### Cenário B — Upgrade RX580 8GB (substituir GTX 1650)
+
+> Aguardar hardware + mesma janela. **Stack diferente** (AMD amdgpu, não NVIDIA).
+
+1. **Físico:** remover GTX 1650, instalar RX580 8GB no slot `05:00` (confirmar `lspci` no host após reboot).
+2. **Host vfio:** actualizar `/etc/modprobe.d/vfio-gpu.conf` — trocar IDs NVIDIA (`10de:1f82,10de:10fa`) pelos IDs AMD da RX580 (ex. `1002:67df` — **confirmar com `lspci -nn` no host**).
+3. **Proxmox mapping:** seguir padrão VM310 — `hostpci0 mapping=RX580,pcie=1,rombar=0` se resource mappings existirem no AGLSRV1; senão BDF directo.
+4. **Guest:** remover stack NVIDIA; instalar `linux-modules-extra`, `amdgpu`, drivers Vulkan/Mesa (ver `scripts/aglsrv3/install-vm310-ollama-guest.sh` como referência).
+5. **Ollama:** override em `vm110-ollama-override.conf` — `OLLAMA_VULKAN=1`, `OLLAMA_LLM_LIBRARY` amdgpu; modelos: `qwen3:4b` / `gemma4-qat` (Plan C).
+6. **Referência cruzada:** [`AGL-OLLAMA-VM310.md`](AGL-OLLAMA-VM310.md), `scripts/aglsrv3/restore-vm310-from-vm110.sh` (histórico migração inversa).
+
+**Nota:** após RX580, `nvidia-smi` deixa de aplicar — validar com `ollama ps` + `size_vram` + benchmark `scripts/aglsrv1/benchmark-ollama-gpu.sh`.
+
+### Rollback
+
+```bash
+# LiteLLM — voltar a não depender de VM110 local
+bash scripts/litellm/restore-litellm-groq-failover.sh
+
+# VM110 sem GPU — manter Ollama CPU (degradado)
+qm set 110 --delete hostpci0
+qm reboot 110
+```
+
+### Comandos rápidos de diagnóstico
+
+```bash
+# Host
+ssh root@100.107.113.33 'lspci -nn | grep -iE "nvidia|amd|vga"; qm config 110 | grep -E hostpci|vga|cores'
+
+# Guest
+ssh root@100.74.118.51 'lspci | grep -iE "vga|3d|display"; nvidia-smi 2>&1 | head -2; curl -s localhost:11434/api/ps | jq'
+```
 
 ---
 
@@ -113,7 +223,8 @@ OLLAMA_GPU_MEMORY_FRACTION=0.95
 |--------|-------------|--------|
 | `strip-gpu-from-aglsrv1.sh` | AGLSRV1 root | Remove GPU de CTs/VMs; para CT200 |
 | `enable-vfio-gpu-host.sh` | AGLSRV1 root | vfio-gpu.conf + bind vfio |
-| `setup-vm110-agl-ollama.sh` | AGLSRV1 root | Cria VM110 + cloud-init |
+| `setup-vm110-agl-ollama.sh` | AGLSRV1 root | Cria VM110 + cloud-init (16 cores default) |
+| `tune-vm110-cpu-cores.sh` | AGLSRV1 root | Ajusta vCPUs/NUMA (default 16; evita oversubscribe) |
 | `prepare-gpu-passthrough-host.sh` | AGLSRV1 root | vfio + initramfs **antes** do reboot |
 | `finish-vm110-gpu-passthrough.sh` | AGLSRV1 root | Reanexa GPU **após** reboot |
 | `install-vm110-ollama-guest.sh` | VM110 root | NVIDIA + Ollama + pull qwen3:4b |
@@ -131,7 +242,17 @@ scp scripts/aglsrv1/{strip-gpu,enable-vfio,setup-vm110,finish-vm110,install-vm11
 
 ---
 
-## Estado actual (2026-05-18 — verificação remota)
+## Estado actual (histórico)
+
+> **Runbook vigente:** secção [Janela de manutenção GPU (2026-07-10)](#janela-de-manutenção-gpu-2026-07-10).
+
+### 2026-07-10 — GPU inactiva, Ollama em CPU
+
+- **VM110:** running, 16 cores, **sem `hostpci0`**
+- **GTX 1650:** ausente no host e na guest
+- **Ollama:** `qwen3:4b` em **100% CPU** — API online, inferência lenta
+
+### 2026-05-18 — verificação remota (legado)
 
 - **VM110:** **stopped** — `qm start 110` falha: `no PCI device found for 0000:05:00.0`
 - **GPU host:** **ausente** em `lspci` (slot `02.3-[05]` vazio) — **D3cold**; rescan/bridge reset **não recuperaram**

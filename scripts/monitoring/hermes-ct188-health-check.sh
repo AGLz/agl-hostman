@@ -46,7 +46,8 @@ load="$(awk '{print $1}' /proc/loadavg)"
 mem_avail="$(awk '/MemAvailable/ {printf "%.0f", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "?")"
 
 if [[ "${LEVEL}" == "ok" ]]; then
-  echo "✅ Hermes CT188 OK | disco ${disk_pct}% | load ${load} | RAM avail ${mem_avail}Gi | /tmp ${tmp_gb}GB"
+  # ponytail: silêncio em OK — digest no briefing 07:00 (evita flood */30)
+  echo "[SILENT]"
   exit 0
 fi
 

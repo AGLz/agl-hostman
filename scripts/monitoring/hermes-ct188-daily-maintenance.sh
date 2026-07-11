@@ -60,9 +60,7 @@ if [[ -x /opt/hermes/.venv/bin/hermes ]]; then
 fi
 
 if [[ "${LEVEL}" == "ok" ]] && [[ "${err_24h}" -lt 200 ]]; then
-  echo "✅ Manutenção Hermes CT188 (${DATE})"
-  echo "Disco ${disk_pct}% | load ${load} | RAM ${mem_avail}Gi | LiteLLM ${litellm_ok}"
-  echo "Erros hoje (errors.log): ${err_24h} | Hermes: ${hermes_ver:-n/d}"
+  echo "[SILENT]"
   exit 0
 fi
 

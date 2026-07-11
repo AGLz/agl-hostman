@@ -1,0 +1,154 @@
+# Registo canónico de crons Hermes CT188 — política de notificação Telegram
+# Owner: Jarvis (Cron Steward). Aplicar: fix-hermes-cron-governance-ct188.sh
+#
+# notify:
+#   always   → entrega Telegram se stdout (ou LLM output) não for [SILENT]
+#   alert    → script emite só em falha/anomalia
+#   silent   → deliver null ou [SILENT] sempre em OK
+#   disabled → enabled: false
+
+meta:
+  owner_agent: jarvis
+  steward_role: "Cron Steward — registo, anti-flood, digest matinal"
+  telegram_chat: "1272190248"
+  morning_window: "07:00-08:30 America/Sao_Paulo"
+
+agents:
+  jarvis:
+    home: data
+    crons:
+      - name: hermes-daily-briefing
+        schedule: "0 7 * * *"
+        notify: always
+        script: hermes-ct188-daily-briefing-humanized.sh
+        note: "Digest único fleet — substitui OK-spam de monitores"
+      - name: jarvis-standup-2h
+        schedule: "0 */2 * * *"
+        notify: alert
+        type: llm
+        note: "[SILENT] se nada crítico"
+      - name: email-digest-manha
+        schedule: "0 7 * * *"
+        notify: disabled
+        note: "Desactivado até inbox (Composio/Gmail); duplicava briefing 07:00"
+      - name: email-digest-noite
+        schedule: "0 18 * * 1-5"
+        notify: disabled
+      - name: email-critico-monitor
+        schedule: "0,30 9-18 * * *"
+        notify: disabled
+        note: "515+ execs — flood; sem tools de email"
+      - name: email-summary-domingo
+        schedule: "0 20 * * 0"
+        notify: disabled
+      - name: "Verificar status do Gateway Jarvis (localhost:8642"
+        schedule: "*/5 * * * *"
+        notify: disabled
+        note: "Legado flood — health no Werner"
+      - name: "Argus LiteLLM Quota Monitor AGL Agency"
+        schedule: "*/1 * * * *"
+        notify: disabled
+        note: "Legado */1 — digest Argus 07:30"
+
+  werner:
+    home: profiles/werner
+    crons:
+      - name: hermes-ct188-daily-maintenance
+        schedule: "0 4 * * *"
+        notify: alert
+      - name: hermes-ct188-daily-backup
+        schedule: "30 4 * * *"
+        notify: silent
+      - name: hermes-ct188-health-check
+        schedule: "0 8,20 * * *"
+        notify: alert
+        note: "Era */30 7-23 — até 34 msgs/dia"
+      - name: aglsrv1-qpi-numa-daily
+        schedule: "0 8 * * *"
+        notify: alert
+      - name: aglsrv6-backup-watchdog
+        schedule: "30 */2 * * *"
+        notify: alert
+        script: aglsrv6-backup-watchdog.sh
+        note: "vzdump preso, locks stale, PBS espaço — AGLSRV6"
+
+  elon:
+    home: profiles/elon
+    crons:
+      - name: "AI Opportunity Research — scan expandido"
+        schedule: "30 6 * * *"
+        notify: alert
+        type: llm
+      - name: "AI Implementation Planning Sprint"
+        schedule: "45 7 * * *"
+        notify: alert
+        type: llm
+
+  satya:
+    home: profiles/satya
+    crons:
+      - name: makemoney-sync-crons
+        schedule: "50 6 * * *"
+        notify: alert
+      - name: makemoney-deep-dive
+        schedule: "15 7 * * *"
+        notify: alert
+      - name: makemoney-wiki-feed
+        schedule: "30 7 * * *"
+        notify: always
+      - name: makemoney-generate-dossiers
+        schedule: "55 7 * * *"
+        notify: alert
+      - name: makemoney-pipeline-report
+        schedule: "0 8 * * *"
+        notify: always
+      - name: makemoney-git-sync
+        schedule: "15 8 * * *"
+        notify: alert
+
+  curator:
+    home: profiles/curator
+    crons:
+      - name: curator-maintenance
+        schedule: "0 4,10,16,22 * * *"
+        notify: alert
+        type: llm
+
+  orion:
+    home: profiles/orion
+    crons:
+      - name: orion-media-daily-verify
+        schedule: "0 8 * * *"
+        notify: alert
+      - name: orion-media-weekly-status
+        schedule: "0 9 * * 1"
+        notify: always
+
+  argus:
+    home: profiles/argus
+    crons:
+      - name: argus-quota-digest-daily
+        schedule: "30 7 * * *"
+        notify: always
+      - name: argus-hostman-ingest
+        schedule: "*/15 * * * *"
+        notify: silent
+        deliver: null
+
+  verifier:
+    home: profiles/verifier
+    crons: []
+
+  composio:
+    home: profiles/composio
+    crons: []
+
+host_crons:
+  - name: hermes-cron-perms
+    schedule: "* * * * *"
+    script: fix-hermes-cron-perms-ct188.sh
+    notify: silent
+  - name: hermes-disk-cleanup
+    schedule: "0 3 * * 0"
+    script: cleanup-hermes-disk-ct188.sh
+    notify: silent

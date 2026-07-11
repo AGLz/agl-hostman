@@ -25,7 +25,7 @@ UI Laravel: `HermesAgentCatalog` inclui os nove perfis.
 
 ## Gateway: um contentor = um gateway (não “presos” ao Jarvis)
 
-Hermes **0.14.x** não suporta vários bots Telegram no **mesmo** processo gateway ([PR #25660](https://github.com/NousResearch/hermes-agent/pull/25660)). Por isso **cada agente** tem:
+Hermes **0.14.x** não suporta vários bots Telegram no **mesmo** processo gateway ([PR #25660](https://github.com/NousResearch/hermes-agent/pull/25660)). Plano de validação pós-merge: **[`HERMES-MULTI-GATEWAY-SPIKE.md`](HERMES-MULTI-GATEWAY-SPIKE.md)**. Por isso **cada agente** tem:
 
 - contentor Docker próprio (`agl-hermes-<agente>`)
 - comando `gateway run` (processo Hermes independente)
@@ -98,7 +98,11 @@ Desde 2026-06-29 o Jarvis segue o modo de operação dos "Managers" do [Verdent]
 
 ### Stand-up cron 2h (acompanhamento)
 
-`jarvis-standup-2h` (`0 */2 * * *`, LLM no Jarvis): varre `read_agent_context` de cada agente + lê a review-queue, resume progresso/bloqueios em PT e surfaca só pendências de decisão. Setup: `scripts/proxmox/setup-hermes-jarvis-standup-cron-ct188.sh`.
+`jarvis-standup-2h` (`0 */2 * * *`, LLM no Jarvis): varre `read_agent_context` de cada agente + lê a review-queue, resume progresso/bloqueios em PT e surfaca só pendências de decisão. Responde `[SILENT]` se nada crítico. Setup: `scripts/proxmox/setup-hermes-jarvis-standup-cron-ct188.sh`.
+
+### Cron Steward (Jarvis — gerenciador de crons)
+
+O **Jarvis** governa **todos** os crons (9 agentes + host CT188): registo em `scripts/proxmox/hermes-cron-registry.yaml`, digest matinal único (`hermes-ct188-daily-briefing-fleet.sh`), anti-flood (`[SILENT]` em monitores OK). Força-tarefa e runbook: **[`HERMES-CRON-TASK-FORCE.md`](HERMES-CRON-TASK-FORCE.md)** · skill `cron-steward` · deploy: `fix-hermes-cron-governance-ct188.sh`.
 
 ### Debate estratégico (Opção B — skill, no-logging)
 

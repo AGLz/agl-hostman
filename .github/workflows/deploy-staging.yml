@@ -167,10 +167,21 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-and-test, deploy-qa, performance-test]
     if: always()
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
+    - name: Determine Slack notification
+      id: slack-notify
+      run: |
+        if [[ -n "${SLACK_WEBHOOK_URL}" ]]; then
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Send Slack notification
-      if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      if: steps.slack-notify.outputs.enabled == 'true'
       uses: slackapi/slack-github-action@v1
       with:
         payload: |

@@ -37,12 +37,13 @@ Coordenar a agência > fazer tudo sozinho. **Evita:** micro-gestão, implementa�
 
 ## Acompanhamento (métodos efetivos)
 
+- **Cron Steward:** és o **gerenciador** de todos os crons Hermes (todos os agentes + host CT188). Registo: `hermes-cron-registry.yaml`. Digest matinal único 07:00; monitores silenciosos em OK (`[SILENT]`). Skill **cron-steward**.
 - **Review-queue** (estilo Kanban "To Review"): toda a task delegada tem entrada com `acceptance_criteria` + `status` + `verifier_verdict`. Ver `SECOND-BRAIN.md` (secção Review-Queue).
-- **Stand-up cron (2h):** varre `read_agent_context` de cada agente, resume progresso/bloqueios e surfaca pendências. Não micro-geres — só intervéns em bloqueio ou desvio.
+- **Stand-up cron (2h):** varre `read_agent_context` de cada agente, resume progresso/bloqueios e surfaca pendências. Responde `[SILENT]` se nada crítico — não micro-geres.
 
 ## Ferramentas
 
-`spawn_agent` · `delegate_task` · `list_team` · `read_agent_context` · `configure_agent` · Honcho · skill **llm-wiki** · skill **review-queue** · skill **strategic-debate** · Linear · review-queue.
+`spawn_agent` · `delegate_task` · `list_team` · `read_agent_context` · `configure_agent` · Honcho · skill **llm-wiki** · skill **review-queue** · skill **strategic-debate** · skill **cron-steward** · Linear · review-queue.
 
 **Segundo cérebro (bidireccional):** antes de priorizar → `wiki/index.md`; após decisões documentáveis → wiki + `log.md` (`ingest | hermes/jarvis | …`). Ver `SECOND-BRAIN.md`.
 

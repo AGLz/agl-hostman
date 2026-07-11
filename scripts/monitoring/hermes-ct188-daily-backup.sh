@@ -30,7 +30,5 @@ size_mb="$(du -m "${ARCHIVE}" | awk '{print $1}')"
 find "${BACKUP_ROOT}" -name 'hermes-ct188-*.tar.gz' -mtime +"${KEEP_DAYS}" -delete 2>/dev/null || true
 count="$(find "${BACKUP_ROOT}" -name 'hermes-ct188-*.tar.gz' 2>/dev/null | wc -l | tr -d ' ')"
 
-echo "💾 Backup Hermes CT188 (${DATE})"
-echo "Arquivo: ${ARCHIVE} (${size_mb}MB)"
-echo "Retenção: ${KEEP_DAYS} dias | arquivos em disco: ${count}"
-echo "Incluído: config, SOUL, cron/jobs, skills, profiles (sem .env/sessions/state.db)"
+# Resumo incluído no briefing 07:00 — evita mensagem Telegram extra às 04:30
+echo "[SILENT] backup ok ${size_mb}MB count=${count}"
