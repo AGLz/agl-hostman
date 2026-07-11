@@ -102,11 +102,14 @@ init_local_app() {
 }
 init_local_app erp-assistencia AssistenciaPilotSeeder
 init_local_app crm-imobiliaria ImobiliariaPilotSeeder
-for app in crm-clinica crm-dentista erp-padaria crm-beleza erp-estacionamento erp-supermercado crm-academia erp-restaurante erp-farmacia; do
+init_local_app crm-clinica ClinicaPilotSeeder
+for app in crm-dentista erp-padaria crm-beleza erp-estacionamento erp-supermercado crm-academia erp-restaurante erp-farmacia; do
   init_local_app \"\$app\"
 done
 if command -v npm >/dev/null 2>&1; then
   cd '${AGL_ROOT}/crm-imobiliaria/src' && npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/crm-clinica/src' && npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
   npm run build
 fi
 python3 '${MM}/scripts/sync_mm01_landing.py'
