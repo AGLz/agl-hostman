@@ -1,10 +1,11 @@
 [Unit]
-Description=makemoney01 crm-dentista (preview)
-After=network.target
+Description=makemoney01 crm-dentista (mvp)
+After=network.target makemoney-lead-reply-api.service
 
 [Service]
 Type=simple
 WorkingDirectory=/mnt/overpower/apps/dev/agl/crm-dentista/src
+Environment=MAKEMONEY_LEAD_REPLY_URL=http://127.0.0.1:8765
 Environment=MAKEMONEY_ROOT=/mnt/overpower/apps/dev/agl/makemoney01
 Environment=DB_CONNECTION=sqlite
 Environment=DB_DATABASE=/var/lib/makemoney/crm-dentista/database.sqlite
