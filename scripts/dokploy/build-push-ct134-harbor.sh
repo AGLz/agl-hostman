@@ -14,6 +14,9 @@ LATEST_IMAGE="${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${IMAGE_NAME}:prod-latest"
 
 log() { printf '[build-push-ct134] %s\n' "$*"; }
 
+# ponytail: Dockerfile usa RUN --mount=cache; requer BuildKit
+export DOCKER_BUILDKIT=1
+
 harbor_login() {
   local creds_file="${HARBOR_CREDS_FILE:-}"
   local tmp=""
