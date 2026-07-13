@@ -110,9 +110,8 @@ init_local_app crm-academia AcademiaPilotSeeder
 init_local_app erp-estacionamento EstacionamentoPilotSeeder
 init_local_app erp-supermercado SupermercadoPilotSeeder
 init_local_app erp-restaurante RestaurantePilotSeeder
-for app in erp-farmacia; do
-  init_local_app \"\$app\"
-done
+init_local_app erp-farmacia FarmaciaPilotSeeder
+init_local_app erp-pme-finance PmeFinancePilotSeeder
 if command -v npm >/dev/null 2>&1; then
   cd '${AGL_ROOT}/crm-imobiliaria/src' && npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
   npm run build
@@ -131,6 +130,10 @@ if command -v npm >/dev/null 2>&1; then
   cd '${AGL_ROOT}/erp-supermercado/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
   npm run build
   cd '${AGL_ROOT}/erp-restaurante/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/erp-farmacia/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/erp-pme-finance/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
   npm run build
 fi
 python3 '${MM}/scripts/sync_mm01_landing.py'
