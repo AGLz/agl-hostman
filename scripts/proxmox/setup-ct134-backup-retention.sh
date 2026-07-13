@@ -30,7 +30,8 @@ find "\${BACKUP_DIR}" -maxdepth 1 -type d -name 'temp_backup_*' -mmin +\$((RETEN
 SCRIPT
 chmod +x ${CLEANUP_SCRIPT}
 (crontab -l 2>/dev/null | grep -v "${MARKER}" | grep -v agl-cleanup-backup-temps || true
- echo "${CRON_SCHEDULE} ${MARKER} ${CLEANUP_SCRIPT} >> /var/log/hostman/backup-cleanup.log 2>&1") | crontab -
+ echo "# ${MARKER}"
+ echo "${CRON_SCHEDULE} ${CLEANUP_SCRIPT} >> /var/log/hostman/backup-cleanup.log 2>&1") | crontab -
 mkdir -p /var/log/hostman
 REMOTE
 

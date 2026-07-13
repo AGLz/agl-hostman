@@ -38,14 +38,27 @@ command -v gh >/dev/null || { echo "gh CLI necessário" >&2; exit 1; }
 command -v docker >/dev/null || { echo "docker necessário" >&2; exit 1; }
 
 # ponytail: runner scripts usam ssh BatchMode para AGLSRV1/Harbor creds
-if [[ -f /root/.ssh/id_rsa ]]; then
-  install -d -m 700 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "/home/${RUNNER_USER}/.ssh"
-  install -m 600 -o "${RUNNER_USER}" -g "${RUNNER_USER}" /root/.ssh/id_rsa "/home/${RUNNER_USER}/.ssh/id_rsa"
-  [[ -f /root/.ssh/id_rsa.pub ]] && install -m 644 -o "${RUNNER_USER}" -g "${RUNNER_USER}" /root/.ssh/id_rsa.pub "/home/${RUNNER_USER}/.ssh/id_rsa.pub"
-  ssh-keyscan -H 100.107.113.33 >> "/home/${RUNNER_USER}/.ssh/known_hosts" 2>/dev/null || true
-  chown "${RUNNER_USER}:${RUNNER_USER}" "/home/${RUNNER_USER}/.ssh/known_hosts" 2>/dev/null || true
-  chmod 600 "/home/${RUNNER_USER}/.ssh/known_hosts" 2>/dev/null || true
+RUNNER_SSH_KEY="/home/${RUNNER_USER}/.ssh/agl-hostman-deploy"
+install -d -m 700 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "/home/${RUNNER_USER}/.ssh"
+if [[ ! -f "${RUNNER_SSH_KEY}" ]]; then
+  sudo -u "${RUNNER_USER}" ssh-keygen -t ed25519 -N "" -f "${RUNNER_SSH_KEY}" -C "github-runner-agl-hostman"
+  log "Chave deploy criada — adicionar a AGLSRV1 authorized_keys:"
+  cat "${RUNNER_SSH_KEY}.pub"
+  ssh -o BatchMode=yes "${AGLSRV1_SSH}" \
+    "grep -qF \"$(cat ${RUNNER_SSH_KEY}.pub)\" /root/.ssh/authorized_keys 2>/dev/null || cat >> /root/.ssh/authorized_keys" \
+    && log "Chave deploy registada em ${AGLSRV1_SSH}"
 fi
+ssh-keyscan -H 100.107.113.33 >> "/home/${RUNNER_USER}/.ssh/known_hosts" 2>/dev/null || true
+chown "${RUNNER_USER}:${RUNNER_USER}" "/home/${RUNNER_USER}/.ssh/known_hosts" 2>/dev/null || true
+chmod 600 "/home/${RUNNER_USER}/.ssh/known_hosts" 2>/dev/null || true
+cat > "/home/${RUNNER_USER}/.ssh/config" <<CFG
+Host 100.107.113.33 aglsrv1
+  IdentityFile ${RUNNER_SSH_KEY}
+  IdentitiesOnly yes
+  BatchMode yes
+CFG
+chown "${RUNNER_USER}:${RUNNER_USER}" "/home/${RUNNER_USER}/.ssh/config"
+chmod 600 "/home/${RUNNER_USER}/.ssh/config"
 
 TOKEN="$(gh api "repos/${REPO}/actions/runners/registration-token" -X POST --jq .token)"
 [[ -n "${TOKEN}" ]] || { echo "Falha ao obter registration token" >&2; exit 1; }
