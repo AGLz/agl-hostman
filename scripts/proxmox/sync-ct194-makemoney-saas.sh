@@ -106,7 +106,11 @@ init_local_app crm-clinica ClinicaPilotSeeder
 init_local_app crm-dentista DentistaPilotSeeder
 init_local_app crm-beleza BelezaPilotSeeder
 init_local_app erp-padaria PadariaPilotSeeder
-for app in erp-estacionamento erp-supermercado crm-academia erp-restaurante erp-farmacia; do
+init_local_app crm-academia AcademiaPilotSeeder
+init_local_app erp-estacionamento EstacionamentoPilotSeeder
+init_local_app erp-supermercado SupermercadoPilotSeeder
+init_local_app erp-restaurante RestaurantePilotSeeder
+for app in erp-farmacia; do
   init_local_app \"\$app\"
 done
 if command -v npm >/dev/null 2>&1; then
@@ -119,6 +123,14 @@ if command -v npm >/dev/null 2>&1; then
   cd '${AGL_ROOT}/crm-beleza/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
   npm run build
   cd '${AGL_ROOT}/erp-padaria/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/crm-academia/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/erp-estacionamento/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/erp-supermercado/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
+  npm run build
+  cd '${AGL_ROOT}/erp-restaurante/src' && npm ci --ignore-scripts 2>/dev/null || NODE_ENV=development npm install --ignore-scripts
   npm run build
 fi
 python3 '${MM}/scripts/sync_mm01_landing.py'
