@@ -413,6 +413,27 @@ class BackupService
                 Log::info('Deleted old backup', ['file' => basename($file)]);
             }
         }
+
+        $this->cleanOrphanTempBackups();
+    }
+
+    /**
+     * Remove temp_backup_* órfãos (falha/interrupção antes do archive).
+     */
+    protected function cleanOrphanTempBackups(int $maxAgeHours = 24): void
+    {
+        $cutoff = Carbon::now()->subHours($maxAgeHours)->timestamp;
+
+        foreach (glob("{$this->backupPath}/temp_backup_*") ?: [] as $dir) {
+            if (! is_dir($dir)) {
+                continue;
+            }
+
+            if (filemtime($dir) < $cutoff) {
+                $this->removeDirectory($dir);
+                Log::info('Deleted orphan temp backup', ['dir' => basename($dir)]);
+            }
+        }
     }
 
     /**
