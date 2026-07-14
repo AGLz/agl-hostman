@@ -136,7 +136,7 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 - [ ] **Obter acesso à base de dados (read-only ou dump)**
 - [ ] Discovery: inventário + plano detalhado de migração
 - [ ] Congelar 2 melhorias
-- [ ] Executar Laravel + IA conforme plano (dentro do pacote R$ 35k + mensalidade R$ 5k)
+- [ ] Executar Laravel + IA conforme plano (pacote R$ 35k por fase + mensalidade R$ 2,2k após)
 
 ---
 

@@ -2,10 +2,10 @@
 
 **Cliente:** José Abdalla — Alpha Business Parts · Barueri/SP  
 **Fornecedor:** B&M Smart TECH  
-**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.5  
+**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.6  
 **Site:** alphabusinessparts.com.br
 
-> Pacote digital: **R$ 35.000** nos **primeiros 4 meses**; a partir do **5.º mês**, mensalidade **R$ 5.000**.  
+> Pacote digital: **R$ 35.000** faturado **por fase** (R$ 5k + R$ 5k + R$ 12k + R$ 13k); depois, mensalidade **R$ 2.200**.  
 > **GCP e demais cloud/SAAS:** custos **pagos pelo cliente** (cartão / billing próprio).  
 > **Servidores Dell** (T7500 + 2.º Dell): **cobrança à parte** (§8).  
 > Migração Laravel detalhada após Discovery com **código-fonte + DB**.
@@ -171,14 +171,18 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 
 ### Cronograma de pagamento (pacote digital + mensalidade)
 
-| Período | O que fatura | Valor |
-|---------|--------------|-------|
-| **Meses 1 a 4** | Pacote inicial de R$ 35.000 (4 parcelas iguais) | **R$ 8.750 / mês** |
-| **A partir do 5.º mês** | Manutenção e suporte (§9) | **R$ 5.000 / mês** |
+| Ordem | Fase / período | O que fatura | Valor |
+|-------|----------------|--------------|-------|
+| 1.º | **Onboarding / Quick Wins** | DNS CF, Workspace (em curso), iMac | **R$ 5.000** |
+| 2.º | **Fase 0 — Discovery** | Código+DB, plano de migração, 2 melhorias | **R$ 5.000** |
+| 3.º | **Fase 1 — Fundação** | Workspace cutover, setup GCP + Dokploy, cutover Locaweb | **R$ 12.000** |
+| 4.º | **Fases 2–3 — Laravel + IA (base)** | Execução conforme plano do Discovery | **R$ 13.000** |
+| — | **Total do pacote inicial** | | **R$ 35.000** |
+| 5.º em diante | **Mensalidade** (§9) | Manutenção e suporte (Laravel/AI + infra/DevOps) | **R$ 2.200 / mês** |
 
-- **Total nos primeiros 4 meses:** R$ 35.000 (4 × R$ 8.750)  
-- A mensalidade de R$ 5.000 **não** se soma ao pacote nos meses 1–4 — entra **somente a partir do mês 5**.  
-- As fases do escopo (Discovery, Fundação, Laravel/IA) correm em paralelo a este calendário de faturação; o progresso técnico segue os marcos das fases, independentemente da divisão mensal do pagamento.  
+- O pacote de R$ 35.000 é cobrado **por fase** (não em parcelas iguais genéricas): cada fatura corresponde ao início/marco da fase.
+- A mensalidade de **R$ 2.200** entra **após** a conclusão/faturamento das quatro fases do pacote inicial — tipicamente a partir do período seguinte ao 4.º faturamento.
+- A mensalidade **não** se soma às faturas das fases 1–4.
 - GCP / SAAS (cliente) e servidores Dell (§8) são faturas à parte, fora desta tabela.
 
 ---
@@ -214,7 +218,7 @@ Após o pacote digital (ou desde a Fundação, se preferir cobertura contínua):
 
 | | |
 |--|--|
-| **Mensalidade** | **R$ 5.000 / mês** |
+| **Mensalidade** | **R$ 2.200 / mês** |
 | **Inclui** | Manutenção, suporte em horário comercial, evolução controlada, acompanhamento de infra/DevOps e das entregas Laravel/IA |
 
 **Porquê este valor:** a mensalidade cobre a **expertise especializada** — não inclui o consumo de cloud:
@@ -259,7 +263,7 @@ Após o pacote digital (ou desde a Fundação, se preferir cobertura contínua):
 
 ## 11. Próximos passos
 
-1. Aprovar pacote digital (**R$ 35.000** em 4× R$ 8.750; mensalidade **R$ 5.000** a partir do 5.º mês)
+1. Aprovar pacote digital (**R$ 35.000** por fase: 5 + 5 + 12 + 13; mensalidade **R$ 2.200** após as 4 fases)
 2. Confirmar que **billing GCP** (e SAAS) permanece no **cartão/conta do cliente**
 3. **Liberar acesso ao código-fonte e ao DB** (desbloqueia Discovery)
 4. Concluir Workspace: validação Google + 5 mailboxes + cutover MX
