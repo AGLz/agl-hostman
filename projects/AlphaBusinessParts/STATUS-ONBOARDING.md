@@ -20,7 +20,9 @@ Checklist operacional vivo (semana 1+). Sem secrets/API tokens neste ficheiro.
 | Servidor Dell 2× Xeon | Pendente | Ainda não ligado |
 | SAAS / tooling | Parcial | Lovable token em falta |
 | VPS GCP | Não iniciado | Fase 1 — GCE + Dokploy (não Proxmox nested) |
-| Migração Laravel | Não iniciado | Aguarda Discovery |
+| **Código-fonte CI** | **Pendente** | **Bloqueia Discovery / plano de migração** |
+| **Base de dados** | **Pendente** | **Bloqueia Discovery / plano de migração** |
+| Migração Laravel | Aguardando Discovery | Detalhe pós acesso código+DB |
 
 ---
 
@@ -63,6 +65,13 @@ Runbook: [[Google Workspace — migrar e-mail sem mover o site]]
 
 ---
 
+### Servidores Dell — cobrança à parte (fora do pacote digital)
+
+- [ ] Orçamento / proposta hardware dedicada (aprovação do cliente)
+- Ver secções T7500 e 2.º Dell abaixo — **não** entram nos R$ 35.000
+
+---
+
 ## 4. Dell Precision T7500
 
 - [x] Equipamento em mãos / em manutenção
@@ -72,6 +81,7 @@ Runbook: [[Google Workspace — migrar e-mail sem mover o site]]
 - [ ] Cotar cooler frontal OEM: **WN845 / T133N / U859H** (faixa ~R$ 250–600)
 - [ ] Substituir cooler após peça chegar
 - [ ] Stress térmico curto pós-cooler
+- [ ] Faturar labor + peças (**à parte**)
 
 Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 
@@ -88,6 +98,7 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 - [ ] Firmware BIOS / storage
 - [ ] Diagnóstico Dell + SMART
 - [ ] Definir uso (lab / backup / futuro Proxmox bare metal?)
+- [ ] Faturar labor + peças (**à parte**)
 
 ---
 
@@ -102,13 +113,14 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 | Codex Code Pro | Sim | Token OK |
 | Lovable Pro | Sim | **Token em falta** |
 
-> Tokens ficam apenas em gestão de secrets B&M / cliente — **não** versionar neste repo.
+> Tokens ficam apenas em gestão de secrets B&M / cliente — **não** versionar neste repo.  
+> **GCP:** billing na conta do cliente — B&M só faz setup/ops.
 
 ---
 
 ## 7. Infra cloud app (próximo)
 
-- [ ] Projeto GCP + billing no cartão do cliente
+- [ ] Projeto GCP na **conta/billing do cliente**
 - [ ] VM GCE `southamerica-east1` (e2 ou n2-standard-4)
 - [ ] Debian 12 + Docker / Dokploy
 - [ ] Staging CI atual → cutover produção
@@ -120,9 +132,11 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 
 ## 8. Software / IA (próximo)
 
-- [ ] Discovery: acesso ao código CI + admin + DB
+- [ ] **Obter acesso ao código-fonte CodeIgniter**
+- [ ] **Obter acesso à base de dados (read-only ou dump)**
+- [ ] Discovery: inventário + plano detalhado de migração
 - [ ] Congelar 2 melhorias
-- [ ] Plano Strangler Fig + AI SDK + agente ops
+- [ ] Executar Laravel + IA conforme plano (dentro do pacote R$ 35k + mensalidade R$ 5k)
 
 ---
 
@@ -133,4 +147,5 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 | Cliente / decisório | José Abdalla |
 | Entrega comercial | B&M Smart TECH |
 | Dev + IA | AGLz (via B&M) |
+| Custos GCP / SAAS | **Cliente** |
 | Ponto focal técnico cliente | TBD |

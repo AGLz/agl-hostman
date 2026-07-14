@@ -2,10 +2,13 @@
 
 **Cliente:** José Abdalla — Alpha Business Parts · Barueri/SP  
 **Fornecedor:** B&M Smart TECH  
-**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.1  
+**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.5  
 **Site:** alphabusinessparts.com.br
 
-> Valores são faixas estimadas (research técnico + mercado). Orçamento fechado após a **Fase 0 — Discovery**. Detalhe técnico em `RESEARCH-ALPHABUSINESSPARTS.md`.
+> Pacote digital: **R$ 35.000** nos **primeiros 4 meses**; a partir do **5.º mês**, mensalidade **R$ 5.000**.  
+> **GCP e demais cloud/SAAS:** custos **pagos pelo cliente** (cartão / billing próprio).  
+> **Servidores Dell** (T7500 + 2.º Dell): **cobrança à parte** (§8).  
+> Migração Laravel detalhada após Discovery com **código-fonte + DB**.
 
 ---
 
@@ -25,43 +28,66 @@ Trabalhamos de forma **faseada**, com transparência sobre o que já foi feito n
 
 A Alpha Business Parts é um desmanche **DETRAN-SP** especializado em peças de caminhões e ônibus (Mercedes-Benz, Volvo, Scania), com e-commerce e venda consultiva (WhatsApp), além de serviço de jateamento com gelo seco.
 
-Pedidos confirmados:
+**Projeto digital (esta proposta — R$ 35.000 + mensalidade):**
 
-1. Migração CodeIgniter → **Laravel** + **2 melhorias** (a detalhar no Discovery)
+1. Migração CodeIgniter → **Laravel** + **2 melhorias** (detalhe após Discovery)
 2. **IA** dentro da aplicação
 3. **Agente** de infra/ops (uptime, SEO, Google, Mercado Livre, redes sociais, etc.)
 4. E-mails `@alphabusinessparts.com.br`: Locaweb → **Google Workspace**
 5. DNS já na **Cloudflare**; aplicação ainda na Locaweb — objetivo: **sair da Locaweb**
-6. Hospedagem futura em **GCP** (com visão de HA multi-cloud)
-7. Hardware: iMac (Windows 10), Dell Precision T7500 (upgrade), inventário de 2.º servidor Dell
+6. Hospedagem em **GCP** (provisionamento B&M; **valores GCP a cargo do cliente**)
+7. Workstation: iMac 15,1 (Windows 10 + OneDrive) — incluído no onboarding digital
+
+**Hardware de servidores (proposta / fatura separada — §8):**
+
+8. Dell Precision T7500 (upgrade memória + cooler)
+9. Servidor Dell 2× Xeon (power-on / inventário)
 
 ---
 
 ## 3. Status — Onboarding / Quick Wins (semana 1)
+
+### Projeto digital (pacote R$ 35.000)
 
 | Item | Estado | Observação |
 |------|--------|------------|
 | DNS Cloudflare | **Concluído** | Site/origin ainda Locaweb |
 | Google Workspace | **Em curso** | Falta validação Google + 5 caixas |
 | Windows 10 no iMac 15,1 + OneDrive | **Concluído** | Validado |
-| Dell Precision T7500 | **Em curso** | 4×16 GB DDR3 ECC (stock); cooler a cotar |
-| Servidor Dell 2× Xeon | **Pendente** | Power-on / inventário |
-| SAAS (GW, CF Pro, Claude, Cursor, Codex, Lovable) | **Parcial** | Tokens OK exceto Lovable |
-| VPS GCP | **Não iniciado** | Ver §5 — recomendação GCE + Dokploy |
+| SAAS (GW, CF Pro, Claude, Cursor, Codex, Lovable) | **Parcial** | Tokens OK exceto Lovable · **fatura no cartão do cliente** |
+| VPS GCP | **Não iniciado** | Setup B&M · **billing GCP do cliente** |
+| **Acesso ao código-fonte (CI)** | **Pendente** | **Bloqueia o Discovery** |
+| **Acesso à base de dados** | **Pendente** | **Bloqueia o Discovery** |
 
 Mailboxes Workspace a criar: `diretoria`, `financeiro`, `vendas`, `contato`, `admin`.
 
+### Servidores Dell — cobrança à parte (§8)
+
+| Equipamento | Estado | Observação |
+|-------------|--------|------------|
+| Dell Precision T7500 | **Em curso** | Upgrade 4×16 GB DDR3 ECC; cooler frontal a cotar |
+| Servidor Dell 2× Xeon | **Pendente** | Power-on / inventário (ainda não ligado) |
+
 ---
 
-## 4. Escopo por fase
+## 4. Escopo por fase (projeto digital)
 
 ### Fase 0 — Discovery (prioridade)
 
-- Inventário do código CodeIgniter, admin/estoque, DB, frete, gateway de pagamento
+**Pré-requisitos (ainda em falta):**
+
+1. Acesso ao **código-fonte** da aplicação CodeIgniter (repositório / dump completo)
+2. Acesso à **base de dados** (credenciais read-only ou dump + schema)
+
+Sem estes itens não é possível inventariar o sistema nem detalhar a migração Laravel.
+
+**Com acesso liberado, o Discovery cobre:**
+
+- Inventário do código, admin/estoque, schema DB, frete, gateway de pagamento
 - Mapeamento DETRAN / rastreabilidade e regras de negócio
 - Congelamento das **2 melhorias**
-- Protótipo de arquitetura Strangler Fig + backlog priorizado
-- Orçamento fechado das fases seguintes
+- **Plano detalhado de migração** (módulos, ordem Strangler Fig, riscos, marcos)
+- Backlog priorizado para execução dentro do pacote inicial
 
 ### Fase 1 — Fundação (sair da Locaweb)
 
@@ -70,93 +96,136 @@ Mailboxes Workspace a criar: `diretoria`, `financeiro`, `vendas`, `contato`, `ad
 - Staging da app atual; cutover de origin (Locaweb → GCP) com Cloudflare na frente
 - Monitorização básica e backups
 
-> **Recomendação técnica:** em produção, **não** instalar Proxmox *nested* dentro de uma VM GCP. Nested virt é aceitável para laboratório; para Laravel em produção usamos GCE + contentores. **Proxmox multi-cloud HA** fica na **Fase 4**, em **bare metal**.
+> **GCP:** a B&M configura e opera a infraestrutura; os **custos de cloud (VM, disco, rede, etc.) são integralmente do cliente**, via conta/billing GCP própria (cartão já usado nas contratações SAAS). Estimativa orientativa: ~US$ 180–280/mês para um ambiente pequeno em São Paulo — valor real conforme uso.
+
+> **Recomendação técnica:** em produção, **não** instalar Proxmox *nested* dentro de uma VM GCP. Nested virt é aceitável para laboratório; para Laravel em produção usamos GCE + contentores. **Proxmox multi-cloud HA** fica como evolução futura (fora do pacote de R$ 35.000), em **bare metal**.
 
 ### Fase 2 — Migração Laravel + 2 melhorias *(dev com AGLz)*
 
+> Escopo **detalhado após o Discovery** (código + DB). Abaixo fica a direção técnica, não o desenho final.
+
 - App Laravel 12 + Inertia/React + PostgreSQL, em paralelo ao CI (**Strangler Fig**)
-- Migração modular (catálogo, carrinho, frete, checkout, admin)
+- Migração modular conforme plano do Discovery
 - Preservação SEO (301), GA4, Meta Pixel e conversões WhatsApp
 - Implementação das 2 melhorias acordadas no Discovery
-- Go-live gradual; desligar CI quando estável
 
 ### Fase 3 — IA na aplicação + Agente ops *(IA/AGLz)*
 
-- **IA in-app** (Laravel AI SDK, implementação AGLz): matching OE/aplicação, assistente de orçamento, enrichment SEO/PDP, apoio a classificação de fotos
-- **Agente ops** (stack de agentes AGLz): infra, alertas, SEO/GSC, Google, Mercado Livre, redes sociais — roadmap congelado no Discovery
-- Piloto 90 dias com métricas e revisão
+- **IA in-app** (Laravel AI SDK, implementação AGLz): matching OE/aplicação, assistente de orçamento, enrichment SEO/PDP, classificação de fotos — prioridade conforme Discovery
+- **Agente ops** (stack AGLz): infra, alertas, SEO/GSC, Google, Mercado Livre, redes — roadmap congelado no Discovery
 
-### Fase 4 — HA multi-cloud (opcional)
+### Evolução futura (fora do pacote inicial)
 
-- Nós Proxmox em **bare metal** (GCP Bare Metal / parceiros + futuros AWS/Azure)
-- Sync entre sites; entrada Cloudflare (failover)
-- Backup tertiary (provider TBD)
+- HA multi-cloud com Proxmox em bare metal + Cloudflare failover + backup tertiary  
+- Orçamentado à parte quando fizer sentido operacional
 
-> Escopo congelado por fase: mudanças durante uma fase entram no backlog da seguinte ou como *change request* (§8).
+> Escopo congelado por fase: mudanças durante uma fase entram no backlog da seguinte ou como *change request* (§10).
 
 ---
 
 ## 5. Abordagem técnica
 
-| Camada | Proposta | Responsável |
-|--------|----------|-------------|
-| Infra, cloud, e-mail, hardware | GCE, Cloudflare, Workspace, workstations/servidores | **B&M Smart TECH** |
-| App futura (Laravel 12, Inertia/React, Pest) | Strangler Fig sobre CI | **B&M** · execução técnica **AGLz** |
-| IA in-app + Agente ops | Laravel AI SDK, tools/filas, agentes | **AGLz** (via B&M) |
-| DNS / borda | Cloudflare Pro (já contratado) — Tunnel ou Full Strict | B&M |
-| E-mail | Google Workspace | B&M |
-| Fase 1 infra | GCE São Paulo + Debian + Docker/Dokploy (~US$ 180–280/mês) | B&M |
-| Fase 4 infra | Proxmox em bare metal + Cloudflare HA | B&M |
-| Hardware | T7500: 4×16 GB DDR3 ECC RDIMM **suportado**; cooler OEM WN845/T133N/U859H sob cotação | B&M |
-
-**Hardware — transparência:** os 4×16 GB DDR3 ECC em stock são compatíveis com o Precision T7500 (Dell documenta até 192 GB com RDIMM). O cooler frontal deve ser o assembly OEM (não fan genérico). O 2.º servidor Dell só entra em serviço após checklist elétrico/RAID/firmware.
+| Camada | Proposta | Quem paga | Responsável técnico |
+|--------|----------|-----------|---------------------|
+| E-mail / DNS | Workspace + Cloudflare Pro | **Cliente** (já contratado) | B&M |
+| GCP (VM, disco, egress) | GCE SP + Docker/Dokploy | **Cliente** (billing GCP) | B&M (setup/ops) |
+| Tooling AI (Claude, Cursor, etc.) | Licenças já ativas | **Cliente** | — |
+| App Laravel + IA | Stack AGLz | Incluso no pacote / mensalidade B&M | B&M · AGLz |
+| Servidores Dell | T7500 + 2.º Dell | **À parte** (§8) | B&M |
 
 ---
 
 ## 6. Cronograma estimado
 
-| Fase | Duração | Marco |
-|------|---------|-------|
-| Onboarding / Quick Wins | Em curso | Workspace + T7500 + inventário Dell |
-| **Fase 0 — Discovery** | 2–3 semanas | Escopo fechado + 2 melhorias |
-| **Fase 1 — Fundação** | 3–5 semanas | MX Google + app na GCP + fora da Locaweb |
-| **Fase 2 — Laravel** | 10–16 semanas | Go-live Laravel + 2 melhorias |
-| **Fase 3 — IA + Agente** | 6–10 semanas (piloto) | IA produtiva + agente ops |
-| **Fase 4 — HA** | a definir | Multi-cloud bare metal |
-
-Prazo orientativo até go-live Laravel (Fases 0–2): **~4–7 meses**, sujeito ao Discovery.
+| Frente | Duração | Marco |
+|--------|---------|-------|
+| Onboarding digital | Em curso | Workspace + iMac |
+| **Liberação código + DB** | **ASAP** | Desbloqueia Discovery |
+| **Fase 0 — Discovery** | 2–3 semanas | Plano de migração + 2 melhorias |
+| **Fase 1 — Fundação** | 3–5 semanas | MX Google + app na GCP |
+| **Fases 2–3 — Laravel / IA** | a detalhar no Discovery | Marcos do plano técnico |
+| Servidores Dell | paralelo | Orçamento e entrega §8 |
 
 ---
 
-## 7. Investimento — Implementação
+## 7. Investimento — Pacote digital (R$ 35.000)
 
-| Item | Investimento estimado |
-|------|------------------------|
-| Pacote Onboarding / Quick Wins (labor já iniciado + T7500 + inventário Dell) | R$ 3.000–8.000 + peças (cooler sob cotação; RAM stock = R$ 0) |
-| **Fase 0 — Discovery** | R$ 5.000–12.000 |
-| **Fase 1 — Fundação** | R$ 15.000–35.000 |
-| **Fase 2 — Laravel + 2 melhorias** | R$ 80.000–160.000 |
-| **Fase 3 — IA + Agente (setup piloto)** | R$ 25.000–60.000 |
-| **Fase 4 — HA** | sob orçamento |
-| **Total orientativo (0–3, excl. HA)** | **R$ 128.000–275.000** |
+**Total do projeto digital: R$ 35.000**, faturado por fases:
 
-**Cloud / SAAS (cartão do cliente, estimativa mensal):** GCP ~US$ 180–280 · Workspace + Cloudflare Pro + tooling AI conforme contratos já ativos.
+| Fase | Escopo resumido | Valor |
+|------|-----------------|-------|
+| **Onboarding / Quick Wins** | DNS CF, Workspace (em curso), iMac Windows/OneDrive | R$ 5.000 |
+| **Fase 0 — Discovery** | Inventário código+DB, plano de migração, 2 melhorias | R$ 5.000 |
+| **Fase 1 — Fundação** | Workspace cutover, setup GCP + Dokploy, cutover Locaweb | R$ 12.000 |
+| **Fases 2–3 — Laravel + IA (base)** | Execução conforme plano do Discovery (dev AGLz + IA) | R$ 13.000 |
+| **Total** | | **R$ 35.000** |
 
-**Pagamento (sugestão):** Discovery à vista ou 50/50; demais fases 30% início / 40% homologação / 30% go-live. Discovery isolável e abatível se o projeto avançar.
+**Explicitamente fora dos R$ 35.000:**
+
+| Item | Quem paga |
+|------|-----------|
+| **GCP** (VM, disco, rede, snapshots, etc.) | **Cliente** |
+| Workspace, Cloudflare Pro, Claude/Cursor/Codex/Lovable | **Cliente** (já no cartão) |
+| **Servidores Dell** (mão de obra + peças) | **À parte** — §8 |
+| HA multi-cloud (evolução futura) | Orçamento futuro |
+
+### Cronograma de pagamento (pacote digital + mensalidade)
+
+| Período | O que fatura | Valor |
+|---------|--------------|-------|
+| **Meses 1 a 4** | Pacote inicial de R$ 35.000 (4 parcelas iguais) | **R$ 8.750 / mês** |
+| **A partir do 5.º mês** | Manutenção e suporte (§9) | **R$ 5.000 / mês** |
+
+- **Total nos primeiros 4 meses:** R$ 35.000 (4 × R$ 8.750)  
+- A mensalidade de R$ 5.000 **não** se soma ao pacote nos meses 1–4 — entra **somente a partir do mês 5**.  
+- As fases do escopo (Discovery, Fundação, Laravel/IA) correm em paralelo a este calendário de faturação; o progresso técnico segue os marcos das fases, independentemente da divisão mensal do pagamento.  
+- GCP / SAAS (cliente) e servidores Dell (§8) são faturas à parte, fora desta tabela.
 
 ---
 
-## 8. Manutenção e sustentação (recorrente)
+## 8. Servidores Dell — cobrança à parte
 
-Após go-live (ou desde a Fundação, se preferir suporte contínuo):
+Este bloco **não** faz parte dos R$ 35.000 nem da mensalidade de R$ 5.000. Será orçado e faturado separadamente.
 
-| Plano | Mensalidade | Inclui |
-|-------|-------------|--------|
-| **Essencial** | R$ 4.000–6.000 | Correções, suporte horário comercial, backups monitorados |
-| **Evolutivo** | R$ 7.000–12.000 | Essencial + banco de horas + SLA prioritário |
-| **Gerenciado (+ Agente)** | R$ 12.000–20.000 | Evolutivo + agente ops/SEO/ML/social + roadmap dedicado |
+### 8.1 Dell Precision T7500
 
-### SLA (plano Evolutivo, referência)
+| Trabalho | Notas |
+|----------|--------|
+| Upgrade memória | Remover 6×2 GB; instalar 4×16 GB DDR3 ECC RDIMM (stock — peça R$ 0) |
+| Cooler frontal | Cotação OEM **WN845 / T133N / U859H** (~R$ 250–600 estimado) + instalação |
+| Mão de obra | Orçamento à parte (labor + validação POST/térmica) |
+
+### 8.2 Servidor Dell 2× Xeon
+
+| Trabalho | Notas |
+|----------|--------|
+| Power-on / inventário | 2× Xeon, 3× SAS 600 GB, 10× 8 GB DDR3 ECC |
+| Checklist | Elétrico, RAID/HBA, firmware, stress inicial |
+| Peças / reparos | Se necessário após diagnóstico — cotação à parte |
+| Mão de obra | Orçamento à parte |
+
+> Valores de labor e peças dos Dell serão enviados em **proposta/anexo hardware** dedicado, para aprovação do cliente antes da continuidade.
+
+---
+
+## 9. Manutenção e suporte (recorrente)
+
+Após o pacote digital (ou desde a Fundação, se preferir cobertura contínua):
+
+| | |
+|--|--|
+| **Mensalidade** | **R$ 5.000 / mês** |
+| **Inclui** | Manutenção, suporte em horário comercial, evolução controlada, acompanhamento de infra/DevOps e das entregas Laravel/IA |
+
+**Porquê este valor:** a mensalidade cobre a **expertise especializada** — não inclui o consumo de cloud:
+
+- **Laravel** — manutenção e evolução da aplicação pós-migração  
+- **IA** — agentes, integrações e operação assistida (parceria AGLz)  
+- **Infra / DevOps** — operação em GCP/Cloudflare, deploys, backups, monitorização e incidentes  
+
+**Não inclui:** fatura GCP, Workspace, Cloudflare Pro, tooling AI, nem manutenção física dos servidores Dell (salvo acordo à parte).
+
+### SLA (referência)
 
 | Severidade | Primeiro retorno | Resolução-alvo |
 |------------|------------------|----------------|
@@ -166,34 +235,37 @@ Após go-live (ou desde a Fundação, se preferir suporte contínuo):
 
 ---
 
-## 9. Premissas e exclusões
+## 10. Premissas e exclusões
 
 **Premissas:**
 
 - Ponto focal do cliente no Discovery e homologações
-- Acesso ao código, admin, DB e painéis (Locaweb, Cloudflare, Workspace, GCP)
-- Licenças cloud/SAAS no cartão do cliente (já em curso)
+- **Acesso ao código-fonte e à base de dados** para o Discovery (obrigatório)
+- Acesso a painéis (Locaweb, Cloudflare, Workspace, **billing GCP do cliente**)
+- **Cliente arca com todos os custos GCP e SAAS** (cartão / conta própria)
 - Cutover MX só após as 5 caixas criadas e validadas
 
 **Exclusões (salvo contratação adicional):**
 
-- Peças hardware não stock (cooler T7500, discos, PSUs) — cotação à parte
+- **Servidores Dell** — ver §8 (proposta hardware separada)
+- Consumo/billing **GCP** e demais cloud/SAAS — **cliente**
 - Anúncios pagos (Google Ads / Meta Ads) e comissões marketplace
-- Desenvolvimento de folha/fiscal genérico fora do âmbito do e-commerce atual
-- HA multi-cloud e backup tertiary (Fase 4) sem descoberta de custo bare metal
-- Conteúdo editorial contínuo redes sociais além do escopo do Agente acordado
+- HA multi-cloud e backup tertiary (evolução futura)
+- Escopo Laravel além do plano do Discovery dentro dos R$ 35.000 — *change request* ou ajuste via mensalidade sob acordo
 
 **Change requests:** fora do escopo congelado → estimativa à parte.
 
 ---
 
-## 10. Próximos passos
+## 11. Próximos passos
 
-1. Aprovação desta proposta (ou só **Fase 0 — Discovery** + fecho do Onboarding)
-2. Concluir Workspace: validação Google + 5 mailboxes + cutover MX
-3. Fechar cotação do cooler T7500 (PN WN845 / T133N / U859H) e power-on do 2.º Dell
-4. Provisionar GCP (GCE + Dokploy) e planear cutover origin
-5. Kickoff Discovery do código CodeIgniter
+1. Aprovar pacote digital (**R$ 35.000** em 4× R$ 8.750; mensalidade **R$ 5.000** a partir do 5.º mês)
+2. Confirmar que **billing GCP** (e SAAS) permanece no **cartão/conta do cliente**
+3. **Liberar acesso ao código-fonte e ao DB** (desbloqueia Discovery)
+4. Concluir Workspace: validação Google + 5 mailboxes + cutover MX
+5. Receber / aprovar **orçamento separado dos servidores Dell** (§8)
+6. Kickoff Discovery → plano detalhado de migração Laravel/IA
+7. Provisionar GCP na conta do cliente e planear cutover origin
 
 ---
 
