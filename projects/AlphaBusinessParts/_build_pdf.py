@@ -47,6 +47,7 @@ def convert(md_path: Path, pdf_path: Path) -> bool:
 docs = [
     ("RESEARCH-ALPHABUSINESSPARTS.md", "RESEARCH-ALPHABUSINESSPARTS.pdf"),
     ("PROPOSTA-ALPHABUSINESSPARTS.md", "PROPOSTA-ALPHABUSINESSPARTS.pdf"),
+    ("STATUS-ONBOARDING.md", "STATUS-ONBOARDING.pdf"),
 ]
 
 ok = True
