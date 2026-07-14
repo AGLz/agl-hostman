@@ -2,7 +2,7 @@
 
 **Cliente:** José Abdalla — Alpha Business Parts · Barueri/SP  
 **Fornecedor:** B&M Smart TECH  
-**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.6  
+**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.6.1  
 **Site:** alphabusinessparts.com.br
 
 > Pacote digital: **R$ 35.000** faturado **por fase** (R$ 5k + R$ 5k + R$ 12k + R$ 13k); depois, mensalidade **R$ 2.200**.  
@@ -152,13 +152,17 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 
 **Total do projeto digital: R$ 35.000**, faturado por fases:
 
-| Fase | Escopo resumido | Valor |
-|------|-----------------|-------|
-| **Onboarding / Quick Wins** | DNS CF, Workspace (em curso), iMac Windows/OneDrive | R$ 5.000 |
-| **Fase 0 — Discovery** | Inventário código+DB, plano de migração, 2 melhorias | R$ 5.000 |
-| **Fase 1 — Fundação** | Workspace cutover, setup GCP + Dokploy, cutover Locaweb | R$ 12.000 |
-| **Fases 2–3 — Laravel + IA (base)** | Execução conforme plano do Discovery (dev AGLz + IA) | R$ 13.000 |
-| **Total** | | **R$ 35.000** |
+<table class="valores3">
+<colgroup><col class="c1"/><col class="c2"/><col class="c3"/></colgroup>
+<thead><tr><th>Fase</th><th>Escopo resumido</th><th>Valor</th></tr></thead>
+<tbody>
+<tr><td><strong>Onboarding</strong></td><td>DNS CF, Workspace, iMac</td><td class="val">R$ 5.000</td></tr>
+<tr><td><strong>Fase 0 — Discovery</strong></td><td>Inventário código+DB; plano migração; 2 melhorias</td><td class="val">R$ 5.000</td></tr>
+<tr><td><strong>Fase 1 — Fundação</strong></td><td>Cutover MX; GCP+Dokploy; saída Locaweb</td><td class="val">R$ 12.000</td></tr>
+<tr><td><strong>Fases 2–3 — Laravel + IA</strong></td><td>Conforme plano do Discovery (dev AGLz + IA)</td><td class="val">R$ 13.000</td></tr>
+<tr class="tot"><td><strong>Total</strong></td><td></td><td class="val"><strong>R$ 35.000</strong></td></tr>
+</tbody>
+</table>
 
 **Explicitamente fora dos R$ 35.000:**
 
@@ -171,14 +175,18 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 
 ### Cronograma de pagamento (pacote digital + mensalidade)
 
-| Ordem | Fase / período | O que fatura | Valor |
-|-------|----------------|--------------|-------|
-| 1.º | **Onboarding / Quick Wins** | DNS CF, Workspace (em curso), iMac | **R$ 5.000** |
-| 2.º | **Fase 0 — Discovery** | Código+DB, plano de migração, 2 melhorias | **R$ 5.000** |
-| 3.º | **Fase 1 — Fundação** | Workspace cutover, setup GCP + Dokploy, cutover Locaweb | **R$ 12.000** |
-| 4.º | **Fases 2–3 — Laravel + IA (base)** | Execução conforme plano do Discovery | **R$ 13.000** |
-| — | **Total do pacote inicial** | | **R$ 35.000** |
-| 5.º em diante | **Mensalidade** (§9) | Manutenção e suporte (Laravel/AI + infra/DevOps) | **R$ 2.200 / mês** |
+<table class="valores4">
+<colgroup><col class="d1"/><col class="d2"/><col class="d3"/><col class="d4"/></colgroup>
+<thead><tr><th>Ord.</th><th>Fase</th><th>O que fatura</th><th>Valor</th></tr></thead>
+<tbody>
+<tr><td>1.º</td><td><strong>Onboarding</strong></td><td>DNS CF, Workspace, iMac</td><td class="val">R$ 5.000</td></tr>
+<tr><td>2.º</td><td><strong>Discovery</strong></td><td>Código+DB; plano migração; 2 melhorias</td><td class="val">R$ 5.000</td></tr>
+<tr><td>3.º</td><td><strong>Fundação</strong></td><td>Cutover MX; GCP+Dokploy; saída Locaweb</td><td class="val">R$ 12.000</td></tr>
+<tr><td>4.º</td><td><strong>Laravel + IA</strong></td><td>Execução conforme Discovery</td><td class="val">R$ 13.000</td></tr>
+<tr class="tot"><td>—</td><td><strong>Total pacote</strong></td><td></td><td class="val"><strong>R$ 35.000</strong></td></tr>
+<tr><td>5.º+</td><td><strong>Mensalidade</strong></td><td>Manutenção Laravel/AI + infra/DevOps</td><td class="val"><strong>R$ 2.200/mês</strong></td></tr>
+</tbody>
+</table>
 
 - O pacote de R$ 35.000 é cobrado **por fase** (não em parcelas iguais genéricas): cada fatura corresponde ao início/marco da fase.
 - A mensalidade de **R$ 2.200** entra **após** a conclusão/faturamento das quatro fases do pacote inicial — tipicamente a partir do período seguinte ao 4.º faturamento.
@@ -189,7 +197,7 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 
 ## 8. Servidores Dell — cobrança à parte
 
-Este bloco **não** faz parte dos R$ 35.000 nem da mensalidade de R$ 5.000. Será orçado e faturado separadamente.
+Este bloco **não** faz parte dos R$ 35.000 nem da mensalidade de R$ 2.200. Será orçado e faturado separadamente.
 
 ### 8.1 Dell Precision T7500
 
