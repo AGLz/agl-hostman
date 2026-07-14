@@ -1,8 +1,9 @@
 # Research — Alpha Business Parts
 
 **Cliente:** José Abdalla · Alpha Business Parts  
-**Fornecedor:** AGLz AI Agency  
-**Data:** 2026-07-14 · **Fonte:** research público + verificação técnica AGLz
+**Fornecedor comercial:** B&M Smart TECH  
+**Parceiro técnico (dev + IA):** AGLz  
+**Data:** 2026-07-14 · **Atualizado:** 2026-07-14 (v1.1 fornecedor B&M)
 
 > Documento interno de suporte à proposta comercial. Não contém secrets/API tokens.
 
@@ -53,7 +54,7 @@
 - Evitar big-bang; migrar módulos com testes de regressão.
 - **Discovery prioritário:** admin/estoque, gateway de pagamento, cálculo de frete, autenticação/hashes legados, sessões, conformidade DETRAN / rastreabilidade de peças.
 
-### Stack alvo AGLz
+### Stack alvo (execução AGLz sob contrato B&M)
 
 | Camada | Tecnologia |
 |-------|------------|
@@ -75,7 +76,7 @@
 
 - Monitorização: uptime, frete, checkout, estoque zerado
 - Canais digitais: SEO/GSC, Google Business, Mercado Livre, redes sociais
-- Runtime alinhado ao ecossistema AGLz (Hermes / agency) — escopo congelado no Discovery
+- Runtime de agentes: parceria AGLz (Hermes / agency) — escopo congelado no Discovery; fornecedor do cliente = B&M
 - As **2 melhorias** pedidas pelo cliente são definidas na Fase 0 (não inventadas neste research)
 
 ---
@@ -87,7 +88,7 @@
 | Item | Spec / decisão |
 |------|----------------|
 | Estado anterior | 6× 2 GB DDR3 |
-| Upgrade | **4× 16 GB DDR3 ECC RDIMM** (stock AGLz) |
+| Upgrade | **4× 16 GB DDR3 ECC RDIMM** (stock B&M) |
 | Compatibilidade | **Oficial** — Dell lista módulos 1–16 GB; máx. **192 GB** com 2 CPUs + RDIMM |
 | Cuidados | Só RDIMM ECC (sem misturar UDIMM); preferir **2Rx4**; remover todos os 2 GB; popular DIMM1→4; 1600 MHz desce para ≤1333 |
 | Custo peças | **R$ 0** (stock) — cobrança apenas de mão de obra |
@@ -135,8 +136,8 @@ Inventário declarado: 2× Xeon, 3× SAS 600 GB, 10× 8 GB DDR3 ECC (~80 GB).
 - Cloudflare como plano de controlo (DNS, Tunnel, Load Balancing / failover)
 - Backup tertiary: provider ainda **TBD**
 
-**Posição AGLz para a proposta:**  
-*Proxmox-on-GCP é viável como laboratório; para produção Laravel recomendamos Compute Engine + contentores (padrão AGLz) na Fase 1. A arquitetura Proxmox multi-cloud HA fica na Fase 4 em hardware bare metal.*
+**Posição técnica (B&M; stack recomenda AGLz para o Laravel):**  
+*Proxmox-on-GCP é viável como laboratório; para produção Laravel recomendamos Compute Engine + contentores na Fase 1. A arquitetura Proxmox multi-cloud HA fica na Fase 4 em hardware bare metal.*
 
 ---
 

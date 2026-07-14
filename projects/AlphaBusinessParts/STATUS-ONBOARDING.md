@@ -1,7 +1,8 @@
 # Status Onboarding — Alpha Business Parts
 
 **Cliente:** José Abdalla · Alpha Business Parts  
-**Agência:** AGLz AI Agency  
+**Fornecedor:** B&M Smart TECH  
+**Parceiro técnico (dev + IA):** AGLz  
 **Atualizado:** 2026-07-14
 
 Checklist operacional vivo (semana 1+). Sem secrets/API tokens neste ficheiro.
@@ -101,7 +102,7 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 | Codex Code Pro | Sim | Token OK |
 | Lovable Pro | Sim | **Token em falta** |
 
-> Tokens ficam apenas em gestão de secrets AGLz / cliente — **não** versionar neste repo.
+> Tokens ficam apenas em gestão de secrets B&M / cliente — **não** versionar neste repo.
 
 ---
 
@@ -130,5 +131,6 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 | Papel | Quem |
 |-------|------|
 | Cliente / decisório | José Abdalla |
-| Entrega AGLz | AGLz AI Agency |
+| Entrega comercial | B&M Smart TECH |
+| Dev + IA | AGLz (via B&M) |
 | Ponto focal técnico cliente | TBD |

@@ -1,17 +1,21 @@
 # Proposta Comercial — Alpha Business Parts
 
 **Cliente:** José Abdalla — Alpha Business Parts · Barueri/SP  
-**Fornecedor:** AGLz AI Agency  
-**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.0  
+**Fornecedor:** B&M Smart TECH  
+**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.1  
 **Site:** alphabusinessparts.com.br
 
-> Valores são faixas estimadas (research AGLz + mercado). Orçamento fechado após a **Fase 0 — Discovery**. Detalhe técnico em `RESEARCH-ALPHABUSINESSPARTS.md`.
+> Valores são faixas estimadas (research técnico + mercado). Orçamento fechado após a **Fase 0 — Discovery**. Detalhe técnico em `RESEARCH-ALPHABUSINESSPARTS.md`.
 
 ---
 
 ## 1. Apresentação
 
-A **AGLz AI Agency** propõe modernizar a operação digital da Alpha Business Parts: migrar o sistema atual (PHP/CodeIgniter na Locaweb) para **Laravel**, incorporar **IA** na aplicação, operar um **Agente** de infra e canais digitais, e concluir a saída da Locaweb (e-mail Google Workspace, origin em cloud moderna), mantendo a **Cloudflare** como frente.
+A **B&M Smart TECH** propõe modernizar a operação digital da Alpha Business Parts: migrar o sistema atual (PHP/CodeIgniter na Locaweb) para **Laravel**, incorporar **IA** na aplicação, operar um **Agente** de infra e canais digitais, e concluir a saída da Locaweb (e-mail Google Workspace, origin em cloud moderna), mantendo a **Cloudflare** como frente.
+
+Somos um centro técnico premium em Alphaville/Barueri (smartphones, MacBook, notebooks e periféricos), com capacidade para projetos de TI empresarial — infraestrutura, cloud, e-mail, hardware e acompanhamento contínuo.
+
+Nas frentes de **desenvolvimento de software** e **implementação de IA**, a B&M conta com a parceria tecnológica da **AGLz** (metodologia, stack Laravel e agentes de IA).
 
 Trabalhamos de forma **faseada**, com transparência sobre o que já foi feito na primeira semana e o que vem a seguir — reduzindo risco e mantendo o investimento sob controlo.
 
@@ -66,9 +70,9 @@ Mailboxes Workspace a criar: `diretoria`, `financeiro`, `vendas`, `contato`, `ad
 - Staging da app atual; cutover de origin (Locaweb → GCP) com Cloudflare na frente
 - Monitorização básica e backups
 
-> **Recomendação AGLz:** em produção, **não** instalar Proxmox *nested* dentro de uma VM GCP. Nested virt é aceitável para laboratório; para Laravel em produção usamos GCE + contentores (padrão AGLz). **Proxmox multi-cloud HA** fica na **Fase 4**, em **bare metal**.
+> **Recomendação técnica:** em produção, **não** instalar Proxmox *nested* dentro de uma VM GCP. Nested virt é aceitável para laboratório; para Laravel em produção usamos GCE + contentores. **Proxmox multi-cloud HA** fica na **Fase 4**, em **bare metal**.
 
-### Fase 2 — Migração Laravel + 2 melhorias
+### Fase 2 — Migração Laravel + 2 melhorias *(dev com AGLz)*
 
 - App Laravel 12 + Inertia/React + PostgreSQL, em paralelo ao CI (**Strangler Fig**)
 - Migração modular (catálogo, carrinho, frete, checkout, admin)
@@ -76,10 +80,10 @@ Mailboxes Workspace a criar: `diretoria`, `financeiro`, `vendas`, `contato`, `ad
 - Implementação das 2 melhorias acordadas no Discovery
 - Go-live gradual; desligar CI quando estável
 
-### Fase 3 — IA na aplicação + Agente ops
+### Fase 3 — IA na aplicação + Agente ops *(IA/AGLz)*
 
-- **IA in-app** (Laravel AI SDK): matching OE/aplicação, assistente de orçamento, enrichment SEO/PDP, apoio a classificação de fotos
-- **Agente ops** (runtime AGLz): infra, alertas, SEO/GSC, Google, Mercado Livre, redes sociais — roadmap congelado no Discovery
+- **IA in-app** (Laravel AI SDK, implementação AGLz): matching OE/aplicação, assistente de orçamento, enrichment SEO/PDP, apoio a classificação de fotos
+- **Agente ops** (stack de agentes AGLz): infra, alertas, SEO/GSC, Google, Mercado Livre, redes sociais — roadmap congelado no Discovery
 - Piloto 90 dias com métricas e revisão
 
 ### Fase 4 — HA multi-cloud (opcional)
@@ -94,17 +98,16 @@ Mailboxes Workspace a criar: `diretoria`, `financeiro`, `vendas`, `contato`, `ad
 
 ## 5. Abordagem técnica
 
-| Camada | Proposta |
-|--------|----------|
-| App futura | Laravel 12, Inertia + React, shadcn/ui, Pest |
-| Migração | Strangler Fig (CI + Laravel partilham DB na transição) |
-| IA | Laravel AI SDK + agentes com tools/filas |
-| Ops agent | Ecossistema AGLz (Hermes/agency) |
-| DNS / borda | Cloudflare Pro (já contratado) — Tunnel ou Full Strict |
-| E-mail | Google Workspace |
-| Fase 1 infra | GCE São Paulo + Debian + Docker/Dokploy (~US$ 180–280/mês estimado) |
-| Fase 4 infra | Proxmox em bare metal + Cloudflare HA |
-| Hardware | T7500: 4×16 GB DDR3 ECC RDIMM **suportado oficialmente**; cooler OEM WN845/T133N/U859H sob cotação |
+| Camada | Proposta | Responsável |
+|--------|----------|-------------|
+| Infra, cloud, e-mail, hardware | GCE, Cloudflare, Workspace, workstations/servidores | **B&M Smart TECH** |
+| App futura (Laravel 12, Inertia/React, Pest) | Strangler Fig sobre CI | **B&M** · execução técnica **AGLz** |
+| IA in-app + Agente ops | Laravel AI SDK, tools/filas, agentes | **AGLz** (via B&M) |
+| DNS / borda | Cloudflare Pro (já contratado) — Tunnel ou Full Strict | B&M |
+| E-mail | Google Workspace | B&M |
+| Fase 1 infra | GCE São Paulo + Debian + Docker/Dokploy (~US$ 180–280/mês) | B&M |
+| Fase 4 infra | Proxmox em bare metal + Cloudflare HA | B&M |
+| Hardware | T7500: 4×16 GB DDR3 ECC RDIMM **suportado**; cooler OEM WN845/T133N/U859H sob cotação | B&M |
 
 **Hardware — transparência:** os 4×16 GB DDR3 ECC em stock são compatíveis com o Precision T7500 (Dell documenta até 192 GB com RDIMM). O cooler frontal deve ser o assembly OEM (não fan genérico). O 2.º servidor Dell só entra em serviço após checklist elétrico/RAID/firmware.
 
@@ -194,4 +197,8 @@ Após go-live (ou desde a Fundação, se preferir suporte contínuo):
 
 ---
 
-**AGLz AI Agency** · Contato: a confirmar no envio formal ao cliente
+**B&M Smart TECH**  
+Praça das Paineiras, 66 — Centro Comercial de Alphaville, Barueri/SP  
+(11) 96381-1921 · contato@bwlmtecnologia.com.br · Instagram @bmsmarttech
+
+*Desenvolvimento de software e IA: parceria tecnológica AGLz.*
