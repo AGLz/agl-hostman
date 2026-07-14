@@ -56,4 +56,5 @@ journalctl -u ollama -n 5 --no-pager | grep inference || true
 "
 REMOTE
 
-log "Concluído. Pre-warm: bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh --remote"
+log "Concluído. Pre-warm (GPU1 down → pin): bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh --primary-only"
+log "Pre-warm dual: bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh --remote"

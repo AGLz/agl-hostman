@@ -10,6 +10,8 @@
 **Tuning:** `bash scripts/aglsrv3/tune-vm310-ollama-context.sh` → `apply-vm310-ollama-context.sh`  
 **GPU:** 2× AMD RX 580 2048SP — passthrough `hostpci0` + `hostpci1` (`rombar=0`)
 
+> **2026-07-14 (single-GPU pin):** na guest só 1× RX580 com amdgpu (`01:00.0`); `ollama-gpu1` inactivo. Override GPU0: `OLLAMA_NUM_PARALLEL=1`, `KEEP_ALIVE=24h`, `MAX_LOADED=1`. Pre-warm: `bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh --primary-only` (não aquecer gemma/8b em `:11434` — evita eviction do `qwen3:4b`). Evitar `agl-primary-strong`/`fast` em burst até GPU1 voltar.
+
 > **2026-06-12:** AGLSRV3 travado (resolvido 2026-06-15). LiteLLM mantém Groq primário; Ollama VM310 como fallback.
 
 ---
@@ -51,7 +53,7 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 - Ollama GPU0 (`scripts/aglsrv3/vm310-ollama-override.conf`): `:11434`, `GGML_VK_VISIBLE_DEVICES=0`, `MAX_LOADED_MODELS=1`
 - Ollama GPU1 (`vm310-ollama-gpu1-override.conf` + `ollama-gpu1.service`): `:11435`, `GGML_VK_VISIBLE_DEVICES=1` — **só activo se** `dmesg` mostrar `Initialized amdgpu` @ `02:00.0`
 - Aplicar: `bash scripts/aglsrv3/apply-vm310-ollama-optimize.sh`
-- Pre-warm: `bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh` (não aquece qwen3:8b em `:11434` se GPU1 inactiva — evita eviction do primário)
+- Pre-warm: `bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh` (auto pin `--primary-only` se GPU1 down; dual: `--remote`)
 - Prune: `bash scripts/aglsrv3/prune-vm310-ollama-models.sh`
 
 ### Dual-residency (2026-06-15 — operacional)
