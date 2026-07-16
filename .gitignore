@@ -15,6 +15,8 @@ devpods/
 node_modules/
 src/web/node_modules/
 .pnpm-debug.log*
+# ponytail: vendor hive commitido por engano como gitlinks 160000 (sem .gitmodules)
+projects/hive-migration/hive/code/vendor/
 
 # Environment
 .env

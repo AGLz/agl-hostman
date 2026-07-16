@@ -30,8 +30,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
+        with:
+          submodules: false
         with:
           php-version: "8.4"
           extensions: mbstring, pdo, pdo_pgsql, bcmath, intl, zip, redis
@@ -66,6 +66,8 @@ jobs:
       image_tag: ${{ steps.tags.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Resolve image tags
         id: tags
@@ -115,6 +117,8 @@ jobs:
       DOKPLOY_APP_ID: ${{ secrets.DOKPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Rolling update CT134
         env:
