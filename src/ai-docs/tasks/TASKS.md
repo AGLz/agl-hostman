@@ -9,6 +9,7 @@
 
 ## ✅ Concluído
 
+- [x] **TASK-CT134-SELFHOSTED-PIPELINE**: Runner agldv04 (`agl-network`) + Harbor CT182 systemd/health + disco 128G + retenção `temp_backup_*` + reverb CVE-2026-23524 + wiki `[[CT134 — Pipeline Produção agl-hostman]]` (2026-07-14/15)
 - [x] **TASK-LLM-MONITOR-F3-TIER-B**: API aprovar/rejeitar propostas Tier B + job delegação Werner + botões UI (2026-06-27)
 - [x] **TASK-LLM-MONITOR-F3**: Página `/mission-control/llm-monitor` + componente `LlmMonitorDashboard` + quota-governor cron CT134 + sync CT188 + DNS `ah-dev.aglz.io` (2026-06-27)
 

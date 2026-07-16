@@ -21,7 +21,7 @@ fi
 : "${CT_HOSTMAN_PROD_MEMORY_MB:=16384}"
 : "${CT_HOSTMAN_PROD_SWAP_MB:=2048}"
 : "${CT_HOSTMAN_PROD_CORES:=8}"
-: "${CT_HOSTMAN_PROD_DISK_GB:=64}"
+: "${CT_HOSTMAN_PROD_DISK_GB:=128}"
 : "${PROXMOX_BRIDGE:=vmbr0}"
 : "${PROXMOX_ROOTFS_STORAGE:=local-zfs}"
 : "${PROXMOX_TEMPLATE:=local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst}"

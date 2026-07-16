@@ -12,7 +12,7 @@
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.39",
-        "laravel/reverb": "^1.6",
+        "laravel/reverb": "^1.7",
         "laravel/sanctum": "^4.2",
         "laravel/socialite": "^5.0",
         "laravel/telescope": "^5.15",
