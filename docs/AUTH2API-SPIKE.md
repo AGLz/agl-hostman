@@ -1,84 +1,67 @@
-# auth2api spike (OAuth Plus/Pro → API)
+# auth2api (OAuth Plus/Pro → API) — CT186 canónico
 
 > **Fonte de verdade:** llm-wiki — [[LLM Aggregators OAuth vs LiteLLM AGL]]  
 > Upstream: [AmazingAng/auth2api](https://github.com/AmazingAng/auth2api) (pin SHA no `Dockerfile`)
 
 ## Aviso ToS
 
-Claude Pro / ChatGPT Plus / Cursor via OAuth relay **não** é uso oficial da API. Spike **lab / 1 operador**. Não ligar Hermes multi-agente nem publicar `:8317` na LAN.
+Claude Pro / ChatGPT Plus / Cursor via OAuth relay **não** é uso oficial da API. Uso **1 operador / Agency**. Não publicar `:8317` em `0.0.0.0`.
 
-## Providers possíveis (upstream)
+## Deploy canónico (CT186)
 
-O auth2api **só** tem estes três providers OAuth — não há Google/Gemini, Groq, Z.AI, etc. (isso continua no LiteLLM com API keys).
-
-| Provider | Flag login | Conta necessária | Modelos (roteamento) | Notas |
-|----------|------------|------------------|----------------------|-------|
-| **anthropic** | `--provider=anthropic` | Claude Pro / Max | `claude-*`, aliases `opus`/`sonnet`/`haiku` | OAuth Claude Code |
-| **codex** | `--provider=codex` | ChatGPT **Plus** ou **Pro** | `gpt-5*`, `o\d*`, `codex-*` | Backend `chatgpt.com/.../codex`; Free autentica mas falha no 1º call |
-| **cursor** | `--provider=cursor` | Conta Cursor | Prefixo `cursor-*` / `cr/*` (obrigatório se anthropic/codex também estiverem logados) | Experimental; OAuth OK; chat pode falhar com *version no longer supported* se o cloaking estiver atrás do gate Cursor — bump `cloaking.cursor.client-version` ou `--cursor-import-local` do desktop actualizado |
-
-Multi-conta: podes repetir `--login` no mesmo provider (pool + failover).
-
-**Não suportados** pelo auth2api: OpenAI API key clássica, Anthropic API key, Gemini, OpenRouter, Azure, Bedrock, Ollama, etc. — usar LiteLLM CT186.
-
-## Arranque (neste repo)
-
-O binário **recusa arrancar sem pelo menos uma conta OAuth**. Ordem:
+Hermes e LiteLLM **não** devem depender do lab agldv04.
 
 ```bash
+# Tokens OAuth (uma vez; neste host ou no CT186)
 bash scripts/auth2api/bootstrap.sh
 bash scripts/auth2api/login.sh --provider=anthropic
 bash scripts/auth2api/login.sh --provider=codex
-bash scripts/auth2api/login.sh --provider=cursor --auto   # deep-link; ou --cursor-import-local
-bash scripts/auth2api/up.sh
-bash scripts/auth2api/smoke-test.sh
+
+# Deploy proxy + inject LiteLLM no CT186
+bash scripts/auth2api/deploy-ct186.sh
+
+# Fleet Hermes (todos Plus/Pro; auxiliares glm; só Jarvis = Fable 5)
+bash scripts/proxmox/apply-hermes-auth2api-fleet-ct188.sh
 ```
 
-- Compose: `docker/auth2api/` — bind `127.0.0.1:8317`
-- Tokens: `docker/auth2api/data/` (gitignored)
-- API key: `docker/auth2api/.env` (`AUTH2API_API_KEY`)
-- Cloaking: `cli-version` Claude Code + `codex.cli-version` (`@openai/codex`); patch AGL em `/codex/models` `client_version` (semver)
+| Path CT186 | Função |
+|------------|--------|
+| `/opt/agl-auth2api` | Proxy OAuth (`docker-compose.ct186.yml`) |
+| `/opt/agl-litellm` | LiteLLM → `http://agl-auth2api:8317/v1` |
 
-Login **manual** (anthropic/codex sem browser no host): abre o URL, autoriza, cola o redirect `localhost`.  
-Login **Cursor**: abre `https://cursor.com/loginDeepControl?...` e clica “Yes, Log In” (poll automático; `--auto`).
+Lab agldv04 (`docker/auth2api/docker-compose.yml` + `enable-litellm-lab.sh`) fica só para desenvolvimento.
 
-Com anthropic+codex+cursor activos, pedidos Cursor devem usar ids `cursor-*` (ex. `cursor-default`).
+## Modelos LiteLLM (aliases)
 
-## LiteLLM lab (agldv04) + CT186 (Hermes)
+| Alias | Upstream auth2api | Notas |
+|-------|-------------------|-------|
+| `auth2api-claude-fable-5` | `claude-fable-5` | **Só Jarvis** por defeito |
+| `auth2api-claude-sonnet` | `claude-sonnet-5` | Fleet default |
+| `auth2api-claude-opus` | `claude-opus-4-8` | Werner |
+| `auth2api-claude-haiku` | `claude-haiku-4-5` | Argus |
+| `auth2api-gpt-5.5` / `auth2api-gpt-codex` | `gpt-5.5` | Elon |
+| `auth2api-gpt-5.4` | `gpt-5.4` | Opção |
+| `auth2api-gpt-5.6` | → `gpt-5.5` | Plus não lista 5.6 ainda |
 
-```bash
-# Lab local agldv04
-bash scripts/auth2api/enable-litellm-lab.sh
-bash scripts/auth2api/smoke-litellm-lab.sh
+Cursor omitido (chat 502 version gate). Trocar primary: `JARVIS_MODEL=auth2api-claude-opus bash scripts/proxmox/apply-hermes-auth2api-fleet-ct188.sh`.
 
-# Canónico CT186 (Hermes) — auth2api em LAN/Tailscale
-bash scripts/auth2api/enable-litellm-ct186.sh
+## Matriz Hermes (primary)
 
-# Só Jarvis / Elon / Werner → auth2api-* (resto do fleet intacto)
-bash scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh
-# Reverter JEW: bash scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh --revert-free
-```
+| Agente | Primary | Aux |
+|--------|---------|-----|
+| Jarvis | `auth2api-claude-fable-5` | `glm-4.7-flash` |
+| Elon | `auth2api-gpt-5.5` | idem |
+| Werner | `auth2api-claude-opus` | idem |
+| Satya / Curator / Orion / Verifier / Composio | `auth2api-claude-sonnet` | idem |
+| Argus | `auth2api-claude-haiku` | idem |
 
-| Agente | Primary | Fallback / aux |
-|--------|---------|----------------|
-| Jarvis | `auth2api-claude-sonnet` | `zai-glm-flash` / `glm-4.7-flash` |
-| Elon | `auth2api-gpt-codex` | idem |
-| Werner | `auth2api-claude-sonnet` | idem |
+Fallback OAuth fail: `zai-glm-flash`. Reverter: `--revert-free`.
 
-Modelos: `auth2api-claude-sonnet`, `auth2api-claude-opus`, `auth2api-gpt-codex`.  
-Snippet: `config/litellm/auth2api-lab-snippet.yaml` (Cursor omitido).
-
-### Monitor de tokens (dia / semana / mês)
+## Monitor tokens (dia / semana / mês)
 
 ```bash
 bash scripts/monitoring/auth2api-quota-monitor.sh --daily
-bash scripts/monitoring/auth2api-quota-monitor.sh --alert   # [SILENT] se OK
-# Timer: config/systemd/agl-auth2api-quota.{service,timer}
-sudo cp config/systemd/agl-auth2api-quota.* /etc/systemd/system/
-sudo systemctl daemon-reload && sudo systemctl enable --now agl-auth2api-quota.timer
+# lê stats do CT186 via scp; timer: agl-auth2api-quota.timer
 ```
 
-Soft limits (env): `AUTH2API_DAILY_TOKEN_WARN=500000`, `WEEKLY=2000000`, `MONTHLY=8000000`.  
-Estado: `/var/log/hostman/auth2api-quota-state.json` (Argus digest lê se presente).
-
-Parar só o proxy OAuth: `bash scripts/auth2api/down.sh`
+Soft limits: `AUTH2API_DAILY_TOKEN_WARN=500000`, `WEEKLY=2000000`, `MONTHLY=8000000`.

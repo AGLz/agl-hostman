@@ -25,11 +25,14 @@ test('auth2api spike: ficheiros base existem', () => {
     path.join(ROOT, 'scripts/auth2api/smoke-test.sh'),
     path.join(ROOT, 'scripts/auth2api/enable-litellm-lab.sh'),
     path.join(ROOT, 'scripts/auth2api/enable-litellm-ct186.sh'),
+    path.join(ROOT, 'scripts/auth2api/deploy-ct186.sh'),
     path.join(ROOT, 'scripts/auth2api/disable-litellm-lab.sh'),
     path.join(ROOT, 'scripts/auth2api/smoke-litellm-lab.sh'),
     path.join(ROOT, 'scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh'),
+    path.join(ROOT, 'scripts/proxmox/apply-hermes-auth2api-fleet-ct188.sh'),
     path.join(ROOT, 'scripts/monitoring/auth2api-quota-monitor.sh'),
     path.join(ROOT, 'config/systemd/agl-auth2api-quota.timer'),
+    path.join(ROOT, 'docker/auth2api/docker-compose.ct186.yml'),
     SNIPPET,
     path.join(ROOT, 'docs/AUTH2API-SPIKE.md'),
   ]) {
@@ -43,6 +46,17 @@ test('auth2api spike: bind localhost + Tailscale/LAN (não 0.0.0.0)', () => {
   assert.match(yaml, /AUTH2API_TS_IP/);
   assert.match(yaml, /AUTH2API_LAN_IP/);
   assert.ok(!/"0\.0\.0\.0:/.test(yaml), 'ports não usa 0.0.0.0');
+});
+
+test('auth2api ct186: rede LiteLLM canónica + bind sem 0.0.0.0', () => {
+  const yaml = fs.readFileSync(
+    path.join(ROOT, 'docker/auth2api/docker-compose.ct186.yml'),
+    'utf8',
+  );
+  assert.match(yaml, /agl-litellm_litellm-net/);
+  assert.match(yaml, /127\.0\.0\.1:\$\{AUTH2API_PORT:-8317\}:8317/);
+  assert.match(yaml, /100\.125\.249\.8/);
+  assert.ok(!/"0\.0\.0\.0:/.test(yaml), 'ports CT186 não usa 0.0.0.0');
 });
 
 test('auth2api spike: Dockerfile pina SHA completo', () => {
@@ -67,7 +81,28 @@ test('auth2api spike: compose usa rede litellm externa', () => {
 test('auth2api spike: snippet lab tem marcadores e sem cursor chat', () => {
   const snip = fs.readFileSync(SNIPPET, 'utf8');
   assert.match(snip, /AUTH2API_LAB_BEGIN/);
+  assert.match(snip, /auth2api-claude-fable-5/);
   assert.match(snip, /auth2api-claude-sonnet/);
+  assert.match(snip, /auth2api-claude-opus/);
+  assert.match(snip, /auth2api-gpt-5\.5/);
+  assert.match(snip, /auth2api-gpt-5\.6/);
   assert.match(snip, /auth2api-gpt-codex/);
   assert.ok(!snip.includes('auth2api-cursor'), 'cursor omitido do lab activo');
+});
+
+test('auth2api fleet: Jarvis Fable 5 único; enable CT186 usa agl-auth2api', () => {
+  const fleet = fs.readFileSync(
+    path.join(ROOT, 'scripts/proxmox/apply-hermes-auth2api-fleet-ct188.sh'),
+    'utf8',
+  );
+  assert.match(fleet, /JARVIS_MODEL=.*auth2api-claude-fable-5/);
+  assert.ok(
+    !/ELON_MODEL=.*fable|WERNER_MODEL=.*fable|SATYA_MODEL=.*fable/.test(fleet),
+    'só Jarvis usa Fable 5',
+  );
+  const enable = fs.readFileSync(
+    path.join(ROOT, 'scripts/auth2api/enable-litellm-ct186.sh'),
+    'utf8',
+  );
+  assert.match(enable, /agl-auth2api:8317/);
 });

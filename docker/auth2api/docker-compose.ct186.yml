@@ -1,0 +1,39 @@
+# auth2api canónico — CT186 (LXC agl-litellm), mesma rede que litellm-proxy.
+# Uso em /opt/agl-auth2api no CT186:
+#   docker compose -f docker-compose.ct186.yml up -d --build
+#
+# LiteLLM → http://agl-auth2api:8317/v1 (AUTH2API_BASE_URL).
+# Bind host: só loopback + Tailscale do CT186 (não 0.0.0.0).
+
+services:
+  auth2api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        AUTH2API_REF: ${AUTH2API_REF:-a34c011f9fda1013ff3f9299160694c2ab62e4db}
+        CODEX_CLIENT_VERSION: ${CODEX_CLIENT_VERSION:-0.142.5}
+    image: agl-auth2api:${AUTH2API_IMAGE_TAG:-ct186}
+    container_name: agl-auth2api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${AUTH2API_PORT:-8317}:8317"
+      - "${AUTH2API_TS_IP:-100.125.249.8}:${AUTH2API_PORT:-8317}:8317"
+    volumes:
+      - ./config.yaml:/config/config.yaml
+      - ./data:/data
+    environment:
+      NODE_ENV: production
+    networks:
+      - litellm-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8317/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  litellm-net:
+    name: agl-litellm_litellm-net
+    external: true
