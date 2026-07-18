@@ -1,0 +1,44 @@
+# auth2api spike — isolado do CT186 LiteLLM
+# Uso (a partir deste directório ou via scripts/auth2api/bootstrap.sh):
+#   docker compose up -d --build
+#
+# Bind host só localhost. LiteLLM lab alcança via rede docker litellm_litellm-net
+# (hostname agl-auth2api:8317). OAuth tokens em ./data — nunca no git.
+
+services:
+  auth2api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        AUTH2API_REF: ${AUTH2API_REF:-a34c011f9fda1013ff3f9299160694c2ab62e4db}
+        CODEX_CLIENT_VERSION: ${CODEX_CLIENT_VERSION:-0.142.5}
+    image: agl-auth2api:${AUTH2API_IMAGE_TAG:-spike}
+    container_name: agl-auth2api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${AUTH2API_PORT:-8317}:8317"
+    volumes:
+      - ./config.yaml:/config/config.yaml
+      - ./data:/data
+    environment:
+      NODE_ENV: production
+    networks:
+      - litellm-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:8317/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  litellm-net:
+    name: litellm_litellm-net
+    external: true

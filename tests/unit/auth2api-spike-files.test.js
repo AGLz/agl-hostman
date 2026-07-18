@@ -1,0 +1,70 @@
+'use strict';
+
+/**
+ * Spike auth2api: compose bind localhost + scripts + snippet LiteLLM lab off-by-default.
+ */
+const { test } = require('node:test');
+const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT = path.join(__dirname, '../..');
+const COMPOSE = path.join(ROOT, 'docker/auth2api/docker-compose.yml');
+const DOCKERFILE = path.join(ROOT, 'docker/auth2api/Dockerfile');
+const SNIPPET = path.join(ROOT, 'config/litellm/auth2api-lab-snippet.yaml');
+const MAIN_LITELLM = path.join(ROOT, 'config/litellm/config.yaml');
+
+test('auth2api spike: ficheiros base existem', () => {
+  for (const f of [
+    COMPOSE,
+    DOCKERFILE,
+    path.join(ROOT, 'docker/auth2api/config.example.yaml'),
+    path.join(ROOT, 'scripts/auth2api/bootstrap.sh'),
+    path.join(ROOT, 'scripts/auth2api/login.sh'),
+    path.join(ROOT, 'scripts/auth2api/up.sh'),
+    path.join(ROOT, 'scripts/auth2api/smoke-test.sh'),
+    path.join(ROOT, 'scripts/auth2api/enable-litellm-lab.sh'),
+    path.join(ROOT, 'scripts/auth2api/disable-litellm-lab.sh'),
+    path.join(ROOT, 'scripts/auth2api/smoke-litellm-lab.sh'),
+    SNIPPET,
+    path.join(ROOT, 'docs/AUTH2API-SPIKE.md'),
+  ]) {
+    assert.ok(fs.existsSync(f), f);
+  }
+});
+
+test('auth2api spike: bind só 127.0.0.1', () => {
+  const yaml = fs.readFileSync(COMPOSE, 'utf8');
+  assert.match(yaml, /127\.0\.0\.1:\$\{AUTH2API_PORT:-8317\}:8317/);
+  // Reason: comentários podem mencionar 0.0.0.0; só a linha ports conta.
+  const ports = yaml.match(/ports:\s*\n(?:\s*-\s*"[^"]+"\s*\n)+/);
+  assert.ok(ports, 'bloco ports');
+  assert.ok(!/"0\.0\.0\.0:/.test(ports[0]), 'ports não usa 0.0.0.0');
+});
+
+test('auth2api spike: Dockerfile pina SHA completo', () => {
+  const df = fs.readFileSync(DOCKERFILE, 'utf8');
+  assert.match(df, /AUTH2API_REF=[a-f0-9]{40}/);
+  assert.match(df, /CODEX_CLIENT_VERSION=/);
+  assert.match(df, /codex-models\.ts/);
+});
+
+test('auth2api spike: snippet lab não está no config CT186', () => {
+  const main = fs.readFileSync(MAIN_LITELLM, 'utf8');
+  assert.ok(!main.includes('auth2api-claude'), 'não misturar auth2api no config.yaml prod');
+  assert.ok(!main.includes('AUTH2API_API_KEY'), 'sem AUTH2API no config prod');
+});
+
+test('auth2api spike: compose usa rede litellm externa', () => {
+  const yaml = fs.readFileSync(COMPOSE, 'utf8');
+  assert.match(yaml, /litellm_litellm-net/);
+  assert.match(yaml, /external:\s*true/);
+});
+
+test('auth2api spike: snippet lab tem marcadores e sem cursor chat', () => {
+  const snip = fs.readFileSync(SNIPPET, 'utf8');
+  assert.match(snip, /AUTH2API_LAB_BEGIN/);
+  assert.match(snip, /auth2api-claude-sonnet/);
+  assert.match(snip, /auth2api-gpt-codex/);
+  assert.ok(!snip.includes('auth2api-cursor'), 'cursor omitido do lab activo');
+});
