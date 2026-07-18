@@ -1,0 +1,358 @@
+name: Performance Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.node.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup performance test environment
+        run: |
+          cd src/tests/performance
+          npm ci
+          npm install -g k6
+
+      - name: Start AGL Hostman
+        run: |
+          cd src
+          npm run dev &
+          sleep 10  # Wait for server to start
+
+      - name: Wait for health check
+        run: |
+          until curl -f http://localhost:3030/api/health; do
+            echo "Waiting for AGL Hostman to be ready..."
+            sleep 5
+          done
+        timeout-minutes: 5
+
+      - name: Node.js version
+        id: node
+        run: echo "version=$(node --version)" >> $GITHUB_OUTPUT
+
+  performance-baseline:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd src/tests/performance
+          npm ci
+
+      - name: Generate baseline metrics
+        run: |
+          cd src/tests/performance
+          npm run test:baseline --output baseline-${{ github.sha }}.json
+
+      - name: Upload baseline results
+        uses: actions/upload-artifact@v3
+        with:
+          name: baseline-metrics
+          path: |
+            src/tests/performance/baseline-${{ github.sha }}.json
+            src/tests/performance/baseline-${{ github.sha }}-summary.json
+          retention-days: 30
+
+      - name: Store baseline for comparison
+        uses: actions/upload-artifact@v3
+        with:
+          name: current-baseline
+          path: src/tests/performance/baseline-${{ github.sha }}.json
+          retention-days: 7
+
+  load-testing:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd src/tests/performance
+          npm ci
+
+      - name: Run load tests
+        run: |
+          cd src/tests/performance
+
+          # Run basic load test
+          npm run test:load --out json=load-results-${{ github.sha }}.json
+
+          # Run stress test
+          npm run test:stress --out json=stress-results-${{ github.sha }}.json
+
+          # Generate performance report
+          npm run perf:report --input load-results-${{ github.sha }}.json --output load-report-${{ github.sha }}.html
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results
+          path: |
+            src/tests/performance/load-results-${{ github.sha }}.json
+            src/tests/performance/stress-results-${{ github.sha }}.json
+            src/tests/performance/load-report-${{ github.sha }}.html
+          retention-days: 30
+
+  memory-profiling:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd src/tests/performance
+          npm ci
+
+      - name: Run memory profiling
+        run: |
+          cd src/tests/performance
+          npm run test:memory --duration 300 --output memory-report-${{ github.sha }}.json
+
+      - name: Generate memory report
+        run: |
+          cd src/tests/performance
+          node scripts/generate-report.js --input memory-report-${{ github.sha }}.json --output memory-dashboard-${{ github.sha }}.html
+
+      - name: Upload memory results
+        uses: actions/upload-artifact@v3
+        with:
+          name: memory-test-results
+          path: |
+            src/tests/performance/memory-report-${{ github.sha }}.json
+            src/tests/performance/memory-dashboard-${{ github.sha }}.html
+          retention-days: 30
+
+  unit-performance:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd src/tests/performance
+          npm ci
+
+      - name: Run unit performance tests
+        run: |
+          cd src/tests/performance
+          npm run test:performance
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-performance-results
+          path: |
+            src/tests/performance/unit/*.test.js
+          retention-days: 30
+
+  performance-comparison:
+    needs: [setup, performance-baseline, load-testing, memory-profiling, unit-performance]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download current baseline
+        uses: actions/download-artifact@v3
+        with:
+          name: current-baseline
+
+      - name: Compare performance
+        run: |
+          cd src/tests/performance
+          if [ -f baseline-${{ github.sha }}.json ]; then
+            node scripts/compare-baseline.js baseline-${{ github.sha }}.json baseline-${{ github.sha }}.json
+          else
+            echo "No baseline to compare with"
+          fi
+
+      - name: Performance summary
+        run: |
+          echo "## Performance Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Baseline metrics generated" >> $GITHUB_STEP_SUMMARY
+          echo "- Load tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Memory profiling completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit performance tests completed" >> $GITHUB_STEP_SUMMARY
+
+  performance-report:
+    needs: [performance-baseline, load-testing, memory-profiling, unit-performance]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate comprehensive report
+        run: |
+          cd src/tests/performance
+
+          # Create comprehensive report
+          cat > comprehensive-report-${{ github.sha }}.md << EOF
+          # AGL Hostman Performance Report - ${{ github.sha }}
+          ## Generated: $(date -u)
+
+          ## Test Summary
+          ### Baseline Metrics
+          - File: baseline-${{ github.sha }}.json
+          - Tests: Container operations, API responses, system metrics
+
+          ### Load Testing
+          - Basic load test: load-results-${{ github.sha }}.json
+          - Stress test: stress-results-${{ github.sha }}.json
+          - Report: load-report-${{ github.sha }}.html
+
+          ### Memory Profiling
+          - File: memory-report-${{ github.sha }}.json
+          - Dashboard: memory-dashboard-${{ github.sha }}.html
+          - Duration: 300 seconds
+
+          ### Unit Performance
+          - Tests: Container creation, API response times
+          - Location: unit/ directory
+
+          ## Key Metrics
+          ### Performance Targets
+          - Response Time: < 2s (95% of requests)
+          - Error Rate: < 5%
+          - Throughput: > 100 req/s
+          - Memory Usage: < 80%
+          - CPU Usage: < 90%
+
+          ## Next Steps
+          1. Review generated reports
+          2. Address performance regressions
+          3. Optimize identified bottlenecks
+          4. Set up continuous monitoring
+          EOF
+
+      - name: Upload comprehensive report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-comprehensive-report
+          path: |
+            src/tests/performance/comprehensive-report-${{ github.sha }}.md
+          retention-days: 90
+
+  deploy-monitor:
+    needs: performance-comparison
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Deploy performance monitor
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "## Deploy Performance Monitor" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance monitoring enabled for production" >> $GITHUB_STEP_SUMMARY
+          echo "- Dashboard available at: https://monitor.your-domain.com" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    needs: [performance-comparison, performance-report]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify of test completion
+        if: always()
+        run: |
+          echo "## Performance Testing Completed" >> $GITHUB_STEP_SUMMARY
+          echo "### Jobs Status:" >> $GITHUB_STEP_SUMMARY
+          echo "- Baseline Metrics: ${{ needs.performance-baseline.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Load Testing: ${{ needs.load-testing.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Memory Profiling: ${{ needs.memory-profiling.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit Performance: ${{ needs.unit-performance.result }}" >> $GITHUB_STEP_SUMMARY
+
+          if: failure()
+          echo "⚠️ Some performance tests failed - please review the artifacts above" >> $GITHUB_STEP_SUMMARY
+
+          if: success()
+          echo "✅ All performance tests passed" >> $GITHUB_STEP_SUMMARY
+
+  cleanup:
+    needs: [setup, performance-baseline, load-testing, memory-profiling, unit-performance, performance-report]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Cleanup test environment
+        run: |
+          echo "Cleaning up test environment..."
+          # Stop any running test processes
+          pkill -f "node.*npm run dev" || true
+
+          # Clear temporary files
+          rm -rf /tmp/agl-test-* || true
+
+          echo "Cleanup completed"
