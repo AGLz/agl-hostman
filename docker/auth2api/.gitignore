@@ -1,0 +1,5 @@
+# Secrets e tokens OAuth — nunca versionar
+config.yaml
+.env
+data/
+*.jsonl

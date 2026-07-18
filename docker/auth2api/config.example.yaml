@@ -1,0 +1,41 @@
+# Copiar para config.yaml (scripts/auth2api/bootstrap.sh gera a API key).
+# NÃO commitar config.yaml com chaves reais.
+
+# Dentro do container: escuta em todas as interfaces; o host só publica 127.0.0.1
+host: "0.0.0.0"
+port: 8317
+
+auth-dir: "/data"
+
+api-keys:
+  - "CHANGE_ME_RUN_BOOTSTRAP"
+
+body-limit: "200mb"
+
+timeouts:
+  messages-ms: 120000
+  stream-messages-ms: 600000
+  count-tokens-ms: 30000
+
+stats:
+  enabled: true
+
+debug: "errors"
+
+# Providers OAuth suportados pelo upstream (só estes três):
+#   anthropic — Claude Pro/Max
+#   codex     — ChatGPT Plus/Pro (backend Codex)
+#   cursor    — Cursor (experimental, APIs internas)
+cloaking:
+  # npm view @anthropic-ai/claude-code version
+  cli-version: "2.1.197"
+  entrypoint: "cli"
+  codex:
+    originator: "codex_cli_rs"
+    # npm view @openai/codex version — evita "Invalid client_version format" / version-gate
+    cli-version: "0.142.5"
+  cursor:
+    client-version: "3.12.17"
+    client-type: "ide"
+    agent-base-url: "https://api2.cursor.sh"
+    api-base-url: "https://api2.cursor.sh"
