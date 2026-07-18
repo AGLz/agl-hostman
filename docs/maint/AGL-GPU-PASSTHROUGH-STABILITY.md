@@ -1,5 +1,7 @@
 # Estabilidade GPU passthrough — VM110 + VM310
 
+> **Fonte de verdade (wiki):** [[AGL GPU Passthrough Estabilidade]] em `llm-wiki`. Este ficheiro é pointer operacional no repo.
+
 > Auditoria profunda **2026-07-18**. Problema: GPU fica inacessível após algum tempo; migração CT→VM **não resolveu** (causa é reset/D3cold do dispositivo, não LXC vs QEMU).
 
 ## Veredicto rápido

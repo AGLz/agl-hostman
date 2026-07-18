@@ -98,7 +98,7 @@ NUMA:     0 — GPU em `05:00.0` = **socket 0** (`numa_node` 0), não socket 1
 
 ## Janela de manutenção GPU (2026-07-10)
 
-> **Auditoria profunda:** [`docs/maint/AGL-GPU-PASSTHROUGH-STABILITY.md`](maint/AGL-GPU-PASSTHROUGH-STABILITY.md) (2026-07-18) — D3cold confirmado (`config 0xFF`), **não** causado por backups. Monitor: `scripts/monitoring/check-agl-gpu-health.sh`.
+> **Wiki (fonte de verdade):** [[AGL GPU Passthrough Estabilidade]] · pointer repo: [`docs/maint/AGL-GPU-PASSTHROUGH-STABILITY.md`](maint/AGL-GPU-PASSTHROUGH-STABILITY.md). Monitor: `scripts/monitoring/check-agl-gpu-health.sh`.
 
 > **Estado verificado 2026-07-10 ~00:07 UTC-3** — usar este bloco como runbook na janela.
 
