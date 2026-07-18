@@ -16,16 +16,28 @@ set -euo pipefail
 
 MODE="${1:---daily}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-STATS="${AUTH2API_STATS_JSONL:-$ROOT/docker/auth2api/data/stats.jsonl}"
 AUTH_DIR="${AUTH2API_DIR:-$ROOT/docker/auth2api}"
+CT186_SSH="${LITELLM_SSH_HOST:-root@100.125.249.8}"
+REMOTE_STATS="${AUTH2API_REMOTE_STATS:-/opt/agl-auth2api/data/stats.jsonl}"
+CACHE_STATS="${AUTH2API_STATS_CACHE:-/var/tmp/auth2api-stats-ct186.jsonl}"
+STATS="${AUTH2API_STATS_JSONL:-}"
 DAILY_WARN="${AUTH2API_DAILY_TOKEN_WARN:-500000}"
 WEEKLY_WARN="${AUTH2API_WEEKLY_TOKEN_WARN:-2000000}"
 MONTHLY_WARN="${AUTH2API_MONTHLY_TOKEN_WARN:-8000000}"
 STATE_DIR="${AUTH2API_QUOTA_STATE_DIR:-/var/log/hostman}"
 STATE_FILE="${STATE_DIR}/auth2api-quota-state.json"
 
-if [[ ! -f "$STATS" ]]; then
-  echo "auth2api-quota: sem stats ($STATS)" >&2
+if [[ -z "$STATS" ]]; then
+  if scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
+    "${CT186_SSH}:${REMOTE_STATS}" "$CACHE_STATS" 2>/dev/null; then
+    STATS="$CACHE_STATS"
+  elif [[ -f "$AUTH_DIR/data/stats.jsonl" ]]; then
+    STATS="$AUTH_DIR/data/stats.jsonl"
+  fi
+fi
+
+if [[ -z "${STATS:-}" || ! -f "$STATS" ]]; then
+  echo "auth2api-quota: sem stats (CT186 $REMOTE_STATS nem lab local)" >&2
   [[ "$MODE" == "--alert" ]] && echo "[SILENT]" && exit 0
   exit 1
 fi

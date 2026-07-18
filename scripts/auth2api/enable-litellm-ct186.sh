@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Inject modelos auth2api no LiteLLM canónico CT186 (/opt/agl-litellm).
+# Pré-requisito: auth2api a correr no CT186 (bash scripts/auth2api/deploy-ct186.sh).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -7,7 +8,10 @@ AUTH_DIR="${AUTH2API_DIR:-$ROOT/docker/auth2api}"
 SNIPPET="$ROOT/config/litellm/auth2api-lab-snippet.yaml"
 CT186_SSH="${LITELLM_SSH_HOST:-root@100.125.249.8}"
 REMOTE_DIR="${LITELLM_REMOTE_DIR:-/opt/agl-litellm}"
-BASE_URL="${AUTH2API_BASE_URL:-http://192.168.0.181:8317/v1}"
+# Canónico: mesma rede docker no CT186.
+BASE_URL="${AUTH2API_BASE_URL:-http://agl-auth2api:8317/v1}"
+HOST_HEALTH_URL="${AUTH2API_HEALTH_URL:-http://100.125.249.8:8317/health}"
+PROXY_HEALTH_URL="${AUTH2API_PROXY_HEALTH_URL:-http://agl-auth2api:8317/health}"
 BEGIN="# >>> AUTH2API_LAB_BEGIN"
 END="# <<< AUTH2API_LAB_END"
 
@@ -18,9 +22,8 @@ set +a
 [[ -n "${AUTH2API_API_KEY:-}" ]] || { echo "AUTH2API_API_KEY em falta" >&2; exit 1; }
 [[ -f "$SNIPPET" ]] || { echo "snippet em falta" >&2; exit 1; }
 
-HEALTH_URL="${BASE_URL%/v1}/health"
-if ! curl -fsS -m 5 "$HEALTH_URL" >/dev/null; then
-  echo "auth2api inacessível em $HEALTH_URL" >&2
+if ! curl -fsS -m 8 "$HOST_HEALTH_URL" >/dev/null; then
+  echo "auth2api inacessível em $HOST_HEALTH_URL (deploy CT186 primeiro?)" >&2
   exit 1
 fi
 
@@ -100,6 +103,6 @@ ssh -o StrictHostKeyChecking=accept-new "$CT186_SSH" \
    python3 /tmp/auth2api-enable-ct186.py && \
    cd '$REMOTE_DIR' && docker compose up -d --force-recreate litellm-proxy && sleep 15 && \
    docker exec litellm-proxy python -c \"import yaml; yaml.safe_load(open('/app/config.yaml')); print('yaml ok')\" && \
-   docker exec litellm-proxy python -c \"import urllib.request; print(urllib.request.urlopen('${HEALTH_URL}', timeout=8).read())\""
+   docker exec litellm-proxy python -c \"import urllib.request; print(urllib.request.urlopen('${PROXY_HEALTH_URL}', timeout=8).read())\""
 
-echo "OK enable CT186. Modelos: auth2api-claude-sonnet|opus|gpt-codex"
+echo "OK enable CT186. Modelos: auth2api-claude-fable-5|sonnet|opus|haiku|gpt-5.5|gpt-5.4|gpt-5.6|gpt-codex"
