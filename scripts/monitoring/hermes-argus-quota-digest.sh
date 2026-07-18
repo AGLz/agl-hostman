@@ -25,7 +25,7 @@ if [[ -f "${GOVERNOR_STATE_FILE}" ]] && command -v jq >/dev/null 2>&1; then
   fi
 fi
 
-# auth2api (Hermes JEW) — estado no host do proxy (agldv04); antes do --alert
+# auth2api (Hermes fleet) — estado sync do CT186; antes do --alert
 A2A_STATE="${AUTH2API_QUOTA_STATE_FILE:-/var/log/hostman/auth2api-quota-state.json}"
 A2A_SUMMARY=""
 if [[ -f "${A2A_STATE}" ]] && command -v jq >/dev/null 2>&1; then
@@ -66,7 +66,7 @@ else
 fi
 echo "• Tier B (mudanças LiteLLM): OK humano via Telegram → Argus → Werner"
 if [[ -n "${A2A_SUMMARY}" ]]; then
-  echo "• auth2api JEW: ${A2A_SUMMARY}"
+  echo "• auth2api fleet: ${A2A_SUMMARY}"
 else
-  echo "• auth2api JEW: sem estado (correr auth2api-quota-monitor.sh no host proxy)"
+  echo "• auth2api fleet: sem estado (correr auth2api-quota-monitor.sh)"
 fi
