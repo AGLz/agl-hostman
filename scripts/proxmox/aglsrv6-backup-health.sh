@@ -39,14 +39,29 @@ done
 
 echo "=== Prune hot (keep-last=1) ==="
 prune_out=$(run_check 'pct exec 613 -- proxmox-backup-manager prune-job show prune-hot-backups 2>/dev/null' || true)
-if echo "${prune_out}" | grep -qE 'keep-last|schedule'; then ok "prune-hot-backups"; else fail "prune-hot ausente"; fi
+if echo "${prune_out}" | grep -qE 'keep-last\s*\|\s*1|keep-last[[:space:]]+1'; then
+  ok "prune-hot keep-last=1"
+elif echo "${prune_out}" | grep -q keep-last; then
+  warn "prune-hot presente mas keep-last != 1"
+  echo "${prune_out}"
+else
+  fail "prune-hot ausente"
+fi
 
-echo "=== Sync cold ==="
-sync_out=$(run_check 'pct exec 613 -- proxmox-backup-manager sync-job show sync-hot-to-cold 2>/dev/null' || true)
-if echo "${sync_out}" | grep -qE 'schedule|store|remote-store'; then ok "sync-hot-to-cold"; else warn "sync sem schedule (USB Fase B)"; fi
+echo "=== Cold USB (exFAT vzdump) ==="
+if run_check 'mountpoint -q /mnt/usb4tb-direct && test -x /root/aglsrv6-usb-cold-export.sh'; then
+  ok "USB montado + cold-export"
+else
+  warn "USB ou cold-export ausente"
+fi
+if run_check 'test -f /etc/cron.d/aglsrv6-usb-cold-export'; then
+  ok "cron cold-export activo"
+else
+  warn "cron cold-export inactivo"
+fi
 
-echo "=== Espaço backups ==="
-run_check 'pct exec 613 -- df -h /mnt/backups'
+echo "=== Espaço hot (ZFS) + USB ==="
+run_check 'pct exec 613 -- df -h /mnt/backups; df -hT /mnt/usb4tb-direct 2>/dev/null || true'
 
 [[ "${FAIL}" -eq 0 ]] && ok "Health PBS-only OK" || fail "Ver AGLSRV6-BACKUP-RETENTION-POLICY.md"
 exit "${FAIL}"

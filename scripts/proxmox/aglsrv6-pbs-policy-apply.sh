@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Política PBS-only AGLSRV6 (man6):
-#   vzdump → man6-pbs (datastore backups / ZFS)
-#   prune hot: keep-last=1 (1x no ZFS/rpool)
-#   prune cold + sync push → usb4tb-direct (activado só se USB saudável)
+#   Hot:  vzdump → man6-pbs (ZFS backups) + prune keep-last=1
+#   Cold: aglsrv6-usb-cold-export.sh → /mnt/usb4tb-direct/cold (exFAT)
+#   PBS sync nativo hot→usb4tb-direct NÃO — exFAT não serve de datastore PBS
 #
 # Uso:
 #   bash aglsrv6-pbs-policy-apply.sh [--apply] [--remote] [--force-usb-sync]
@@ -86,16 +86,38 @@ run_policy() {
   pbs_exec() { pct exec "${PBS_VMID}" -- "$@"; }
 
   usb_healthy() {
-    pct status "${PBS_VMID}" 2>/dev/null | grep -q running || return 1
-    pbs_exec ls /mnt/usb4tb-direct/ &>/dev/null
+    mountpoint -q /mnt/usb4tb-direct || return 1
+    local probe=/mnt/usb4tb-direct/.agl-healthcheck
+    echo ok >"${probe}" 2>/dev/null && rm -f "${probe}"
+  }
+
+  usb_is_ext4() {
+    findmnt -no FSTYPE /mnt/usb4tb-direct 2>/dev/null | grep -qx ext4
+  }
+
+  ensure_cold_cron() {
+    local cron=/etc/cron.d/aglsrv6-usb-cold-export
+    local script=/root/aglsrv6-usb-cold-export.sh
+    if [[ ! -x "${script}" ]]; then
+      log "AVISO: ${script} ausente — copiar aglsrv6-usb-cold-export.sh para /root"
+      return 0
+    fi
+    cat >"${cron}" <<'EOF'
+# Cold USB AGLSRV6 — após backups PBS; antes do prune hot 08:00
+0 7 * * * root /root/aglsrv6-usb-cold-export.sh --apply >> /var/log/aglsrv6-usb-cold-export.log 2>&1
+30 7 * * 0 root /root/aglsrv6-usb-cold-export.sh --apply --include-weekly >> /var/log/aglsrv6-usb-cold-export.log 2>&1
+EOF
+    rm -f "${cron}.disabled"
+    log "Cron cold-export: diário 07:00 + Domingo 07:30 (VM620)"
   }
 
   log "=== AGLSRV6 PBS-only policy (apply=${APPLY}) ==="
 
   upsert_job "backup-vm620-production" "VM620 Production - PBS" "02:00" "620" 4 1
-  upsert_job "backup-pbs-tier1-sql-6h" "PBS-Tier1-SQL-6h" "*/6" "610,620" 2 1
-  upsert_job "backup-pbs-tier2-infra-12h" "PBS-Tier2-Infra-12h" "2,14" "601,602,609,614,617,621" 3 1
-  upsert_job "backup-pbs-tier3-daily" "PBS-Tier3-Daily" "04:00" "604,605,608,611" 4 1
+  # Schedules desfasados; 605 fora do auto
+  upsert_job "backup-pbs-tier1-sql-6h" "PBS-Tier1-SQL-6h" "0,6,12,18" "610,620" 2 1
+  upsert_job "backup-pbs-tier2-infra-12h" "PBS-Tier2-Infra-12h" "3,15" "601,602,609,614,617,621" 3 1
+  upsert_job "backup-pbs-tier3-daily" "PBS-Tier3-Daily" "05:00" "604,608,611" 4 1
 
   for jid in backup-197c33fb-3f3e backup-f6f377ec-857a backup-44340b80-f7e5 \
     backup-14eaa1e1-8aef backup-4487932b-284a backup-d129d288-6fc2 \
@@ -104,82 +126,62 @@ run_policy() {
   done
 
   if [[ "${APPLY}" != true ]]; then
-    log "DRY-RUN PBS prune/sync no CT${PBS_VMID}"
+    log "DRY-RUN PBS prune + cold cron (sem sync PBS→exFAT)"
     log "=== Fim dry-run ==="
     return 0
   fi
 
   local usb_ok=0
-  if usb_healthy; then usb_ok=1; else log "AVISO: USB /mnt/usb4tb-direct com I/O errors ou inacessível"; fi
-  [[ "${FORCE_USB_SYNC}" == true ]] && usb_ok=1
+  if usb_healthy; then usb_ok=1; else log "AVISO: USB /mnt/usb4tb-direct inacessível"; fi
 
   local hot_keep=1
   if [[ "${usb_ok}" != 1 ]]; then
     hot_keep=2
-    log "AVISO: sync cold OFF — hot keep-last=2 até USB ext4 (evita perder histórico sem cold)"
+    log "AVISO: USB cold OFF — hot keep-last=2 até USB voltar"
   fi
 
   if pbs_exec proxmox-backup-manager prune-job show prune-hot-backups &>/dev/null; then
     pbs_exec proxmox-backup-manager prune-job update prune-hot-backups \
       --schedule "08:00" --store "${HOT_STORE}" \
       --keep-last "${hot_keep}" \
-      --comment "Hot tier ZFS — ${hot_keep} snapshot(s) por guest"
+      --delete keep-daily --delete keep-hourly --delete keep-weekly \
+      --delete keep-monthly --delete keep-yearly \
+      --comment "Hot tier ZFS — ${hot_keep} snapshot(s) por guest (cold=USB exFAT export)"
   else
     pbs_exec proxmox-backup-manager prune-job create prune-hot-backups \
       --schedule "08:00" --store "${HOT_STORE}" \
       --keep-last "${hot_keep}" \
-      --comment "Hot tier ZFS — ${hot_keep} snapshot(s) por guest"
+      --comment "Hot tier ZFS — ${hot_keep} snapshot(s) por guest (cold=USB exFAT export)"
   fi
-  log "Prune hot: keep-last=${hot_keep} @ 08:00"
+  log "Prune hot: keep-last=${hot_keep} @ 08:00 (sem keep-daily)"
 
   if pbs_exec proxmox-backup-manager prune-job show prune-cold-usb &>/dev/null; then
-    pbs_exec proxmox-backup-manager prune-job update prune-cold-usb \
-      --schedule weekly --store "${COLD_STORE}" \
-      --keep-daily 7 --keep-weekly 4 --keep-monthly 3 --keep-yearly 1 \
-      --comment "Cold tier — retenção longa pós-sync"
-  else
-    pbs_exec proxmox-backup-manager prune-job create prune-cold-usb \
-      --schedule weekly --store "${COLD_STORE}" \
-      --keep-daily 7 --keep-weekly 4 --keep-monthly 3 --keep-yearly 1 \
-      --comment "Cold tier — retenção longa pós-sync"
+    pbs_exec proxmox-backup-manager prune-job update prune-cold-usb --disable 1 \
+      --comment "Desactivado — cold real é /mnt/usb4tb-direct/cold (exFAT vzdump)"
   fi
 
-  local fp pass
-  fp=$(pbs_exec proxmox-backup-manager cert info 2>/dev/null | awk -F': ' '/Fingerprint \(sha256\)/ {print $2; exit}')
-  pass=$(cat /root/.pbs-link-password 2>/dev/null || true)
+  if pbs_exec proxmox-backup-manager sync-job show sync-hot-to-cold &>/dev/null; then
+    pbs_exec proxmox-backup-manager sync-job update sync-hot-to-cold --delete schedule 2>/dev/null || true
+    log "Sync PBS hot→cold DESACTIVADO (exFAT; usar cold-export)"
+  fi
 
-  if [[ -n "${fp}" && -n "${pass}" ]]; then
-    if ! pbs_exec proxmox-backup-manager remote show local-push &>/dev/null; then
-      pbs_exec proxmox-backup-manager remote create local-push \
-        --host 127.0.0.1 --port 8007 --auth-id root@pam \
-        --password "${pass}" --fingerprint "${fp}" \
-        --comment "Loopback sync hot→cold"
-    fi
-
-    if pbs_exec proxmox-backup-manager sync-job show sync-hot-to-cold &>/dev/null; then
+  if [[ "${FORCE_USB_SYNC}" == true ]]; then
+    if usb_is_ext4; then
+      log "FORCE: USB ext4 — activar sync PBS (repoint datastore manual)"
       pbs_exec proxmox-backup-manager sync-job update sync-hot-to-cold \
-        --store "${HOT_STORE}" --remote local-push --remote-store "${COLD_STORE}" \
-        --schedule "06:30" --sync-direction push \
-        --comment "Push hot ZFS → cold tier"
+        --schedule "06:30" --sync-direction push 2>/dev/null || true
+      pbs_exec proxmox-backup-manager prune-job update prune-cold-usb --disable 0 2>/dev/null || true
     else
-      pbs_exec proxmox-backup-manager sync-job create sync-hot-to-cold \
-        --store "${HOT_STORE}" --remote local-push --remote-store "${COLD_STORE}" \
-        --schedule "06:30" --sync-direction push \
-        --comment "Push hot ZFS → cold tier"
+      log "FORCE ignorado: USB não é ext4 ($(findmnt -no FSTYPE /mnt/usb4tb-direct 2>/dev/null || echo absent))"
     fi
+  fi
 
-    if [[ "${usb_ok}" == 1 ]]; then
-      pbs_exec proxmox-backup-manager sync-job update sync-hot-to-cold \
-        --schedule "06:30" --sync-direction push
-      pbs_exec proxmox-backup-manager prune-job update prune-cold-usb --disable 0
-      log "Sync hot→cold ACTIVADO (schedule 06:30)"
-    else
-      pbs_exec proxmox-backup-manager sync-job update sync-hot-to-cold --delete schedule 2>/dev/null || true
-      pbs_exec proxmox-backup-manager prune-job update prune-cold-usb --disable 1
-      log "Sync hot→cold DESACTIVADO (USB degradado — corrigir hardware antes)"
-    fi
+  if [[ "${usb_ok}" == 1 ]]; then
+    ensure_cold_cron
   else
-    log "AVISO: fingerprint/password PBS em falta — prune hot OK, sync ignorado"
+    [[ -f /etc/cron.d/aglsrv6-usb-cold-export ]] && \
+      mv -f /etc/cron.d/aglsrv6-usb-cold-export /etc/cron.d/aglsrv6-usb-cold-export.disabled
+    log "Cron cold-export desactivado (USB off)"
   fi
 
   log "=== Concluído ==="
@@ -187,7 +189,11 @@ run_policy() {
 
 if [[ "${REMOTE}" == true ]]; then
   log "Remoto ${AGLSRV6_SSH}"
-  scp -q "${SCRIPT_DIR}/aglsrv6-pbs-policy-apply.sh" "${SCRIPT_DIR}/aglsrv-vmid-map.env" "${AGLSRV6_SSH}:/root/"
+  scp -q "${SCRIPT_DIR}/aglsrv6-pbs-policy-apply.sh" \
+    "${SCRIPT_DIR}/aglsrv6-usb-cold-export.sh" \
+    "${SCRIPT_DIR}/aglsrv-vmid-map.env" \
+    "${AGLSRV6_SSH}:/root/"
+  ssh -o ConnectTimeout=120 "${AGLSRV6_SSH}" "chmod 755 /root/aglsrv6-usb-cold-export.sh /root/aglsrv6-pbs-policy-apply.sh"
   local_flag=""
   [[ "${APPLY}" == true ]] && local_flag="--apply"
   force_flag=""
