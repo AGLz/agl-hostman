@@ -2,8 +2,10 @@
 # Uso (a partir deste directório ou via scripts/auth2api/bootstrap.sh):
 #   docker compose up -d --build
 #
-# Bind host só localhost. LiteLLM lab alcança via rede docker litellm_litellm-net
-# (hostname agl-auth2api:8317). OAuth tokens em ./data — nunca no git.
+# Bind: localhost (ops) + Tailscale (CT186 LiteLLM / Hermes).
+# Rede docker litellm_litellm-net: LiteLLM lab agldv04 → agl-auth2api:8317.
+# OAuth tokens em ./data — nunca no git.
+# AUTH2API_TS_IP default = Tailscale deste host (agldv04).
 
 services:
   auth2api:
@@ -18,6 +20,9 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${AUTH2API_PORT:-8317}:8317"
+      # Tailscale (Hermes/CT186 via mesh) + LAN AGL (192.168.0.181 agldv04)
+      - "${AUTH2API_TS_IP:-100.113.9.98}:${AUTH2API_PORT:-8317}:8317"
+      - "${AUTH2API_LAN_IP:-192.168.0.181}:${AUTH2API_PORT:-8317}:8317"
     volumes:
       - ./config.yaml:/config/config.yaml
       - ./data:/data

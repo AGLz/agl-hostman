@@ -44,18 +44,41 @@ Login **Cursor**: abre `https://cursor.com/loginDeepControl?...` e clica “Yes,
 
 Com anthropic+codex+cursor activos, pedidos Cursor devem usar ids `cursor-*` (ex. `cursor-default`).
 
-## LiteLLM lab (agldv04 `/opt/litellm` — não CT186)
-
-auth2api junta-se à rede docker `litellm_litellm-net` → LiteLLM usa `http://agl-auth2api:8317/v1`.
+## LiteLLM lab (agldv04) + CT186 (Hermes)
 
 ```bash
-bash scripts/auth2api/enable-litellm-lab.sh   # inject Claude+Codex no model_list + .env
-bash scripts/auth2api/smoke-litellm-lab.sh    # auth2api-claude-sonnet + auth2api-gpt-codex
-bash scripts/auth2api/disable-litellm-lab.sh  # remove bloco do config
+# Lab local agldv04
+bash scripts/auth2api/enable-litellm-lab.sh
+bash scripts/auth2api/smoke-litellm-lab.sh
+
+# Canónico CT186 (Hermes) — auth2api em LAN/Tailscale
+bash scripts/auth2api/enable-litellm-ct186.sh
+
+# Só Jarvis / Elon / Werner → auth2api-* (resto do fleet intacto)
+bash scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh
+# Reverter JEW: bash scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh --revert-free
 ```
 
-Modelos lab: `auth2api-claude-sonnet`, `auth2api-claude-opus`, `auth2api-gpt-codex`.  
-Snippet: `config/litellm/auth2api-lab-snippet.yaml` (Cursor omitido).  
-CT186 canónico: **não** sincronizar este bloco via `sync-config-all-hosts` sem decisão explícita.
+| Agente | Primary | Fallback / aux |
+|--------|---------|----------------|
+| Jarvis | `auth2api-claude-sonnet` | `zai-glm-flash` / `glm-4.7-flash` |
+| Elon | `auth2api-gpt-codex` | idem |
+| Werner | `auth2api-claude-sonnet` | idem |
+
+Modelos: `auth2api-claude-sonnet`, `auth2api-claude-opus`, `auth2api-gpt-codex`.  
+Snippet: `config/litellm/auth2api-lab-snippet.yaml` (Cursor omitido).
+
+### Monitor de tokens (dia / semana / mês)
+
+```bash
+bash scripts/monitoring/auth2api-quota-monitor.sh --daily
+bash scripts/monitoring/auth2api-quota-monitor.sh --alert   # [SILENT] se OK
+# Timer: config/systemd/agl-auth2api-quota.{service,timer}
+sudo cp config/systemd/agl-auth2api-quota.* /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now agl-auth2api-quota.timer
+```
+
+Soft limits (env): `AUTH2API_DAILY_TOKEN_WARN=500000`, `WEEKLY=2000000`, `MONTHLY=8000000`.  
+Estado: `/var/log/hostman/auth2api-quota-state.json` (Argus digest lê se presente).
 
 Parar só o proxy OAuth: `bash scripts/auth2api/down.sh`

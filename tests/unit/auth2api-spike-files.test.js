@@ -24,8 +24,12 @@ test('auth2api spike: ficheiros base existem', () => {
     path.join(ROOT, 'scripts/auth2api/up.sh'),
     path.join(ROOT, 'scripts/auth2api/smoke-test.sh'),
     path.join(ROOT, 'scripts/auth2api/enable-litellm-lab.sh'),
+    path.join(ROOT, 'scripts/auth2api/enable-litellm-ct186.sh'),
     path.join(ROOT, 'scripts/auth2api/disable-litellm-lab.sh'),
     path.join(ROOT, 'scripts/auth2api/smoke-litellm-lab.sh'),
+    path.join(ROOT, 'scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh'),
+    path.join(ROOT, 'scripts/monitoring/auth2api-quota-monitor.sh'),
+    path.join(ROOT, 'config/systemd/agl-auth2api-quota.timer'),
     SNIPPET,
     path.join(ROOT, 'docs/AUTH2API-SPIKE.md'),
   ]) {
@@ -33,13 +37,12 @@ test('auth2api spike: ficheiros base existem', () => {
   }
 });
 
-test('auth2api spike: bind só 127.0.0.1', () => {
+test('auth2api spike: bind localhost + Tailscale/LAN (não 0.0.0.0)', () => {
   const yaml = fs.readFileSync(COMPOSE, 'utf8');
   assert.match(yaml, /127\.0\.0\.1:\$\{AUTH2API_PORT:-8317\}:8317/);
-  // Reason: comentários podem mencionar 0.0.0.0; só a linha ports conta.
-  const ports = yaml.match(/ports:\s*\n(?:\s*-\s*"[^"]+"\s*\n)+/);
-  assert.ok(ports, 'bloco ports');
-  assert.ok(!/"0\.0\.0\.0:/.test(ports[0]), 'ports não usa 0.0.0.0');
+  assert.match(yaml, /AUTH2API_TS_IP/);
+  assert.match(yaml, /AUTH2API_LAN_IP/);
+  assert.ok(!/"0\.0\.0\.0:/.test(yaml), 'ports não usa 0.0.0.0');
 });
 
 test('auth2api spike: Dockerfile pina SHA completo', () => {
