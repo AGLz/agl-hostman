@@ -4,7 +4,7 @@
 
 ### 🔄 Em Progresso
 
-- [x] **TASK-AUTH2API-SPIKE**: OAuth Claude/Codex/Cursor OK (lab); CT186 inject + Hermes JEW → auth2api; quota monitor dia/semana/mês (timer). Cursor chat ainda 502. Tokens em `docker/auth2api/data/` (gitignored).
+- [x] **TASK-AUTH2API-SPIKE**: auth2api canónico CT186; fleet Hermes Plus/Pro (Jarvis=Fable5); aliases sonnet/opus/haiku/gpt-5.5/5.6; aux=glm; quota CT186. Lab agldv04 opcional.
 - [ ] **TASK-INFRA-AGLSRV6-BACKUP-PBS-TF**: Hot keep-last=1 + cold USB `cold/` (exFAT vzdump) aplicados 2026-07-18; USB ~24%. Pendente: 1º cold-export CTs a correr; VM620 cold Dom; SQL native 620.
 - [ ] **TASK-LLM-MONITOR-F4**: Probes complexas + matriz harness (ver plano)
 
