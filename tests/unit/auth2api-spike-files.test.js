@@ -30,6 +30,7 @@ test('auth2api: ficheiros base existem', () => {
     path.join(ROOT, 'scripts/auth2api/deploy-ct186.sh'),
     path.join(ROOT, 'scripts/auth2api/disable-litellm-lab.sh'),
     path.join(ROOT, 'scripts/auth2api/smoke-litellm-lab.sh'),
+    path.join(ROOT, 'scripts/auth2api/spike-cursor-chat.sh'),
     path.join(ROOT, 'scripts/proxmox/apply-hermes-auth2api-jew-ct188.sh'),
     path.join(ROOT, 'scripts/proxmox/apply-hermes-auth2api-fleet-ct188.sh'),
     path.join(ROOT, 'scripts/monitoring/auth2api-quota-monitor.sh'),
@@ -96,4 +97,19 @@ test('auth2api fleet: Jarvis Fable 5 único; enable usa agl-auth2api', () => {
   );
   assert.match(enable, /agl-auth2api:8317/);
   assert.match(enable, /HOST_HEALTH_URL/);
+});
+
+test('auth2api cursor spike: script + docs + login import-local', () => {
+  const spike = fs.readFileSync(
+    path.join(ROOT, 'scripts/auth2api/spike-cursor-chat.sh'),
+    'utf8',
+  );
+  assert.match(spike, /agentn\.api5\.cursor\.sh/);
+  assert.match(spike, /cli-2026\.01\.09-231024f/);
+  const login = fs.readFileSync(path.join(ROOT, 'scripts/auth2api/login.sh'), 'utf8');
+  assert.match(login, /cursor-import-local/);
+  assert.match(login, /cursor-state\.vscdb/);
+  const docs = fs.readFileSync(path.join(ROOT, 'docs/AUTH2API-SPIKE.md'), 'utf8');
+  assert.match(docs, /version-gate/);
+  assert.match(docs, /spike-cursor-chat/);
 });
