@@ -9,7 +9,7 @@
 | VM | Host | GPU | Estado agora | Backup? |
 |----|------|-----|--------------|---------|
 | **VM110** | AGLSRV1 | GTX 1650 `05:00.0` | **FAIL** — D3cold (config `0xFF`), sem `hostpci`, Ollama **100% CPU** | **Não** está nos jobs vzdump → backups **não** são a causa actual |
-| **VM310** | AGLSRV3 | RX580 `02:00.0` | **OK** — guest vê AMD, Ollama **100% GPU**, `size_vram>0` | Snapshot diário 04:15 (**não** reseta PCI; fs-freeze + dirty-bitmap) |
+| **VM310** | AGLSRV3 | RX580 `03:00.0` (era `02:00.0` pré-reenum 2026-07-20) | **OK** — guest vê AMD, Ollama **100% GPU**, `size_vram>0` | Snapshot diário 04:15 (**não** reseta PCI; fs-freeze + dirty-bitmap) |
 
 **Conclusão backups:** o mode `snapshot` do PBS na VM310 **não** faz `qm stop` nem FLR da GPU (log: `guest-agent fs-freeze` → QMP backup → thaw). A GTX 1650 da VM110 **não** entra em nenhum job activo. A perda de GPU correlaciona com **stop/start/reboot da VM ou do host**, reset vfio falhado, e bug conhecido NVIDIA sem FLR fiável — não com o backup em si.
 
@@ -31,14 +31,16 @@ Config PCI `0xFF` = dispositivo **morto no barramento** até reboot do host (às
 ### VM310 — saudável apesar de resets históricos
 
 ```text
-hostpci0: 0000:02:00.0,pcie=1,rombar=0
-hostpci1: 0000:02:00.1,pcie=1,rombar=0   # áudio HDMI da mesma placa
+hostpci0: 0000:03:00.0,pcie=1,rombar=0
+hostpci1: 0000:03:00.1,pcie=1,rombar=0   # áudio HDMI da mesma placa
 Guest: 01:00.0 AMD RX 580; Vulkan RADV; ollama 100% GPU
+# Após reboot AGLSRV3 (2026-07-20): BDF host mudou 02:00 → 03:00
+# (02:00 passou a NVMe). Mapping Proxmox RX580 e qm hostpci devem acompanhar.
 dmesg host: vários "vfio-pci resetting" em 8–10 Jul (manutenção/reboot VM), não às 04:15
 Backup 17 Jul: mode=snapshot, ~54s, GPU manteve-se
 ```
 
-Só **1× RX580** no host (slot `03:00` inexistente).
+Só **1× RX580** no host (path actual `0000:03:00`).
 
 ## Porquê a migração CT→VM não resolveu
 

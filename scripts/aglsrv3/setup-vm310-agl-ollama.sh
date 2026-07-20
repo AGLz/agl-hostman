@@ -59,10 +59,18 @@ gpu_free() {
     grep -l 'mapping=RX580' /etc/pve/qemu-server/*.conf || true
     exit 3
   fi
-  lspci -k -s 02:00.0 2>/dev/null | grep -q vfio-pci || {
-    log "AVISO: 02:00.0 não está em vfio-pci"
-    lspci -k -s 02:00.0 || true
-  }
+  # BDF da RX580 muda após reenum do host — descobrir por vendor:device
+  local rx_bdf
+  rx_bdf="$(lspci -Dn -d 1002:6fdf 2>/dev/null | awk '{print $1}' | head -1 || true)"
+  rx_bdf="${rx_bdf#0000:}"
+  if [[ -n "$rx_bdf" ]]; then
+    lspci -k -s "$rx_bdf" 2>/dev/null | grep -q vfio-pci || {
+      log "AVISO: $rx_bdf (RX580) não está em vfio-pci"
+      lspci -k -s "$rx_bdf" || true
+    }
+  else
+    log "AVISO: RX580 (1002:6fdf) não encontrada no host"
+  fi
 }
 
 create_vm() {
