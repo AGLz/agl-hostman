@@ -2,6 +2,20 @@
 # Nginx + PHP-FPM no mesmo contentor (CT134 produção).
 set -e
 
+# Reason: volume Docker sobrescreve storage/ da imagem — garantir dirs Blade/cache
+mkdir -p /var/www/html/storage/framework/cache/data \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/testing \
+    /var/www/html/storage/logs \
+    /var/www/html/bootstrap/cache
+# remover artefacto antigo de brace expansion (sh sem bash)
+if [ -d '/var/www/html/storage/framework/{cache,sessions,views,testing}' ]; then
+    rm -rf '/var/www/html/storage/framework/{cache,sessions,views,testing}'
+fi
+chown -R laravel:www-data /var/www/html/storage/framework /var/www/html/storage/logs /var/www/html/bootstrap/cache 2>/dev/null || true
+chmod -R ug+rwx /var/www/html/storage/framework /var/www/html/storage/logs /var/www/html/bootstrap/cache 2>/dev/null || true
+
 cat > /etc/nginx/nginx.conf <<'EOF'
 events {
     worker_connections 1024;

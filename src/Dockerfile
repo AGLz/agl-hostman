@@ -211,7 +211,11 @@ RUN chmod +x /usr/local/bin/entrypoint-production.sh
 
 # Set up Laravel storage and cache directories
 # Proper permissions are critical for Laravel to function
-RUN mkdir -p storage/framework/{cache,sessions,views,testing} \
+# Reason: Alpine/sh não expande braces — dir literal {cache,...} partia views em CT134
+RUN mkdir -p storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/testing \
     storage/logs \
     bootstrap/cache \
     && chown -R $user:www-data storage bootstrap/cache \

@@ -324,8 +324,11 @@ COPY --chown=$user:www-data resources ./resources
 COPY --chown=$user:www-data public ./public
 COPY --chown=$user:www-data bootstrap ./bootstrap
 
-# Laravel storage setup
-RUN mkdir -p storage/framework/{cache,sessions,views,testing} \
+# Laravel storage setup (sem braces — sh/Alpine não expande)
+RUN mkdir -p storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/testing \
     storage/logs bootstrap/cache \
     && chown -R $user:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
