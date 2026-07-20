@@ -1,0 +1,22 @@
+[Unit]
+Description=AGL Cursor Cloud Agent worker (My Machines — Pro+)
+Documentation=https://cursor.com/docs/cloud-agent/my-machines
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/cursor/worker-pool.env
+Environment=PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=AGL_HOSTMAN_DIR=/mnt/overpower/apps/dev/agl/agl-hostman
+Environment=CURSOR_WORKER_LABELS_FILE=/etc/cursor/worker-labels.json
+ExecStartPre=/bin/bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/cursor/ensure-cursor-worker-pool-ready.sh
+ExecStart=/root/.local/bin/agent worker --name WORKER_NAME_PLACEHOLDER --worker-dir /mnt/overpower/apps/dev/agl/agl-hostman --management-addr 127.0.0.1:18080 --labels-file /etc/cursor/worker-labels.json start
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

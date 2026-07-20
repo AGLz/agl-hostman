@@ -1,0 +1,8 @@
+model              tok/s  wall_ms  load_ms  eval  proc  vram
+----------------------------------------------------------
+gemma4-qat         42.73     8130   7114.8    32   GPU  4.44
+qwen3:4b           40.81     5834   4745.0    32   GPU   3.5
+qwen3:8b           26.62     8460   7543.0    12   GPU  5.94
+llama3.1:8b         28.9     6946   5416.5    32   GPU  5.46
+
+WINNER: gemma4-qat @ 42.73 tok/s (GPU, VRAM 4.44 GB)

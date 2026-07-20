@@ -1,0 +1,57 @@
+# Auditoria providers — 2026-07-09T03:19:51+00:00
+
+Env: `/opt/agl-litellm/.env` | Gateway: `http://127.0.0.1:4000`
+
+## 1. APIs directas
+
+| ID | Teste | Estado | ms | Detalhe |
+|----|-------|--------|-----|---------|
+| openai-gpt-5-nano | OpenAI gpt-5-nano | QUOTA | 545ms | insufficient_quota:You exceeded your current quota, please check your plan and billing details. For more info |
+| openai-gpt-5-mini | OpenAI gpt-5-mini | QUOTA | 542ms | insufficient_quota:You exceeded your current quota, please check your plan and billing details. For more info |
+| openai-gpt-4o-mini | OpenAI gpt-4o-mini | QUOTA | 312ms | insufficient_quota:You exceeded your current quota, please check your plan and billing details. For more info |
+| anthropic-haiku | Anthropic claude-haiku-4-5 | AUTH | 328ms | authentication_error:Invalid bearer token |
+| zai-ant-flash | Z.AI Anthropic glm-4.5-flash | QUOTA | 1686ms | 1302:[1302][Rate limit reached for requests][202607091119558da12be8ec304a61] |
+| zai-ant-glm5 | Z.AI Anthropic glm-5 | QUOTA | 1413ms | 1310:[1310][Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-07-09 18:32:25][20260 |
+| zai-oai-flash | Z.AI OpenAI-v1 glm-4.7-flash | FAIL(200) | 1276ms | {'code': 500, 'msg': '404 NOT_FOUND', 'success': False} |
+| deepseek | DeepSeek deepseek-chat | FAIL(402) | 951ms | invalid_request_error:Insufficient Balance |
+| gemini-lite | Gemini 2.5-flash-lite | AUTH | 325ms | 401:API key for authentication is used with other authentication credentials. Expected only on |
+| or-minimax | OR minimax-m2.5:free | FAIL(400) | 297ms | 400:openrouter/minimax/minimax-m2.5:free is not a valid model ID |
+| or-mistral | OR mistral-small:free | FAIL(400) | 153ms | 400:openrouter/mistralai/mistral-small-3.1-24b-instruct:free is not a valid model ID |
+| or-nemotron | OR nemotron-super:free | FAIL(400) | 182ms | 400:openrouter/nvidia/nemotron-3-super-120b-a12b:free is not a valid model ID |
+| or-gemma4b | OR gemma-3-4b:free | FAIL(400) | 146ms | 400:openrouter/google/gemma-3-4b-it:free is not a valid model ID |
+| moonshot | Moonshot moonshot-v1-8k | AUTH | 1863ms | invalid_authentication_error:Invalid Authentication |
+| groq_api_key | Groq GROQ_API_KEY /models | OK | 305ms | HTTP 200 |
+| groq_api_key2 | Groq GROQ_API_KEY2 | SKIP | — | não definida |
+| ollama | Ollama qwen3:8b @100.67.253.52 (VM310) | FAIL(000000) | 60017ms | parse |
+
+## 2. LiteLLM proxy (aliases Hermes)
+
+| Alias | Estado | ms | Detalhe |
+|-------|--------|-----|---------|
+| gpt-5-mini | OK | 8116ms | 'Got it! How can I assist you today?' upstream=glm-4.5-flash |
+| gpt-5-nano | OK | 16910ms | 'Got it! If you need help with something ' upstream=glm-4.5-flash |
+| gpt-4o-mini | OK | 12657ms | 'Is there anything I can help you with?' upstream=glm-4.5-flash |
+| gpt-5.5 | OK | 12438ms | 'Got it! Let me know how I can assist you' upstream=glm-4.5-flash |
+| glm-4.7-flash | OK | 5240ms | "It seems like you're ready to start a co" upstream=llama-3.1-8b-instant |
+| zai-glm-flash | OK | 1026ms | 'Okay! How can I assist you further? Feel' upstream=zai-glm-flash |
+| zai-glm-5 | OK | 1072ms | "Got it! Is there anything specific you'd" upstream=zai-glm-5 |
+| qwen-coder | FAIL(400) | 64ms | {'error': '/chat/completions: Invalid model name passed in model=qwen-coder. Call `/v1/models`  |
+| gemini-lite | OK | 11369ms | 'Alright, what can I do for you? Are you ' upstream=gemini-lite |
+| or-mistral-small-free | OK | 229ms | "It seems like we're starting a conversat" upstream=or-mistral-small-free |
+| or-minimax-m2.5-free | OK | 233ms | "It seems like you're just acknowledging " upstream=or-minimax-m2.5-free |
+| or-nemotron-super-free | OK | 222ms | "It seems like you're ready to start a co" upstream=or-nemotron-super-free |
+| ollama-qwen3-4b | FAIL(000000) | 75016ms | parse |
+| agl-primary | FAIL(000000) | 75020ms | parse |
+
+## 3. Chaves no .env (tamanho, sem valor)
+
+- **OPENAI_API_KEY**: definida (167 caracteres)
+- **ANTHROPIC_API_KEY**: definida (108 caracteres)
+- **ZAI_API_KEY**: definida (49 caracteres)
+- **DEEPSEEK_API_KEY**: definida (35 caracteres)
+- **GEMINI_API_KEY**: definida (53 caracteres)
+- **OPENROUTER_API_KEY**: definida (73 caracteres)
+- **MOONSHOT_API_KEY**: definida (51 caracteres)
+- **GROQ_API_KEY**: definida (56 caracteres)
+- GROQ_API_KEY2: ausente
+- **DASHSCOPE_API_KEY**: definida (35 caracteres)

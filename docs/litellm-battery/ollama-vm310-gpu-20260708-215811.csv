@@ -1,0 +1,8 @@
+model,status,case,preview,wall_ms,load_ms,total_ms,eval_count,tok_per_s,thinking_len,processor,vram_size
+qwen3:4b,FAIL,chat,timed out,,,,,,,,
+qwen3:4b,OK,json,We are to return ONLY the compact JSON: {"ok":true;"n":42}  No markdown; just th,,328023.3,331694.8,128,38.46,0,,
+qwen3:8b,FAIL,chat,timed out,,,,,,,,
+qwen3:8b,FAIL,json,timed out,,,,,,,
+llama3.1:8b,FAIL,chat,Remote end closed connection without response,,,,,,GPU,7.0 GB,
+llama3.1:8b,FAIL,json,<urlopen error [Errno 111] Connection refused>,,,,,,,
+gemma4-qat,SKIP,missing,not local,,,,,,,use --pull,
