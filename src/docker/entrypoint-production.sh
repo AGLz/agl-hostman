@@ -13,8 +13,10 @@ mkdir -p /var/www/html/storage/framework/cache/data \
 if [ -d '/var/www/html/storage/framework/{cache,sessions,views,testing}' ]; then
     rm -rf '/var/www/html/storage/framework/{cache,sessions,views,testing}'
 fi
-chown -R laravel:www-data /var/www/html/storage/framework /var/www/html/storage/logs /var/www/html/bootstrap/cache 2>/dev/null || true
-chmod -R ug+rwx /var/www/html/storage/framework /var/www/html/storage/logs /var/www/html/bootstrap/cache 2>/dev/null || true
+chown -R laravel:www-data /var/www/html/storage/framework /var/www/html/storage/logs /var/www/html/bootstrap/cache 2>/dev/null \
+    || echo "WARNING: chown storage falhou — volume pode ficar unwritable" >&2
+chmod -R ug+rwx /var/www/html/storage/framework /var/www/html/storage/logs /var/www/html/bootstrap/cache 2>/dev/null \
+    || echo "WARNING: chmod storage falhou" >&2
 
 cat > /etc/nginx/nginx.conf <<'EOF'
 events {
