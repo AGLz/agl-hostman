@@ -4,11 +4,13 @@
 
 ### 🔄 Em Progresso
 
-- [ ] **TASK-INFRA-AGLSRV6-BACKUP-PBS-TF**: Política retenção hot/cold + watchdog Hermes — doc `docs/maint/AGLSRV6-BACKUP-RETENTION-POLICY.md`; jobs UP alinhados (605,617,621); hot keep-last=2 interim até USB ext4; deploy Werner: `deploy-hermes-werner-aglsrv6-backup-watchdog-ct188.sh`. **Alerta live:** CT611 backup >6h. Pendente: USB ext4 Fase B, deploy CT188.
+- [x] **TASK-AUTH2API-SPIKE**: auth2api canónico CT186; fleet Hermes Plus/Pro (Jarvis=Fable5); aliases sonnet/opus/haiku/gpt-5.5/5.6; aux=glm; quota CT186. Lab agldv04 opcional.
+- [ ] **TASK-INFRA-AGLSRV6-BACKUP-PBS-TF**: Hot keep-last=1 + cold USB `cold/` (exFAT vzdump) aplicados 2026-07-18; USB ~24%. Pendente: 1º cold-export CTs a correr; VM620 cold Dom; SQL native 620.
 - [ ] **TASK-LLM-MONITOR-F4**: Probes complexas + matriz harness (ver plano)
 
 ## ✅ Concluído
 
+- [x] **TASK-CT134-STORAGE-HORIZON**: CT134 prod 500 — dir literal `storage/framework/{cache,...}` (brace sem expand) + Horizon 5.39 vs Laravel 12.63 `stop-when-empty-for`; hotfix runtime; durable Dockerfile/entrypoint + horizon ^5.47 (2026-07-20)
 - [x] **TASK-CT134-SELFHOSTED-PIPELINE**: Runner agldv04 (`agl-network`) + Harbor CT182 systemd/health + disco 128G + retenção `temp_backup_*` + reverb CVE-2026-23524 + wiki `[[CT134 — Pipeline Produção agl-hostman]]` (2026-07-14/15)
 - [x] **TASK-LLM-MONITOR-F3-TIER-B**: API aprovar/rejeitar propostas Tier B + job delegação Werner + botões UI (2026-06-27)
 - [x] **TASK-LLM-MONITOR-F3**: Página `/mission-control/llm-monitor` + componente `LlmMonitorDashboard` + quota-governor cron CT134 + sync CT188 + DNS `ah-dev.aglz.io` (2026-06-27)

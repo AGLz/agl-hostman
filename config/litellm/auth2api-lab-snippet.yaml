@@ -1,0 +1,89 @@
+# Modelos auth2api (OAuth Claude Pro / ChatGPT Plus) — inject no LiteLLM CT186.
+# Aplicar: bash scripts/auth2api/enable-litellm-ct186.sh
+#
+# Env LiteLLM (.env):
+#   AUTH2API_BASE_URL=http://agl-auth2api:8317/v1
+#   AUTH2API_API_KEY=<chave /opt/agl-auth2api/.env>
+
+# >>> AUTH2API_LAB_BEGIN
+- model_name: auth2api-claude-fable-5
+  litellm_params:
+    model: openai/claude-fable-5
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 8
+    tpm: 40000
+  model_info:
+    mode: chat
+    description: "auth2api — Claude Fable 5 (OAuth Anthropic); primary Jarvis"
+- model_name: auth2api-claude-sonnet
+  litellm_params:
+    model: openai/claude-sonnet-5
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 12
+    tpm: 50000
+  model_info:
+    mode: chat
+    description: "auth2api — Claude Sonnet 5 via OAuth Anthropic"
+- model_name: auth2api-claude-opus
+  litellm_params:
+    model: openai/claude-opus-4-8
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 5
+    tpm: 30000
+  model_info:
+    mode: chat
+    description: "auth2api — Claude Opus 4.8 via OAuth Anthropic"
+- model_name: auth2api-claude-haiku
+  litellm_params:
+    model: openai/claude-haiku-4-5
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 20
+    tpm: 60000
+  model_info:
+    mode: chat
+    description: "auth2api — Claude Haiku 4.5 via OAuth Anthropic"
+- model_name: auth2api-gpt-5.5
+  litellm_params:
+    model: openai/gpt-5.5
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 10
+    tpm: 50000
+  model_info:
+    mode: chat
+    description: "auth2api — GPT-5.5 via ChatGPT Plus Codex OAuth"
+- model_name: auth2api-gpt-codex
+  litellm_params:
+    model: openai/gpt-5.5
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 10
+    tpm: 50000
+  model_info:
+    mode: chat
+    description: "auth2api — alias Codex (= gpt-5.5 Plus)"
+- model_name: auth2api-gpt-5.4
+  litellm_params:
+    model: openai/gpt-5.4
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 10
+    tpm: 50000
+  model_info:
+    mode: chat
+    description: "auth2api — GPT-5.4 via ChatGPT Plus Codex OAuth"
+- model_name: auth2api-gpt-5.6
+  litellm_params:
+    model: openai/gpt-5.5
+    api_base: os.environ/AUTH2API_BASE_URL
+    api_key: os.environ/AUTH2API_API_KEY
+    rpm: 10
+    tpm: 50000
+  model_info:
+    mode: chat
+    description: "auth2api — gpt-5.6 pedido → gpt-5.5 Codex (Plus não lista 5.6 ainda)"
+# <<< AUTH2API_LAB_END

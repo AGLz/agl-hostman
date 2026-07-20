@@ -5,6 +5,8 @@
 #   ./scripts/backup/aglsrv3-vzdump-338-stop.sh --apply
 #   AGLSRV3_SSH=root@100.123.5.81 ./scripts/backup/aglsrv3-vzdump-338-stop.sh --apply --remote
 set -euo pipefail
+# Reason: cron.d usa PATH mínimo sem /usr/sbin → pct/vzdump falham após o backup
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 AGLSRV3_SSH="${AGLSRV3_SSH:-root@100.123.5.81}"
 STORAGE="${AGLSRV3_PBS_STORAGE:-pbs-aglsrv3-tb}"

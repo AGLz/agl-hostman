@@ -1,0 +1,4 @@
+# Python venv local (build PDF)
+.venv/
+__pycache__/
+*.pyc

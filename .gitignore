@@ -53,6 +53,11 @@ archive/
 *.db-shm
 *.db-wal
 
+# auth2api lab — runtime OAuth tokens / API keys (nunca versionar)
+docker/auth2api/config.yaml
+docker/auth2api/.env
+docker/auth2api/data/
+
 # LiteLLM secrets
 config/litellm/.env
 config/litellm/virtual-keys-manifest.json
