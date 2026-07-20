@@ -1,10 +1,11 @@
 [Unit]
-Description=makemoney01 erp-estacionamento (preview)
-After=network.target
+Description=makemoney01 erp-estacionamento (mvp)
+After=network.target makemoney-lead-reply-api.service
 
 [Service]
 Type=simple
 WorkingDirectory=/mnt/overpower/apps/dev/agl/erp-estacionamento/src
+Environment=MAKEMONEY_LEAD_REPLY_URL=http://127.0.0.1:8765
 Environment=MAKEMONEY_ROOT=/mnt/overpower/apps/dev/agl/makemoney01
 Environment=DB_CONNECTION=sqlite
 Environment=DB_DATABASE=/var/lib/makemoney/erp-estacionamento/database.sqlite

@@ -27,6 +27,7 @@ Route::prefix('daily-memory')->group(function () {
 require __DIR__.'/api/hermes.php';
 require __DIR__.'/api/harness.php';
 require __DIR__.'/api/llm-monitor.php';
+require __DIR__.'/api/mission-control.php';
 require __DIR__.'/api/openclaw.php';
 require __DIR__.'/api/pcgamer.php';
 

@@ -76,6 +76,11 @@ const navSections = [
                 icon: Gauge,
             },
             {
+                name: "AGLSRV1 Host",
+                href: "/mission-control/hosts/aglsrv1",
+                icon: Server,
+            },
+            {
                 name: "Claw3D Studio",
                 href: "/mission-control/studio",
                 icon: Brain,

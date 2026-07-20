@@ -83,3 +83,25 @@ bd create "Título" -t task -p 2 --json
 ```
 
 Landing the plane: testes → `git pull --rebase` → push → `git status` limpo.
+
+## Cursor Cloud specific instructions
+
+Ambiente cloud já traz Node 20+ e (via snapshot) PHP 8.3 + Composer + extensão `php-redis`. O update script faz refresh de deps (`npm install` na raiz + `composer install`/`npm install` em `src/`). Migrações, build e arranque de serviços são manuais.
+
+**Dois produtos independentes** partilham a árvore:
+
+| Serviço | Onde | Dev run | Notas |
+|---|---|---|---|
+| API Fastify (Node) | raiz, `src/api/server.js` | `npm run dev` → `:3030` | Produto principal. Sem DB nem serviços externos para arrancar. |
+| App Laravel 12 (Inertia/React) | `src/` | `php artisan serve` → `:8000` | SQLite/sync/file por defeito; Redis/MySQL/WorkOS opcionais. |
+
+**Gotchas não óbvios (cloud):**
+
+- **Serviços AGL externos não são acessíveis** a partir da VM cloud (LiteLLM CT186, Hermes CT188, Proxmox, OpenClaw estão em rede privada/Tailscale). Endpoints como `/api/ai/status` e o dashboard Laravel "Mission Control" mostram `offline`/erros — **é esperado**, não é bug; o degrade é graceful.
+- **`npm run lint` está partido** (passa `--ext`, incompatível com o `eslint.config.js` flat). Correr direto: `npx eslint src/api/ src/services/ tests/api/` (passa limpo).
+- **`npm test` falha ~50 testes num clone fresco**: são validadores de scripts infra em `tests/unit/` — muitos scripts estão commitados sem bit executável (git mode `100644`) e outros afirmam conteúdo de repos/config AGL externos. Os testes do produto passam: `node --test tests/api/*.test.js` (8/8).
+- **`npm run migrate` está partido** (`src/package.json` tem `"type":"module"` mas `src/database/migrate.js` usa `require` CommonJS). A API Node não precisa de DB — ignorar.
+- **CSP bloqueia o Vite dev server**: a app Laravel envia `script-src 'self'`, que bloqueia assets cross-origin do Vite (`:5173`). Correr `php artisan serve` + `npm run dev` juntos dá **página em branco**. Para UI funcional na cloud: `npm run build` e servir assets buildados (garantir que `src/public/hot` não existe). HMR exigiria ajustar a CSP.
+- **Login local**: além do WorkOS (chaves vazias na cloud), existe auth email/password em `/auth/login`. Criar utilizador com `php artisan tinker` (`App\Models\User`, definir `is_active=true`).
+
+**Setup manual da app Laravel** (uma vez, se `src/.env`/DB não existirem): `composer install` → `cp .env.example .env` → `php artisan key:generate` → `touch database/database.sqlite` → `php artisan migrate` → `npm install` → `npm run build`.

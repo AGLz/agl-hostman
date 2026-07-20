@@ -1,0 +1,10 @@
+[Unit]
+Description=AGL GPU health check (VM110 GTX1650 + VM310 RX580)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Host com NFS do repo + SSH BatchMode aos Proxmox (ex. agldv03)
+ExecStart=/bin/bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/monitoring/check-agl-gpu-health.sh --notify
+Nice=10

@@ -1,0 +1,11 @@
+[Unit]
+Description=AGL auth2api quota monitor (daily/weekly/monthly)
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/mnt/overpower/apps/dev/agl/agl-hostman
+ExecStart=/bin/bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/monitoring/auth2api-quota-monitor.sh --daily
+# Também modo alert para journal se WARN
+ExecStartPost=-/bin/bash /mnt/overpower/apps/dev/agl/agl-hostman/scripts/monitoring/auth2api-quota-monitor.sh --alert
+Nice=10

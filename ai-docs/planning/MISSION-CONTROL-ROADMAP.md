@@ -1,7 +1,7 @@
 # Mission Control — Roadmap Laravel (agl-hostman)
 
 > **Data:** 2026-06-12  
-> **Estado:** Planeamento / Fase 0 validação AGLSRV1  
+> **Estado:** Fase 1 implementada (Service Registry + Host MC AGLSRV1) — 2026-07-19  
 > **UI:** Inertia/React (`src/resources/js/`) + APIs Laravel existentes  
 > **Second brain:** runbooks em `llm-wiki`; este doc é pointer operacional
 
@@ -25,6 +25,7 @@ Consolidar **Mission Control** como camada única de supervisão operacional:
 | Rota | Componente | Estado |
 |------|------------|--------|
 | `/mission-control` | `MissionControlDashboard.jsx` | Hermes agents + tasks (poll) |
+| `/mission-control/hosts/aglsrv1` | `HostMissionControl.jsx` | Grid guests + health + runbooks (Fase 1) |
 | `/mission-control/minions` | iframe Minions :6969 | CT188 |
 | `/mission-control/studio` | iframe Claw3D Studio :3003 | CT188 |
 | `/mission-control/settings` | `MissionControlSettings.jsx` | Links + scheduled tasks |
@@ -191,18 +192,18 @@ Novo config `config/mission-control.php` (ou extensão `config/services.php`):
 
 ## 6. Fases de implementação
 
-### Fase 0 — Validação (actual)
+### Fase 0 — Validação
 
-- [ ] Inventariar endpoints que respondem hoje (smoke script)
-- [ ] Documentar gaps auth Sanctum vs SPA
-- [ ] Activar Reverb **ou** manter poll documentado
+- [x] Inventariar endpoints que respondem hoje (smoke script)
+- [x] Documentar gaps auth Sanctum vs SPA (mesma auth que harness)
+- [x] Poll 45s documentado (Reverb opcional fase futura)
 
 ### Fase 1 — AGLSRV1 + Service Registry (2–3 sprints)
 
-- [ ] `config/mission-control.php` + seeder CT_INVENTORY
-- [ ] `MissionControlHostController` + job `CollectServiceHealth`
-- [ ] UI `HostMissionControl.jsx` grid + detalhe guest
-- [ ] Runbook engine (YAML rules → alertas Laravel)
+- [x] `config/mission-control.php` + registry CT_INVENTORY (≥20 guests)
+- [x] `MissionControlHostController` + job `CollectServiceHealth`
+- [x] UI `HostMissionControl.jsx` grid + health + runbooks
+- [x] Runbook engine v1 (regras em config → alertas)
 
 ### Fase 2 — Hermes multi-instância + OpenClaw MC
 
@@ -224,19 +225,19 @@ Novo config `config/mission-control.php` (ou extensão `config/services.php`):
 
 ## 7. Critérios de aceitação (Fase 1)
 
-- [ ] Grid AGLSRV1 com ≥20 guests e cor semáforo
-- [ ] ≥10 serviços com health HTTP verificado
-- [ ] ≥3 runbooks automáticos (meshagent, CT locked, LiteLLM down)
-- [ ] Refresh manual + auto 45s
-- [ ] Testes Pest feature para API snapshot
-- [ ] Tempo resposta API cache < 2s
+- [x] Grid AGLSRV1 com ≥20 guests e cor semáforo
+- [x] ≥10 serviços com health HTTP verificado
+- [x] ≥3 runbooks automáticos (meshagent, LiteLLM down, Hermes/Harbor/priority stopped)
+- [x] Refresh manual + auto 45s
+- [x] Testes Pest feature para API snapshot (`MissionControlApiTest`)
+- [x] Tempo resposta API cache < 2s
 
 ---
 
 ## 8. Próximo passo imediato
 
-1. Smoke: `php artisan test --filter=Hermes` + curl APIs infra/hermes/openclaw
-2. Implementar **Fase 0** checklist em script `scripts/mission-control/smoke-apis.sh`
-3. Kickoff **Fase 1** com `MissionControlHostController` + config registry
+1. UI live em `/mission-control/hosts/aglsrv1` (CT134 após deploy)
+2. Smoke: `bash scripts/mission-control/smoke-apis.sh`
+3. Kickoff **Fase 2** — Hermes multi-instância + OpenClaw MC dedicado
 
 Ver também: `docs/HERMES-MISSION-CONTROL.md`, `docs/design-dashboard-infra-20260419.md`

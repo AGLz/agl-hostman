@@ -1,0 +1,11 @@
+[Unit]
+Description=AGL GPU health check timer (VM110 + VM310)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
