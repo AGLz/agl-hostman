@@ -73,8 +73,8 @@ importers:
         specifier: 4.1.0
         version: 4.1.0(cytoscape@3.34.0)
       cytoscape-dagre:
-        specifier: 2.5.0
-        version: 2.5.0(cytoscape@3.34.0)
+        specifier: 4.0.0
+        version: 4.0.0(cytoscape@3.34.0)
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
@@ -1440,8 +1440,8 @@ packages:
     peerDependencies:
       cytoscape: ^3.2.0
 
-  cytoscape-dagre@2.5.0:
-    resolution: {integrity: sha512-VG2Knemmshop4kh5fpLO27rYcyUaaDkRw+6PiX4bstpB+QFt0p2oauMrsjVbUamGWQ6YNavh7x2em2uZlzV44g==}
+  cytoscape-dagre@4.0.0:
+    resolution: {integrity: sha512-wsDgi1hHpWfslQxe/Gd/xCCeg2YUDrzwulhHOSI7fMfll92FFVY2AWhSRulLiOVcyDE4zz0rRd/+1TBTw+ew5Q==}
     peerDependencies:
       cytoscape: ^3.2.22
 
@@ -1466,9 +1466,6 @@ packages:
 
   d3-timer@1.0.10:
     resolution: {integrity: sha512-B1JDm0XDaQC+uvo4DT79H0XmBskgS3l6Ve+1SBCfxgmtIb1AVrPIoqd+nPSv+loMX8szQ0sVUhGngL7D5QPiXw==}
-
-  dagre@0.8.5:
-    resolution: {integrity: sha512-/aTqmnRta7x7MCCpExk7HQL2O4owCT2h8NT//9I1OQ9vt29Pa0BzSAkR5lwFUcQ7491yVi/3CXU9jQ5o0Mn2Sw==}
 
   data-uri-to-buffer@4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
@@ -1797,9 +1794,6 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
-  graphlib@2.1.8:
-    resolution: {integrity: sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==}
 
   graphql@16.12.0:
     resolution: {integrity: sha512-DKKrynuQRne0PNpEbzuEdHlYOMksHSUI8Zc9Unei5gTsMNA2/vMpoMz/yKba50pejK56qj98qM0SjYxAKi13gQ==}
@@ -4227,10 +4221,9 @@ snapshots:
       cose-base: 1.0.3
       cytoscape: 3.34.0
 
-  cytoscape-dagre@2.5.0(cytoscape@3.34.0):
+  cytoscape-dagre@4.0.0(cytoscape@3.34.0):
     dependencies:
       cytoscape: 3.34.0
-      dagre: 0.8.5
 
   cytoscape@3.34.0: {}
 
@@ -4250,11 +4243,6 @@ snapshots:
       d3-path: 1.0.9
 
   d3-timer@1.0.10: {}
-
-  dagre@0.8.5:
-    dependencies:
-      graphlib: 2.1.8
-      lodash: 4.17.21
 
   data-uri-to-buffer@4.0.1: {}
 
@@ -4577,10 +4565,6 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
-
-  graphlib@2.1.8:
-    dependencies:
-      lodash: 4.17.21
 
   graphql@16.12.0: {}
 
