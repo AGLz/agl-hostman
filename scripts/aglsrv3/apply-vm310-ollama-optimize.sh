@@ -42,8 +42,9 @@ systemctl restart ollama
 sleep 4
 systemctl is-active ollama
 curl -sf http://127.0.0.1:11434/api/tags >/dev/null && echo GPU0_API_OK
-# GPU1 só se existirem ≥2 Initialized amdgpu (2.ª placa); BDF guest pode variar
-if [[ "$(dmesg | grep -c 'Initialized amdgpu' || true)" -ge 2 ]]; then
+# GPU1 só se existirem ≥2 BDFs distintos com Initialized amdgpu (2.ª placa real,
+# não uma GPU a reinicializar após reset/hang — ver docs/maint/AGL-GPU-PASSTHROUGH-STABILITY.md)
+if [[ "$(dmesg | grep 'Initialized amdgpu' | grep -oE '[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]' | sort -u | wc -l)" -ge 2 ]]; then
   systemctl enable ollama-gpu1
   systemctl restart ollama-gpu1
   sleep 4
