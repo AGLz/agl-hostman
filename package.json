@@ -29,13 +29,13 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.1.0",
-    "better-sqlite3": "^12.6.2",
+    "better-sqlite3": "^12.11.1",
     "dotenv": "^16.4.5",
-    "fastify": "^5.9.0",
+    "fastify": "^5.10.0",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.61.1",
     "eslint": "^8.57.0",
     "playwright": "^1.58.2"
   },
