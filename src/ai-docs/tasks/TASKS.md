@@ -12,6 +12,7 @@
 ## ✅ Concluído
 
 - [x] **TASK-MC-F1-AGLSRV1-REGISTRY**: Mission Control Fase 1 — `config/mission-control.php`, API `/api/mission-control/hosts/{code}/snapshot|guests|refresh`, job `CollectServiceHealth`, UI `/mission-control/hosts/aglsrv1`, Pest + smoke (2026-07-19)
+- [x] **TASK-CT134-STORAGE-HORIZON**: CT134 prod 500 — dir literal `storage/framework/{cache,...}` (brace sem expand) + Horizon 5.39 vs Laravel 12.63 `stop-when-empty-for`; hotfix runtime; durable Dockerfile/entrypoint + horizon ^5.47 (2026-07-20)
 - [x] **TASK-CT134-SELFHOSTED-PIPELINE**: Runner agldv04 (`agl-network`) + Harbor CT182 systemd/health + disco 128G + retenção `temp_backup_*` + reverb CVE-2026-23524 + wiki `[[CT134 — Pipeline Produção agl-hostman]]` (2026-07-14/15)
 - [x] **TASK-LLM-MONITOR-F3-TIER-B**: API aprovar/rejeitar propostas Tier B + job delegação Werner + botões UI (2026-06-27)
 - [x] **TASK-LLM-MONITOR-F3**: Página `/mission-control/llm-monitor` + componente `LlmMonitorDashboard` + quota-governor cron CT134 + sync CT188 + DNS `ah-dev.aglz.io` (2026-06-27)
