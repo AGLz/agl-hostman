@@ -4,7 +4,7 @@
 # ============================================================================
 # Stage 1: Builder - Build and prepare application
 # ============================================================================
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -34,7 +34,7 @@ RUN npm prune --production
 # ============================================================================
 # Stage 2: Production - Minimal runtime image
 # ============================================================================
-FROM node:20-alpine AS production
+FROM node:26-alpine AS production
 
 # Install runtime dependencies only
 RUN apk add --no-cache \
