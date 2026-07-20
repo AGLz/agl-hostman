@@ -42,7 +42,8 @@ systemctl restart ollama
 sleep 4
 systemctl is-active ollama
 curl -sf http://127.0.0.1:11434/api/tags >/dev/null && echo GPU0_API_OK
-if dmesg | grep -q 'Initialized amdgpu.*0000:02:00.0'; then
+# GPU1 só se existirem ≥2 Initialized amdgpu (2.ª placa); BDF guest pode variar
+if [[ "$(dmesg | grep -c 'Initialized amdgpu' || true)" -ge 2 ]]; then
   systemctl enable ollama-gpu1
   systemctl restart ollama-gpu1
   sleep 4

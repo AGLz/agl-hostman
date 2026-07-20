@@ -175,9 +175,11 @@ check_host_pci "vm110-host-pci" "$AGLSRV1" "0000:05:00.0" "vfio-pci"
 check_guest_gpu "vm110-guest-pci" "$AGLSRV1" 110 "NVIDIA|10de:|GTX|GeForce"
 check_ollama_vram "vm110-ollama-vram" "$VM110_TS"
 
-# VM310 — RX580 @ AGLSRV3
+# VM310 — RX580 @ AGLSRV3 (BDF pode mudar após reboot do host — descobrir por vendor:device)
+VM310_BDF="$(ssh_host "$AGLSRV3" "lspci -Dn -d 1002:6fdf 2>/dev/null | awk '{print \$1}' | head -1" || true)"
+VM310_BDF="${VM310_BDF:-0000:03:00.0}"
 check_hostpci_conf "vm310-hostpci" "$AGLSRV3" 310
-check_host_pci "vm310-host-pci" "$AGLSRV3" "0000:02:00.0" "vfio-pci"
+check_host_pci "vm310-host-pci" "$AGLSRV3" "$VM310_BDF" "vfio-pci"
 check_guest_gpu "vm310-guest-pci" "$AGLSRV3" 310 "AMD|1002:|Radeon|Polaris"
 check_ollama_vram "vm310-ollama-vram" "$VM310_TS"
 

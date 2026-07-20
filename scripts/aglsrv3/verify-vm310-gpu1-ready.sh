@@ -12,12 +12,9 @@ set -euo pipefail
 VMID="$1"
 json=$(qm guest exec "$VMID" -- bash -lc '
   count=$(dmesg | grep -c "Initialized amdgpu" || true)
-  gpu1=$(dmesg | grep "0000:02:00.0" | grep -c "Initialized amdgpu" || true)
-  echo "amdgpu_count=${count} gpu1=${gpu1}"
+  echo "amdgpu_count=${count}"
 ' 2>/dev/null || true)
-if echo "$json" | grep -q 'gpu1=1\|gpu1=2'; then
-  :
-elif echo "$json" | grep -qE 'amdgpu_count=[2-9]'; then
+if echo "$json" | grep -qE 'amdgpu_count=[2-9]'; then
   echo "OK: ≥2 dispositivos amdgpu (contagem dmesg)"
 else
   echo "WARN: GPU1 sem driver amdgpu — usar só ollama :11434 (GPU0)" >&2

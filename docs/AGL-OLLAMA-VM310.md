@@ -49,33 +49,36 @@ Alternativa instalação limpa (sem clone VM110): `STORAGE=aglsrv3-tb bash scrip
 - Host: `vfio-pci ids=1002:6fdf,1002:aaf0` em `/etc/modprobe.d/vfio.conf`
 - Guest: `linux-modules-extra`, `linux-firmware`, `modprobe amdgpu`
 - Ollama GPU0 (`scripts/aglsrv3/vm310-ollama-override.conf`): `:11434`, `GGML_VK_VISIBLE_DEVICES=0`, `MAX_LOADED_MODELS=1`
-- Ollama GPU1 (`vm310-ollama-gpu1-override.conf` + `ollama-gpu1.service`): `:11435`, `GGML_VK_VISIBLE_DEVICES=1` — **só activo se** `dmesg` mostrar `Initialized amdgpu` @ `02:00.0`
+- Ollama GPU1 (`vm310-ollama-gpu1-override.conf` + `ollama-gpu1.service`): `:11435`, `GGML_VK_VISIBLE_DEVICES=1` — **só activo se** existir 2.ª GPU com `Initialized amdgpu` (hoje: 1× RX580 no host)
 - Aplicar: `bash scripts/aglsrv3/apply-vm310-ollama-optimize.sh`
 - Pre-warm: `bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh` (não aquece qwen3:8b em `:11434` se GPU1 inactiva — evita eviction do primário)
 - Prune: `bash scripts/aglsrv3/prune-vm310-ollama-models.sh`
 
 ### Dual-residency (2026-06-15 — operacional)
 
-Após reboot AGLSRV3, os **PCI mappings** Proxmox (`RX580` / `RX580_2`) ficaram desalinhados (IOMMU/paths). Fix no host:
+Após reboot AGLSRV3, os **BDF PCI** no host podem mudar (reenumeração). Em **2026-07-20** a RX580 passou de `02:00` → `03:00` (`02:00` ficou NVMe); a VM falhou o `onboot` com `no PCI device found for '0000:02:00.0'`.
 
 ```bash
-# host AGLSRV3 — paths actuais das 2× RX580
-hostpci0: 0000:02:00.0,pcie=1,rombar=0   # guest 01:00.0 → Vulkan0
-hostpci1: 0000:03:00.0,pcie=1,rombar=0   # guest 02:00.0 → Vulkan1
+# host AGLSRV3 — descobrir BDF actual e alinhar QM + mapping
+lspci -Dn -d 1002:6fdf
+# exemplo pós-2026-07-20 (1× RX580):
+hostpci0: 0000:03:00.0,pcie=1,rombar=0   # guest 01:00.0 → Vulkan0
+hostpci1: 0000:03:00.1,pcie=1,rombar=0   # áudio HDMI da mesma placa
+# Actualizar também /etc/pve/mapping/pci.cfg → RX580 path=
 ```
 
-Na guest aparecem avisos `ROM bogus alignment` / `BAR 6 bogus alignment` na 2.ª placa, mas **amdgpu inicializa** (`Initialized amdgpu` @ `02:00.0`). Activar serviços:
+Guest: 1× RX580 em `01:00.0` (Vulkan0). `:11435` / GPU1 só se houver 2.ª placa.
 
 ```bash
 bash scripts/aglsrv3/apply-vm310-ollama-optimize.sh
-bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh
+bash scripts/aglsrv3/prewarm-vm310-dual-ollama.sh   # GPU1 skipped se ausente
 bash scripts/aglsrv3/verify-vm310-gpu1-ready.sh
 ```
 
 | Porta    | Guest PCI         | Modelo residente (pre-warm) |
 | -------- | ----------------- | --------------------------- |
-| `:11434` | `01:00.0` Vulkan0 | `gemma4-qat` (~4,7 GB VRAM) |
-| `:11435` | `02:00.0` Vulkan1 | `qwen3:8b` (~7,8 GB VRAM)   |
+| `:11434` | `01:00.0` Vulkan0 | `gemma4-qat` / primário     |
+| `:11435` | 2.ª GPU (se houver) | `qwen3:8b` (opcional)     |
 
 **Nota:** `rombar=0` suficiente neste host; romfile/VBIOS custom só se `Initialized amdgpu` falhar de novo após reboot.
 
