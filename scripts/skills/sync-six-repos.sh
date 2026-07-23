@@ -166,7 +166,8 @@ resolve_harness_list() {
 resolve_content_harness_list() {
   local base
   base="$(resolve_harness_list)"
-  if [[ "$HARNESS" == "all" || "$HARNESS" == *hostman* || "$HARNESS" == *cursor* ]]; then
+  # hostman-cursor só quando hostman está seleccionado (não confundir com harness "cursor"=home)
+  if [[ "$HARNESS" == "all" || "$HARNESS" == *hostman* ]]; then
     if [[ "$base" != *hostman-cursor* ]]; then
       base="${base},hostman-cursor"
     fi
@@ -243,7 +244,7 @@ sync_obsidian() {
     return 0
   fi
 
-  sync_skill_dir "$repo_dir/skills/obsidian-cli" "obsidian-cli" "$(resolve_harness_list),hostman-cursor"
+  sync_skill_dir "$repo_dir/skills/obsidian-cli" "obsidian-cli" "$(resolve_content_harness_list)"
 
   local settings="$LLM_WIKI_DIR/.claude/settings.json"
   if [[ -d "$LLM_WIKI_DIR" ]]; then
@@ -367,62 +368,138 @@ sync_ruflo() {
   fi
 }
 
+# Layout OD pós-split: skills/ = funcionais; design-templates/ = renderáveis.
+# Clones incompletos (ex. CT unprivileged/NFS) podem ter o blob no git sem materializar skills/.
+ensure_open_design_tree() {
+  local target="$1"
+  [[ -d "$target/.git" ]] || return 0
+
+  # ponytail: dir não-vazio basta; não depender de slugs concretos do subset
+  if [[ -d "$target/skills" ]] && [[ -n "$(ls -A "$target/skills" 2>/dev/null)" ]]; then
+    return 0
+  fi
+
+  log_warn "Árvore open-design incompleta (skills/ ausente) — materializar checkout"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "  [dry-run] git -C $target checkout HEAD -- skills design-templates .claude/skills"
+    return 0
+  fi
+
+  git -C "$target" sparse-checkout disable 2>/dev/null || true
+  # Reason: checkout explícito evita worktrees a meio (pull --ff-only sem ficheiros)
+  git -C "$target" checkout HEAD -- skills design-templates .claude/skills 2>/dev/null || \
+    git -C "$target" checkout HEAD -- skills 2>/dev/null || true
+
+  if [[ ! -d "$target/skills" ]]; then
+    log_warn "skills/ continua em falta em $target — rever clone (git status / disco)"
+    return 1
+  fi
+  log_ok "open-design: skills/ materializado"
+}
+
+# Resolve path no layout actual (skills → design-templates → .claude/skills).
+resolve_open_design_skill_path() {
+  local target="$1"
+  local name="$2"
+  local cand
+  for cand in \
+    "$target/skills/$name" \
+    "$target/design-templates/$name" \
+    "$target/.claude/skills/od-$name" \
+    "$target/.claude/skills/$name"; do
+    if [[ -f "$cand/SKILL.md" ]]; then
+      printf '%s' "$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+open_design_dest_name() {
+  local name="$1"
+  local source_dir="$2"
+  local base
+  base="$(basename "$source_dir")"
+  if [[ "$base" == od-* ]]; then
+    printf '%s' "$base"
+  elif [[ "$name" == od-* ]]; then
+    printf '%s' "$name"
+  else
+    printf 'od-%s' "$name"
+  fi
+}
+
 sync_open_design() {
-  log_info "=== open-design (nexu-io/open-design) ==="
+  log_info "=== open-design (nexu-io/open-design) — layout skills/ + design-templates/ ==="
   local target="${OPEN_DESIGN_DIR:-$HOME/dev/open-design}"
+  # Subset AGL estável (funcionais em skills/); override via OPEN_DESIGN_SKILL_SUBSET
   local subset="${OPEN_DESIGN_SKILL_SUBSET:-design-md,design-review,design-brief,design-consultation,frontend-design,frontend-dev,ui-ux-pro-max,shadcn-ui,web-design-guidelines,color-expert,creative-director}"
   local harness_csv
   harness_csv="$(resolve_harness_list)"
 
   clone_repo "https://github.com/nexu-io/open-design.git" "$target"
+  ensure_open_design_tree "$target" || true
 
-  if [[ ! -d "$target/skills" ]]; then
-    log_warn "Sem pasta skills/ em $target — instalar conforme README upstream"
+  if [[ ! -d "$target/skills" && ! -d "$target/design-templates" && ! -d "$target/.claude/skills" ]]; then
+    log_warn "Sem skills/ nem design-templates/ em $target — instalar conforme README upstream"
     return 0
   fi
 
   local synced=()
+  local dest_names=()
   IFS=',' read -r -a names <<< "$subset"
   for name in "${names[@]}"; do
     name="$(trim "$name")"
     [[ -z "$name" ]] && continue
-    local skill_path="$target/skills/$name"
-    if [[ ! -f "$skill_path/SKILL.md" ]]; then
-      log_warn "Skill open-design em falta: $name"
+    local skill_path=""
+    if ! skill_path="$(resolve_open_design_skill_path "$target" "$name")"; then
+      log_warn "Skill open-design em falta: $name (skills/ | design-templates/ | .claude/skills/)"
       continue
     fi
-    sync_skill_dir "$skill_path" "od-$name" "$harness_csv"
+    local dest_name
+    dest_name="$(open_design_dest_name "$name" "$skill_path")"
+    sync_skill_dir "$skill_path" "$dest_name" "$harness_csv"
     synced+=("$name")
+    dest_names+=("$dest_name")
   done
 
+  # Extra: od-contribute (contrib upstream, vive em .claude/skills/)
+  if [[ -f "$target/.claude/skills/od-contribute/SKILL.md" ]]; then
+    sync_skill_dir "$target/.claude/skills/od-contribute" "od-contribute" "$harness_csv"
+    synced+=("od-contribute")
+    dest_names+=("od-contribute")
+  fi
+
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "  [dry-run] escrever $target/.agl-sync-state.json (${#synced[@]} skills od-*)"
+    echo "  [dry-run] escrever $target/.agl-sync-state.json (${#dest_names[@]} skills od-*)"
     return 0
   fi
 
-  if [[ ${#synced[@]} -eq 0 ]]; then
-    log_warn "Nenhuma skill open-design sincronizada — rever OPEN_DESIGN_SKILL_SUBSET"
+  if [[ ${#dest_names[@]} -eq 0 ]]; then
+    log_warn "Nenhuma skill open-design sincronizada — rever OPEN_DESIGN_SKILL_SUBSET / checkout"
     return 0
   fi
 
   local state_file="$target/.agl-sync-state.json"
   local skills_json=""
-  for name in "${synced[@]}"; do
+  local dn
+  for dn in "${dest_names[@]}"; do
     if [[ -n "$skills_json" ]]; then
       skills_json+=","
     fi
-    skills_json+="\"od-$name\""
+    skills_json+="\"$dn\""
   done
   cat >"$state_file" <<JSON
 {
   "repo": "nexu-io/open-design",
+  "layout": "skills+design-templates",
   "synced_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "prefix": "od-",
   "skills": [$skills_json]
 }
 JSON
-  log_ok "open-design: ${#synced[@]} skills (prefixo od-) + estado em $state_file"
-  log_info "Design systems disponíveis em $target/design-systems/ (referência local; daemon OD opcional)"
+  log_ok "open-design: ${#dest_names[@]} skills (prefixo od-) + estado em $state_file"
+  log_info "Referência: $target/skills/ (funcionais) · $target/design-templates/ · $target/design-systems/"
 }
 
 sync_harness_router() {

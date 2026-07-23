@@ -59,6 +59,22 @@ check "$HOME/.claude/skills/mandatory-delivery-pipeline/SKILL.md" "claude:delive
 check "$HOME/.claude/rules/mandatory-delivery-pipeline.md" "claude:delivery-rule"
 check "$HOME/.claude/skills/andrej-karpathy-skills/SKILL.md" "claude:karpathy"
 
+# open-design (referência agldv12)
+check "$HOME/.claude/skills/od-frontend-design/SKILL.md" "claude:od-frontend-design"
+check "$HOME/.claude/skills/od-shadcn-ui/SKILL.md" "claude:od-shadcn-ui"
+
+# Home MCP (llm-wiki + infra stubs)
+if [[ -f "$HOME/.claude/mcp.json" ]] && grep -q llm-wiki-fs "$HOME/.claude/mcp.json" 2>/dev/null; then
+  echo "OK:claude:mcp-llm-wiki-fs"
+else
+  echo "MISS:claude:mcp-llm-wiki-fs"
+fi
+if [[ -f "$HOME/.cursor/mcp.json" ]] && grep -q llm-wiki-fs "$HOME/.cursor/mcp.json" 2>/dev/null; then
+  echo "OK:cursor:mcp-llm-wiki-fs"
+else
+  echo "MISS:cursor:mcp-llm-wiki-fs"
+fi
+
 # QA + DevSecOps pack
 check "$HOME/.claude/skills/agl-stack-testing/SKILL.md" "claude:agl-stack-testing"
 check "$HOME/.claude/skills/agl-devsecops/SKILL.md" "claude:agl-devsecops"

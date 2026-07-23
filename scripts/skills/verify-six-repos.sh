@@ -88,6 +88,17 @@ if [[ -d "$OPEN_DESIGN_DIR/.git" ]]; then
 else
   warn "open-design não clonado (correr sync-six-repos --repo open-design)"
 fi
+# Layout pós-split: skills/ (funcionais) + design-templates/ (renderáveis)
+if [[ -f "$OPEN_DESIGN_DIR/skills/design-md/SKILL.md" || -f "$OPEN_DESIGN_DIR/skills/AGENTS.md" ]]; then
+  pass "open-design layout skills/ (funcionais)"
+else
+  warn "open-design skills/ incompleto — sync-six-repos --repo open-design (materializa checkout)"
+fi
+if [[ -d "$OPEN_DESIGN_DIR/design-templates" ]]; then
+  pass "open-design layout design-templates/"
+else
+  warn "open-design design-templates/ em falta (layout pós-split)"
+fi
 if [[ -f "$OPEN_DESIGN_DIR/.agl-sync-state.json" ]]; then
   pass "open-design .agl-sync-state.json"
 else

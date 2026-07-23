@@ -32,6 +32,15 @@ test('sync-six-repos.sh --repo open-design --dry-run menciona od- prefix', () =>
   const out = execFileSync(SYNC, ['--dry-run', '--repo', 'open-design'], { encoding: 'utf8' });
   assert.match(out, /open-design/);
   assert.match(out, /od-design-md|od-/);
+  assert.match(out, /skills\/ \+ design-templates|layout skills/);
+});
+
+test('sync-six-repos.sh resolve layout open-design (skills + design-templates)', () => {
+  const src = fs.readFileSync(SYNC, 'utf8');
+  assert.match(src, /ensure_open_design_tree/);
+  assert.match(src, /resolve_open_design_skill_path/);
+  assert.match(src, /design-templates\/\$name/);
+  assert.match(src, /skills\+design-templates/);
 });
 
 test('propagate-six-repos.sh --host all --dry-run lista hosts', () => {

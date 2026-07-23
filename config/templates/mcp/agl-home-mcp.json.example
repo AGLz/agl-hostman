@@ -1,0 +1,79 @@
+{
+  "mcpServers": {
+    "llm-wiki-fs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/mnt/overpower/apps/dev/agl/llm-wiki/wiki",
+        "/mnt/overpower/apps/dev/agl/llm-wiki/raw"
+      ],
+      "description": "Segundo cérebro AGL — llm-wiki"
+    },
+    "dokploy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@ahdev/dokploy-mcp"],
+      "env": {
+        "DOKPLOY_URL": "https://dok.aglz.io",
+        "DOKPLOY_API_KEY": "${DOKPLOY_API_KEY}"
+      }
+    },
+    "archon-tailscale": {
+      "type": "sse",
+      "url": "http://100.80.30.59:8051/mcp"
+    },
+    "docker": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "docker-mcp"],
+      "env": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+      }
+    },
+    "cloudflare-dns": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@cloudflare/mcp-server-cloudflare"]
+    },
+    "claude-flow": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@claude-flow/mcp"]
+    },
+    "flow-nexus": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@ruv.ai/flow-nexus-mcp"]
+    },
+    "harbor": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "harbor-mcp"],
+      "env": {
+        "HARBOR_URL": "${HARBOR_URL:-https://harbor.aglz.io}",
+        "HARBOR_USERNAME": "${HARBOR_USERNAME}",
+        "HARBOR_PASSWORD": "${HARBOR_PASSWORD}"
+      }
+    },
+    "portainer": {
+      "type": "stdio",
+      "command": "portainer-mcp",
+      "args": [
+        "-server",
+        "https://portainer.aglz.io",
+        "-token",
+        "${PORTAINER_TOKEN}"
+      ]
+    },
+    "proxmox": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["-m", "proxmox_mcp.server"],
+      "env": {
+        "PROXMOX_MCP_CONFIG": "${PROXMOX_MCP_CONFIG:-$HOME/ProxmoxMCP/proxmox-config/config.yaml}"
+      }
+    }
+  }
+}

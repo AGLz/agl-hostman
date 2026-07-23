@@ -33,14 +33,34 @@ LLM="/mnt/overpower/apps/dev/agl/llm-wiki"
 export LLM_WIKI_DIR="$LLM"
 export SKIP_SCAN=1
 cd "$HOSTMAN"
-for repo in obsidian superpowers content-skills karpathy qa-devsecops; do
-  echo "[sync] $repo"
-  ./scripts/skills/sync-six-repos.sh --repo "$repo"
+
+# CT unprivileged + NFS: root do CT mapeia para UID alto — não apaga/escreve
+# skills em llm-wiki/hostman criados por hosts ZFS/privileged. Sync só home.
+HARNESS_CSV="claude,cursor,codex,verdent,llm-wiki,hostman"
+PROBE="$(find "$LLM/.claude/skills" -name 'SKILL.md' 2>/dev/null | head -1 || true)"
+if [[ -n "$PROBE" && ! -w "$PROBE" ]]; then
+  echo "[WARN] NFS shared skills read-only (CT unprivileged / UID map) — harness home only"
+  echo "[WARN] probe not writable: $PROBE"
+  HARNESS_CSV="claude,cursor,codex,verdent"
+elif ! mkdir -p "$LLM/.claude/skills" 2>/dev/null \
+  || ! touch "$LLM/.claude/skills/.agl-write-test" 2>/dev/null; then
+  echo "[WARN] NFS shared skills sem create — harness home only"
+  HARNESS_CSV="claude,cursor,codex,verdent"
+else
+  rm -f "$LLM/.claude/skills/.agl-write-test"
+fi
+
+# open-design (od-*): referência agldv12 — UI/design skills
+for repo in obsidian superpowers content-skills karpathy qa-devsecops open-design; do
+  echo "[sync] $repo (harness=$HARNESS_CSV)"
+  ./scripts/skills/sync-six-repos.sh --repo "$repo" --harness "$HARNESS_CSV"
 done
-./scripts/agl/sync-harness-skills.sh 2>/dev/null || echo "[WARN] harness sync skip"
+./scripts/agl/sync-harness-skills.sh --harness "$HARNESS_CSV" 2>/dev/null || echo "[WARN] harness sync skip"
 ./scripts/skills/install-global-delivery-rules.sh
 ./scripts/skills/install-cursor-agent-rules.sh
 ./scripts/skills/install-agl-claude-codex-plugins.sh || echo "[WARN] claude/codex plugins parcial"
+# MCP home (~/.claude + ~/.cursor): llm-wiki-fs + infra stubs sem secrets (padrão agldv12)
+./scripts/skills/merge-agl-home-mcp.sh || echo "[WARN] merge-agl-home-mcp parcial"
 ./scripts/skills/verify-agl-qa-devsecops-pack.sh || echo "[WARN] verify qa-devsecops FAIL"
 ./scripts/skills/verify-agl-claude-codex-plugins.sh || echo "[WARN] verify claude/codex plugins FAIL"
 ./scripts/skills/verify-six-repos.sh || echo "[WARN] verify-six-repos com FAIL/WARN"
