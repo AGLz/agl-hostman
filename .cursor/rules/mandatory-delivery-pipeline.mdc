@@ -34,5 +34,3 @@ git diff --stat
 ## Integração com bd / Linear
 
 - Follow-ups → `bd create` ou issue Linear; não deixar TODOs soltos como único tracking.
-
-> **LEMBRA:** tarefa só está "feita" depois de testes + review + (commit/push/PR quando aplicável). Alterações só locais com remoto disponível **não** contam como concluídas.
