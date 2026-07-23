@@ -1,5 +1,5 @@
 #!/bin/bash
-# Remount leve de NFS no CT138 — executar no host Proxmox AGLSRV5 (tem pct).
+# Remount leve de NFS no CT538 — executar no host Proxmox AGLSRV5 (tem pct).
 # Objetivo: quando FGSRV4 volta após queda, remontar sem depender do monitor remoto.
 #
 # Uso: ./nfs-aglsrv5-local-remount.sh [--force-umount]

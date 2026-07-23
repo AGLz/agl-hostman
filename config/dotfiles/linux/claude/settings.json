@@ -3,10 +3,20 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "LITELLM_GATEWAY_URL": "http://100.125.249.8:4000"
   },
+  "model": "claude-sonnet-5",
   "statusLine": {
     "type": "command",
     "command": "/root/.claude/statusline-command.sh"
   },
-  "language": "Português",
-  "model": "claude-sonnet-5"
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true,
+    "github@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "serena@claude-plugins-official": true
+  },
+  "language": "Português"
 }

@@ -301,6 +301,18 @@ pvesm set spark --content vztmpl,iso,import,images,snippets,rootdir
 
 ---
 
+## Excepções ao PBS (2026-07)
+
+| Guest | Motivo | Runbook |
+|-------|--------|---------|
+| **VM104 aglwk45** | Boot em NVMe pass-through (`scsi0` = NE-1TB); PBS não vê o disco | Wiki: [[aglwk45 — Backup imagem guest (Macrium)]] em `llm-wiki` |
+| **VM110 agl-ollama** | Ignorar PBS; após RX580 no host → voltar a **CT200** | Wiki: [[AGL GPU Passthrough Estabilidade]] |
+| **CT240 aglsrv1-pbs** | É o próprio PBS | — |
+
+Estado canónico das levas 0–5 e jobs: `llm-wiki/wiki/AGLSRV1 — Migração PBS para spark.md`.
+
+---
+
 ## Rollback
 
 Se o PBS falhar para um guest:

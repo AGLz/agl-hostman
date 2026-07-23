@@ -1,5 +1,5 @@
 #!/bin/bash
-# NFS & Tailscale Health Monitor for FileServer5 (CT138) <-> FGSRV4
+# NFS & Tailscale Health Monitor for FileServer5 (CT538, ex-CT138) <-> FGSRV4
 # This script checks NFS mount status and Tailscale connectivity,
 # then triggers automated recovery if issues are detected.
 #
@@ -18,12 +18,12 @@ LOCK_FILE="/tmp/nfs-monitor.lock"
 RECOVERY_SCRIPT="${SCRIPT_DIR}/nfs-tailscale-recovery.sh"
 
 # Hosts configuration
-FILESERVER5_HOST="100.66.136.84"  # CT138 Tailscale IP
+FILESERVER5_HOST="100.66.136.84"  # fileserver5 Tailscale IP
 FGSRV4_HOST="100.111.79.2"       # VPS Tailscale IP
-AGLSRV5_HOST="100.119.223.113"   # Proxmox host running CT138
-CT_ID="138"
+AGLSRV5_HOST="100.119.223.113"   # Proxmox host running CT538
+CT_ID="538"
 
-# NFS mount points to verify (inside CT138)
+# NFS mount points to verify (inside CT538)
 EXPECTED_MOUNTS=(
   "/mnt/fgsrv4-fg_antigo-wg"
   "/mnt/fgsrv4-fg_antigo-ts"
@@ -247,7 +247,7 @@ run_health_checks() {
   log_info "NFS & Tailscale Health Check Started"
   log_info "=========================================="
 
-  # Check 1: CT138 status
+  # Check 1: CT538 status
   if ! check_ct_status; then
     health_status=2
   fi
@@ -271,7 +271,7 @@ run_health_checks() {
     check_nfs_export_availability || health_status=2
   fi
 
-  # Check 5: NFS mounts inside CT138
+  # Check 5: NFS mounts inside CT538
   if [[ "${health_status}" -lt 2 ]]; then
     check_nfs_mounts || health_status=2
   fi

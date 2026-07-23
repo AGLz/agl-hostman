@@ -1,5 +1,5 @@
 #!/bin/bash
-# Automated NFS & Tailscale Recovery Script for FileServer5 (CT138) <-> FGSRV4
+# Automated NFS & Tailscale Recovery Script for FileServer5 (CT538, ex-CT138) <-> FGSRV4
 # Optimized for LOCAL execution on AGLSRV5 (Proxmox host)
 #
 # Usage: ./nfs-tailscale-recovery.sh [issue_type]
@@ -15,7 +15,7 @@ LOG_FILE="${LOG_DIR}/recovery-$(date +%Y%m%d).log"
 RECOVERY_LOCK="/tmp/nfs-recovery.lock"
 RECOVERY_COOLDOWN=300  # 5 minutes
 
-CT_ID="138"
+CT_ID="538"
 FGSRV4_TS_IP="100.111.79.2"
 FGSRV4_WG_IP="10.6.0.16"
 

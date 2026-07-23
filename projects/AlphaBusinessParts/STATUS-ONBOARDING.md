@@ -3,7 +3,7 @@
 **Cliente:** José Abdalla · Alpha Business Parts  
 **Fornecedor:** B&M Smart TECH  
 **Parceiro técnico (dev + IA):** AGLz  
-**Atualizado:** 2026-07-14
+**Atualizado:** 2026-07-23
 
 Checklist operacional vivo (semana 1+). Sem secrets/API tokens neste ficheiro.
 
@@ -22,6 +22,7 @@ Checklist operacional vivo (semana 1+). Sem secrets/API tokens neste ficheiro.
 | VPS GCP | Não iniciado | Fase 1 — GCE + Dokploy (não Proxmox nested) |
 | **Código-fonte CI** | **Pendente** | **Bloqueia Discovery / plano de migração** |
 | **Base de dados** | **Pendente** | **Bloqueia Discovery / plano de migração** |
+| Pagamento implantação | Em curso | 10× R$ 1.500/quarta · 1/10 paga (22/07) · total R$ 15.000 |
 | Migração Laravel | Aguardando Discovery | Detalhe pós acesso código+DB |
 
 ---
@@ -68,7 +69,7 @@ Runbook: [[Google Workspace — migrar e-mail sem mover o site]]
 ### Servidores Dell — cobrança à parte (fora do pacote digital)
 
 - [ ] Orçamento / proposta hardware dedicada (aprovação do cliente)
-- Ver secções T7500 e 2.º Dell abaixo — **não** entram nos R$ 35.000
+- Ver secções T7500 e 2.º Dell abaixo — **não** entram nos R$ 15.000 da implantação
 
 ---
 
@@ -136,7 +137,7 @@ Detalhe técnico: `RESEARCH-ALPHABUSINESSPARTS.md` §4.
 - [ ] **Obter acesso à base de dados (read-only ou dump)**
 - [ ] Discovery: inventário + plano detalhado de migração
 - [ ] Congelar 2 melhorias
-- [ ] Executar Laravel + IA conforme plano (pacote R$ 35k por fase + mensalidade R$ 2,2k após)
+- [ ] Executar Laravel + IA conforme plano (implantação R$ 15k em 10× R$ 1,5k/quarta + mensalidade R$ 2,2k após)
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "ecc.install.v1",
-  "installedAt": "2026-05-26T01:15:55.217Z",
+  "installedAt": "2026-07-23T18:31:37.102Z",
   "target": {
     "id": "cursor-project",
     "target": "cursor",
@@ -27,8 +27,8 @@
     "skippedModules": []
   },
   "source": {
-    "repoVersion": "2.0.0-rc.1",
-    "repoCommit": "928076cc08cbb31e8549cea2883b4f51811de1c8",
+    "repoVersion": "2.0.0",
+    "repoCommit": "a3130f9ebfaeed075df5d5b52538acb0ee4bcdf8",
     "manifestVersion": 1
   },
   "operations": [
@@ -98,6 +98,16 @@
       "sourcePath": "/root/dev/everything-claude-code/.cursor/hooks/before-read-file.js",
       "sourceRelativePath": ".cursor/hooks/before-read-file.js",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/hooks/before-read-file.js",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "platform-configs",
+      "sourcePath": "/root/dev/everything-claude-code/.cursor/hooks/before-shell-execution-block-no-verify.js",
+      "sourceRelativePath": ".cursor/hooks/before-shell-execution-block-no-verify.js",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/hooks/before-shell-execution-block-no-verify.js",
       "strategy": "preserve-relative-path",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -322,44 +332,11 @@
       "scaffoldOnly": false,
       "mergePayload": {
         "mcpServers": {
-          "github": {
+          "chrome-devtools": {
             "command": "npx",
             "args": [
               "-y",
-              "@modelcontextprotocol/server-github@2025.4.8"
-            ]
-          },
-          "context7": {
-            "command": "npx",
-            "args": [
-              "-y",
-              "@upstash/context7-mcp@2.1.4"
-            ]
-          },
-          "exa": {
-            "type": "http",
-            "url": "https://mcp.exa.ai/mcp"
-          },
-          "memory": {
-            "command": "npx",
-            "args": [
-              "-y",
-              "@modelcontextprotocol/server-memory@2026.1.26"
-            ]
-          },
-          "playwright": {
-            "command": "npx",
-            "args": [
-              "-y",
-              "@playwright/mcp@0.0.69",
-              "--extension"
-            ]
-          },
-          "sequential-thinking": {
-            "command": "npx",
-            "args": [
-              "-y",
-              "@modelcontextprotocol/server-sequential-thinking@2025.12.18"
+              "chrome-devtools-mcp@latest"
             ]
           }
         }
@@ -1118,6 +1095,56 @@
     {
       "kind": "copy-file",
       "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/nuxt/coding-style.md",
+      "sourceRelativePath": "rules/nuxt/coding-style.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/nuxt-coding-style.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/nuxt/hooks.md",
+      "sourceRelativePath": "rules/nuxt/hooks.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/nuxt-hooks.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/nuxt/patterns.md",
+      "sourceRelativePath": "rules/nuxt/patterns.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/nuxt-patterns.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/nuxt/security.md",
+      "sourceRelativePath": "rules/nuxt/security.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/nuxt-security.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/nuxt/testing.md",
+      "sourceRelativePath": "rules/nuxt/testing.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/nuxt-testing.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
       "sourcePath": "/root/dev/everything-claude-code/rules/perl/coding-style.md",
       "sourceRelativePath": "rules/perl/coding-style.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/perl-coding-style.mdc",
@@ -1171,6 +1198,136 @@
       "sourcePath": "/root/dev/everything-claude-code/rules/python/fastapi.md",
       "sourceRelativePath": "rules/python/fastapi.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/python-fastapi.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react/coding-style.md",
+      "sourceRelativePath": "rules/react/coding-style.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-coding-style.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react/hooks.md",
+      "sourceRelativePath": "rules/react/hooks.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-hooks.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react/patterns.md",
+      "sourceRelativePath": "rules/react/patterns.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-patterns.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react/security.md",
+      "sourceRelativePath": "rules/react/security.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-security.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react/testing.md",
+      "sourceRelativePath": "rules/react/testing.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-testing.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/accessibility.md",
+      "sourceRelativePath": "rules/react-native/accessibility.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-accessibility.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/coding-style.md",
+      "sourceRelativePath": "rules/react-native/coding-style.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-coding-style.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/hooks.md",
+      "sourceRelativePath": "rules/react-native/hooks.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-hooks.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/patterns.md",
+      "sourceRelativePath": "rules/react-native/patterns.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-patterns.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/performance.md",
+      "sourceRelativePath": "rules/react-native/performance.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-performance.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/production-readiness.md",
+      "sourceRelativePath": "rules/react-native/production-readiness.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-production-readiness.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/security.md",
+      "sourceRelativePath": "rules/react-native/security.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-security.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/react-native/testing.md",
+      "sourceRelativePath": "rules/react-native/testing.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/react-native-testing.mdc",
       "strategy": "flatten-copy",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -1278,6 +1435,56 @@
     {
       "kind": "copy-file",
       "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/vue/coding-style.md",
+      "sourceRelativePath": "rules/vue/coding-style.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/vue-coding-style.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/vue/hooks.md",
+      "sourceRelativePath": "rules/vue/hooks.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/vue-hooks.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/vue/patterns.md",
+      "sourceRelativePath": "rules/vue/patterns.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/vue-patterns.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/vue/security.md",
+      "sourceRelativePath": "rules/vue/security.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/vue-security.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
+      "sourcePath": "/root/dev/everything-claude-code/rules/vue/testing.md",
+      "sourceRelativePath": "rules/vue/testing.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/vue-testing.mdc",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "rules-core",
       "sourcePath": "/root/dev/everything-claude-code/rules/web/coding-style.md",
       "sourceRelativePath": "rules/web/coding-style.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/web-coding-style.mdc",
@@ -1341,106 +1548,6 @@
       "sourcePath": "/root/dev/everything-claude-code/rules/web/testing.md",
       "sourceRelativePath": "rules/web/testing.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/web-testing.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/agents.md",
-      "sourceRelativePath": "rules/zh/agents.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-agents.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/code-review.md",
-      "sourceRelativePath": "rules/zh/code-review.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-code-review.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/coding-style.md",
-      "sourceRelativePath": "rules/zh/coding-style.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-coding-style.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/development-workflow.md",
-      "sourceRelativePath": "rules/zh/development-workflow.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-development-workflow.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/git-workflow.md",
-      "sourceRelativePath": "rules/zh/git-workflow.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-git-workflow.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/hooks.md",
-      "sourceRelativePath": "rules/zh/hooks.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-hooks.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/patterns.md",
-      "sourceRelativePath": "rules/zh/patterns.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-patterns.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/performance.md",
-      "sourceRelativePath": "rules/zh/performance.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-performance.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/security.md",
-      "sourceRelativePath": "rules/zh/security.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-security.mdc",
-      "strategy": "flatten-copy",
-      "ownership": "managed",
-      "scaffoldOnly": false
-    },
-    {
-      "kind": "copy-file",
-      "moduleId": "rules-core",
-      "sourcePath": "/root/dev/everything-claude-code/rules/zh/testing.md",
-      "sourceRelativePath": "rules/zh/testing.md",
-      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/rules/zh-testing.mdc",
       "strategy": "flatten-copy",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -1558,6 +1665,126 @@
     {
       "kind": "copy-file",
       "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/benchmark-methodology/SKILL.md",
+      "sourceRelativePath": ".agents/skills/benchmark-methodology/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/benchmark-methodology/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/benchmark-methodology/agents/openai.yaml",
+      "sourceRelativePath": ".agents/skills/benchmark-methodology/agents/openai.yaml",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/benchmark-methodology/agents/openai.yaml",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/SKILL.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/agents/openai.yaml",
+      "sourceRelativePath": ".agents/skills/brand-discovery/agents/openai.yaml",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/agents/openai.yaml",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/10_purpose-why.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/10_purpose-why.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/10_purpose-why.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/20_positioning.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/20_positioning.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/20_positioning.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/30_audience-niche.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/30_audience-niche.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/30_audience-niche.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/40_personality-archetype.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/40_personality-archetype.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/40_personality-archetype.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/50_voice-tone.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/50_voice-tone.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/50_voice-tone.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/60_narrative-story.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/60_narrative-story.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/60_narrative-story.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/70_founder-tension.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/70_founder-tension.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/70_founder-tension.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-discovery/references/90_SYNTHESIS.md",
+      "sourceRelativePath": ".agents/skills/brand-discovery/references/90_SYNTHESIS.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-discovery/references/90_SYNTHESIS.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
       "sourcePath": "/root/dev/everything-claude-code/.agents/skills/brand-voice/SKILL.md",
       "sourceRelativePath": ".agents/skills/brand-voice/SKILL.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/brand-voice/SKILL.md",
@@ -1621,6 +1848,46 @@
       "sourcePath": "/root/dev/everything-claude-code/.agents/skills/coding-standards/agents/openai.yaml",
       "sourceRelativePath": ".agents/skills/coding-standards/agents/openai.yaml",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/coding-standards/agents/openai.yaml",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/competitive-platform-analysis/SKILL.md",
+      "sourceRelativePath": ".agents/skills/competitive-platform-analysis/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/competitive-platform-analysis/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/competitive-platform-analysis/agents/openai.yaml",
+      "sourceRelativePath": ".agents/skills/competitive-platform-analysis/agents/openai.yaml",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/competitive-platform-analysis/agents/openai.yaml",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/competitive-report-structure/SKILL.md",
+      "sourceRelativePath": ".agents/skills/competitive-report-structure/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/competitive-report-structure/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/competitive-report-structure/agents/openai.yaml",
+      "sourceRelativePath": ".agents/skills/competitive-report-structure/agents/openai.yaml",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/competitive-report-structure/agents/openai.yaml",
       "strategy": "preserve-relative-path",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -1998,6 +2265,26 @@
     {
       "kind": "copy-file",
       "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/plan-canvas/SKILL.md",
+      "sourceRelativePath": ".agents/skills/plan-canvas/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/plan-canvas/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/.agents/skills/plan-canvas/agents/openai.yaml",
+      "sourceRelativePath": ".agents/skills/plan-canvas/agents/openai.yaml",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/plan-canvas/agents/openai.yaml",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
       "sourcePath": "/root/dev/everything-claude-code/.agents/skills/product-capability/SKILL.md",
       "sourceRelativePath": ".agents/skills/product-capability/SKILL.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/.agents/skills/product-capability/SKILL.md",
@@ -2141,6 +2428,16 @@
       "sourcePath": "/root/dev/everything-claude-code/agents/a11y-architect.md",
       "sourceRelativePath": "agents/a11y-architect.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-a11y-architect.md",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/agents/agent-evaluator.md",
+      "sourceRelativePath": "agents/agent-evaluator.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-agent-evaluator.md",
       "strategy": "flatten-copy",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -2598,6 +2895,16 @@
     {
       "kind": "copy-file",
       "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/agents/php-reviewer.md",
+      "sourceRelativePath": "agents/php-reviewer.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-php-reviewer.md",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
       "sourcePath": "/root/dev/everything-claude-code/agents/planner.md",
       "sourceRelativePath": "agents/planner.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-planner.md",
@@ -2631,6 +2938,26 @@
       "sourcePath": "/root/dev/everything-claude-code/agents/pytorch-build-resolver.md",
       "sourceRelativePath": "agents/pytorch-build-resolver.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-pytorch-build-resolver.md",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/agents/react-build-resolver.md",
+      "sourceRelativePath": "agents/react-build-resolver.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-react-build-resolver.md",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/agents/react-reviewer.md",
+      "sourceRelativePath": "agents/react-reviewer.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-react-reviewer.md",
       "strategy": "flatten-copy",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -2698,6 +3025,16 @@
     {
       "kind": "copy-file",
       "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/agents/spec-miner.md",
+      "sourceRelativePath": "agents/spec-miner.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-spec-miner.md",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
       "sourcePath": "/root/dev/everything-claude-code/agents/swift-build-resolver.md",
       "sourceRelativePath": "agents/swift-build-resolver.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-swift-build-resolver.md",
@@ -2741,6 +3078,16 @@
       "sourcePath": "/root/dev/everything-claude-code/agents/typescript-reviewer.md",
       "sourceRelativePath": "agents/typescript-reviewer.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-typescript-reviewer.md",
+      "strategy": "flatten-copy",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "agents-core",
+      "sourcePath": "/root/dev/everything-claude-code/agents/vue-reviewer.md",
+      "sourceRelativePath": "agents/vue-reviewer.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/agents/ecc-vue-reviewer.md",
       "strategy": "flatten-copy",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -2841,6 +3188,76 @@
       "sourcePath": "/root/dev/everything-claude-code/commands/ecc-guide.md",
       "sourceRelativePath": "commands/ecc-guide.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/ecc-guide.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-claim.md",
+      "sourceRelativePath": "commands/epic-claim.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-claim.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-decompose.md",
+      "sourceRelativePath": "commands/epic-decompose.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-decompose.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-publish.md",
+      "sourceRelativePath": "commands/epic-publish.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-publish.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-review.md",
+      "sourceRelativePath": "commands/epic-review.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-review.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-sync.md",
+      "sourceRelativePath": "commands/epic-sync.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-sync.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-unblock.md",
+      "sourceRelativePath": "commands/epic-unblock.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-unblock.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/epic-validate.md",
+      "sourceRelativePath": "commands/epic-validate.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/epic-validate.md",
       "strategy": "preserve-relative-path",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -3198,6 +3615,76 @@
     {
       "kind": "copy-file",
       "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/orch-add-feature.md",
+      "sourceRelativePath": "commands/orch-add-feature.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/orch-add-feature.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/orch-build-mvp.md",
+      "sourceRelativePath": "commands/orch-build-mvp.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/orch-build-mvp.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/orch-change-feature.md",
+      "sourceRelativePath": "commands/orch-change-feature.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/orch-change-feature.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/orch-fix-defect.md",
+      "sourceRelativePath": "commands/orch-fix-defect.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/orch-fix-defect.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/orch-refine-code.md",
+      "sourceRelativePath": "commands/orch-refine-code.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/orch-refine-code.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/orch-review.md",
+      "sourceRelativePath": "commands/orch-review.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/orch-review.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/plan-canvas.md",
+      "sourceRelativePath": "commands/plan-canvas.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/plan-canvas.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
       "sourcePath": "/root/dev/everything-claude-code/commands/plan-prd.md",
       "sourceRelativePath": "commands/plan-prd.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/plan-prd.md",
@@ -3341,6 +3828,36 @@
       "sourcePath": "/root/dev/everything-claude-code/commands/quality-gate.md",
       "sourceRelativePath": "commands/quality-gate.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/quality-gate.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/react-build.md",
+      "sourceRelativePath": "commands/react-build.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/react-build.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/react-review.md",
+      "sourceRelativePath": "commands/react-review.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/react-review.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/react-test.md",
+      "sourceRelativePath": "commands/react-test.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/react-test.md",
       "strategy": "preserve-relative-path",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -3501,6 +4018,36 @@
       "sourcePath": "/root/dev/everything-claude-code/commands/update-docs.md",
       "sourceRelativePath": "commands/update-docs.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/update-docs.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/commands/vue-review.md",
+      "sourceRelativePath": "commands/vue-review.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/commands/vue-review.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/scripts/harness-audit.js",
+      "sourceRelativePath": "scripts/harness-audit.js",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/scripts/harness-audit.js",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "commands-core",
+      "sourcePath": "/root/dev/everything-claude-code/scripts/skills-health.js",
+      "sourceRelativePath": "scripts/skills-health.js",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/scripts/skills-health.js",
       "strategy": "preserve-relative-path",
       "ownership": "managed",
       "scaffoldOnly": false
@@ -3798,6 +4345,16 @@
     {
       "kind": "copy-file",
       "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/plan-canvas/SKILL.md",
+      "sourceRelativePath": "skills/plan-canvas/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/plan-canvas/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
       "sourcePath": "/root/dev/everything-claude-code/skills/plankton-code-quality/SKILL.md",
       "sourceRelativePath": "skills/plankton-code-quality/SKILL.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/plankton-code-quality/SKILL.md",
@@ -3901,6 +4458,396 @@
       "sourcePath": "/root/dev/everything-claude-code/skills/windows-desktop-e2e/SKILL.md",
       "sourceRelativePath": "skills/windows-desktop-e2e/SKILL.md",
       "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/windows-desktop-e2e/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/SKILL.md",
+      "sourceRelativePath": "skills/agent-self-evaluation/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/examples/high-score-example.md",
+      "sourceRelativePath": "skills/agent-self-evaluation/examples/high-score-example.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/examples/high-score-example.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/examples/low-score-example.md",
+      "sourceRelativePath": "skills/agent-self-evaluation/examples/low-score-example.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/examples/low-score-example.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/references/evaluation-criteria.md",
+      "sourceRelativePath": "skills/agent-self-evaluation/references/evaluation-criteria.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/references/evaluation-criteria.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/references/hook-integration.md",
+      "sourceRelativePath": "skills/agent-self-evaluation/references/hook-integration.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/references/hook-integration.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/scripts/evaluate.py",
+      "sourceRelativePath": "skills/agent-self-evaluation/scripts/evaluate.py",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/scripts/evaluate.py",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/agent-self-evaluation/templates/evaluation-report.md",
+      "sourceRelativePath": "skills/agent-self-evaluation/templates/evaluation-report.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/agent-self-evaluation/templates/evaluation-report.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/architecture-decision-records/SKILL.md",
+      "sourceRelativePath": "skills/architecture-decision-records/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/architecture-decision-records/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/browser-qa/SKILL.md",
+      "sourceRelativePath": "skills/browser-qa/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/browser-qa/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/SKILL.md",
+      "sourceRelativePath": "skills/ck/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/forget.mjs",
+      "sourceRelativePath": "skills/ck/commands/forget.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/forget.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/info.mjs",
+      "sourceRelativePath": "skills/ck/commands/info.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/info.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/init.mjs",
+      "sourceRelativePath": "skills/ck/commands/init.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/init.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/list.mjs",
+      "sourceRelativePath": "skills/ck/commands/list.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/list.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/migrate.mjs",
+      "sourceRelativePath": "skills/ck/commands/migrate.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/migrate.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/resume.mjs",
+      "sourceRelativePath": "skills/ck/commands/resume.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/resume.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/save.mjs",
+      "sourceRelativePath": "skills/ck/commands/save.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/save.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/commands/shared.mjs",
+      "sourceRelativePath": "skills/ck/commands/shared.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/commands/shared.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ck/hooks/session-start.mjs",
+      "sourceRelativePath": "skills/ck/hooks/session-start.mjs",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ck/hooks/session-start.mjs",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/click-path-audit/SKILL.md",
+      "sourceRelativePath": "skills/click-path-audit/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/click-path-audit/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/codebase-onboarding/SKILL.md",
+      "sourceRelativePath": "skills/codebase-onboarding/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/codebase-onboarding/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/codehealth-mcp/SKILL.md",
+      "sourceRelativePath": "skills/codehealth-mcp/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/codehealth-mcp/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/config-gc/SKILL.md",
+      "sourceRelativePath": "skills/config-gc/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/config-gc/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/context-budget/SKILL.md",
+      "sourceRelativePath": "skills/context-budget/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/context-budget/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/delivery-gate/SKILL.md",
+      "sourceRelativePath": "skills/delivery-gate/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/delivery-gate/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/delivery-gate/hooks/quality-gate.py",
+      "sourceRelativePath": "skills/delivery-gate/hooks/quality-gate.py",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/delivery-gate/hooks/quality-gate.py",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ecc-guide/SKILL.md",
+      "sourceRelativePath": "skills/ecc-guide/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ecc-guide/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/ecc-recipes/SKILL.md",
+      "sourceRelativePath": "skills/ecc-recipes/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/ecc-recipes/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/growth-log/SKILL.md",
+      "sourceRelativePath": "skills/growth-log/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/growth-log/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/inherit-legacy-style/SKILL.md",
+      "sourceRelativePath": "skills/inherit-legacy-style/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/inherit-legacy-style/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/intent-driven-development/SKILL.md",
+      "sourceRelativePath": "skills/intent-driven-development/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/intent-driven-development/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/loop-design-check/SKILL.md",
+      "sourceRelativePath": "skills/loop-design-check/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/loop-design-check/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/product-lens/SKILL.md",
+      "sourceRelativePath": "skills/product-lens/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/product-lens/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/repo-scan/SKILL.md",
+      "sourceRelativePath": "skills/repo-scan/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/repo-scan/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/rules-distill/SKILL.md",
+      "sourceRelativePath": "skills/rules-distill/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/rules-distill/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/rules-distill/scripts/scan-rules.sh",
+      "sourceRelativePath": "skills/rules-distill/scripts/scan-rules.sh",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/rules-distill/scripts/scan-rules.sh",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/rules-distill/scripts/scan-skills.sh",
+      "sourceRelativePath": "skills/rules-distill/scripts/scan-skills.sh",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/rules-distill/scripts/scan-skills.sh",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/santa-method/SKILL.md",
+      "sourceRelativePath": "skills/santa-method/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/santa-method/SKILL.md",
+      "strategy": "preserve-relative-path",
+      "ownership": "managed",
+      "scaffoldOnly": false
+    },
+    {
+      "kind": "copy-file",
+      "moduleId": "workflow-quality",
+      "sourcePath": "/root/dev/everything-claude-code/skills/git-workflow/SKILL.md",
+      "sourceRelativePath": "skills/git-workflow/SKILL.md",
+      "destinationPath": "/mnt/overpower/apps/dev/agl/agl-hostman/.cursor/skills/git-workflow/SKILL.md",
       "strategy": "preserve-relative-path",
       "ownership": "managed",
       "scaffoldOnly": false
