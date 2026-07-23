@@ -2,10 +2,11 @@
 
 **Cliente:** José Abdalla — Alpha Business Parts · Barueri/SP  
 **Fornecedor:** B&M Smart TECH  
-**Data:** Julho/2026 · **Validade:** 30 dias · **Versão:** 1.6.1  
+**Data:** 23/07/2026 · **Validade:** acordo em vigor · **Versão:** 1.7  
 **Site:** alphabusinessparts.com.br
 
-> Pacote digital: **R$ 35.000** faturado **por fase** (R$ 5k + R$ 5k + R$ 12k + R$ 13k); depois, mensalidade **R$ 2.200**.  
+> **Implantação (acordo fechado):** **R$ 15.000** em **10× R$ 1.500**, toda **quarta-feira**.  
+> 1.ª parcela **22/07/2026 — paga**; restam **9× R$ 1.500**.  
 > **GCP e demais cloud/SAAS:** custos **pagos pelo cliente** (cartão / billing próprio).  
 > **Servidores Dell** (T7500 + 2.º Dell): **cobrança à parte** (§8).  
 > Migração Laravel detalhada após Discovery com **código-fonte + DB**.
@@ -28,7 +29,7 @@ Trabalhamos de forma **faseada**, com transparência sobre o que já foi feito n
 
 A Alpha Business Parts é um desmanche **DETRAN-SP** especializado em peças de caminhões e ônibus (Mercedes-Benz, Volvo, Scania), com e-commerce e venda consultiva (WhatsApp), além de serviço de jateamento com gelo seco.
 
-**Projeto digital (esta proposta — R$ 35.000 + mensalidade):**
+**Projeto digital (esta proposta — implantação R$ 15.000 + mensalidade pós-implantação):**
 
 1. Migração CodeIgniter → **Laravel** + **2 melhorias** (detalhe após Discovery)
 2. **IA** dentro da aplicação
@@ -47,7 +48,7 @@ A Alpha Business Parts é um desmanche **DETRAN-SP** especializado em peças de 
 
 ## 3. Status — Onboarding / Quick Wins (semana 1)
 
-### Projeto digital (pacote R$ 35.000)
+### Projeto digital (implantação R$ 15.000)
 
 | Item | Estado | Observação |
 |------|--------|------------|
@@ -98,7 +99,7 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 
 > **GCP:** a B&M configura e opera a infraestrutura; os **custos de cloud (VM, disco, rede, etc.) são integralmente do cliente**, via conta/billing GCP própria (cartão já usado nas contratações SAAS). Estimativa orientativa: ~US$ 180–280/mês para um ambiente pequeno em São Paulo — valor real conforme uso.
 
-> **Recomendação técnica:** em produção, **não** instalar Proxmox *nested* dentro de uma VM GCP. Nested virt é aceitável para laboratório; para Laravel em produção usamos GCE + contentores. **Proxmox multi-cloud HA** fica como evolução futura (fora do pacote de R$ 35.000), em **bare metal**.
+> **Recomendação técnica:** em produção, **não** instalar Proxmox *nested* dentro de uma VM GCP. Nested virt é aceitável para laboratório; para Laravel em produção usamos GCE + contentores. **Proxmox multi-cloud HA** fica como evolução futura (fora da implantação de R$ 15.000), em **bare metal**.
 
 ### Fase 2 — Migração Laravel + 2 melhorias *(dev com AGLz)*
 
@@ -130,7 +131,7 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 | E-mail / DNS | Workspace + Cloudflare Pro | **Cliente** (já contratado) | B&M |
 | GCP (VM, disco, egress) | GCE SP + Docker/Dokploy | **Cliente** (billing GCP) | B&M (setup/ops) |
 | Tooling AI (Claude, Cursor, etc.) | Licenças já ativas | **Cliente** | — |
-| App Laravel + IA | Stack AGLz | Incluso no pacote / mensalidade B&M | B&M · AGLz |
+| App Laravel + IA | Stack AGLz | Incluso na implantação / mensalidade B&M | B&M · AGLz |
 | Servidores Dell | T7500 + 2.º Dell | **À parte** (§8) | B&M |
 
 ---
@@ -148,23 +149,45 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 
 ---
 
-## 7. Investimento — Pacote digital (R$ 35.000)
+## 7. Investimento — Fase de implantação (R$ 15.000)
 
-**Total do projeto digital: R$ 35.000**, faturado por fases:
+**Acordo comercial fechado (jul/2026):** implantação digital por **R$ 15.000**, pagos em **10 parcelas semanais de R$ 1.500**, sempre às **quartas-feiras**.
 
-<table class="valores3">
-<colgroup><col class="c1"/><col class="c2"/><col class="c3"/></colgroup>
-<thead><tr><th>Fase</th><th>Escopo resumido</th><th>Valor</th></tr></thead>
+| Resumo | |
+|--------|--|
+| Valor da implantação | **R$ 15.000** |
+| Parcelas | **10× R$ 1.500** |
+| Frequência | **Toda quarta-feira** |
+| Início | **22/07/2026** (1.ª parcela **já paga**) |
+| Restante | **9× R$ 1.500** (R$ 13.500) |
+| Escopo coberto | Onboarding, Discovery, Fundação, Laravel + IA (§4) — conforme plano pós-Discovery |
+
+### Cronograma de pagamento (implantação)
+
+<table class="valores4">
+<colgroup><col class="d1"/><col class="d2"/><col class="d3"/><col class="d4"/></colgroup>
+<thead><tr><th>Nº</th><th>Data (quarta)</th><th>Status</th><th>Valor</th></tr></thead>
 <tbody>
-<tr><td><strong>Onboarding</strong></td><td>DNS CF, Workspace, iMac</td><td class="val">R$ 5.000</td></tr>
-<tr><td><strong>Fase 0 — Discovery</strong></td><td>Inventário código+DB; plano migração; 2 melhorias</td><td class="val">R$ 5.000</td></tr>
-<tr><td><strong>Fase 1 — Fundação</strong></td><td>Cutover MX; GCP+Dokploy; saída Locaweb</td><td class="val">R$ 12.000</td></tr>
-<tr><td><strong>Fases 2–3 — Laravel + IA</strong></td><td>Conforme plano do Discovery (dev AGLz + IA)</td><td class="val">R$ 13.000</td></tr>
-<tr class="tot"><td><strong>Total</strong></td><td></td><td class="val"><strong>R$ 35.000</strong></td></tr>
+<tr class="tot"><td>1</td><td><strong>22/07/2026</strong></td><td><strong>Pago</strong></td><td class="val">R$ 1.500</td></tr>
+<tr><td>2</td><td>29/07/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>3</td><td>05/08/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>4</td><td>12/08/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>5</td><td>19/08/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>6</td><td>26/08/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>7</td><td>02/09/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>8</td><td>09/09/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>9</td><td>16/09/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr><td>10</td><td>23/09/2026</td><td>A receber</td><td class="val">R$ 1.500</td></tr>
+<tr class="tot"><td>—</td><td><strong>Total implantação</strong></td><td>1 paga · 9 a receber</td><td class="val"><strong>R$ 15.000</strong></td></tr>
 </tbody>
 </table>
 
-**Explicitamente fora dos R$ 35.000:**
+- Cobrança **semanal às quartas**; a 1.ª parcela de **22/07/2026** já foi liquidada.
+- Saldo da implantação após a 1.ª: **R$ 13.500** (9× R$ 1.500).
+- A mensalidade de manutenção (§9) **não** se soma a estas parcelas; inicia **após** a implantação (tipicamente após a 10.ª parcela / entrega acordada).
+- GCP / SAAS (cliente) e servidores Dell (§8) são faturas à parte, fora desta tabela.
+
+**Explicitamente fora dos R$ 15.000:**
 
 | Item | Quem paga |
 |------|-----------|
@@ -173,31 +196,11 @@ Sem estes itens não é possível inventariar o sistema nem detalhar a migraçã
 | **Servidores Dell** (mão de obra + peças) | **À parte** — §8 |
 | HA multi-cloud (evolução futura) | Orçamento futuro |
 
-### Cronograma de pagamento (pacote digital + mensalidade)
-
-<table class="valores4">
-<colgroup><col class="d1"/><col class="d2"/><col class="d3"/><col class="d4"/></colgroup>
-<thead><tr><th>Ord.</th><th>Fase</th><th>O que fatura</th><th>Valor</th></tr></thead>
-<tbody>
-<tr><td>1.º</td><td><strong>Onboarding</strong></td><td>DNS CF, Workspace, iMac</td><td class="val">R$ 5.000</td></tr>
-<tr><td>2.º</td><td><strong>Discovery</strong></td><td>Código+DB; plano migração; 2 melhorias</td><td class="val">R$ 5.000</td></tr>
-<tr><td>3.º</td><td><strong>Fundação</strong></td><td>Cutover MX; GCP+Dokploy; saída Locaweb</td><td class="val">R$ 12.000</td></tr>
-<tr><td>4.º</td><td><strong>Laravel + IA</strong></td><td>Execução conforme Discovery</td><td class="val">R$ 13.000</td></tr>
-<tr class="tot"><td>—</td><td><strong>Total pacote</strong></td><td></td><td class="val"><strong>R$ 35.000</strong></td></tr>
-<tr><td>5.º+</td><td><strong>Mensalidade</strong></td><td>Manutenção Laravel/AI + infra/DevOps</td><td class="val"><strong>R$ 2.200/mês</strong></td></tr>
-</tbody>
-</table>
-
-- O pacote de R$ 35.000 é cobrado **por fase** (não em parcelas iguais genéricas): cada fatura corresponde ao início/marco da fase.
-- A mensalidade de **R$ 2.200** entra **após** a conclusão/faturamento das quatro fases do pacote inicial — tipicamente a partir do período seguinte ao 4.º faturamento.
-- A mensalidade **não** se soma às faturas das fases 1–4.
-- GCP / SAAS (cliente) e servidores Dell (§8) são faturas à parte, fora desta tabela.
-
 ---
 
 ## 8. Servidores Dell — cobrança à parte
 
-Este bloco **não** faz parte dos R$ 35.000 nem da mensalidade de R$ 2.200. Será orçado e faturado separadamente.
+Este bloco **não** faz parte dos R$ 15.000 da implantação nem da mensalidade de R$ 2.200. Será orçado e faturado separadamente.
 
 ### 8.1 Dell Precision T7500
 
@@ -222,11 +225,11 @@ Este bloco **não** faz parte dos R$ 35.000 nem da mensalidade de R$ 2.200. Ser�
 
 ## 9. Manutenção e suporte (recorrente)
 
-Após o pacote digital (ou desde a Fundação, se preferir cobertura contínua):
+Após a **fase de implantação** (liquidação das 10 parcelas / entrega acordada):
 
 | | |
 |--|--|
-| **Mensalidade** | **R$ 2.200 / mês** |
+| **Mensalidade** | **R$ 2.200 / mês** (referência; início pós-implantação) |
 | **Inclui** | Manutenção, suporte em horário comercial, evolução controlada, acompanhamento de infra/DevOps e das entregas Laravel/IA |
 
 **Porquê este valor:** a mensalidade cobre a **expertise especializada** — não inclui o consumo de cloud:
@@ -263,7 +266,7 @@ Após o pacote digital (ou desde a Fundação, se preferir cobertura contínua):
 - Consumo/billing **GCP** e demais cloud/SAAS — **cliente**
 - Anúncios pagos (Google Ads / Meta Ads) e comissões marketplace
 - HA multi-cloud e backup tertiary (evolução futura)
-- Escopo Laravel além do plano do Discovery dentro dos R$ 35.000 — *change request* ou ajuste via mensalidade sob acordo
+- Escopo Laravel além do plano do Discovery dentro dos R$ 15.000 de implantação — *change request* ou ajuste via mensalidade sob acordo
 
 **Change requests:** fora do escopo congelado → estimativa à parte.
 
@@ -271,13 +274,14 @@ Após o pacote digital (ou desde a Fundação, se preferir cobertura contínua):
 
 ## 11. Próximos passos
 
-1. Aprovar pacote digital (**R$ 35.000** por fase: 5 + 5 + 12 + 13; mensalidade **R$ 2.200** após as 4 fases)
+1. **Acordo de implantação em vigor:** 10× R$ 1.500 às quartas (1.ª **22/07 paga**; próximas até **23/09/2026**)
 2. Confirmar que **billing GCP** (e SAAS) permanece no **cartão/conta do cliente**
 3. **Liberar acesso ao código-fonte e ao DB** (desbloqueia Discovery)
 4. Concluir Workspace: validação Google + 5 mailboxes + cutover MX
 5. Receber / aprovar **orçamento separado dos servidores Dell** (§8)
 6. Kickoff Discovery → plano detalhado de migração Laravel/IA
 7. Provisionar GCP na conta do cliente e planear cutover origin
+8. Após implantação: ativar mensalidade de manutenção (**R$ 2.200/mês**, §9)
 
 ---
 
